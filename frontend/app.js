@@ -21,7 +21,6 @@ function initializeElements() {
     elements.chatMessages = document.getElementById('chatMessages');
     elements.messageInput = document.getElementById('messageInput');
     elements.sendMessageBtn = document.getElementById('sendMessage');
-    elements.diceDisplay = document.getElementById('diceDisplay');
     
     // Log any missing elements
     for (const [key, element] of Object.entries(elements)) {
@@ -433,12 +432,6 @@ function initializeSSE() {
         updateCharacterSheet();
     });
     
-    // Dice roll animations
-    sseSource.addEventListener('dice_roll', (event) => {
-        const data = JSON.parse(event.data);
-        console.log('[SSE] Dice roll animation:', data);
-        showDiceRoll(data);
-    });
     
     // Game state updates
     sseSource.addEventListener('game_update', (event) => {
@@ -549,26 +542,6 @@ function addMessage(text, type) {
     elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
     
     return message;
-}
-
-// Show dice roll animation
-function showDiceRoll(rollData) {
-    console.log('[UI] Showing dice roll:', rollData);
-    
-    const display = elements.diceDisplay;
-    const label = display.querySelector('.dice-label');
-    const value = display.querySelector('.dice-value');
-    const details = display.querySelector('.dice-details');
-    
-    label.textContent = rollData.type || 'Dice Roll';
-    value.textContent = rollData.total || rollData.result || '?';
-    details.textContent = rollData.details || '';
-    
-    display.classList.remove('hidden');
-    
-    setTimeout(() => {
-        display.classList.add('hidden');
-    }, 5000);
 }
 
 // Update entire UI

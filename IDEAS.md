@@ -1,2 +1,5 @@
-1. All tools: We should never fallback, just raise an error because that's wrong to not have a result available
-2. 
+1. Save/Load game handling in the frontend. If it is correct in the backend
+2. Scenario: Does not seem to be completely passed as context to the AI. Location handling, NPCs, ... A scenario need a LOT more data as it references monsters, items, NPCs. This means we need to expand the content in app/data/ considerably. Then make a scenario reference the content of data. Then if scenario is passed correctly with its references as context to the AI (depending on location, location has connection to other locations, refers events/quests/monsters/checks/npcs/items/...). Need tools let AI handle all that stuff.
+3. Linked the database of stuff in app/data/ to the inventory/spells. Same to the frontend
+4. Frontend upgrades: Location information, current scenario, quest logs, more info on spells/items, 
+5. Creator Agents: CharacterCreator and ScenarioCreator. Character is easy, needs 1 tool to populate a CharacterSheet, would just need to pose a series of questions and have all possibilities of races/subraces/classes/subclasses/spells/... in its system prompt. At the end it would call the tool. Scenario is more complicated, it requires creating monsters, npcs, quests, items, locations and fill it all out correctly

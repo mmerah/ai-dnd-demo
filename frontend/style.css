@@ -533,49 +533,6 @@ body {
     line-height: 1.5;
 }
 
-/* Dice Display */
-.dice-display {
-    background: var(--background-light);
-    border: 2px solid var(--accent-color);
-    border-radius: 8px;
-    padding: 1rem;
-    margin: 0 1rem;
-    animation: slideIn 0.3s ease;
-}
-
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.dice-result {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1rem;
-}
-
-.dice-label {
-    color: var(--text-secondary);
-    font-weight: 600;
-}
-
-.dice-value {
-    font-size: 2rem;
-    font-weight: bold;
-    color: var(--accent-color);
-}
-
-.dice-details {
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-}
 
 /* Input Area */
 .input-area {

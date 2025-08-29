@@ -83,7 +83,7 @@ class NarrativeAgent(BaseAgent):
         event_stream: AsyncIterable[Any],  # PydanticAI's internal event type
     ) -> None:
         """Handle streaming events and log tool calls."""
-        logger.info("Event stream handler started")
+        logger.debug("Event stream handler started")
 
         # Track tool calls by ID to match with results
         tool_calls_by_id: dict[str, str] = {}
@@ -92,10 +92,9 @@ class NarrativeAgent(BaseAgent):
         # DO NOT clear captured_events here - it gets called multiple times!
 
         async for event in event_stream:
-            # Only log non-delta events to reduce spam
+            # Skip logging delta events to reduce spam
             if not isinstance(event, PartDeltaEvent):
-                logger.info(f"Event received: {type(event).__name__}")
-                logger.debug(f"Event details: {event}")
+                logger.debug(f"Event received: {type(event).__name__} - details: {event}")
 
             if isinstance(event, PartStartEvent):
                 # Starting a new part (text, tool call, thinking)
@@ -106,7 +105,6 @@ class NarrativeAgent(BaseAgent):
                         self.event_logger.log_thinking(content)
                 # Check if it's a tool call part
                 if isinstance(event.part, ToolCallPart):
-                    logger.info(f"Tool call part detected: {event.part.tool_name}")
                     tool_name = event.part.tool_name
                     tool_call_id = getattr(event.part, "tool_call_id", None)
                     args = event.part.args if hasattr(event.part, "args") else {}
@@ -150,7 +148,7 @@ class NarrativeAgent(BaseAgent):
                         # Save event for later storage
                         self.captured_events.append((tool_name, args, None))
                         # Don't broadcast here - tools broadcast themselves via event bus
-                        logger.info(f"Tool call detected: {tool_name} with args: {args}")
+                        logger.debug(f"Tool call detected: {tool_name} with args: {args}")
 
             elif isinstance(event, PartDeltaEvent):
                 # Receiving delta updates - only process thinking deltas
@@ -160,7 +158,7 @@ class NarrativeAgent(BaseAgent):
 
             elif isinstance(event, FunctionToolCallEvent):
                 # Alternative: Tool is being called (for compatibility)
-                logger.info("FunctionToolCallEvent detected")
+                logger.debug("FunctionToolCallEvent detected")
                 if hasattr(event, "part") and hasattr(event.part, "tool_name"):
                     tool_name = event.part.tool_name
                     tool_call_id = getattr(event.part, "tool_call_id", None)
@@ -183,12 +181,11 @@ class NarrativeAgent(BaseAgent):
                     # Save event for later storage
                     self.captured_events.append((tool_name, args, None))
                     # Don't broadcast here - tools broadcast themselves via event bus
-                    logger.info(f"Tool call detected via FunctionToolCallEvent: {tool_name} with args: {args}")
+                    logger.debug(f"Tool call detected via FunctionToolCallEvent: {tool_name} with args: {args}")
 
             elif isinstance(event, FunctionToolResultEvent):
                 # Tool returned a result
-                logger.info("FunctionToolResultEvent detected")
-                logger.debug(f"FunctionToolResultEvent details: {event}")
+                logger.debug(f"FunctionToolResultEvent detected - details: {event}")
 
                 # Try different ways to get the tool name and result
                 tool_name = "unknown"
@@ -208,7 +205,7 @@ class NarrativeAgent(BaseAgent):
                     # Save result event
                     self.captured_events.append((tool_name, None, result_content))
                     # Don't broadcast here - tools broadcast results via event bus
-                    logger.info(f"Tool result detected: {tool_name} -> {result_content[:100]}")
+                    logger.debug(f"Tool result detected: {tool_name} -> {result_content[:100]}")
 
     async def process(
         self,
@@ -237,15 +234,14 @@ class NarrativeAgent(BaseAgent):
         # Create the full prompt with context
         full_prompt = f"{context}\n\nPlayer: {prompt}"
 
-        logger.info(f"Processing prompt: {prompt[:100]}...")
-        logger.info(f"Stream mode: {stream}")
+        logger.debug(f"Processing prompt: {prompt[:100]}... (stream={stream})")
 
         try:
             # Clear captured events at the start of processing
             self.captured_events = []
 
             # For MVP, we'll use non-streaming but still capture tool events
-            logger.info(f"Starting response generation (stream={stream})")
+            logger.debug(f"Starting response generation (stream={stream})")
 
             # Run the agent with event handler to capture and broadcast tool calls
             result = await self.agent.run(
@@ -255,7 +251,7 @@ class NarrativeAgent(BaseAgent):
                 event_stream_handler=self.event_stream_handler,  # Always enabled to broadcast tool calls
             )
 
-            logger.info(f"Response generated: {result.output[:100]}...")
+            logger.debug(f"Response generated: {result.output[:100]}...")
 
             # Process commands through event bus
             from app.events.commands.broadcast_commands import BroadcastNarrativeCommand
@@ -299,13 +295,13 @@ class NarrativeAgent(BaseAgent):
             game_service.add_message(game_state.game_id, MessageRole.DM, result.output)
 
             # Save captured game events
-            logger.info(f"Saving {len(self.captured_events)} captured events to game state")
+            logger.debug(f"Saving {len(self.captured_events)} captured events to game state")
             for tool_name, params, result_data in self.captured_events:
                 logger.debug(
                     f"Processing event: tool={tool_name}, has_params={params is not None}, has_result={result_data is not None}"
                 )
                 if params is not None:  # Tool call
-                    logger.info(f"Adding tool_call event for {tool_name}")
+                    logger.debug(f"Adding tool_call event for {tool_name}")
                     game_service.add_game_event(
                         game_state.game_id,
                         event_type="tool_call",
@@ -313,7 +309,7 @@ class NarrativeAgent(BaseAgent):
                         parameters=params,
                     )
                 elif result_data is not None:  # Tool result
-                    logger.info(f"Adding tool_result event for {tool_name}")
+                    logger.debug(f"Adding tool_result event for {tool_name}")
                     game_service.add_game_event(
                         game_state.game_id,
                         event_type="tool_result",

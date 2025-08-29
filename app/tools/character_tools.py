@@ -6,17 +6,18 @@ from typing import Any
 from pydantic_ai import RunContext
 
 from app.agents.dependencies import AgentDependencies
-from app.events.commands.broadcast_commands import BroadcastToolCallCommand
 from app.events.commands.character_commands import (
     AddConditionCommand,
     RemoveConditionCommand,
     UpdateHPCommand,
     UpdateSpellSlotsCommand,
 )
+from app.tools.decorators import tool_handler
 
 logger = logging.getLogger(__name__)
 
 
+@tool_handler(UpdateHPCommand)
 async def update_hp(
     ctx: RunContext[AgentDependencies], amount: int, damage_type: str = "untyped", target: str = "player"
 ) -> dict[str, Any]:
@@ -35,36 +36,10 @@ async def update_hp(
         - Heal 5 HP: amount=5, damage_type="healing"
         - Poison damage to NPC: amount=-3, damage_type="poison", target="Goblin"
     """
-    game_state = ctx.deps.game_state
-    event_bus = ctx.deps.event_bus
-
-    # Broadcast the tool call
-    await event_bus.submit_command(
-        BroadcastToolCallCommand(
-            game_id=game_state.game_id,
-            tool_name="update_hp",
-            parameters={"amount": amount, "damage_type": damage_type, "target": target},
-        )
-    )
-
-    # Execute the HP update and get the result
-    result = await event_bus.execute_command(
-        UpdateHPCommand(game_id=game_state.game_id, target=target, amount=amount, damage_type=damage_type)
-    )
-
-    # Return the actual result
-    if result:
-        return result
-    else:
-        # Fallback return if no result data
-        return {
-            "type": "hp_update",
-            "target": target,
-            "amount": amount,
-            "damage_type": damage_type,
-        }
+    raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 
+@tool_handler(AddConditionCommand)
 async def add_condition(
     ctx: RunContext[AgentDependencies], condition: str, duration: int = 0, target: str = "player"
 ) -> dict[str, Any]:
@@ -83,35 +58,10 @@ async def add_condition(
         - Knocked prone: condition="prone", duration=0
         - Fear spell on NPC: condition="frightened", duration=2, target="Goblin"
     """
-    game_state = ctx.deps.game_state
-    event_bus = ctx.deps.event_bus
-
-    # Broadcast the tool call
-    await event_bus.submit_command(
-        BroadcastToolCallCommand(
-            game_id=game_state.game_id,
-            tool_name="add_condition",
-            parameters={"condition": condition, "duration": duration, "target": target},
-        )
-    )
-
-    # Execute the add condition command and get the result
-    result = await event_bus.execute_command(
-        AddConditionCommand(game_id=game_state.game_id, target=target, condition=condition, duration=duration)
-    )
-
-    # Return the actual result
-    if result:
-        return result
-    else:
-        return {
-            "type": "add_condition",
-            "target": target,
-            "condition": condition,
-            "duration": duration,
-        }
+    raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 
+@tool_handler(RemoveConditionCommand)
 async def remove_condition(
     ctx: RunContext[AgentDependencies], condition: str, target: str = "player"
 ) -> dict[str, Any]:
@@ -129,30 +79,10 @@ async def remove_condition(
         - Stand up: condition="prone"
         - End fear on NPC: condition="frightened", target="Goblin"
     """
-    game_state = ctx.deps.game_state
-    event_bus = ctx.deps.event_bus
-
-    # Broadcast the tool call
-    await event_bus.submit_command(
-        BroadcastToolCallCommand(
-            game_id=game_state.game_id,
-            tool_name="remove_condition",
-            parameters={"condition": condition, "target": target},
-        )
-    )
-
-    # Execute the remove condition command and get the result
-    result = await event_bus.execute_command(
-        RemoveConditionCommand(game_id=game_state.game_id, target=target, condition=condition)
-    )
-
-    # Return the actual result
-    if result:
-        return result
-    else:
-        return {"type": "remove_condition", "target": target, "condition": condition}
+    raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 
+@tool_handler(UpdateSpellSlotsCommand)
 async def update_spell_slots(ctx: RunContext[AgentDependencies], level: int, amount: int) -> dict[str, Any]:
     # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
     """Update spell slots for the player.
@@ -168,23 +98,4 @@ async def update_spell_slots(ctx: RunContext[AgentDependencies], level: int, amo
         - Restore level 2 slot: level=2, amount=1
         - Cast Hunter's Mark: level=1, amount=-1
     """
-    game_state = ctx.deps.game_state
-    event_bus = ctx.deps.event_bus
-
-    # Broadcast the tool call
-    await event_bus.submit_command(
-        BroadcastToolCallCommand(
-            game_id=game_state.game_id, tool_name="update_spell_slots", parameters={"level": level, "amount": amount}
-        )
-    )
-
-    # Execute the update spell slots command and get the result
-    result = await event_bus.execute_command(
-        UpdateSpellSlotsCommand(game_id=game_state.game_id, level=level, amount=amount)
-    )
-
-    # Return the actual result
-    if result:
-        return result
-    else:
-        return {"type": "spell_slots_update", "level": level, "amount": amount}
+    raise NotImplementedError("This is handled by the @tool_handler decorator")

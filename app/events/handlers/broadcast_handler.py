@@ -50,7 +50,7 @@ class BroadcastHandler(BaseHandler):
                     "timestamp": command.timestamp.isoformat(),
                 },
             )
-            logger.info(f"Broadcast tool call: {command.tool_name}")
+            logger.debug(f"Broadcast tool call: {command.tool_name}")
 
         elif isinstance(command, BroadcastToolResultCommand):
             await broadcast_service.publish(
@@ -58,7 +58,7 @@ class BroadcastHandler(BaseHandler):
                 "tool_result",
                 {"tool_name": command.tool_name, "result": command.result, "timestamp": command.timestamp.isoformat()},
             )
-            logger.info(f"Broadcast tool result: {command.tool_name}")
+            logger.debug(f"Broadcast tool result: {command.tool_name}")
 
         elif isinstance(command, BroadcastCharacterUpdateCommand):
             character_data = game_state.character.model_dump()
