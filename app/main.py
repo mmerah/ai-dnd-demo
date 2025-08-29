@@ -16,6 +16,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.api.routes import router as api_router
 from app.config import get_settings
+from app.container import container
 
 # Configure logging
 logging.basicConfig(
@@ -34,9 +35,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Startup
     print("Starting D&D 5e AI Dungeon Master...")
 
-    # Initialize settings - this will validate all required environment variables
+    # Initialize settings and container - this will validate all required environment variables
     try:
         settings = get_settings()
+        # Trigger creation of all services on startup
+        container.get_game_service()
+        container.get_ai_service()
         print(f"Save directory: {settings.save_directory}")
         print(f"Using model: {settings.openrouter_model}")
     except Exception as e:

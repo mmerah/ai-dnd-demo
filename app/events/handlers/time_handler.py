@@ -14,6 +14,11 @@ from app.events.commands.time_commands import (
 )
 from app.events.handlers.base_handler import BaseHandler
 from app.models.game_state import GameState
+from app.models.tool_results import (
+    AdvanceTimeResult,
+    LongRestResult,
+    ShortRestResult,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -46,13 +51,12 @@ class TimeHandler(BaseHandler):
 
             self.game_service.save_game(game_state)
 
-            result.data = {
-                "type": "short_rest",
-                "old_hp": old_hp,
-                "new_hp": character.hit_points.current,
-                "healing": healing,
-                "time": f"Day {game_state.game_time.day}, {game_state.game_time.hour:02d}:{game_state.game_time.minute:02d}",
-            }
+            result.data = ShortRestResult(
+                old_hp=old_hp,
+                new_hp=character.hit_points.current,
+                healing=healing,
+                time=f"Day {game_state.game_time.day}, {game_state.game_time.hour:02d}:{game_state.game_time.minute:02d}",
+            ).model_dump()
 
             result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
@@ -69,7 +73,7 @@ class TimeHandler(BaseHandler):
 
             # Restore all spell slots
             if character.spellcasting:
-                for slot_key, slot in character.spellcasting.spell_slots.items():
+                for _slot_key, slot in character.spellcasting.spell_slots.items():
                     slot.current = slot.total
 
             # Remove most conditions (keep some like cursed)
@@ -84,14 +88,13 @@ class TimeHandler(BaseHandler):
 
             self.game_service.save_game(game_state)
 
-            result.data = {
-                "type": "long_rest",
-                "old_hp": old_hp,
-                "new_hp": character.hit_points.current,
-                "conditions_removed": [c for c in old_conditions if c not in character.conditions],
-                "spell_slots_restored": True,
-                "time": f"Day {game_state.game_time.day}, {game_state.game_time.hour:02d}:{game_state.game_time.minute:02d}",
-            }
+            result.data = LongRestResult(
+                old_hp=old_hp,
+                new_hp=character.hit_points.current,
+                conditions_removed=[c for c in old_conditions if c not in character.conditions],
+                spell_slots_restored=True,
+                time=f"Day {game_state.game_time.day}, {game_state.game_time.hour:02d}:{game_state.game_time.minute:02d}",
+            ).model_dump()
 
             result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
@@ -118,12 +121,11 @@ class TimeHandler(BaseHandler):
 
             self.game_service.save_game(game_state)
 
-            result.data = {
-                "type": "time_advance",
-                "old_time": old_time,
-                "new_time": new_time,
-                "minutes_advanced": command.minutes,
-            }
+            result.data = AdvanceTimeResult(
+                old_time=old_time,
+                new_time=new_time,
+                minutes_advanced=command.minutes,
+            ).model_dump()
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
@@ -133,4 +135,4 @@ class TimeHandler(BaseHandler):
 
     def can_handle(self, command: BaseCommand) -> bool:
         """Check if this handler can process the given command."""
-        return isinstance(command, (ShortRestCommand, LongRestCommand, AdvanceTimeCommand))
+        return isinstance(command, ShortRestCommand | LongRestCommand | AdvanceTimeCommand)

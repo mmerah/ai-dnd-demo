@@ -3,14 +3,14 @@
 from abc import ABC, abstractmethod
 
 from app.events.base import BaseCommand, CommandResult
+from app.interfaces.services import IGameService
 from app.models.game_state import GameState
-from app.services.game_service import GameService
 
 
 class BaseHandler(ABC):
     """Base class for all command handlers."""
 
-    def __init__(self, game_service: GameService):
+    def __init__(self, game_service: IGameService):
         self.game_service = game_service
 
     @abstractmethod

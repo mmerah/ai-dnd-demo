@@ -19,8 +19,9 @@ from pydantic_ai.messages import (
 )
 
 from app.agents.base import BaseAgent
-from app.dependencies import AgentDependencies
-from app.events.event_bus import EventBus
+from app.agents.dependencies import AgentDependencies
+from app.interfaces.events import IEventBus
+from app.interfaces.services import IGameService
 from app.models.ai_response import (
     NarrativeResponse,
     StreamEvent,
@@ -29,9 +30,7 @@ from app.models.ai_response import (
 )
 from app.models.game_state import GameState, MessageRole
 from app.services.context_service import ContextService
-from app.services.dice_service import DiceService
 from app.services.event_logger_service import EventLoggerService
-from app.services.game_service import GameService
 from app.services.message_converter_service import MessageConverterService
 from app.services.message_service import message_service
 from app.tools import character_tools, dice_tools, inventory_tools, time_tools
@@ -50,7 +49,7 @@ class NarrativeAgent(BaseAgent):
     context_service: ContextService
     message_converter: MessageConverterService
     event_logger: EventLoggerService
-    event_bus: EventBus
+    event_bus: IEventBus
     # Any types are unavoidable here as tool arguments and results vary by tool
     # Format: (tool_name, args_dict | None, result | None)
     captured_events: list[tuple[str, dict[str, Any] | None, Any | None]] = field(default_factory=list)
@@ -125,17 +124,18 @@ class NarrativeAgent(BaseAgent):
                         should_skip = True
                     elif isinstance(args, str):
                         # Try to parse args if it's a string (JSON)
-                        try:
-                            parsed_args = json.loads(args)
-                            args = parsed_args
-                        except (json.JSONDecodeError, ValueError):
-                            # If it's still an empty string after parsing attempt, skip
-                            if not args.strip():
-                                logger.debug(f"Skipping empty string args for {tool_name}")
-                                should_skip = True
-                            else:
-                                args = {"raw_args": str(args)}
-                    elif not isinstance(args, dict):
+                        raw_args_str = args.strip()
+                        if not raw_args_str:
+                            logger.debug(f"Skipping empty string args for {tool_name}")
+                            should_skip = True
+                        else:
+                            try:
+                                parsed_args = json.loads(raw_args_str)
+                                args = parsed_args
+                            except (json.JSONDecodeError, ValueError):
+                                args = {"raw_args": raw_args_str}
+                    else:
+                        # For any other type, convert to string
                         args = {"raw_args": str(args)}
 
                     if not should_skip:
@@ -151,9 +151,8 @@ class NarrativeAgent(BaseAgent):
 
             elif isinstance(event, PartDeltaEvent):
                 # Receiving delta updates
-                if isinstance(event.delta, ThinkingPartDelta):
-                    if event.delta.content_delta:
-                        self.event_logger.log_thinking(event.delta.content_delta)
+                if isinstance(event.delta, ThinkingPartDelta) and event.delta.content_delta:
+                    self.event_logger.log_thinking(event.delta.content_delta)
 
             elif isinstance(event, FunctionToolCallEvent):
                 # Alternative: Tool is being called (for compatibility)
@@ -190,10 +189,7 @@ class NarrativeAgent(BaseAgent):
                 # Get the result content
                 if hasattr(event, "result"):
                     result = event.result
-                    if hasattr(result, "content"):
-                        result_content = str(result.content)
-                    else:
-                        result_content = str(result)
+                    result_content = str(result.content) if hasattr(result, "content") else str(result)
 
                 if result_content:
                     self.event_logger.log_tool_result(tool_name, result_content)
@@ -207,7 +203,7 @@ class NarrativeAgent(BaseAgent):
         self,
         prompt: str,
         game_state: GameState,
-        game_service: GameService,
+        game_service: IGameService,
         stream: bool = True,
     ) -> AsyncIterator[StreamEvent]:
         """Process a prompt and yield stream events."""
@@ -218,7 +214,6 @@ class NarrativeAgent(BaseAgent):
         deps = AgentDependencies(
             game_state=game_state,
             game_service=game_service,
-            dice_service=DiceService(),
             event_bus=self.event_bus,
         )
 
@@ -254,7 +249,7 @@ class NarrativeAgent(BaseAgent):
             all_commands = []
 
             # Extract commands from tool results
-            for tool_name, params, result_data in self.captured_events:
+            for _tool_name, _params, result_data in self.captured_events:
                 if result_data and isinstance(result_data, dict) and "commands" in result_data:
                     commands = result_data.get("commands", [])
                     all_commands.extend(commands)
@@ -276,15 +271,14 @@ class NarrativeAgent(BaseAgent):
             for msg in result.new_messages():
                 if isinstance(msg, ModelResponse):
                     for part in msg.parts:
-                        if isinstance(part, ToolCallPart):
-                            if isinstance(part.args, dict):
-                                tool_calls.append(
-                                    ToolCallEvent(
-                                        tool_name=part.tool_name,
-                                        args=part.args,
-                                        tool_call_id=part.tool_call_id,
-                                    )
+                        if isinstance(part, ToolCallPart) and isinstance(part.args, dict):
+                            tool_calls.append(
+                                ToolCallEvent(
+                                    tool_name=part.tool_name,
+                                    args=part.args,
+                                    tool_call_id=part.tool_call_id,
                                 )
+                            )
 
             # Save conversation
             game_service.add_message(game_state.game_id, MessageRole.PLAYER, prompt)

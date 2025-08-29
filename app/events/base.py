@@ -39,6 +39,11 @@ class BaseEvent(ABC):
     timestamp: datetime = field(default_factory=datetime.utcnow)
     game_id: str = ""
 
+    @abstractmethod
+    def get_event_name(self) -> str:
+        """Return the name of the SSE event."""
+        pass
+
 
 class CommandResult:
     """Result of command execution."""

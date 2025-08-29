@@ -1,9 +1,9 @@
 """Broadcast-related command definitions."""
 
 from dataclasses import dataclass, field
-from typing import Any
 
 from app.events.base import BaseCommand
+from app.models.game_state import JSONSerializable
 
 
 @dataclass
@@ -23,7 +23,7 @@ class BroadcastToolCallCommand(BaseCommand):
     """Command to broadcast tool call to frontend."""
 
     tool_name: str = ""
-    parameters: dict[str, Any] = field(default_factory=dict)
+    parameters: dict[str, JSONSerializable] = field(default_factory=dict)
 
     def get_handler_name(self) -> str:
         return "broadcast"
@@ -34,7 +34,7 @@ class BroadcastToolResultCommand(BaseCommand):
     """Command to broadcast tool result to frontend."""
 
     tool_name: str = ""
-    result: Any = None
+    result: JSONSerializable | None = None
 
     def get_handler_name(self) -> str:
         return "broadcast"

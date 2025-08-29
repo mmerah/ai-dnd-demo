@@ -7,7 +7,9 @@ import logging
 from collections import defaultdict
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime
-from typing import Any, TypedDict
+from typing import TypedDict
+
+from app.models.game_state import JSONSerializable
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +18,7 @@ class SSEEvent(TypedDict):
     """Structure of an SSE event."""
 
     event: str
-    data: Any  # Can be various types depending on the event
+    data: JSONSerializable  # Can be various types depending on the event
     timestamp: str
 
 
@@ -28,7 +30,7 @@ class BroadcastService:
         # Dictionary of game_id -> list of subscriber queues
         self.subscribers: dict[str, list[asyncio.Queue[SSEEvent]]] = defaultdict(list)
 
-    async def publish(self, game_id: str, event: str, data: Any) -> None:
+    async def publish(self, game_id: str, event: str, data: JSONSerializable) -> None:
         """
         Publish an event to all subscribers for a specific game.
 

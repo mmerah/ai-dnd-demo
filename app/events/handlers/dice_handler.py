@@ -1,12 +1,12 @@
 """Handler for dice-related commands."""
 
 import logging
-from typing import Any
 
 from app.events.base import BaseCommand, CommandResult
 from app.events.commands.broadcast_commands import BroadcastToolResultCommand
 from app.events.commands.dice_commands import RollDiceCommand
 from app.events.handlers.base_handler import BaseHandler
+from app.interfaces.services import IGameService
 from app.models.game_state import GameState
 from app.services.dice_service import DiceService
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class DiceHandler(BaseHandler):
     """Handler for dice-related commands."""
 
-    def __init__(self, game_service: Any, dice_service: DiceService) -> None:
+    def __init__(self, game_service: IGameService, dice_service: DiceService) -> None:
         super().__init__(game_service)
         self.dice_service = dice_service
 

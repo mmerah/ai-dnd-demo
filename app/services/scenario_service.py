@@ -3,10 +3,11 @@
 import json
 from pathlib import Path
 
+from app.interfaces.services import IScenarioService
 from app.models.scenario import Scenario
 
 
-class ScenarioService:
+class ScenarioService(IScenarioService):
     """Service for loading and managing scenarios."""
 
     def __init__(self, data_directory: Path | None = None):

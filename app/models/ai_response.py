@@ -1,9 +1,33 @@
 """AI Response models for streaming and display."""
 
 from enum import Enum
-from typing import Any
+from typing import Any, TypedDict
 
 from pydantic import BaseModel, Field
+
+
+class NarrativeChunkResponse(TypedDict):
+    """Response for narrative chunks."""
+
+    type: str  # Literal["narrative_chunk"]
+    content: str
+
+
+class CompleteResponse(TypedDict):
+    """Response for complete narrative."""
+
+    type: str  # Literal["complete"]
+    narrative: str
+
+
+class ErrorResponse(TypedDict):
+    """Response for errors."""
+
+    type: str  # Literal["error"]
+    message: str
+
+
+AIResponse = NarrativeChunkResponse | CompleteResponse | ErrorResponse
 
 
 class StreamEventType(Enum):

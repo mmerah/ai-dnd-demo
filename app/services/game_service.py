@@ -3,15 +3,16 @@
 import json
 import uuid
 from datetime import datetime
-from typing import Any
 
 from app.config import get_settings
+from app.interfaces.services import IGameService
 from app.models.character import CharacterSheet, Item
 from app.models.game_state import (
     CombatParticipant,
     CombatState,
     GameState,
     GameTime,
+    JSONSerializable,
     Message,
     MessageRole,
 )
@@ -19,7 +20,7 @@ from app.models.npc import NPCSheet
 from app.services.scenario_service import ScenarioService
 
 
-class GameService:
+class GameService(IGameService):
     """Service for managing game state, saves, and updates."""
 
     def __init__(self) -> None:
@@ -392,9 +393,9 @@ class GameService:
         game_id: str,
         event_type: str,
         tool_name: str | None = None,
-        parameters: dict[str, Any] | None = None,
-        result: Any | None = None,
-        metadata: dict[str, Any] | None = None,
+        parameters: dict[str, JSONSerializable] | None = None,
+        result: JSONSerializable | None = None,
+        metadata: dict[str, JSONSerializable] | None = None,
     ) -> GameState:
         """
         Add a game event to the history.
@@ -452,7 +453,7 @@ class GameService:
         self.save_game(game_state)
         return game_state
 
-    def set_quest_flag(self, game_id: str, flag_name: str, value: Any) -> GameState:
+    def set_quest_flag(self, game_id: str, flag_name: str, value: JSONSerializable) -> GameState:
         """
         Set a quest flag value.
 

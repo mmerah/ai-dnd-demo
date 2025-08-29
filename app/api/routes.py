@@ -12,7 +12,7 @@ from fastapi import APIRouter, BackgroundTasks, HTTPException
 from sse_starlette.sse import EventSourceResponse
 
 from app.api.tasks import process_ai_and_broadcast
-from app.dependencies import get_game_service, get_scenario_service
+from app.container import container
 from app.models.character import CharacterSheet
 from app.models.game_state import GameState
 from app.models.requests import NewGameRequest, NewGameResponse, PlayerActionRequest
@@ -39,7 +39,7 @@ async def create_new_game(request: NewGameRequest) -> NewGameResponse:
     Raises:
         HTTPException: If character not found or game creation fails
     """
-    game_service = get_game_service()
+    game_service = container.get_game_service()
 
     try:
         # Load available characters
@@ -97,7 +97,7 @@ async def get_game_state(game_id: str) -> GameState:
     Raises:
         HTTPException: If game not found
     """
-    game_service = get_game_service()
+    game_service = container.get_game_service()
 
     try:
         game_state = game_service.load_game(game_id)
@@ -130,7 +130,7 @@ async def process_player_action(
     Raises:
         HTTPException: If game not found
     """
-    game_service = get_game_service()
+    game_service = container.get_game_service()
 
     try:
         # Verify game exists
@@ -168,7 +168,7 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
     Raises:
         HTTPException: If game not found
     """
-    game_service = get_game_service()
+    game_service = container.get_game_service()
 
     try:
         # Verify game exists
@@ -177,7 +177,7 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
             raise HTTPException(status_code=404, detail=f"Game with ID '{game_id}' not found")
 
         async def event_generator() -> AsyncGenerator[dict[str, str], None]:
-            scenario_service = get_scenario_service()
+            scenario_service = container.get_scenario_service()
 
             """Generate SSE events by subscribing to broadcast service."""
             logger.info(f"Client subscribed to SSE for game {game_id}")
@@ -234,7 +234,7 @@ async def list_available_scenarios() -> list[dict[str, str]]:
     Raises:
         HTTPException: If scenarios cannot be loaded
     """
-    scenario_service = get_scenario_service()
+    scenario_service = container.get_scenario_service()
 
     try:
         scenarios = scenario_service.list_scenarios()
@@ -257,7 +257,7 @@ async def get_scenario(scenario_id: str) -> dict[str, Any]:
     Raises:
         HTTPException: If scenario not found
     """
-    scenario_service = get_scenario_service()
+    scenario_service = container.get_scenario_service()
 
     try:
         scenario = scenario_service.get_scenario(scenario_id)

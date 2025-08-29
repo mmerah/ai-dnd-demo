@@ -2,7 +2,7 @@
 
 import logging
 
-from app.dependencies import get_ai_service, get_game_service
+from app.container import container
 from app.services.broadcast_service import broadcast_service
 from app.services.message_service import message_service
 
@@ -17,8 +17,8 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
         game_id: Unique game identifier
         message: Player's message/action
     """
-    game_service = get_game_service()
-    ai_service = get_ai_service()
+    game_service = container.get_game_service()
+    ai_service = container.get_ai_service()
 
     logger.info(f"Starting AI processing for game {game_id}")
     try:
@@ -41,7 +41,7 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
                 narrative = chunk.get("narrative", "")
                 break
             elif chunk["type"] == "error":
-                error_msg = chunk.get("message", "Unknown error")
+                error_msg: str = chunk.get("message", "Unknown error")  # type: ignore[assignment]
                 logger.error(f"AI error for game {game_id}: {error_msg}")
                 await broadcast_service.publish(game_id, "error", {"error": error_msg})
                 return

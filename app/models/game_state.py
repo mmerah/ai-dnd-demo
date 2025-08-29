@@ -9,6 +9,13 @@ from pydantic import BaseModel, Field
 from .character import CharacterSheet
 from .npc import NPCSheet
 
+# Type alias for JSON-serializable data
+# Note: We use Any here to avoid recursive type issues with Pydantic
+# All actual data is validated through Pydantic models
+from typing import Any
+
+JSONSerializable = str | int | float | bool | None | dict[str, Any] | list[Any]
+
 
 class MessageRole(str, Enum):
     """Message sender role."""
@@ -40,9 +47,9 @@ class GameEvent(BaseModel):
     event_type: GameEventType
     timestamp: datetime = Field(default_factory=datetime.now)
     tool_name: str | None = None
-    parameters: dict[str, Any] | None = None
-    result: Any | None = None  # Can be dict, str, or other types
-    metadata: dict[str, Any] | None = None  # Additional context
+    parameters: dict[str, JSONSerializable] | None = None
+    result: JSONSerializable | None = None  # Can be dict, str, or other types
+    metadata: dict[str, JSONSerializable] | None = None  # Additional context
 
 
 class GameTime(BaseModel):
@@ -177,7 +184,7 @@ class GameState(BaseModel):
     combat: CombatState | None = None
 
     # Quest and story tracking
-    quest_flags: dict[str, bool] = Field(default_factory=dict)
+    quest_flags: dict[str, JSONSerializable] = Field(default_factory=dict)
     story_notes: list[str] = Field(default_factory=list)
 
     # Conversation history (narrative only)
@@ -199,9 +206,9 @@ class GameState(BaseModel):
         self,
         event_type: GameEventType,
         tool_name: str | None = None,
-        parameters: dict[str, Any] | None = None,
-        result: Any | None = None,
-        metadata: dict[str, Any] | None = None,
+        parameters: dict[str, JSONSerializable] | None = None,
+        result: JSONSerializable | None = None,
+        metadata: dict[str, JSONSerializable] | None = None,
     ) -> None:
         """Add a game mechanics event."""
         event = GameEvent(
@@ -258,13 +265,15 @@ class GameState(BaseModel):
             self.npcs = [npc for npc in self.npcs if npc.is_alive()]
             self.combat = None
 
-    def set_quest_flag(self, flag_name: str, value: bool = True) -> None:
+    def set_quest_flag(self, flag_name: str, value: JSONSerializable = True) -> None:
         """Set a quest flag."""
         self.quest_flags[flag_name] = value
 
     def check_quest_flag(self, flag_name: str) -> bool:
         """Check if a quest flag is set."""
-        return self.quest_flags.get(flag_name, False)
+        value = self.quest_flags.get(flag_name, False)
+        # Convert to bool for backward compatibility
+        return bool(value)
 
     def add_story_note(self, note: str) -> None:
         """Add a note to the story log."""

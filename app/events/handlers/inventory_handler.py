@@ -12,6 +12,11 @@ from app.events.commands.inventory_commands import (
 from app.events.handlers.base_handler import BaseHandler
 from app.models.character import Item
 from app.models.game_state import GameState
+from app.models.tool_results import (
+    AddItemResult,
+    ModifyCurrencyResult,
+    RemoveItemResult,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -43,18 +48,17 @@ class InventoryHandler(BaseHandler):
 
             self.game_service.save_game(game_state)
 
-            result.data = {
-                "type": "currency_update",
-                "old_gold": old_gold,
-                "old_silver": old_silver,
-                "old_copper": old_copper,
-                "new_gold": character.currency.gold,
-                "new_silver": character.currency.silver,
-                "new_copper": character.currency.copper,
-                "change_gold": command.gold,
-                "change_silver": command.silver,
-                "change_copper": command.copper,
-            }
+            result.data = ModifyCurrencyResult(
+                old_gold=old_gold,
+                old_silver=old_silver,
+                old_copper=old_copper,
+                new_gold=character.currency.gold,
+                new_silver=character.currency.silver,
+                new_copper=character.currency.copper,
+                change_gold=command.gold,
+                change_silver=command.silver,
+                change_copper=command.copper,
+            ).model_dump()
 
             result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
 
@@ -81,12 +85,11 @@ class InventoryHandler(BaseHandler):
 
             self.game_service.save_game(game_state)
 
-            result.data = {
-                "type": "item_added",
-                "item_name": command.item_name,
-                "quantity": command.quantity,
-                "total_quantity": existing_item.quantity if existing_item else command.quantity,
-            }
+            result.data = AddItemResult(
+                item_name=command.item_name,
+                quantity=command.quantity,
+                total_quantity=existing_item.quantity if existing_item else command.quantity,
+            ).model_dump()
 
             result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
 
@@ -115,12 +118,11 @@ class InventoryHandler(BaseHandler):
 
             self.game_service.save_game(game_state)
 
-            result.data = {
-                "type": "item_removed",
-                "item_name": command.item_name,
-                "quantity": command.quantity,
-                "remaining_quantity": existing_item.quantity if existing_item.quantity > 0 else 0,
-            }
+            result.data = RemoveItemResult(
+                item_name=command.item_name,
+                quantity=command.quantity,
+                remaining_quantity=existing_item.quantity if existing_item.quantity > 0 else 0,
+            ).model_dump()
 
             result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
 
@@ -130,4 +132,4 @@ class InventoryHandler(BaseHandler):
 
     def can_handle(self, command: BaseCommand) -> bool:
         """Check if this handler can process the given command."""
-        return isinstance(command, (ModifyCurrencyCommand, AddItemCommand, RemoveItemCommand))
+        return isinstance(command, ModifyCurrencyCommand | AddItemCommand | RemoveItemCommand)

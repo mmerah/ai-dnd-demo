@@ -11,14 +11,16 @@ from pydantic_ai.providers.openai import OpenAIProvider
 from pydantic_ai.settings import ModelSettings
 
 from app.agents.base import BaseAgent
+from app.agents.dependencies import AgentDependencies
 from app.agents.narrative_agent import NarrativeAgent
 from app.agents.types import AgentType
 from app.config import get_settings
-from app.dependencies import AgentDependencies
+from app.interfaces.events import IEventBus
 from app.services.context_service import ContextService
 from app.services.event_logger_service import EventLoggerService
 from app.services.message_converter_service import MessageConverterService
 from app.services.scenario_service import ScenarioService
+
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +109,7 @@ The current game state and character information will be provided with each inte
         logger.info(f"Registered {len(tools)} tools with the agent")
 
     @classmethod
-    def create_agent(cls, agent_type: AgentType, event_bus: Any = None, debug: bool = False) -> BaseAgent:
+    def create_agent(cls, agent_type: AgentType, event_bus: IEventBus | None = None, debug: bool = False) -> BaseAgent:
         """Create a specialized agent based on type."""
         settings = get_settings()
         model = cls._create_model()
@@ -124,6 +126,9 @@ The current game state and character information will be provided with each inte
             )
 
             # Create narrative agent instance
+            if not event_bus:
+                raise ValueError("Event bus is required for narrative agent")
+
             narrative_agent = NarrativeAgent(
                 agent=agent,
                 context_service=ContextService(ScenarioService()),

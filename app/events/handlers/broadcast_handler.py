@@ -76,11 +76,9 @@ class BroadcastHandler(BaseHandler):
         """Check if this handler can process the given command."""
         return isinstance(
             command,
-            (
-                BroadcastNarrativeCommand,
-                BroadcastToolCallCommand,
-                BroadcastToolResultCommand,
-                BroadcastGameUpdateCommand,
-                BroadcastCharacterUpdateCommand,
-            ),
+            BroadcastNarrativeCommand
+            | BroadcastToolCallCommand
+            | BroadcastToolResultCommand
+            | BroadcastGameUpdateCommand
+            | BroadcastCharacterUpdateCommand,
         )

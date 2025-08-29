@@ -5,7 +5,7 @@ from typing import Any
 
 from pydantic_ai import RunContext
 
-from app.dependencies import AgentDependencies
+from app.agents.dependencies import AgentDependencies
 from app.events.commands.broadcast_commands import BroadcastToolCallCommand
 from app.events.commands.inventory_commands import (
     AddItemCommand,

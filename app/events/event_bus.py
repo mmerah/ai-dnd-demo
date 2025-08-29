@@ -7,15 +7,16 @@ from typing import Any
 
 from app.events.base import BaseCommand
 from app.events.handlers.base_handler import BaseHandler
-from app.services.game_service import GameService
+from app.interfaces.events import IEventBus
+from app.interfaces.services import IGameService
 
 logger = logging.getLogger(__name__)
 
 
-class EventBus:
+class EventBus(IEventBus):
     """Central event bus for processing commands sequentially using a handler registration pattern."""
 
-    def __init__(self, game_service: GameService):
+    def __init__(self, game_service: IGameService):
         self.game_service = game_service
         self._handlers: dict[str, BaseHandler] = {}
 

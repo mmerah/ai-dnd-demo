@@ -5,6 +5,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
+from app.models.game_state import JSONSerializable
 from app.services.broadcast_service import broadcast_service
 
 logger = logging.getLogger(__name__)
@@ -87,7 +88,7 @@ class MessageService:
             {"tool_name": tool_name, "parameters": parameters, "timestamp": datetime.utcnow().isoformat()},
         )
 
-    async def send_tool_result(self, game_id: str, tool_name: str, result: Any) -> None:
+    async def send_tool_result(self, game_id: str, tool_name: str, result: JSONSerializable) -> None:
         """
         Send tool result information to the chat.
 
@@ -201,12 +202,15 @@ class MessageService:
             scenario_id: ID of current scenario
             available_scenarios: List of available scenarios
         """
+        from app.models.game_state import JSONSerializable
+
+        scenarios_data: JSONSerializable = available_scenarios  # type: ignore[assignment]
         await broadcast_service.publish(
             game_id,
             "scenario_info",
             {
                 "current_scenario": {"id": scenario_id, "title": scenario_title},
-                "available_scenarios": available_scenarios,
+                "available_scenarios": scenarios_data,
             },
         )
 

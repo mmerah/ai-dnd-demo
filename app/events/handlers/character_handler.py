@@ -12,6 +12,12 @@ from app.events.commands.character_commands import (
 )
 from app.events.handlers.base_handler import BaseHandler
 from app.models.game_state import GameState
+from app.models.tool_results import (
+    AddConditionResult,
+    RemoveConditionResult,
+    UpdateHPResult,
+    UpdateSpellSlotsResult,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -51,17 +57,16 @@ class CharacterHandler(BaseHandler):
             # Save game state
             self.game_service.save_game(game_state)
 
-            result.data = {
-                "type": "hp_update",
-                "target": command.target,
-                "old_hp": old_hp,
-                "new_hp": new_hp,
-                "max_hp": max_hp,
-                "amount": command.amount,
-                "damage_type": command.damage_type,
-                "is_healing": command.amount > 0,
-                "is_unconscious": new_hp == 0,
-            }
+            result.data = UpdateHPResult(
+                target=command.target,
+                old_hp=old_hp,
+                new_hp=new_hp,
+                max_hp=max_hp,
+                amount=command.amount,
+                damage_type=command.damage_type,
+                is_healing=command.amount > 0,
+                is_unconscious=new_hp == 0,
+            ).model_dump()
 
             # Add broadcast command
             result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
@@ -86,12 +91,11 @@ class CharacterHandler(BaseHandler):
 
             self.game_service.save_game(game_state)
 
-            result.data = {
-                "type": "add_condition",
-                "target": command.target,
-                "condition": command.condition,
-                "duration": command.duration,
-            }
+            result.data = AddConditionResult(
+                target=command.target,
+                condition=command.condition,
+                duration=command.duration,
+            ).model_dump()
 
             result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
 
@@ -116,12 +120,11 @@ class CharacterHandler(BaseHandler):
 
             self.game_service.save_game(game_state)
 
-            result.data = {
-                "type": "remove_condition",
-                "target": command.target,
-                "condition": command.condition,
-                "removed": removed,
-            }
+            result.data = RemoveConditionResult(
+                target=command.target,
+                condition=command.condition,
+                removed=removed,
+            ).model_dump()
 
             result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
 
@@ -151,14 +154,13 @@ class CharacterHandler(BaseHandler):
 
             self.game_service.save_game(game_state)
 
-            result.data = {
-                "type": "spell_slots_update",
-                "level": command.level,
-                "old_slots": old_slots,
-                "new_slots": new_slots,
-                "max_slots": max_slots,
-                "change": command.amount,
-            }
+            result.data = UpdateSpellSlotsResult(
+                level=command.level,
+                old_slots=old_slots,
+                new_slots=new_slots,
+                max_slots=max_slots,
+                change=command.amount,
+            ).model_dump()
 
             result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
 
@@ -169,5 +171,5 @@ class CharacterHandler(BaseHandler):
     def can_handle(self, command: BaseCommand) -> bool:
         """Check if this handler can process the given command."""
         return isinstance(
-            command, (UpdateHPCommand, AddConditionCommand, RemoveConditionCommand, UpdateSpellSlotsCommand)
+            command, UpdateHPCommand | AddConditionCommand | RemoveConditionCommand | UpdateSpellSlotsCommand
         )

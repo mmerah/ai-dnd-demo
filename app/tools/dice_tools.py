@@ -5,7 +5,7 @@ from typing import Any
 
 from pydantic_ai import RunContext
 
-from app.dependencies import AgentDependencies
+from app.agents.dependencies import AgentDependencies
 from app.events.commands.broadcast_commands import BroadcastToolCallCommand
 from app.events.commands.dice_commands import RollDiceCommand
 
@@ -317,9 +317,12 @@ async def roll_initiative(ctx: RunContext[AgentDependencies], combatants: list[s
         modifier = (character.abilities.DEX - 10) // 2
 
     # Broadcast the tool call
+    from app.models.game_state import JSONSerializable
+
+    combatants_data: JSONSerializable = combatants  # type: ignore[assignment]
     await event_bus.submit_command(
         BroadcastToolCallCommand(
-            game_id=game_state.game_id, tool_name="roll_initiative", parameters={"combatants": combatants}
+            game_id=game_state.game_id, tool_name="roll_initiative", parameters={"combatants": combatants_data}
         )
     )
 
