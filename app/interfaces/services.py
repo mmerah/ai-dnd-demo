@@ -31,7 +31,16 @@ class IGameService(ABC):
         pass
 
     @abstractmethod
-    def add_message(self, game_id: str, role: MessageRole, content: str) -> GameState:
+    def add_message(
+        self,
+        game_id: str,
+        role: MessageRole,
+        content: str,
+        agent_type: str = "narrative",
+        location: str | None = None,
+        npcs_mentioned: list[str] | None = None,
+        combat_round: int | None = None,
+    ) -> GameState:
         pass
 
     @abstractmethod

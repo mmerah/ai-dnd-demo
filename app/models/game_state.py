@@ -28,6 +28,10 @@ class Message(BaseModel):
     role: MessageRole
     content: str
     timestamp: datetime = Field(default_factory=datetime.now)
+    agent_type: str = "narrative"
+    location: str | None = None
+    npcs_mentioned: list[str] = Field(default_factory=list)
+    combat_round: int | None = None
 
 
 class GameEventType(str, Enum):
@@ -191,13 +195,31 @@ class GameState(BaseModel):
     # Game events (mechanics and tool calls)
     game_events: list[GameEvent] = Field(default_factory=list)
 
+    # Agent tracking for multi-agent support
+    active_agent: str = "narrative"
+
     # Session metadata
     session_number: int = Field(ge=1, default=1)
     total_play_time_minutes: int = Field(ge=0, default=0)
 
-    def add_message(self, role: MessageRole, content: str) -> None:
-        """Add a narrative message to conversation history."""
-        message = Message(role=role, content=content)
+    def add_message(
+        self,
+        role: MessageRole,
+        content: str,
+        agent_type: str = "narrative",
+        location: str | None = None,
+        npcs_mentioned: list[str] | None = None,
+        combat_round: int | None = None,
+    ) -> None:
+        """Add a narrative message to conversation history with metadata."""
+        message = Message(
+            role=role,
+            content=content,
+            agent_type=agent_type,
+            location=location,
+            npcs_mentioned=npcs_mentioned if npcs_mentioned is not None else [],
+            combat_round=combat_round,
+        )
         self.conversation_history.append(message)
 
     def add_game_event(
@@ -286,6 +308,10 @@ class GameState(BaseModel):
     def get_recent_messages(self, count: int = 10) -> list[Message]:
         """Get the most recent messages from history."""
         return self.conversation_history[-count:] if self.conversation_history else []
+
+    def get_messages_for_agent(self, agent_type: str) -> list[Message]:
+        """Get conversation history filtered for a specific agent."""
+        return [msg for msg in self.conversation_history if msg.agent_type == agent_type]
 
     def update_save_time(self) -> None:
         """Update the last saved timestamp."""

@@ -83,13 +83,22 @@ class GameService(IGameService):
             scenario_title = scenario.title
             scenario_id = scenario.id
         else:
+            # TODO: Raise error, there should be a scenario ?
             initial_location = "The Prancing Pony Tavern"
             initial_location_id = None
             initial_narrative = premise or "Your adventure begins in the bustling tavern 'The Prancing Pony'..."
             scenario_title = None
             scenario_id = None
 
-        initial_message = Message(role=MessageRole.DM, content=initial_narrative, timestamp=datetime.now())
+        initial_message = Message(
+            role=MessageRole.DM,
+            content=initial_narrative,
+            timestamp=datetime.now(),
+            agent_type="narrative",
+            location=initial_location,
+            npcs_mentioned=[],
+            combat_round=None,
+        )
 
         game_state = GameState(
             game_id=game_id,
@@ -251,14 +260,27 @@ class GameService(IGameService):
         self.save_game(game_state)
         return game_state
 
-    def add_message(self, game_id: str, role: MessageRole, content: str) -> GameState:
+    def add_message(
+        self,
+        game_id: str,
+        role: MessageRole,
+        content: str,
+        agent_type: str = "narrative",
+        location: str | None = None,
+        npcs_mentioned: list[str] | None = None,
+        combat_round: int | None = None,
+    ) -> GameState:
         """
-        Add a message to conversation history.
+        Add a message to conversation history with metadata.
 
         Args:
             game_id: Game ID
-            role: Message role (user/assistant/system)
+            role: Message role (player/dm)
             content: Message content
+            agent_type: Which agent generated this message
+            location: Where this message occurred
+            npcs_mentioned: NPCs referenced in the message
+            combat_round: Combat round if in combat
 
         Returns:
             Updated GameState
@@ -270,7 +292,15 @@ class GameService(IGameService):
         if not game_state:
             raise ValueError(f"Game {game_id} not found")
 
-        message = Message(role=role, content=content, timestamp=datetime.now())
+        message = Message(
+            role=role,
+            content=content,
+            timestamp=datetime.now(),
+            agent_type=agent_type,
+            location=location,
+            npcs_mentioned=npcs_mentioned if npcs_mentioned is not None else [],
+            combat_round=combat_round,
+        )
 
         game_state.conversation_history.append(message)
         self.save_game(game_state)

@@ -19,6 +19,7 @@ from app.interfaces.events import IEventBus
 from app.services.context_service import ContextService
 from app.services.event_logger_service import EventLoggerService
 from app.services.message_converter_service import MessageConverterService
+from app.services.message_metadata_service import MessageMetadataService
 from app.services.scenario_service import ScenarioService
 
 logger = logging.getLogger(__name__)
@@ -140,6 +141,7 @@ The current game state and character information will be provided with each inte
                 context_service=ContextService(ScenarioService()),
                 message_converter=MessageConverterService(),
                 event_logger=EventLoggerService(game_id="", debug=debug),
+                metadata_service=MessageMetadataService(),
                 event_bus=event_bus,
             )
 

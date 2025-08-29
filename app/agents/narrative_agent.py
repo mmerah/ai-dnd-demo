@@ -32,6 +32,7 @@ from app.models.game_state import GameState, MessageRole
 from app.services.context_service import ContextService
 from app.services.event_logger_service import EventLoggerService
 from app.services.message_converter_service import MessageConverterService
+from app.services.message_metadata_service import MessageMetadataService
 from app.tools import character_tools, dice_tools, inventory_tools, time_tools
 
 logger = logging.getLogger(__name__)
@@ -48,6 +49,7 @@ class NarrativeAgent(BaseAgent):
     context_service: ContextService
     message_converter: MessageConverterService
     event_logger: EventLoggerService
+    metadata_service: MessageMetadataService
     event_bus: IEventBus
     # Any types are unavoidable here as tool arguments and results vary by tool
     # Format: (tool_name, args_dict | None, result | None)
@@ -79,7 +81,7 @@ class NarrativeAgent(BaseAgent):
 
     async def event_stream_handler(
         self,
-        ctx: RunContext[AgentDependencies],
+        _ctx: RunContext[AgentDependencies],
         event_stream: AsyncIterable[Any],  # PydanticAI's internal event type
     ) -> None:
         """Handle streaming events and log tool calls."""
@@ -228,8 +230,10 @@ class NarrativeAgent(BaseAgent):
         # Build context
         context = self.context_service.build_context(game_state)
 
-        # Convert conversation history
-        message_history = self.message_converter.to_pydantic_messages(game_state.conversation_history)
+        # Convert conversation history - filter to only narrative agent messages
+        message_history = self.message_converter.to_pydantic_messages(
+            game_state.conversation_history, agent_type="narrative"
+        )
 
         # Create the full prompt with context
         full_prompt = f"{context}\n\nPlayer: {prompt}"
@@ -290,9 +294,31 @@ class NarrativeAgent(BaseAgent):
                                 )
                             )
 
-            # Save conversation
-            game_service.add_message(game_state.game_id, MessageRole.PLAYER, prompt)
-            game_service.add_message(game_state.game_id, MessageRole.DM, result.output)
+            # Extract metadata for messages
+            player_location = self.metadata_service.get_current_location(game_state)
+            player_npcs = self.metadata_service.extract_npc_mentions(prompt, game_state.npcs)
+            dm_npcs = self.metadata_service.extract_npc_mentions(result.output, game_state.npcs)
+            combat_round = self.metadata_service.get_combat_round(game_state)
+
+            # Save conversation with metadata
+            game_service.add_message(
+                game_state.game_id,
+                MessageRole.PLAYER,
+                prompt,
+                agent_type="narrative",
+                location=player_location,
+                npcs_mentioned=player_npcs,
+                combat_round=combat_round,
+            )
+            game_service.add_message(
+                game_state.game_id,
+                MessageRole.DM,
+                result.output,
+                agent_type="narrative",
+                location=player_location,
+                npcs_mentioned=dm_npcs,
+                combat_round=combat_round,
+            )
 
             # Save captured game events
             logger.debug(f"Saving {len(self.captured_events)} captured events to game state")
