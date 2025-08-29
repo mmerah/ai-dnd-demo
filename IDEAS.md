@@ -5,9 +5,18 @@ Full D&D 5e functionality with scenario management, character management, functi
 ## Ideas
 
 1. Save/Load game handling in the frontend. If it is correct in the backend
-2. Scenario: Does not seem to be completely passed as context to the AI. Location handling, NPCs, ... A scenario need a LOT more data as it references monsters, items, NPCs. This means we need to expand the content in app/data/ considerably. Then make a scenario reference the content of data. Then if scenario is passed correctly with its references as context to the AI (depending on location, location has connection to other locations, refers events/quests/monsters/checks/npcs/items/...). Need tools let AI handle all that stuff.
-3. Linked the database of stuff in app/data/ to the inventory/spells. Same to the frontend
-4. Frontend upgrades: Location information, current scenario, quest logs, more info on spells/items, 
+2. Frontend upgrades needed:
+   - Display current location name and available connections/exits
+   - Show quest log with active quests and objectives progress
+   - Item/spell tooltips pulling descriptions from database
+   - Location danger level indicator
+   - Act/chapter display
+   - Enhanced inventory with item descriptions on hover
+   - Quest completion notifications 
+3. data/ and saves/ need better organization to avoid thousand lines files. Scenarios should be put in data/scenarios/. Then a folder with the name of the scenario. Same for characters instead of having all characters in 1 json file. For items, spells, monsters it is fine. saves/ also need somehow to be cut correctly. A save has a name which is a folder. Then it should be separated into the character of the save, then separation into things that make sense
+4. Handle all the TODO comments in the code
+5. Cleanup logger calls to minimum
+6. Review manually the code
 
 # MVP 2
 

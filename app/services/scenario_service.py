@@ -137,22 +137,17 @@ class ScenarioService(IScenarioService):
 
             if location.connections:
                 connected_locations = []
-                for conn_id in location.connections:
-                    conn_loc = scenario.get_location(conn_id)
+                for conn in location.connections:
+                    conn_loc = scenario.get_location(conn.to_location_id)
                     if conn_loc:
                         connected_locations.append(conn_loc.name)
                 if connected_locations:
                     context_parts.append(f"Connected locations: {', '.join(connected_locations)}")
 
         # Add current act/progression info
-        for act_name, act in [
-            ("Act 1", scenario.progression.act1),
-            ("Act 2", scenario.progression.act2),
-            ("Act 3", scenario.progression.act3),
-            ("Act 4", scenario.progression.act4),
-        ]:
-            if act and current_location_id in act.locations:
-                context_parts.append(f"\nCurrent Act: {act_name} - {act.name}")
+        for i, act in enumerate(scenario.progression.acts):
+            if current_location_id in act.locations:
+                context_parts.append(f"\nCurrent Act: Act {i + 1} - {act.name}")
                 context_parts.append(f"Act Objectives: {', '.join(act.objectives)}")
                 break
 

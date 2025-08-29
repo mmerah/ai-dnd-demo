@@ -6,12 +6,16 @@ from app.config import get_settings
 from app.events.event_bus import EventBus
 from app.events.handlers.broadcast_handler import BroadcastHandler
 from app.events.handlers.character_handler import CharacterHandler
+from app.events.handlers.combat_handler import CombatHandler
 from app.events.handlers.dice_handler import DiceHandler
 from app.events.handlers.inventory_handler import InventoryHandler
+from app.events.handlers.location_handler import LocationHandler
+from app.events.handlers.quest_handler import QuestHandler
 from app.events.handlers.time_handler import TimeHandler
 from app.interfaces.events import IEventBus
 from app.interfaces.services import IAIService, IGameService, IScenarioService
 from app.services.ai_service import AIService
+from app.services.data_service import DataService
 from app.services.dice_service import DiceService
 from app.services.game_service import GameService
 from app.services.scenario_service import ScenarioService
@@ -27,6 +31,7 @@ class Container:
         self._game_service: IGameService | None = None
         self._scenario_service: IScenarioService | None = None
         self._dice_service: DiceService | None = None
+        self._data_service: DataService | None = None
         self._event_bus: IEventBus | None = None
         self._ai_service: IAIService | None = None
 
@@ -45,10 +50,17 @@ class Container:
             self._dice_service = DiceService()
         return self._dice_service
 
+    def get_data_service(self) -> DataService:
+        if self._data_service is None:
+            self._data_service = DataService()
+        return self._data_service
+
     def get_event_bus(self) -> IEventBus:
         if self._event_bus is None:
             game_service = self.get_game_service()
             dice_service = self.get_dice_service()
+            scenario_service = self.get_scenario_service()
+            data_service = self.get_data_service()
 
             event_bus = EventBus(game_service)
 
@@ -58,6 +70,9 @@ class Container:
             event_bus.register_handler("inventory", InventoryHandler(game_service))
             event_bus.register_handler("time", TimeHandler(game_service))
             event_bus.register_handler("broadcast", BroadcastHandler(game_service))
+            event_bus.register_handler("location", LocationHandler(game_service, scenario_service, data_service))
+            event_bus.register_handler("combat", CombatHandler(game_service, scenario_service, data_service))
+            event_bus.register_handler("quest", QuestHandler(game_service, scenario_service, data_service))
 
             self._event_bus = event_bus
         return self._event_bus
@@ -67,10 +82,16 @@ class Container:
             settings = get_settings()
             event_bus = self.get_event_bus()
             game_service = self.get_game_service()
+            scenario_service = self.get_scenario_service()
+            data_service = self.get_data_service()
 
             ai_service = AIService(game_service)
             ai_service.narrative_agent = AgentFactory.create_agent(
-                AgentType.NARRATIVE, event_bus=event_bus, debug=settings.debug_ai
+                AgentType.NARRATIVE,
+                event_bus=event_bus,
+                scenario_service=scenario_service,
+                data_service=data_service,
+                debug=settings.debug_ai,
             )
             self._ai_service = ai_service
         return self._ai_service

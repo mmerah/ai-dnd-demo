@@ -21,7 +21,7 @@ from pydantic_ai.messages import (
 from app.agents.base import BaseAgent
 from app.agents.dependencies import AgentDependencies
 from app.interfaces.events import IEventBus
-from app.interfaces.services import IGameService
+from app.interfaces.services import IGameService, IScenarioService
 from app.models.ai_response import (
     NarrativeResponse,
     StreamEvent,
@@ -30,10 +30,19 @@ from app.models.ai_response import (
 )
 from app.models.game_state import GameState, MessageRole
 from app.services.context_service import ContextService
+from app.services.data_service import DataService
 from app.services.event_logger_service import EventLoggerService
 from app.services.message_converter_service import MessageConverterService
 from app.services.message_metadata_service import MessageMetadataService
-from app.tools import character_tools, dice_tools, inventory_tools, time_tools
+from app.tools import (
+    character_tools,
+    combat_tools,
+    dice_tools,
+    inventory_tools,
+    location_tools,
+    quest_tools,
+    time_tools,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -51,6 +60,8 @@ class NarrativeAgent(BaseAgent):
     event_logger: EventLoggerService
     metadata_service: MessageMetadataService
     event_bus: IEventBus
+    scenario_service: IScenarioService
+    data_service: DataService
     # Any types are unavoidable here as tool arguments and results vary by tool
     # Format: (tool_name, args_dict | None, result | None)
     captured_events: list[tuple[str, dict[str, Any] | None, Any | None]] = field(default_factory=list)
@@ -77,6 +88,23 @@ class NarrativeAgent(BaseAgent):
             time_tools.short_rest,
             time_tools.long_rest,
             time_tools.advance_time,
+            # Location and navigation tools
+            location_tools.change_location,
+            location_tools.discover_secret,
+            location_tools.search_location,
+            location_tools.update_location_danger,
+            # Combat management tools
+            combat_tools.start_combat,
+            combat_tools.trigger_scenario_encounter,
+            combat_tools.spawn_monsters,
+            combat_tools.roll_group_initiative,
+            # Quest management tools
+            quest_tools.start_quest,
+            quest_tools.complete_objective,
+            quest_tools.complete_quest,
+            quest_tools.progress_act,
+            quest_tools.check_quest_prerequisites,
+            quest_tools.update_objective_status,
         ]
 
     async def event_stream_handler(
@@ -225,6 +253,8 @@ class NarrativeAgent(BaseAgent):
             game_state=game_state,
             game_service=game_service,
             event_bus=self.event_bus,
+            scenario_service=self.scenario_service,
+            data_service=self.data_service,
         )
 
         # Build context

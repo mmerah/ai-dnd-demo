@@ -7,7 +7,9 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 from .character import CharacterSheet
+from .location import LocationState
 from .npc import NPCSheet
+from .quest import Quest
 
 # Type alias for JSON-serializable data
 # Note: We use Any here to avoid recursive type issues with Pydantic
@@ -176,16 +178,22 @@ class GameState(BaseModel):
     scenario_id: str | None = None
     scenario_title: str | None = None
     current_location_id: str | None = None
+    current_act_id: str | None = None
 
     # Location and time
     location: str = "Unknown"
     description: str = ""
     game_time: GameTime = Field(default_factory=GameTime)
 
+    # Location tracking
+    location_states: dict[str, LocationState] = Field(default_factory=dict)
+
     # Combat state (optional)
     combat: CombatState | None = None
 
     # Quest and story tracking
+    active_quests: list[Quest] = Field(default_factory=list)
+    completed_quest_ids: list[str] = Field(default_factory=list)
     quest_flags: dict[str, JSONSerializable] = Field(default_factory=dict)
     story_notes: list[str] = Field(default_factory=list)
 
@@ -299,11 +307,20 @@ class GameState(BaseModel):
         """Add a note to the story log."""
         self.story_notes.append(f"[Day {self.game_time.day}] {note}")
 
-    def change_location(self, new_location: str, description: str = "") -> None:
+    def change_location(self, new_location_id: str, new_location_name: str, description: str = "") -> None:
         """Change the current location."""
-        self.location = new_location
+        # Update location state tracking
+        # TODO: Need to be updated with the NPC present at the location
+        if new_location_id not in self.location_states:
+            self.location_states[new_location_id] = LocationState(location_id=new_location_id)
+
+        location_state = self.location_states[new_location_id]
+        location_state.mark_visited()
+
+        self.current_location_id = new_location_id
+        self.location = new_location_name
         self.description = description
-        self.add_story_note(f"Moved to {new_location}")
+        self.add_story_note(f"Moved to {new_location_name}")
 
     def get_recent_messages(self, count: int = 10) -> list[Message]:
         """Get the most recent messages from history."""
@@ -325,3 +342,35 @@ class GameState(BaseModel):
     def from_save_dict(cls, data: dict[str, Any]) -> "GameState":
         """Create game state from saved dictionary."""
         return cls(**data)
+
+    def get_location_state(self, location_id: str) -> LocationState:
+        """Get or create location state."""
+        if location_id not in self.location_states:
+            self.location_states[location_id] = LocationState(location_id=location_id)
+        return self.location_states[location_id]
+
+    def add_quest(self, quest: Quest) -> None:
+        """Add a quest to active quests."""
+        # Check if quest already exists
+        for q in self.active_quests:
+            if q.id == quest.id:
+                return
+        self.active_quests.append(quest)
+        self.add_story_note(f"New quest started: {quest.name}")
+
+    def complete_quest(self, quest_id: str) -> bool:
+        """Mark a quest as completed. Returns True if found."""
+        for i, quest in enumerate(self.active_quests):
+            if quest.id == quest_id:
+                self.active_quests.pop(i)
+                self.completed_quest_ids.append(quest_id)
+                self.add_story_note(f"Quest completed: {quest.name}")
+                return True
+        return False
+
+    def get_active_quest(self, quest_id: str) -> Quest | None:
+        """Get an active quest by ID."""
+        for quest in self.active_quests:
+            if quest.id == quest_id:
+                return quest
+        return None

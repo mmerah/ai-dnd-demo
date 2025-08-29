@@ -1,12 +1,14 @@
 """Scenario models for D&D adventure content."""
 
+from typing import TYPE_CHECKING
+
 from pydantic import BaseModel, Field
 
+from app.models.location import LocationConnection, LootEntry, MonsterSpawn
+from app.models.quest import Quest
 
-class DialogueHint(BaseModel):
-    """NPC dialogue hint."""
-
-    text: str
+if TYPE_CHECKING:
+    from app.services.data_service import DataService
 
 
 class ScenarioNPC(BaseModel):
@@ -16,47 +18,117 @@ class ScenarioNPC(BaseModel):
     role: str
     description: str
     dialogue_hints: list[str] = Field(default_factory=list)
+    valuable_item: str | None = None  # Special item this NPC has that could be looted/traded
 
 
 class Encounter(BaseModel):
     """Encounter definition for a location."""
 
-    type: str  # Combat, Skill Challenge, Trap, etc.
+    id: str  # Unique identifier for tracking
+    type: str  # Combat, Skill Challenge, Trap, Roleplay, Environmental, etc.
     description: str
     difficulty: str | None = None  # Easy, Medium, Hard
+    monster_spawns: list[MonsterSpawn] = Field(default_factory=list)  # For combat encounters
+    dc: int | None = None  # For skill challenges/traps
+    rewards: list[str] = Field(default_factory=list)  # Description of rewards
+
+
+class Secret(BaseModel):
+    """Hidden secret in a location."""
+
+    id: str
+    description: str
+    discovery_method: str  # "search", "specific_action", "dialogue", etc.
+    dc: int | None = None  # Investigation/Perception DC if applicable
+    reward: str | None = None  # What's gained from discovering
+
+
+class LocationDescriptions(BaseModel):
+    """Multiple description variants for different states."""
+
+    first_visit: str
+    return_visit: str | None = None
+    cleared: str | None = None  # After danger is cleared
+    special_conditions: dict[str, str] = Field(default_factory=dict)  # Conditional descriptions
 
 
 class ScenarioLocation(BaseModel):
-    """Location within a scenario."""
+    """Enhanced location within a scenario."""
 
     id: str
     name: str
-    description: str
+    description: str  # Default description
+    descriptions: LocationDescriptions | None = None  # Multiple variants
     npcs: list[ScenarioNPC] = Field(default_factory=list)
     encounters: list[Encounter] = Field(default_factory=list)
-    connections: list[str] = Field(default_factory=list)  # Connected location IDs
+    connections: list[LocationConnection] = Field(default_factory=list)  # Enhanced connections
     events: list[str] = Field(default_factory=list)
     environmental_features: list[str] = Field(default_factory=list)
-    secrets: list[str] = Field(default_factory=list)
-    loot: list[str] = Field(default_factory=list)
+    secrets: list[Secret] = Field(default_factory=list)  # Enhanced secrets
+    loot_table: list[LootEntry] = Field(default_factory=list)  # Structured loot
     victory_conditions: list[str] = Field(default_factory=list)
+    danger_level: str = "moderate"  # Default danger level
+
+    def get_description(self, variant: str = "default") -> str:
+        """Get appropriate description based on state."""
+        if not self.descriptions:
+            return self.description
+
+        if variant == "first_visit" and self.descriptions.first_visit:
+            return self.descriptions.first_visit
+        elif variant == "return_visit" and self.descriptions.return_visit:
+            return self.descriptions.return_visit
+        elif variant == "cleared" and self.descriptions.cleared:
+            return self.descriptions.cleared
+        elif variant in self.descriptions.special_conditions:
+            return self.descriptions.special_conditions[variant]
+
+        return self.description
+
+    def get_available_connections(self) -> list[LocationConnection]:
+        """Get visible connections from this location."""
+        return [conn for conn in self.connections if conn.is_visible]
 
 
 class ScenarioAct(BaseModel):
     """Act/Chapter in scenario progression."""
 
+    id: str
     name: str
     locations: list[str]  # Location IDs
-    objectives: list[str]
+    objectives: list[str]  # General objectives (for context)
+    quests: list[str] = Field(default_factory=list)  # Quest IDs for this act
+    completion_requirements: list[str] = Field(default_factory=list)  # What must be done to progress
 
 
 class ScenarioProgression(BaseModel):
-    """Scenario progression structure."""
+    """Enhanced scenario progression structure."""
 
-    act1: ScenarioAct
-    act2: ScenarioAct
-    act3: ScenarioAct
-    act4: ScenarioAct | None = None
+    acts: list[ScenarioAct]
+    current_act_index: int = 0
+
+    def get_current_act(self) -> ScenarioAct | None:
+        """Get the current act."""
+        if 0 <= self.current_act_index < len(self.acts):
+            return self.acts[self.current_act_index]
+        return None
+
+    def can_progress_to_next_act(self, completed_quests: list[str]) -> bool:
+        """Check if ready to progress to next act."""
+        current_act = self.get_current_act()
+        if not current_act:
+            return False
+
+        # Check if all required quests are completed
+        required_quests = current_act.quests
+        return all(quest_id in completed_quests for quest_id in required_quests)
+
+    def progress_to_next_act(self) -> bool:
+        """Move to the next act. Returns True if successful."""
+        if self.current_act_index < len(self.acts) - 1:
+            self.current_act_index += 1
+            return True
+        return False
 
 
 class TreasureGuidelines(BaseModel):
@@ -69,15 +141,16 @@ class TreasureGuidelines(BaseModel):
 
 
 class Scenario(BaseModel):
-    """Complete scenario/adventure definition."""
+    """Complete enhanced scenario/adventure definition."""
 
     id: str = Field(default="default")
     title: str
     description: str
     starting_location: str  # Location ID
     locations: list[ScenarioLocation]
+    quests: list[Quest] = Field(default_factory=list)  # All quests in scenario
     progression: ScenarioProgression
-    random_encounters: list[str] = Field(default_factory=list)
+    random_encounters: list[Encounter] = Field(default_factory=list)  # Random encounter table
     treasure_guidelines: TreasureGuidelines
 
     def get_location(self, location_id: str) -> ScenarioLocation | None:
@@ -91,14 +164,70 @@ class Scenario(BaseModel):
         """Get the starting location."""
         return self.get_location(self.starting_location)
 
+    def get_quest(self, quest_id: str) -> Quest | None:
+        """Get a quest by ID."""
+        for quest in self.quests:
+            if quest.id == quest_id:
+                return quest
+        return None
+
+    def get_quests_for_act(self, act_id: str) -> list[Quest]:
+        """Get all quests for a specific act."""
+        return [q for q in self.quests if q.act == act_id]
+
+    def get_encounter_by_id(self, encounter_id: str) -> Encounter | None:
+        """Find an encounter by ID across all locations."""
+        for location in self.locations:
+            for encounter in location.encounters:
+                if encounter.id == encounter_id:
+                    return encounter
+
+        # Also check random encounters
+        for encounter in self.random_encounters:
+            if encounter.id == encounter_id:
+                return encounter
+
+        return None
+
+    def validate_references(self, data_service: "DataService") -> list[str]:
+        """
+        Validate all monster and item references.
+
+        Returns list of validation errors.
+        """
+        errors = []
+
+        # Check all monster references
+        for location in self.locations:
+            for encounter in location.encounters:
+                for spawn in encounter.monster_spawns:
+                    if not data_service.validate_monster_reference(spawn.monster_name):
+                        errors.append(
+                            f"Location '{location.name}': Monster '{spawn.monster_name}' not found in database"
+                        )
+
+            # Check loot references
+            for loot in location.loot_table:
+                if not data_service.validate_item_reference(loot.item_name):
+                    errors.append(f"Location '{location.name}': Item '{loot.item_name}' not found in database")
+
+            # Check NPC valuable items
+            for npc in location.npcs:
+                if npc.valuable_item and not data_service.validate_item_reference(npc.valuable_item):
+                    errors.append(f"NPC '{npc.name}': Item '{npc.valuable_item}' not found in database")
+
+        return errors
+
     def get_initial_narrative(self) -> str:
         """Generate initial narrative for scenario start."""
+        # TODO: Don't make it too formatted, otherwise the AI use it as inspiration for the rest of the messages
         start_loc = self.get_starting_location()
         if not start_loc:
             return f"Your adventure '{self.title}' begins..."
 
         narrative = f"## {self.title}\n\n{self.description}\n\n"
-        narrative += f"### {start_loc.name}\n\n{start_loc.description}"
+        narrative += f"### {start_loc.name}\n\n"
+        narrative += start_loc.get_description("first_visit")
 
         if start_loc.npcs:
             narrative += "\n\nYou notice several people here:"

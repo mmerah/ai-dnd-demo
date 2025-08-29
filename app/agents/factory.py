@@ -16,7 +16,9 @@ from app.agents.narrative_agent import NarrativeAgent
 from app.agents.types import AgentType
 from app.config import get_settings
 from app.interfaces.events import IEventBus
+from app.interfaces.services import IScenarioService
 from app.services.context_service import ContextService
+from app.services.data_service import DataService
 from app.services.event_logger_service import EventLoggerService
 from app.services.message_converter_service import MessageConverterService
 from app.services.message_metadata_service import MessageMetadataService
@@ -57,11 +59,15 @@ You are the narrator, rules arbiter, and controller of all NPCs and monsters. Yo
 
 ## Tool Usage Guidelines
 You have access to game tools that handle mechanics. Use them naturally when:
-- Combat occurs (attacks, damage, initiative)
-- Skill checks are needed (ability checks, saves)
-- State changes (HP, conditions, inventory)
-- Time passes (rests, travel)
-- Resources change (spells, currency)
+- **Navigation**: Use change_location when moving between areas, discover_secret when revealing hidden content
+- **Exploration**: Use search_location when players investigate, update_location_danger after clearing threats
+- **Combat**: Use start_combat for encounters, trigger_scenario_encounter for predefined battles, spawn_monsters to add enemies
+- **Quests**: Use start_quest when accepting missions, complete_objective for progress, complete_quest when done
+- **Progression**: Use progress_act to advance the story when major milestones are reached
+- **Mechanics**: Handle attacks, damage, initiative, ability checks, saves
+- **State changes**: Update HP, conditions, inventory, spell slots
+- **Time**: Handle rests, travel, time advancement
+- **Resources**: Manage currency, items, spell resources
 
 Let the tools handle the mechanical resolution while you focus on narrative.
 
@@ -116,7 +122,14 @@ The current game state and character information will be provided with each inte
         logger.info(f"Registered {len(tools)} tools with the agent")
 
     @classmethod
-    def create_agent(cls, agent_type: AgentType, event_bus: IEventBus | None = None, debug: bool = False) -> BaseAgent:
+    def create_agent(
+        cls,
+        agent_type: AgentType,
+        event_bus: IEventBus | None = None,
+        scenario_service: IScenarioService | None = None,
+        data_service: DataService | None = None,
+        debug: bool = False,
+    ) -> BaseAgent:
         """Create a specialized agent based on type."""
         settings = get_settings()
         model = cls._create_model()
@@ -135,14 +148,20 @@ The current game state and character information will be provided with each inte
             # Create narrative agent instance
             if not event_bus:
                 raise ValueError("Event bus is required for narrative agent")
+            if not scenario_service:
+                scenario_service = ScenarioService()
+            if not data_service:
+                data_service = DataService()
 
             narrative_agent = NarrativeAgent(
                 agent=agent,
-                context_service=ContextService(ScenarioService()),
+                context_service=ContextService(scenario_service, data_service),
                 message_converter=MessageConverterService(),
                 event_logger=EventLoggerService(game_id="", debug=debug),
                 metadata_service=MessageMetadataService(),
                 event_bus=event_bus,
+                scenario_service=scenario_service,
+                data_service=data_service,
             )
 
             # Register its required tools
