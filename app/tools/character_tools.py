@@ -5,6 +5,7 @@ from typing import Any
 
 from pydantic_ai import RunContext
 
+from app.dependencies import AgentDependencies
 from app.events.commands.broadcast_commands import BroadcastToolCallCommand
 from app.events.commands.character_commands import (
     AddConditionCommand,
@@ -12,7 +13,6 @@ from app.events.commands.character_commands import (
     UpdateHPCommand,
     UpdateSpellSlotsCommand,
 )
-from app.models.dependencies import AgentDependencies
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 async def update_hp(
     ctx: RunContext[AgentDependencies], amount: int, damage_type: str = "untyped", target: str = "player"
 ) -> dict[str, Any]:
+    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
     """Update hit points for damage or healing.
 
     Use after damage rolls or healing effects.
@@ -67,6 +68,7 @@ async def update_hp(
 async def add_condition(
     ctx: RunContext[AgentDependencies], condition: str, duration: int = 0, target: str = "player"
 ) -> dict[str, Any]:
+    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
     """Add a status condition to a character.
 
     Use when effects impose conditions.
@@ -113,6 +115,7 @@ async def add_condition(
 async def remove_condition(
     ctx: RunContext[AgentDependencies], condition: str, target: str = "player"
 ) -> dict[str, Any]:
+    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
     """Remove a condition from a character.
 
     Use when conditions end or are cured.
@@ -151,6 +154,7 @@ async def remove_condition(
 
 
 async def update_spell_slots(ctx: RunContext[AgentDependencies], level: int, amount: int) -> dict[str, Any]:
+    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
     """Update spell slots for the player.
 
     Use when spells are cast or slots are restored.

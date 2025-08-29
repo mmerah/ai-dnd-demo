@@ -4,7 +4,7 @@ import json
 import logging
 from collections.abc import AsyncIterable, AsyncIterator, Callable
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, TypeAlias
 
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.messages import (
@@ -19,13 +19,14 @@ from pydantic_ai.messages import (
 )
 
 from app.agents.base import BaseAgent
+from app.dependencies import AgentDependencies
+from app.events.event_bus import EventBus
 from app.models.ai_response import (
     NarrativeResponse,
     StreamEvent,
     StreamEventType,
     ToolCallEvent,
 )
-from app.models.dependencies import AgentDependencies
 from app.models.game_state import GameState, MessageRole
 from app.services.context_service import ContextService
 from app.services.dice_service import DiceService
@@ -38,7 +39,7 @@ from app.tools import character_tools, dice_tools, inventory_tools, time_tools
 logger = logging.getLogger(__name__)
 
 # Type alias for PydanticAI streaming events
-PydanticAIEvent = PartStartEvent | PartDeltaEvent | FunctionToolCallEvent | FunctionToolResultEvent
+PydanticAIEvent: TypeAlias = PartStartEvent | PartDeltaEvent | FunctionToolCallEvent | FunctionToolResultEvent
 
 
 @dataclass
@@ -49,7 +50,7 @@ class NarrativeAgent(BaseAgent):
     context_service: ContextService
     message_converter: MessageConverterService
     event_logger: EventLoggerService
-    event_bus: Any  # EventBus type, using Any to avoid circular import
+    event_bus: EventBus
     # Any types are unavoidable here as tool arguments and results vary by tool
     # Format: (tool_name, args_dict | None, result | None)
     captured_events: list[tuple[str, dict[str, Any] | None, Any | None]] = field(default_factory=list)

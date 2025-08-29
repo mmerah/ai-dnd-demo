@@ -22,7 +22,6 @@ from .game_state import (
     MessageRole,
 )
 from .npc import (
-    NPCAbilities,
     NPCAttack,
     NPCSheet,
     SpecialAbility,
@@ -43,7 +42,6 @@ __all__ = [
     "Personality",
     "CharacterSheet",
     # NPC models
-    "NPCAbilities",
     "NPCAttack",
     "SpecialAbility",
     "NPCSheet",

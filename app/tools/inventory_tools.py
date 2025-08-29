@@ -5,13 +5,13 @@ from typing import Any
 
 from pydantic_ai import RunContext
 
+from app.dependencies import AgentDependencies
 from app.events.commands.broadcast_commands import BroadcastToolCallCommand
 from app.events.commands.inventory_commands import (
     AddItemCommand,
     ModifyCurrencyCommand,
     RemoveItemCommand,
 )
-from app.models.dependencies import AgentDependencies
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 async def modify_currency(
     ctx: RunContext[AgentDependencies], gold: int = 0, silver: int = 0, copper: int = 0
 ) -> dict[str, Any]:
+    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
     """Modify the player's currency.
 
     Use when the player gains or spends money.
@@ -58,6 +59,7 @@ async def modify_currency(
 
 
 async def add_item(ctx: RunContext[AgentDependencies], item_name: str, quantity: int = 1) -> dict[str, Any]:
+    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
     """Add an item to the player's inventory.
 
     Use when the player acquires items.
@@ -94,6 +96,7 @@ async def add_item(ctx: RunContext[AgentDependencies], item_name: str, quantity:
 
 
 async def remove_item(ctx: RunContext[AgentDependencies], item_name: str, quantity: int = 1) -> dict[str, Any]:
+    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
     """Remove an item from the player's inventory.
 
     Use when the player uses or loses items.

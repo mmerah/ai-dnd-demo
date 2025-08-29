@@ -14,7 +14,7 @@ from app.agents.base import BaseAgent
 from app.agents.narrative_agent import NarrativeAgent
 from app.agents.types import AgentType
 from app.config import get_settings
-from app.models.dependencies import AgentDependencies
+from app.dependencies import AgentDependencies
 from app.services.context_service import ContextService
 from app.services.event_logger_service import EventLoggerService
 from app.services.message_converter_service import MessageConverterService

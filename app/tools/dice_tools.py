@@ -5,9 +5,9 @@ from typing import Any
 
 from pydantic_ai import RunContext
 
+from app.dependencies import AgentDependencies
 from app.events.commands.broadcast_commands import BroadcastToolCallCommand
 from app.events.commands.dice_commands import RollDiceCommand
-from app.models.dependencies import AgentDependencies
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +20,7 @@ async def roll_ability_check(
     advantage: str | None = None,
     target: str = "player",
 ) -> dict[str, Any]:
+    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
     """Roll an ability check for D&D 5e.
 
     Use this when a character attempts an action requiring an ability check.
@@ -100,6 +101,7 @@ async def roll_ability_check(
 async def roll_saving_throw(
     ctx: RunContext[AgentDependencies], ability: str, dc: int = 15, advantage: str | None = None, target: str = "player"
 ) -> dict[str, Any]:
+    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
     """Roll a saving throw for D&D 5e.
 
     Use when a character must resist an effect or avoid danger.
@@ -164,6 +166,7 @@ async def roll_attack(
     advantage: str | None = None,
     attacker: str = "player",
 ) -> dict[str, Any]:
+    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
     """Roll an attack in combat.
 
     Use when a character or NPC makes an attack.
@@ -228,6 +231,7 @@ async def roll_damage(
     critical: bool = False,
     source: str = "weapon",
 ) -> dict[str, Any]:
+    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
     """Roll damage for an attack or effect.
 
     Use after a successful attack or when damage occurs.
@@ -291,6 +295,7 @@ async def roll_damage(
 
 
 async def roll_initiative(ctx: RunContext[AgentDependencies], combatants: list[str]) -> dict[str, Any]:
+    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
     """Roll initiative for combat.
 
     Use at the start of combat to determine turn order.

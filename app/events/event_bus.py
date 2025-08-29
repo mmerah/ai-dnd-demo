@@ -1,44 +1,31 @@
-"""Central event bus for processing commands sequentially."""
+"""Central event bus for processing commands sequentially using a handler registration pattern."""
 
 import asyncio
 import logging
+from datetime import datetime
 from typing import Any
 
 from app.events.base import BaseCommand
 from app.events.handlers.base_handler import BaseHandler
-from app.events.handlers.broadcast_handler import BroadcastHandler
-from app.events.handlers.character_handler import CharacterHandler
-from app.events.handlers.dice_handler import DiceHandler
-from app.events.handlers.inventory_handler import InventoryHandler
-from app.events.handlers.time_handler import TimeHandler
-from app.services.dice_service import DiceService
 from app.services.game_service import GameService
 
 logger = logging.getLogger(__name__)
 
 
 class EventBus:
-    """Central event bus for processing commands sequentially."""
+    """Central event bus for processing commands sequentially using a handler registration pattern."""
 
     def __init__(self, game_service: GameService):
         self.game_service = game_service
-        self.dice_service = DiceService()
-
-        # Initialize handlers
-        self.handlers: dict[str, BaseHandler] = {
-            "character": CharacterHandler(game_service),
-            "dice": DiceHandler(game_service, self.dice_service),
-            "inventory": InventoryHandler(game_service),
-            "time": TimeHandler(game_service),
-            "broadcast": BroadcastHandler(game_service),
-        }
-
-        # Command queue with priority support
-        from datetime import datetime
+        self._handlers: dict[str, BaseHandler] = {}
 
         self.command_queue: asyncio.PriorityQueue[tuple[int, datetime, BaseCommand]] = asyncio.PriorityQueue()
         self.processing = False
         self.processing_task: asyncio.Task[None] | None = None
+
+    def register_handler(self, handler_name: str, handler: BaseHandler) -> None:
+        """Register a handler for a specific command domain."""
+        self._handlers[handler_name] = handler
 
     async def submit_command(self, command: BaseCommand) -> None:
         """Submit a command to the queue for processing."""
@@ -66,7 +53,7 @@ class EventBus:
 
         # Find handler
         handler_name = command.get_handler_name()
-        handler = self.handlers.get(handler_name)
+        handler = self._handlers.get(handler_name)
 
         if not handler:
             raise ValueError(f"No handler found for {handler_name}")
@@ -123,7 +110,7 @@ class EventBus:
 
         # Find handler
         handler_name = command.get_handler_name()
-        handler = self.handlers.get(handler_name)
+        handler = self._handlers.get(handler_name)
 
         if not handler:
             raise ValueError(f"No handler found for {handler_name}")
@@ -147,15 +134,3 @@ class EventBus:
         """Wait for all queued commands to complete."""
         if self.processing_task:
             await self.processing_task
-
-
-# Singleton instance
-_event_bus: EventBus | None = None
-
-
-def get_event_bus(game_service: GameService) -> EventBus:
-    """Get or create the event bus singleton."""
-    global _event_bus
-    if _event_bus is None:
-        _event_bus = EventBus(game_service)
-    return _event_bus

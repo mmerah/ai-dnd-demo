@@ -2,19 +2,7 @@
 
 from pydantic import BaseModel, Field
 
-from app.models.character import HitPoints
-
-
-# TODO: Why should there be both NPCAbilities and Abilities. Redundant.
-class NPCAbilities(BaseModel):
-    """NPC/Monster ability scores."""
-
-    STR: int = Field(ge=1, le=30)
-    DEX: int = Field(ge=1, le=30)
-    CON: int = Field(ge=1, le=30)
-    INT: int = Field(ge=1, le=30)
-    WIS: int = Field(ge=1, le=30)
-    CHA: int = Field(ge=1, le=30)
+from app.models.character import Abilities, HitPoints
 
 
 class NPCAttack(BaseModel):
@@ -56,7 +44,7 @@ class NPCSheet(BaseModel):
     challenge_rating: float = Field(ge=0)
 
     # Abilities
-    abilities: NPCAbilities
+    abilities: Abilities
 
     # Skills (optional)
     skills: dict[str, int] = Field(default_factory=dict)

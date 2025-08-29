@@ -2,10 +2,8 @@
 
 import logging
 from collections.abc import AsyncIterator
-from typing import TypedDict, Union
+from typing import Any, TypedDict, Union
 
-from app.agents.factory import AgentFactory
-from app.agents.types import AgentType
 from app.config import get_settings
 from app.models.ai_response import NarrativeResponse, StreamEventType
 from app.models.game_state import GameState
@@ -41,21 +39,12 @@ AIResponse = Union[NarrativeChunkResponse, CompleteResponse, ErrorResponse]
 class AIService:
     """Main AI Service that coordinates specialized agents."""
 
-    def __init__(self) -> None:
+    def __init__(self, game_service: GameService) -> None:
         """Initialize AI Service."""
         settings = get_settings()
         self.debug_mode = settings.debug_ai
-        self.game_service = GameService()
-
-        # Initialize event bus
-        from app.events.event_bus import get_event_bus
-
-        self.event_bus = get_event_bus(self.game_service)
-
-        # Create the narrative agent for MVP
-        self.narrative_agent = AgentFactory.create_agent(
-            AgentType.NARRATIVE, event_bus=self.event_bus, debug=self.debug_mode
-        )
+        self.game_service = game_service
+        self.narrative_agent: Any = None  # Will be set by dependency provider
 
     async def generate_response(
         self,

@@ -5,18 +5,19 @@ from typing import Any
 
 from pydantic_ai import RunContext
 
+from app.dependencies import AgentDependencies
 from app.events.commands.broadcast_commands import BroadcastToolCallCommand
 from app.events.commands.time_commands import (
     AdvanceTimeCommand,
     LongRestCommand,
     ShortRestCommand,
 )
-from app.models.dependencies import AgentDependencies
 
 logger = logging.getLogger(__name__)
 
 
 async def short_rest(ctx: RunContext[AgentDependencies]) -> dict[str, Any]:
+    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
     """Take a short rest (1 hour).
 
     Allows the player to spend hit dice to recover HP.
@@ -45,6 +46,7 @@ async def short_rest(ctx: RunContext[AgentDependencies]) -> dict[str, Any]:
 
 
 async def long_rest(ctx: RunContext[AgentDependencies]) -> dict[str, Any]:
+    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
     """Take a long rest (8 hours).
 
     Restores all HP, spell slots, and removes most conditions.
@@ -73,6 +75,7 @@ async def long_rest(ctx: RunContext[AgentDependencies]) -> dict[str, Any]:
 
 
 async def advance_time(ctx: RunContext[AgentDependencies], minutes: int) -> dict[str, Any]:
+    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
     """Advance game time by minutes.
 
     Use for travel, waiting, or other time-consuming activities.
