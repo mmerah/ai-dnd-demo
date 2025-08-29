@@ -87,8 +87,9 @@ class NarrativeAgent(BaseAgent):
 
         # Track tool calls by ID to match with results
         tool_calls_by_id: dict[str, str] = {}
-        # Clear captured events for this run
-        self.captured_events = []
+        # Track which tool calls we've already processed to avoid duplicates
+        processed_tool_calls: set[str] = set()
+        # DO NOT clear captured_events here - it gets called multiple times!
 
         async for event in event_stream:
             # Only log non-delta events to reduce spam
@@ -112,6 +113,11 @@ class NarrativeAgent(BaseAgent):
 
                     # Store tool name by ID for later matching
                     if tool_call_id:
+                        # Check if we've already processed this tool call
+                        if tool_call_id in processed_tool_calls:
+                            logger.debug(f"Skipping duplicate tool call {tool_call_id} for {tool_name}")
+                            continue
+                        processed_tool_calls.add(tool_call_id)
                         tool_calls_by_id[tool_call_id] = tool_name
 
                     # Skip broadcasting if args are empty or just an empty string
@@ -163,11 +169,12 @@ class NarrativeAgent(BaseAgent):
                     # Store tool name by ID for later matching
                     if tool_call_id:
                         # Check if we've already processed this tool call
-                        if tool_call_id in tool_calls_by_id:
+                        if tool_call_id in processed_tool_calls:
                             logger.debug(
                                 f"Skipping duplicate FunctionToolCallEvent for {tool_name} (already processed)"
                             )
                             continue
+                        processed_tool_calls.add(tool_call_id)
                         tool_calls_by_id[tool_call_id] = tool_name
 
                     if not isinstance(args, dict):
@@ -234,6 +241,9 @@ class NarrativeAgent(BaseAgent):
         logger.info(f"Stream mode: {stream}")
 
         try:
+            # Clear captured events at the start of processing
+            self.captured_events = []
+
             # For MVP, we'll use non-streaming but still capture tool events
             logger.info(f"Starting response generation (stream={stream})")
 
@@ -289,8 +299,13 @@ class NarrativeAgent(BaseAgent):
             game_service.add_message(game_state.game_id, MessageRole.DM, result.output)
 
             # Save captured game events
+            logger.info(f"Saving {len(self.captured_events)} captured events to game state")
             for tool_name, params, result_data in self.captured_events:
+                logger.debug(
+                    f"Processing event: tool={tool_name}, has_params={params is not None}, has_result={result_data is not None}"
+                )
                 if params is not None:  # Tool call
+                    logger.info(f"Adding tool_call event for {tool_name}")
                     game_service.add_game_event(
                         game_state.game_id,
                         event_type="tool_call",
@@ -298,6 +313,7 @@ class NarrativeAgent(BaseAgent):
                         parameters=params,
                     )
                 elif result_data is not None:  # Tool result
+                    logger.info(f"Adding tool_result event for {tool_name}")
                     game_service.add_game_event(
                         game_state.game_id,
                         event_type="tool_result",

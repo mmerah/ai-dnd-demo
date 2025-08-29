@@ -12,8 +12,6 @@ from .npc import NPCSheet
 # Type alias for JSON-serializable data
 # Note: We use Any here to avoid recursive type issues with Pydantic
 # All actual data is validated through Pydantic models
-from typing import Any
-
 JSONSerializable = str | int | float | bool | None | dict[str, Any] | list[Any]
 
 

@@ -204,7 +204,7 @@ class MessageService:
         """
         from app.models.game_state import JSONSerializable
 
-        scenarios_data: JSONSerializable = available_scenarios  # type: ignore[assignment]
+        scenarios_data: JSONSerializable = available_scenarios
         await broadcast_service.publish(
             game_id,
             "scenario_info",

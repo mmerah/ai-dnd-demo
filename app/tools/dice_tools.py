@@ -319,7 +319,7 @@ async def roll_initiative(ctx: RunContext[AgentDependencies], combatants: list[s
     # Broadcast the tool call
     from app.models.game_state import JSONSerializable
 
-    combatants_data: JSONSerializable = combatants  # type: ignore[assignment]
+    combatants_data: JSONSerializable = combatants
     await event_bus.submit_command(
         BroadcastToolCallCommand(
             game_id=game_state.game_id, tool_name="roll_initiative", parameters={"combatants": combatants_data}
@@ -332,6 +332,7 @@ async def roll_initiative(ctx: RunContext[AgentDependencies], combatants: list[s
     )
 
     # Return the actual result with combatants info
+    # TODO: We should never fallback, just raise an error because that's wrong to not have a result available
     if result:
         result["combatants"] = combatants
         return result

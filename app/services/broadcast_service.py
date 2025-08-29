@@ -41,10 +41,6 @@ class BroadcastService:
         """
         # Get all subscriber queues for this game
         queues = self.subscribers.get(game_id, [])
-        # Log all events for debugging
-        logger.info(f"Publishing event '{event}' to {len(queues)} subscribers for game {game_id}")
-        if event in ["tool_call", "tool_result"]:
-            logger.info(f"Tool event data: {data}")
 
         # Remove dead queues (full or closed)
         active_queues = []
