@@ -1,10 +1,16 @@
-"""Inventory and currency management tools for D&D 5e AI Dungeon Master."""
+"""Inventory management tools for D&D 5e AI Dungeon Master."""
 
 import logging
 from typing import Any
 
 from pydantic_ai import RunContext
 
+from app.events.commands.broadcast_commands import BroadcastToolCallCommand
+from app.events.commands.inventory_commands import (
+    AddItemCommand,
+    ModifyCurrencyCommand,
+    RemoveItemCommand,
+)
 from app.models.dependencies import AgentDependencies
 
 logger = logging.getLogger(__name__)
@@ -28,38 +34,27 @@ async def modify_currency(
         - Tavern tip: silver=-5, copper=-2
     """
     game_state = ctx.deps.game_state
-    game_service = ctx.deps.game_service
-    character = game_state.character
+    event_bus = ctx.deps.event_bus
 
-    old_currency = {
-        "gold": character.currency.gold,
-        "silver": character.currency.silver,
-        "copper": character.currency.copper,
-    }
-
-    character.currency.gold = max(0, character.currency.gold + gold)
-    character.currency.silver = max(0, character.currency.silver + silver)
-    character.currency.copper = max(0, character.currency.copper + copper)
-
-    new_currency = {
-        "gold": character.currency.gold,
-        "silver": character.currency.silver,
-        "copper": character.currency.copper,
-    }
-
-    game_service.save_game(game_state)
-
-    result = {
-        "type": "currency_update",
-        "old_currency": old_currency,
-        "new_currency": new_currency,
-        "change": {"gold": gold, "silver": silver, "copper": copper},
-    }
-
-    logger.info(
-        f"Currency: {gold}gp, {silver}sp, {copper}cp - Total: {new_currency['gold']}gp, {new_currency['silver']}sp, {new_currency['copper']}cp"
+    # Broadcast the tool call
+    await event_bus.submit_command(
+        BroadcastToolCallCommand(
+            game_id=game_state.game_id,
+            tool_name="modify_currency",
+            parameters={"gold": gold, "silver": silver, "copper": copper},
+        )
     )
-    return result
+
+    # Execute the modify currency command and get the result
+    result = await event_bus.execute_command(
+        ModifyCurrencyCommand(game_id=game_state.game_id, gold=gold, silver=silver, copper=copper)
+    )
+
+    # Return the actual result
+    if result:
+        return result
+    else:
+        return {"type": "currency_update", "gold": gold, "silver": silver, "copper": copper}
 
 
 async def add_item(ctx: RunContext[AgentDependencies], item_name: str, quantity: int = 1) -> dict[str, Any]:
@@ -77,26 +72,25 @@ async def add_item(ctx: RunContext[AgentDependencies], item_name: str, quantity:
         - Loot arrows: item_name="Arrows", quantity=20
     """
     game_state = ctx.deps.game_state
-    game_service = ctx.deps.game_service
-    character = game_state.character
+    event_bus = ctx.deps.event_bus
 
-    # Check if item exists
-    existing = next((item for item in character.inventory if item.name == item_name), None)
+    # Broadcast the tool call
+    await event_bus.submit_command(
+        BroadcastToolCallCommand(
+            game_id=game_state.game_id, tool_name="add_item", parameters={"item_name": item_name, "quantity": quantity}
+        )
+    )
 
-    if existing:
-        existing.quantity += quantity
+    # Execute the add item command and get the result
+    result = await event_bus.execute_command(
+        AddItemCommand(game_id=game_state.game_id, item_name=item_name, quantity=quantity)
+    )
+
+    # Return the actual result
+    if result:
+        return result
     else:
-        from app.models.character import Item
-
-        new_item = Item(name=item_name, quantity=quantity, weight=0.0, value=0)
-        character.inventory.append(new_item)
-
-    game_service.save_game(game_state)
-
-    result = {"type": "add_item", "item": item_name, "quantity": quantity, "success": True}
-
-    logger.info(f"Item Added: {quantity}x {item_name} added to inventory")
-    return result
+        return {"type": "add_item", "item": item_name, "quantity": quantity}
 
 
 async def remove_item(ctx: RunContext[AgentDependencies], item_name: str, quantity: int = 1) -> dict[str, Any]:
@@ -114,21 +108,24 @@ async def remove_item(ctx: RunContext[AgentDependencies], item_name: str, quanti
         - Shoot arrows: item_name="Arrows", quantity=2
     """
     game_state = ctx.deps.game_state
-    game_service = ctx.deps.game_service
-    character = game_state.character
+    event_bus = ctx.deps.event_bus
 
-    item = next((item for item in character.inventory if item.name == item_name), None)
-    removed = False
+    # Broadcast the tool call
+    await event_bus.submit_command(
+        BroadcastToolCallCommand(
+            game_id=game_state.game_id,
+            tool_name="remove_item",
+            parameters={"item_name": item_name, "quantity": quantity},
+        )
+    )
 
-    if item and item.quantity >= quantity:
-        item.quantity -= quantity
-        if item.quantity == 0:
-            character.inventory.remove(item)
-        removed = True
+    # Execute the remove item command and get the result
+    result = await event_bus.execute_command(
+        RemoveItemCommand(game_id=game_state.game_id, item_name=item_name, quantity=quantity)
+    )
 
-    game_service.save_game(game_state)
-
-    result = {"type": "remove_item", "item": item_name, "quantity": quantity, "removed": removed}
-
-    logger.info(f"Item Removed: {quantity}x {item_name} {'removed' if removed else 'not found'}")
-    return result
+    # Return the actual result
+    if result:
+        return result
+    else:
+        return {"type": "remove_item", "item": item_name, "quantity": quantity}

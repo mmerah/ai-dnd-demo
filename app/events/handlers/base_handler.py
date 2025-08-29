@@ -1,0 +1,24 @@
+"""Base handler class for command processing."""
+
+from abc import ABC, abstractmethod
+
+from app.events.base import BaseCommand, CommandResult
+from app.models.game_state import GameState
+from app.services.game_service import GameService
+
+
+class BaseHandler(ABC):
+    """Base class for all command handlers."""
+
+    def __init__(self, game_service: GameService):
+        self.game_service = game_service
+
+    @abstractmethod
+    async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
+        """Handle a command and return result with any follow-up commands."""
+        pass
+
+    @abstractmethod
+    def can_handle(self, command: BaseCommand) -> bool:
+        """Check if this handler can process the given command."""
+        pass

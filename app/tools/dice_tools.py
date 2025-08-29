@@ -1,13 +1,13 @@
 """Dice and combat-related tools for D&D 5e AI Dungeon Master."""
 
 import logging
-import re
 from typing import Any
 
 from pydantic_ai import RunContext
 
+from app.events.commands.broadcast_commands import BroadcastToolCallCommand
+from app.events.commands.dice_commands import RollDiceCommand
 from app.models.dependencies import AgentDependencies
-from app.services.dice_service import RollType
 
 logger = logging.getLogger(__name__)
 
@@ -37,18 +37,11 @@ async def roll_ability_check(
         - Searching for traps: ability="WIS", skill="Perception", dc=15
         - Recalling lore: ability="INT", skill="History", dc=10
     """
-    dice_service = ctx.deps.dice_service
     game_state = ctx.deps.game_state
+    event_bus = ctx.deps.event_bus
 
-    roll_type = RollType.NORMAL
-    if advantage == "advantage":
-        roll_type = RollType.ADVANTAGE
-    elif advantage == "disadvantage":
-        roll_type = RollType.DISADVANTAGE
-
+    # Calculate modifier based on character stats
     modifier = 0
-    proficiency_bonus = 0
-
     if target == "player":
         character = game_state.character
         ability_scores = {
@@ -59,39 +52,49 @@ async def roll_ability_check(
             "WIS": character.abilities.WIS,
             "CHA": character.abilities.CHA,
         }
-
         ability_score = ability_scores.get(ability.upper(), 10)
         modifier = (ability_score - 10) // 2
 
         if skill and skill in character.skills:
-            proficiency_bonus = character.proficiency_bonus
+            modifier += character.proficiency_bonus
 
-    total_modifier = modifier + proficiency_bonus
-    formula = f"1d20{'+' if total_modifier >= 0 else ''}{total_modifier}"
-    roll_result = dice_service.roll_dice(formula, roll_type)
+    # Determine dice based on advantage/disadvantage
+    dice = "2d20kh" if advantage == "advantage" else "2d20kl" if advantage == "disadvantage" else "1d20"
 
-    success = roll_result.total >= dc
-
-    result = {
-        "type": "ability_check",
-        "ability": ability,
-        "skill": skill,
-        "target": target,
-        "dc": dc,
-        "roll": roll_result.total,
-        "natural_roll": roll_result.rolls[0] if roll_result.rolls else 0,
-        "modifier": total_modifier,
-        "proficiency_bonus": proficiency_bonus,
-        "success": success,
-        "critical_success": roll_result.is_critical_success,
-        "critical_failure": roll_result.is_critical_failure,
-        "formula": formula,
-    }
-
-    logger.info(
-        f"Ability check: {target} rolled {ability} {'(' + skill + ')' if skill else ''} - {roll_result.total} vs DC {dc} - {'Success' if success else 'Failure'}"
+    # Broadcast the tool call
+    await event_bus.submit_command(
+        BroadcastToolCallCommand(
+            game_id=game_state.game_id,
+            tool_name="roll_ability_check",
+            parameters={"ability": ability, "skill": skill, "dc": dc, "advantage": advantage, "target": target},
+        )
     )
-    return result
+
+    # Execute the roll command and get the result
+    result = await event_bus.execute_command(
+        RollDiceCommand(
+            game_id=game_state.game_id,
+            roll_type="ability_check",
+            dice=dice,
+            modifier=modifier,
+            target=target,
+            ability=ability,
+            skill=skill,
+        )
+    )
+
+    # Return the actual result with DC information
+    if result:
+        result["dc"] = dc  # Add DC to the result
+        return result
+    else:
+        return {
+            "type": "ability_check",
+            "ability": ability,
+            "skill": skill,
+            "target": target,
+            "dc": dc,
+        }
 
 
 async def roll_saving_throw(
@@ -113,43 +116,45 @@ async def roll_saving_throw(
         - Fighting off charm: ability="WIS", dc=13
         - Withstanding fear: ability="WIS", dc=10
     """
-    dice_service = ctx.deps.dice_service
     game_state = ctx.deps.game_state
+    event_bus = ctx.deps.event_bus
 
-    roll_type = RollType.NORMAL
-    if advantage == "advantage":
-        roll_type = RollType.ADVANTAGE
-    elif advantage == "disadvantage":
-        roll_type = RollType.DISADVANTAGE
-
+    # Calculate modifier based on character's saving throws
     modifier = 0
-
     if target == "player":
         character = game_state.character
         modifier = character.saving_throws.get(ability.upper(), 0)
 
-    formula = f"1d20{'+' if modifier >= 0 else ''}{modifier}"
-    roll_result = dice_service.roll_dice(formula, roll_type)
-    success = roll_result.total >= dc
+    # Determine dice based on advantage/disadvantage
+    dice = "2d20kh" if advantage == "advantage" else "2d20kl" if advantage == "disadvantage" else "1d20"
 
-    result = {
-        "type": "saving_throw",
-        "ability": ability,
-        "target": target,
-        "dc": dc,
-        "roll": roll_result.total,
-        "natural_roll": roll_result.rolls[0] if roll_result.rolls else 0,
-        "modifier": modifier,
-        "success": success,
-        "critical_success": roll_result.is_critical_success,
-        "critical_failure": roll_result.is_critical_failure,
-        "formula": formula,
-    }
-
-    logger.info(
-        f"Saving throw: {target} rolled {ability} save - {roll_result.total} vs DC {dc} - {'Success' if success else 'Failure'}"
+    # Broadcast the tool call
+    await event_bus.submit_command(
+        BroadcastToolCallCommand(
+            game_id=game_state.game_id,
+            tool_name="roll_saving_throw",
+            parameters={"ability": ability, "dc": dc, "advantage": advantage, "target": target},
+        )
     )
-    return result
+
+    # Execute the roll command and get the result
+    result = await event_bus.execute_command(
+        RollDiceCommand(
+            game_id=game_state.game_id,
+            roll_type="saving_throw",
+            dice=dice,
+            modifier=modifier,
+            target=target,
+            ability=ability,
+        )
+    )
+
+    # Return the actual result with DC information
+    if result:
+        result["dc"] = dc  # Add DC to the result
+        return result
+    else:
+        return {"type": "saving_throw", "ability": ability, "target": target, "dc": dc}
 
 
 async def roll_attack(
@@ -174,18 +179,11 @@ async def roll_attack(
         - Goblin attacks player: weapon_name="Scimitar", target="player", attacker="Goblin"
         - Ranged attack: weapon_name="Longbow", target="Orc"
     """
-    dice_service = ctx.deps.dice_service
     game_state = ctx.deps.game_state
+    event_bus = ctx.deps.event_bus
 
-    roll_type = RollType.NORMAL
-    if advantage == "advantage":
-        roll_type = RollType.ADVANTAGE
-    elif advantage == "disadvantage":
-        roll_type = RollType.DISADVANTAGE
-
+    # Calculate attack modifier
     modifier = 0
-    target_ac = 10
-
     if attacker == "player":
         character = game_state.character
         weapon = next((atk for atk in character.attacks if atk.name.lower() == weapon_name.lower()), None)
@@ -197,120 +195,137 @@ async def roll_attack(
             str_mod = (character.abilities.STR - 10) // 2
             modifier = max(dex_mod, str_mod) + character.proficiency_bonus
 
-    if target != "player":
-        npc = next((n for n in game_state.npcs if n.name.lower() == target.lower()), None)
-        if npc:
-            target_ac = npc.armor_class
-    else:
-        target_ac = game_state.character.armor_class
+    # Determine dice based on advantage/disadvantage
+    dice = "2d20kh" if advantage == "advantage" else "2d20kl" if advantage == "disadvantage" else "1d20"
 
-    formula = f"1d20{'+' if modifier >= 0 else ''}{modifier}"
-    roll_result = dice_service.roll_dice(formula, roll_type)
-    hit = roll_result.is_critical_success or (not roll_result.is_critical_failure and roll_result.total >= target_ac)
-
-    result = {
-        "type": "attack_roll",
-        "attacker": attacker,
-        "weapon": weapon_name,
-        "target": target,
-        "target_ac": target_ac,
-        "roll": roll_result.total,
-        "natural_roll": roll_result.rolls[0] if roll_result.rolls else 0,
-        "modifier": modifier,
-        "hit": hit,
-        "critical_hit": roll_result.is_critical_success,
-        "critical_miss": roll_result.is_critical_failure,
-        "formula": formula,
-    }
-
-    logger.info(
-        f"Attack: {attacker} attacks {target} with {weapon_name} - {roll_result.total} vs AC {target_ac} - {'HIT' if hit else 'MISS'}"
+    # Broadcast the tool call
+    await event_bus.submit_command(
+        BroadcastToolCallCommand(
+            game_id=game_state.game_id,
+            tool_name="roll_attack",
+            parameters={"weapon_name": weapon_name, "target": target, "advantage": advantage, "attacker": attacker},
+        )
     )
-    return result
+
+    # Execute the roll command and get the result
+    result = await event_bus.execute_command(
+        RollDiceCommand(game_id=game_state.game_id, roll_type="attack", dice=dice, modifier=modifier, target=target)
+    )
+
+    # Return the actual result with weapon and attacker info
+    if result:
+        result["weapon_name"] = weapon_name
+        result["attacker"] = attacker
+        return result
+    else:
+        return {"type": "attack", "weapon_name": weapon_name, "attacker": attacker, "target": target}
 
 
 async def roll_damage(
-    ctx: RunContext[AgentDependencies], damage_dice: str, damage_type: str, is_critical: bool = False
+    ctx: RunContext[AgentDependencies],
+    damage_dice: str,
+    damage_type: str = "slashing",
+    critical: bool = False,
+    source: str = "weapon",
 ) -> dict[str, Any]:
     """Roll damage for an attack or effect.
 
-    Use after a successful attack or for spell/environmental damage.
+    Use after a successful attack or when damage occurs.
 
     Args:
-        damage_dice: Dice formula (e.g., "1d8+3", "2d6", "1d4+1")
+        damage_dice: Dice formula (e.g., "1d8+3", "2d6")
         damage_type: Type of damage (slashing, piercing, fire, etc.)
-        is_critical: Whether this is a critical hit (doubles dice)
+        critical: Whether this is a critical hit (doubles dice)
+        source: Source of damage (weapon, spell, environmental)
 
     Examples:
-        - Longsword hit: damage_dice="1d8+3", damage_type="slashing"
-        - Critical hit: damage_dice="1d8+3", damage_type="slashing", is_critical=True
-        - Fire spell: damage_dice="3d6", damage_type="fire"
-        - Fall damage: damage_dice="2d6", damage_type="bludgeoning"
+        - Longsword damage: damage_dice="1d8+3", damage_type="slashing"
+        - Critical hit: damage_dice="1d8+3", critical=True
+        - Fireball spell: damage_dice="8d6", damage_type="fire", source="spell"
+        - Falling damage: damage_dice="2d6", damage_type="bludgeoning", source="environmental"
     """
-    dice_service = ctx.deps.dice_service
+    game_state = ctx.deps.game_state
+    event_bus = ctx.deps.event_bus
 
-    if is_critical:
+    # Double dice for critical hits
+    if critical:
+        # Parse the damage dice to double the dice portion
+        import re
+
         match = re.match(r"(\d+)d(\d+)([+-]\d+)?", damage_dice)
         if match:
-            dice_count = int(match.group(1)) * 2
-            dice_sides = match.group(2)
+            num_dice = int(match.group(1)) * 2
+            die_size = match.group(2)
             modifier = match.group(3) or ""
-            damage_dice = f"{dice_count}d{dice_sides}{modifier}"
+            damage_dice = f"{num_dice}d{die_size}{modifier}"
 
-    roll_result = dice_service.roll_dice(damage_dice)
-
-    result = {
-        "type": "damage_roll",
-        "damage_type": damage_type,
-        "roll": roll_result.total,
-        "dice_rolls": roll_result.rolls,
-        "is_critical": is_critical,
-        "formula": damage_dice,
-    }
-
-    logger.info(
-        f"Damage roll: {damage_dice} = {roll_result.total} {damage_type} damage {'(CRITICAL!)' if is_critical else ''}"
+    # Broadcast the tool call
+    await event_bus.submit_command(
+        BroadcastToolCallCommand(
+            game_id=game_state.game_id,
+            tool_name="roll_damage",
+            parameters={"damage_dice": damage_dice, "damage_type": damage_type, "critical": critical, "source": source},
+        )
     )
-    return result
+
+    # Execute the roll command and get the result
+    result = await event_bus.execute_command(
+        RollDiceCommand(
+            game_id=game_state.game_id, roll_type="damage", dice=damage_dice, modifier=0, damage_type=damage_type
+        )
+    )
+
+    # Return the actual result with critical and source info
+    if result:
+        result["critical"] = critical
+        result["source"] = source
+        return result
+    else:
+        return {
+            "type": "damage",
+            "damage_dice": damage_dice,
+            "damage_type": damage_type,
+            "critical": critical,
+            "source": source,
+        }
 
 
-async def roll_initiative(ctx: RunContext[AgentDependencies], target: str = "player") -> dict[str, Any]:
+async def roll_initiative(ctx: RunContext[AgentDependencies], combatants: list[str]) -> dict[str, Any]:
     """Roll initiative for combat.
 
     Use at the start of combat to determine turn order.
 
     Args:
-        target: 'player' or NPC name rolling initiative
+        combatants: List of character/NPC names in combat
 
     Examples:
-        - Player rolls: target="player"
-        - Goblin rolls: target="Goblin"
-        - Multiple NPCs: call once for each NPC
+        - Start of combat: combatants=["player", "Goblin", "Wolf"]
+        - Ambush scenario: combatants=["player", "Bandit1", "Bandit2", "Bandit3"]
     """
-    dice_service = ctx.deps.dice_service
     game_state = ctx.deps.game_state
+    event_bus = ctx.deps.event_bus
 
+    # Player always has their dexterity modifier for initiative
     modifier = 0
-
-    if target == "player":
+    if "player" in combatants:
         character = game_state.character
-        modifier = character.initiative
+        modifier = (character.abilities.DEX - 10) // 2
+
+    # Broadcast the tool call
+    await event_bus.submit_command(
+        BroadcastToolCallCommand(
+            game_id=game_state.game_id, tool_name="roll_initiative", parameters={"combatants": combatants}
+        )
+    )
+
+    # Execute the roll command and get the result
+    result = await event_bus.execute_command(
+        RollDiceCommand(game_id=game_state.game_id, roll_type="initiative", dice="1d20", modifier=modifier)
+    )
+
+    # Return the actual result with combatants info
+    if result:
+        result["combatants"] = combatants
+        return result
     else:
-        npc = next((n for n in game_state.npcs if n.name.lower() == target.lower()), None)
-        if npc:
-            modifier = 2  # Default NPC initiative modifier
-
-    formula = f"1d20{'+' if modifier >= 0 else ''}{modifier}"
-    roll_result = dice_service.roll_dice(formula)
-
-    result = {
-        "type": "initiative_roll",
-        "target": target,
-        "roll": roll_result.total,
-        "natural_roll": roll_result.rolls[0] if roll_result.rolls else 0,
-        "modifier": modifier,
-        "formula": formula,
-    }
-
-    logger.info(f"Initiative: {target} rolled {roll_result.total}")
-    return result
+        return {"type": "initiative", "combatants": combatants}

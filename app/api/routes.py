@@ -159,11 +159,12 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
                 narrative = chunk.get("narrative", "")
                 break
             elif chunk["type"] == "error":
-                logger.error(f"AI error for game {game_id}: {chunk['message']}")
+                error_msg = chunk.get("message", "Unknown error")
+                logger.error(f"AI error for game {game_id}: {error_msg}")
                 # Try to get fallback narrative if available
                 narrative = chunk.get("narrative", "")
                 if not narrative:
-                    await broadcast_service.publish(game_id, "error", {"error": chunk["message"]})
+                    await broadcast_service.publish(game_id, "error", {"error": error_msg})
                     return
 
         if not narrative:
