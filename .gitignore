@@ -80,5 +80,6 @@ saves/
 .repo_formatter.yaml
 repository.md
 
-# mypy
+# mypy, ruff
 .mypy_cache/
+.ruff_cache/

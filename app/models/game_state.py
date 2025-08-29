@@ -1,9 +1,10 @@
 """Game state models for D&D 5e game session management."""
 
-from typing import Dict, List, Optional, Any
 from datetime import datetime
-from pydantic import BaseModel, Field
 from enum import Enum
+from typing import Any
+
+from pydantic import BaseModel, Field
 
 from .character import CharacterSheet
 from .npc import NPCSheet
@@ -11,6 +12,7 @@ from .npc import NPCSheet
 
 class MessageRole(str, Enum):
     """Message sender role."""
+
     PLAYER = "player"
     DM = "dm"
     SYSTEM = "system"
@@ -18,29 +20,31 @@ class MessageRole(str, Enum):
 
 class Message(BaseModel):
     """Chat message in game history."""
+
     role: MessageRole
     content: str
     timestamp: datetime = Field(default_factory=datetime.now)
-    
+
     # Optional metadata for tool calls or dice rolls
-    tool_calls: Optional[List[Dict[str, Any]]] = None
-    dice_results: Optional[Dict[str, Any]] = None
+    tool_calls: list[dict[str, Any]] | None = None
+    dice_results: dict[str, Any] | None = None
 
 
 class GameTime(BaseModel):
     """In-game time tracking."""
+
     day: int = Field(ge=1, default=1)
     hour: int = Field(ge=0, le=23, default=12)
     minute: int = Field(ge=0, le=59, default=0)
-    
+
     def advance_minutes(self, minutes: int) -> None:
         """Advance game time by specified minutes."""
         total_minutes = self.hour * 60 + self.minute + minutes
-        
+
         # Calculate new time
         days_passed = total_minutes // (24 * 60)
         remaining_minutes = total_minutes % (24 * 60)
-        
+
         self.day += days_passed
         self.hour = remaining_minutes // 60
         self.minute = remaining_minutes % 60
@@ -66,32 +70,25 @@ class GameTime(BaseModel):
 
 class CombatParticipant(BaseModel):
     """Participant in combat with initiative."""
+
     name: str
     initiative: int
     is_player: bool = False
     is_active: bool = True
-    conditions: List[str] = Field(default_factory=list)
+    conditions: list[str] = Field(default_factory=list)
 
 
 class CombatState(BaseModel):
     """Combat encounter state."""
+
     round_number: int = Field(ge=1, default=1)
     turn_index: int = Field(ge=0, default=0)
-    participants: List[CombatParticipant] = Field(default_factory=list)
+    participants: list[CombatParticipant] = Field(default_factory=list)
     is_active: bool = True
-    
-    def add_participant(
-        self, 
-        name: str, 
-        initiative: int, 
-        is_player: bool = False
-    ) -> None:
+
+    def add_participant(self, name: str, initiative: int, is_player: bool = False) -> None:
         """Add a participant to combat."""
-        participant = CombatParticipant(
-            name=name,
-            initiative=initiative,
-            is_player=is_player
-        )
+        participant = CombatParticipant(name=name, initiative=initiative, is_player=is_player)
         self.participants.append(participant)
         self.sort_by_initiative()
 
@@ -99,16 +96,16 @@ class CombatState(BaseModel):
         """Sort participants by initiative (highest first)."""
         self.participants.sort(key=lambda p: p.initiative, reverse=True)
 
-    def get_current_turn(self) -> Optional[CombatParticipant]:
+    def get_current_turn(self) -> CombatParticipant | None:
         """Get the participant whose turn it is."""
         active_participants = [p for p in self.participants if p.is_active]
         if not active_participants:
             return None
-        
+
         # Ensure turn index is within bounds
         if self.turn_index >= len(active_participants):
             self.turn_index = 0
-            
+
         return active_participants[self.turn_index]
 
     def next_turn(self) -> None:
@@ -117,9 +114,9 @@ class CombatState(BaseModel):
         if not active_participants:
             self.is_active = False
             return
-        
+
         self.turn_index += 1
-        
+
         # Check if we've completed a round
         if self.turn_index >= len(active_participants):
             self.turn_index = 0
@@ -128,7 +125,7 @@ class CombatState(BaseModel):
     def remove_participant(self, name: str) -> None:
         """Remove a participant from combat."""
         self.participants = [p for p in self.participants if p.name != name]
-        
+
         # Adjust turn index if needed
         active_participants = [p for p in self.participants if p.is_active]
         if self.turn_index >= len(active_participants):
@@ -141,35 +138,36 @@ class CombatState(BaseModel):
 
 class GameState(BaseModel):
     """Complete game state for a D&D session."""
+
     # Game identification
     game_id: str = Field(pattern=r"^[a-z0-9-]+$")
     created_at: datetime = Field(default_factory=datetime.now)
     last_saved: datetime = Field(default_factory=datetime.now)
-    
+
     # Core game data
     character: CharacterSheet
-    npcs: List[NPCSheet] = Field(default_factory=list)
-    
+    npcs: list[NPCSheet] = Field(default_factory=list)
+
     # Scenario information
-    scenario_id: Optional[str] = None
-    scenario_title: Optional[str] = None
-    current_location_id: Optional[str] = None
-    
+    scenario_id: str | None = None
+    scenario_title: str | None = None
+    current_location_id: str | None = None
+
     # Location and time
     location: str = "Unknown"
     description: str = ""
     game_time: GameTime = Field(default_factory=GameTime)
-    
+
     # Combat state (optional)
-    combat: Optional[CombatState] = None
-    
+    combat: CombatState | None = None
+
     # Quest and story tracking
-    quest_flags: Dict[str, bool] = Field(default_factory=dict)
-    story_notes: List[str] = Field(default_factory=list)
-    
+    quest_flags: dict[str, bool] = Field(default_factory=dict)
+    story_notes: list[str] = Field(default_factory=list)
+
     # Conversation history
-    conversation_history: List[Message] = Field(default_factory=list)
-    
+    conversation_history: list[Message] = Field(default_factory=list)
+
     # Session metadata
     session_number: int = Field(ge=1, default=1)
     total_play_time_minutes: int = Field(ge=0, default=0)
@@ -189,7 +187,7 @@ class GameState(BaseModel):
             while f"{base_name} {counter}" in existing_names:
                 counter += 1
             npc.name = f"{base_name} {counter}"
-        
+
         self.npcs.append(npc)
 
     def remove_npc(self, name: str) -> bool:
@@ -200,14 +198,14 @@ class GameState(BaseModel):
                 return True
         return False
 
-    def get_npc(self, name: str) -> Optional[NPCSheet]:
+    def get_npc(self, name: str) -> NPCSheet | None:
         """Get an NPC by name."""
         for npc in self.npcs:
             if npc.name == name:
                 return npc
         return None
 
-    def get_active_npcs(self) -> List[NPCSheet]:
+    def get_active_npcs(self) -> list[NPCSheet]:
         """Get all NPCs that are still alive."""
         return [npc for npc in self.npcs if npc.is_alive()]
 
@@ -242,7 +240,7 @@ class GameState(BaseModel):
         self.description = description
         self.add_story_note(f"Moved to {new_location}")
 
-    def get_recent_messages(self, count: int = 10) -> List[Message]:
+    def get_recent_messages(self, count: int = 10) -> list[Message]:
         """Get the most recent messages from history."""
         return self.conversation_history[-count:] if self.conversation_history else []
 
@@ -250,11 +248,11 @@ class GameState(BaseModel):
         """Update the last saved timestamp."""
         self.last_saved = datetime.now()
 
-    def to_save_dict(self) -> Dict[str, Any]:
+    def to_save_dict(self) -> dict[str, Any]:
         """Convert game state to dictionary for saving."""
-        return self.model_dump(mode='json')
+        return self.model_dump(mode="json")
 
     @classmethod
-    def from_save_dict(cls, data: Dict[str, Any]) -> "GameState":
+    def from_save_dict(cls, data: dict[str, Any]) -> "GameState":
         """Create game state from saved dictionary."""
         return cls(**data)

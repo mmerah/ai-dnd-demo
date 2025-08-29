@@ -2,22 +2,22 @@
 FastAPI application entry point for D&D 5e AI Dungeon Master.
 """
 
-from pathlib import Path
-from typing import AsyncGenerator, Dict
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
-from dotenv import load_dotenv
+from fastapi.staticfiles import StaticFiles
 
 # Load environment variables
 load_dotenv()
 
 # Import configuration and API routes
-from app.config import get_settings
 from app.api.routes import router as api_router
+from app.config import get_settings
 
 
 @asynccontextmanager
@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     # Startup
     print("Starting D&D 5e AI Dungeon Master...")
-    
+
     # Initialize settings - this will validate all required environment variables
     try:
         settings = get_settings()
@@ -35,11 +35,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         print(f"Using model: {settings.openrouter_model}")
     except Exception as e:
         raise RuntimeError(f"Configuration error: {e}")
-    
+
     print("Application started successfully!")
-    
+
     yield
-    
+
     # Shutdown
     print("Shutting down D&D 5e AI Dungeon Master...")
 
@@ -49,7 +49,7 @@ app = FastAPI(
     title="D&D 5e AI Dungeon Master",
     description="AI-powered Dungeon Master for D&D 5e gameplay",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Configure CORS for local development
@@ -68,7 +68,7 @@ app.include_router(api_router, prefix="/api")
 frontend_path = Path(__file__).parent.parent / "frontend"
 if frontend_path.exists():
     app.mount("/static", StaticFiles(directory=str(frontend_path)), name="static")
-    
+
     @app.get("/")
     async def serve_frontend() -> FileResponse:
         """Serve the main frontend HTML file."""
@@ -87,37 +87,34 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     Follows fail-fast principle - no silent failures.
     """
     import traceback
-    
+
     error_detail = {
         "error": str(exc),
         "type": type(exc).__name__,
-        "traceback": traceback.format_exc() if get_settings().debug_ai else None
+        "traceback": traceback.format_exc() if get_settings().debug_ai else None,
     }
-    
+
     # Log the error
     print(f"Unhandled exception: {error_detail}")
-    
-    return JSONResponse(
-        status_code=500,
-        content=error_detail
-    )
+
+    return JSONResponse(status_code=500, content=error_detail)
 
 
 # Health check endpoint
 @app.get("/health")
-async def health_check() -> Dict[str, str]:
+async def health_check() -> dict[str, str]:
     """Simple health check endpoint."""
     return {"status": "healthy", "service": "D&D 5e AI Dungeon Master"}
 
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     port = get_settings().port
     uvicorn.run(
         "app.main:app",
         host="0.0.0.0",
         port=port,
         reload=True,  # Enable auto-reload during development
-        log_level="info"
+        log_level="info",
     )

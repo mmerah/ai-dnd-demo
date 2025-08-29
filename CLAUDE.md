@@ -248,4 +248,9 @@ DEBUG_AI=false
 - **Maintainable**: Each tool module handles one domain
 - **Extensible**: Easy to add new tools or domains
 - **Type Safe**: Full Pydantic validation throughout
+
+## Reminder Notes
+
 - Avoid backward compatibility. Always do the complete change and remove previous stuff
+- Avoid the use of 'Any'. If it appears anywhere, analyze the code to figure out what it could be replaced with. If it is unavoidable, explain why with a comment
+- At every step: Read all related code and explore all execution paths. Ultrathink to decide the best way to move forward.

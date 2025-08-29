@@ -1,11 +1,11 @@
 """Character model for D&D 5e character sheet."""
 
-from typing import Dict, List, Optional
 from pydantic import BaseModel, Field, ValidationInfo, field_validator
 
 
 class Abilities(BaseModel):
     """Character ability scores."""
+
     STR: int = Field(ge=1, le=30)
     DEX: int = Field(ge=1, le=30)
     CON: int = Field(ge=1, le=30)
@@ -16,6 +16,7 @@ class Abilities(BaseModel):
 
 class AbilityModifiers(BaseModel):
     """Calculated ability modifiers."""
+
     STR: int
     DEX: int
     CON: int
@@ -26,86 +27,94 @@ class AbilityModifiers(BaseModel):
 
 class HitPoints(BaseModel):
     """Character hit point tracking."""
+
     current: int = Field(ge=0)
     maximum: int = Field(ge=1)
     temporary: int = Field(ge=0, default=0)
 
-    @field_validator('current')
+    @field_validator("current")
     @classmethod
     def validate_current_hp(cls, v: int, info: ValidationInfo) -> int:
         """Ensure current HP doesn't exceed maximum."""
-        if 'maximum' in info.data and v > info.data['maximum']:
+        if "maximum" in info.data and v > info.data["maximum"]:
             raise ValueError(f"Current HP ({v}) cannot exceed maximum HP ({info.data['maximum']})")
         return v
 
 
 class HitDice(BaseModel):
     """Hit dice for resting mechanics."""
+
     total: int = Field(ge=1)
     current: int = Field(ge=0)
     type: str = Field(pattern=r"^d(4|6|8|10|12|20)$")
 
-    @field_validator('current')
+    @field_validator("current")
     @classmethod
     def validate_current_dice(cls, v: int, info: ValidationInfo) -> int:
         """Ensure current dice don't exceed total."""
-        if 'total' in info.data and v > info.data['total']:
+        if "total" in info.data and v > info.data["total"]:
             raise ValueError(f"Current hit dice ({v}) cannot exceed total ({info.data['total']})")
         return v
 
 
 class Item(BaseModel):
     """Inventory item with quantity tracking."""
+
     name: str
     quantity: int = Field(ge=1, default=1)
     weight: float = Field(ge=0, default=0.0)
     value: float = Field(ge=0, default=0)  # Value in gold pieces
     description: str = ""
     equipped: bool = False
-    item_type: Optional[str] = None  # weapon, armor, potion, etc.
+    item_type: str | None = None  # weapon, armor, potion, etc.
 
 
 class Attack(BaseModel):
     """Character weapon attack."""
+
     name: str
     to_hit: int
     damage: str = Field(pattern=r"^\d+d\d+(\+\d+)?$")
     damage_type: str
-    range: Optional[str] = None
-    properties: List[str] = Field(default_factory=list)
+    range: str | None = None
+    properties: list[str] = Field(default_factory=list)
 
 
 class Feature(BaseModel):
     """Character feature or trait."""
+
     name: str
     description: str
 
 
 class SpellSlot(BaseModel):
     """Spell slot tracking for a spell level."""
+
     total: int = Field(ge=0)
     current: int = Field(ge=0)
 
-    @field_validator('current')
+    @field_validator("current")
     @classmethod
     def validate_current_slots(cls, v: int, info: ValidationInfo) -> int:
         """Ensure current slots don't exceed total."""
-        if 'total' in info.data and v > info.data['total']:
+        if "total" in info.data and v > info.data["total"]:
             raise ValueError(f"Current spell slots ({v}) cannot exceed total ({info.data['total']})")
         return v
 
 
 class Spellcasting(BaseModel):
     """Character spellcasting information."""
+
     ability: str = Field(pattern="^(Intelligence|Wisdom|Charisma|INT|WIS|CHA)$")
     spell_save_dc: int = Field(ge=1)
     spell_attack_bonus: int
-    spells_known: List[str]
-    spell_slots: Dict[str, SpellSlot]
+    spells_known: list[str]
+    spell_slots: dict[str, SpellSlot]
 
 
 class Currency(BaseModel):
     """Character wealth tracking."""
+
     copper: int = Field(ge=0, default=0)
     silver: int = Field(ge=0, default=0)
     electrum: int = Field(ge=0, default=0)
@@ -115,14 +124,16 @@ class Currency(BaseModel):
 
 class Personality(BaseModel):
     """Character personality traits for roleplay."""
-    traits: List[str] = Field(default_factory=list)
-    ideals: List[str] = Field(default_factory=list)
-    bonds: List[str] = Field(default_factory=list)
-    flaws: List[str] = Field(default_factory=list)
+
+    traits: list[str] = Field(default_factory=list)
+    ideals: list[str] = Field(default_factory=list)
+    bonds: list[str] = Field(default_factory=list)
+    flaws: list[str] = Field(default_factory=list)
 
 
 class CharacterSheet(BaseModel):
     """Complete D&D 5e character sheet."""
+
     # Basic Information
     id: str
     name: str
@@ -146,34 +157,35 @@ class CharacterSheet(BaseModel):
     hit_dice: HitDice
 
     # Saving Throws & Skills
-    saving_throws: Dict[str, int]
-    skills: Dict[str, int]
+    saving_throws: dict[str, int]
+    skills: dict[str, int]
 
     # Attacks
-    attacks: List[Attack]
+    attacks: list[Attack]
 
     # Features & Traits
-    features_and_traits: List[Feature]
+    features_and_traits: list[Feature]
 
     # Spellcasting (optional)
-    spellcasting: Optional[Spellcasting] = None
+    spellcasting: Spellcasting | None = None
 
     # Inventory & Currency
-    inventory: List[Item] = Field(default_factory=list)
+    inventory: list[Item] = Field(default_factory=list)
     currency: Currency
 
     # Personality & Background
     personality: Personality
     backstory: str
-    languages: List[str]
+    languages: list[str]
 
     # Status
-    conditions: List[str] = Field(default_factory=list)
+    conditions: list[str] = Field(default_factory=list)
     exhaustion_level: int = Field(ge=0, le=6, default=0)
     inspiration: bool = False
 
     class Config:
         """Pydantic configuration."""
+
         populate_by_name = True
 
     def calculate_modifier(self, ability_score: int) -> int:
@@ -212,7 +224,7 @@ class CharacterSheet(BaseModel):
         self.hit_points.current += actual_healing
         return actual_healing
 
-    def short_rest(self) -> Dict[str, int]:
+    def short_rest(self) -> dict[str, int]:
         """Perform a short rest, returns HP healed."""
         # Use hit dice to heal
         dice_used = 0
