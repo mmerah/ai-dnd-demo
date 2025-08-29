@@ -21,7 +21,6 @@ from app.services.event_logger_service import EventLoggerService
 from app.services.message_converter_service import MessageConverterService
 from app.services.scenario_service import ScenarioService
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -78,6 +77,13 @@ Let the tools handle the mechanical resolution while you focus on narrative.
 - Challenge the player appropriately for their level
 - NPCs should have distinct personalities
 - Reward clever thinking and good roleplay
+
+## Dialogue Guidelines
+- **Never speak for the player or assume what they want to say**
+- Let the player respond to NPCs in their own words
+- NPCs should pause for player input during conversations
+- Present NPC dialogue, then wait for the player's response
+- Avoid phrases like "You say..." or "You tell them..."
 
 The current game state and character information will be provided with each interaction."""
 

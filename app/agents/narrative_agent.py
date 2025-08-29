@@ -32,7 +32,6 @@ from app.models.game_state import GameState, MessageRole
 from app.services.context_service import ContextService
 from app.services.event_logger_service import EventLoggerService
 from app.services.message_converter_service import MessageConverterService
-from app.services.message_service import message_service
 from app.tools import character_tools, dice_tools, inventory_tools, time_tools
 
 logger = logging.getLogger(__name__)
@@ -84,7 +83,6 @@ class NarrativeAgent(BaseAgent):
         event_stream: AsyncIterable[Any],  # PydanticAI's internal event type
     ) -> None:
         """Handle streaming events and log tool calls."""
-        game_id = ctx.deps.game_state.game_id
         logger.info("Event stream handler started")
 
         # Track tool calls by ID to match with results
@@ -96,7 +94,7 @@ class NarrativeAgent(BaseAgent):
             # Only log non-delta events to reduce spam
             if not isinstance(event, PartDeltaEvent):
                 logger.info(f"Event received: {type(event).__name__}")
-            logger.debug(f"Event details: {event}")
+                logger.debug(f"Event details: {event}")
 
             if isinstance(event, PartStartEvent):
                 # Starting a new part (text, tool call, thinking)
@@ -145,14 +143,14 @@ class NarrativeAgent(BaseAgent):
                         self.event_logger.log_tool_call(tool_name, args)
                         # Save event for later storage
                         self.captured_events.append((tool_name, args, None))
-                        # Broadcast tool call event
-                        logger.info(f"Broadcasting tool call: {tool_name} with args: {args}")
-                        await message_service.send_tool_call(game_id, tool_name, args)
+                        # Don't broadcast here - tools broadcast themselves via event bus
+                        logger.info(f"Tool call detected: {tool_name} with args: {args}")
 
             elif isinstance(event, PartDeltaEvent):
-                # Receiving delta updates
+                # Receiving delta updates - only process thinking deltas
                 if isinstance(event.delta, ThinkingPartDelta) and event.delta.content_delta:
                     self.event_logger.log_thinking(event.delta.content_delta)
+                # Skip logging text deltas to prevent spam
 
             elif isinstance(event, FunctionToolCallEvent):
                 # Alternative: Tool is being called (for compatibility)
@@ -164,14 +162,21 @@ class NarrativeAgent(BaseAgent):
 
                     # Store tool name by ID for later matching
                     if tool_call_id:
+                        # Check if we've already processed this tool call
+                        if tool_call_id in tool_calls_by_id:
+                            logger.debug(
+                                f"Skipping duplicate FunctionToolCallEvent for {tool_name} (already processed)"
+                            )
+                            continue
                         tool_calls_by_id[tool_call_id] = tool_name
 
                     if not isinstance(args, dict):
                         args = {"raw_args": str(args)}
                     self.event_logger.log_tool_call(tool_name, args)
-                    # Broadcast tool call
-                    logger.info(f"Broadcasting tool call via FunctionToolCallEvent: {tool_name} with args: {args}")
-                    await message_service.send_tool_call(game_id, tool_name, args)
+                    # Save event for later storage
+                    self.captured_events.append((tool_name, args, None))
+                    # Don't broadcast here - tools broadcast themselves via event bus
+                    logger.info(f"Tool call detected via FunctionToolCallEvent: {tool_name} with args: {args}")
 
             elif isinstance(event, FunctionToolResultEvent):
                 # Tool returned a result
@@ -195,9 +200,8 @@ class NarrativeAgent(BaseAgent):
                     self.event_logger.log_tool_result(tool_name, result_content)
                     # Save result event
                     self.captured_events.append((tool_name, None, result_content))
-                    # Broadcast tool result
-                    logger.info(f"Broadcasting tool result: {tool_name} -> {result_content[:100]}")
-                    await message_service.send_tool_result(game_id, tool_name, result_content)
+                    # Don't broadcast here - tools broadcast results via event bus
+                    logger.info(f"Tool result detected: {tool_name} -> {result_content[:100]}")
 
     async def process(
         self,
