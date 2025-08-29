@@ -1,0 +1,185 @@
+{
+  "characters": [
+    {
+      "id": "aldric-swiftarrow",
+      "name": "Aldric Swiftarrow",
+      "race": "Wood Elf",
+      "class_name": "Ranger",
+      "level": 3,
+      "background": "Outlander",
+      "alignment": "Neutral Good",
+      "experience_points": 900,
+      "abilities": {
+        "STR": 13,
+        "DEX": 16,
+        "CON": 14,
+        "INT": 12,
+        "WIS": 15,
+        "CHA": 10
+      },
+      "ability_modifiers": {
+        "STR": 1,
+        "DEX": 3,
+        "CON": 2,
+        "INT": 1,
+        "WIS": 2,
+        "CHA": 0
+      },
+      "proficiency_bonus": 2,
+      "saving_throws": {
+        "STR": 3,
+        "DEX": 5,
+        "CON": 2,
+        "INT": 1,
+        "WIS": 2,
+        "CHA": 0
+      },
+      "skills": {
+        "Athletics": 3,
+        "Perception": 4,
+        "Stealth": 5,
+        "Survival": 4,
+        "Nature": 3,
+        "Investigation": 3,
+        "Animal Handling": 4
+      },
+      "hit_points": {
+        "current": 28,
+        "maximum": 28,
+        "temporary": 0
+      },
+      "hit_dice": {
+        "total": 3,
+        "current": 3,
+        "type": "d10"
+      },
+      "armor_class": 14,
+      "initiative": 3,
+      "speed": 35,
+      "attacks": [
+        {
+          "name": "Longbow",
+          "to_hit": 7,
+          "damage": "1d8+3",
+          "damage_type": "Piercing",
+          "range": "150/600 ft",
+          "properties": ["Ammunition", "Heavy", "Two-Handed"]
+        },
+        {
+          "name": "Shortsword",
+          "to_hit": 5,
+          "damage": "1d6+3",
+          "damage_type": "Piercing",
+          "properties": ["Finesse", "Light"]
+        },
+        {
+          "name": "Dagger",
+          "to_hit": 5,
+          "damage": "1d4+3",
+          "damage_type": "Piercing",
+          "range": "20/60 ft",
+          "properties": ["Finesse", "Light", "Thrown"]
+        }
+      ],
+      "features_and_traits": [
+        {
+          "name": "Darkvision",
+          "description": "You can see in dim light within 60 feet as if it were bright light, and in darkness as if it were dim light."
+        },
+        {
+          "name": "Keen Senses",
+          "description": "You have proficiency in the Perception skill."
+        },
+        {
+          "name": "Fey Ancestry",
+          "description": "You have advantage on saving throws against being charmed, and magic can't put you to sleep."
+        },
+        {
+          "name": "Mask of the Wild",
+          "description": "You can attempt to hide even when you are only lightly obscured by natural phenomena."
+        },
+        {
+          "name": "Favored Enemy",
+          "description": "Goblins and Orcs. You have advantage on Wisdom (Survival) checks to track them and Intelligence checks to recall information about them."
+        },
+        {
+          "name": "Natural Explorer",
+          "description": "Forest. Your proficiency bonus is doubled for proficient skills when making an Intelligence or Wisdom check related to forests."
+        },
+        {
+          "name": "Fighting Style: Archery",
+          "description": "You gain a +2 bonus to attack rolls you make with ranged weapons."
+        },
+        {
+          "name": "Ranger Archetype: Hunter",
+          "description": "Hunter's Prey: Colossus Slayer - When you hit a creature with a weapon attack, the creature takes an extra 1d8 damage if it's below its hit point maximum (once per turn)."
+        },
+        {
+          "name": "Primeval Awareness",
+          "description": "You can communicate simple ideas with beasts and sense certain types of creatures within 1 mile."
+        }
+      ],
+      "spellcasting": {
+        "ability": "Wisdom",
+        "spell_save_dc": 12,
+        "spell_attack_bonus": 4,
+        "spells_known": [
+          "Hunter's Mark",
+          "Cure Wounds",
+          "Fog Cloud",
+          "Goodberry"
+        ],
+        "spell_slots": {
+          "1st": {
+            "total": 3,
+            "current": 3
+          }
+        }
+      },
+      "inventory": [
+        {"name": "Longbow", "quantity": 1, "weight": 2.0, "value": 50.0, "equipped": true, "item_type": "weapon"},
+        {"name": "Arrows", "quantity": 40, "weight": 2.0, "value": 2.0, "equipped": true, "item_type": "ammunition"},
+        {"name": "Shortsword", "quantity": 1, "weight": 2.0, "value": 10.0, "equipped": true, "item_type": "weapon"},
+        {"name": "Dagger", "quantity": 2, "weight": 2.0, "value": 4.0, "equipped": false, "item_type": "weapon"},
+        {"name": "Leather Armor", "quantity": 1, "weight": 10.0, "value": 10.0, "equipped": true, "item_type": "armor"},
+        {"name": "Explorer's Pack", "quantity": 1, "weight": 59.0, "value": 10.0, "equipped": false, "item_type": "gear"},
+        {"name": "Component Pouch", "quantity": 1, "weight": 2.0, "value": 25.0, "equipped": false, "item_type": "gear"},
+        {"name": "Hunting Trap", "quantity": 1, "weight": 25.0, "value": 5.0, "equipped": false, "item_type": "gear"},
+        {"name": "Traveler's Clothes", "quantity": 1, "weight": 4.0, "value": 2.0, "equipped": true, "item_type": "clothing"},
+        {"name": "Belt Pouch", "quantity": 1, "weight": 1.0, "value": 0.5, "equipped": true, "item_type": "gear"}
+      ],
+      "currency": {
+        "copper": 0,
+        "silver": 0,
+        "electrum": 0,
+        "gold": 10,
+        "platinum": 0
+      },
+      "personality": {
+        "traits": [
+          "I'm always on the lookout for danger, even in seemingly safe places.",
+          "I prefer the company of animals to that of people."
+        ],
+        "ideals": [
+          "Nature. The natural world is more important than all the constructs of civilization."
+        ],
+        "bonds": [
+          "I will bring terrible wrath down on the evildoers who destroyed my homeland."
+        ],
+        "flaws": [
+          "I am slow to trust members of other races, tribes, and societies."
+        ]
+      },
+      "backstory": "Aldric Swiftarrow grew up in the forests surrounding his Wood Elf clan's territory. When goblins raided and destroyed his village, he became a ranger, dedicating himself to protecting travelers and hunting down evil creatures that threaten the innocent. He has spent the last two years tracking goblin war bands and has recently arrived in this region following rumors of increased goblin activity.",
+      "languages": [
+        "Common",
+        "Elvish",
+        "Goblin",
+        "Orc"
+      ],
+      "conditions": [],
+      "exhaustion_level": 0,
+      "inspiration": false
+    }
+  ]
+}

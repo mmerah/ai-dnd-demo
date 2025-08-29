@@ -1,0 +1,143 @@
+{
+  "items": [
+    {
+      "name": "Healing Potion",
+      "type": "Potion",
+      "rarity": "Common",
+      "weight": 0.5,
+      "value": 50,
+      "description": "You regain 2d4 + 2 hit points when you drink this potion. Drinking or administering a potion takes an action.",
+      "quantity_available": 5
+    },
+    {
+      "name": "Longbow",
+      "type": "Weapon",
+      "subtype": "Ranged",
+      "rarity": "Common",
+      "weight": 2,
+      "value": 50,
+      "damage": "1d8",
+      "damage_type": "Piercing",
+      "properties": ["Ammunition (range 150/600)", "Heavy", "Two-Handed"],
+      "description": "A tall bow for shooting arrows at long range."
+    },
+    {
+      "name": "Shortsword",
+      "type": "Weapon",
+      "subtype": "Melee",
+      "rarity": "Common",
+      "weight": 2,
+      "value": 10,
+      "damage": "1d6",
+      "damage_type": "Piercing",
+      "properties": ["Finesse", "Light"],
+      "description": "A short, lightweight sword ideal for quick strikes."
+    },
+    {
+      "name": "Leather Armor",
+      "type": "Armor",
+      "subtype": "Light",
+      "rarity": "Common",
+      "weight": 10,
+      "value": 10,
+      "armor_class": 11,
+      "description": "The breastplate and shoulder protectors of this armor are made of leather that has been stiffened by being boiled in oil.",
+      "dex_bonus": true
+    },
+    {
+      "name": "Arrows",
+      "type": "Ammunition",
+      "rarity": "Common",
+      "weight": 0.05,
+      "value": 0.05,
+      "description": "Arrows for use with a bow. Comes in a quiver of 20.",
+      "quantity": 20
+    },
+    {
+      "name": "Rope, Hempen (50 feet)",
+      "type": "Adventuring Gear",
+      "rarity": "Common",
+      "weight": 10,
+      "value": 1,
+      "description": "Rope has 2 hit points and can be burst with a DC 17 Strength check."
+    },
+    {
+      "name": "Torch",
+      "type": "Adventuring Gear",
+      "rarity": "Common",
+      "weight": 1,
+      "value": 0.01,
+      "description": "A torch burns for 1 hour, providing bright light in a 20-foot radius and dim light for an additional 20 feet."
+    },
+    {
+      "name": "Rations (1 day)",
+      "type": "Adventuring Gear",
+      "rarity": "Common",
+      "weight": 2,
+      "value": 0.5,
+      "description": "Rations consist of dry foods suitable for extended travel, including jerky, dried fruit, hardtack, and nuts."
+    },
+    {
+      "name": "Backpack",
+      "type": "Container",
+      "rarity": "Common",
+      "weight": 5,
+      "value": 2,
+      "capacity": 30,
+      "description": "A backpack can hold 1 cubic foot or 30 pounds of gear."
+    },
+    {
+      "name": "Bedroll",
+      "type": "Adventuring Gear",
+      "rarity": "Common",
+      "weight": 7,
+      "value": 1,
+      "description": "A bedroll allows you to sleep more comfortably in the wilderness."
+    },
+    {
+      "name": "Waterskin",
+      "type": "Adventuring Gear",
+      "rarity": "Common",
+      "weight": 5,
+      "value": 0.2,
+      "description": "A waterskin can hold up to 4 pints of liquid."
+    },
+    {
+      "name": "Tinderbox",
+      "type": "Adventuring Gear",
+      "rarity": "Common",
+      "weight": 1,
+      "value": 0.5,
+      "description": "This small container holds flint, fire steel, and tinder used to kindle a fire. Lighting a torch takes 1 action."
+    },
+    {
+      "name": "Explorer's Pack",
+      "type": "Equipment Pack",
+      "rarity": "Common",
+      "weight": 59,
+      "value": 10,
+      "description": "Includes a backpack, bedroll, mess kit, tinderbox, 10 torches, 10 days of rations, waterskin, and 50 feet of rope.",
+      "contents": ["Backpack", "Bedroll", "Mess Kit", "Tinderbox", "Torch x10", "Rations x10", "Waterskin", "Rope (50 ft)"]
+    },
+    {
+      "name": "Dagger",
+      "type": "Weapon",
+      "subtype": "Melee",
+      "rarity": "Common",
+      "weight": 1,
+      "value": 2,
+      "damage": "1d4",
+      "damage_type": "Piercing",
+      "properties": ["Finesse", "Light", "Thrown (range 20/60)"],
+      "description": "A simple, lightweight blade useful in melee or at range."
+    },
+    {
+      "name": "Antitoxin",
+      "type": "Potion",
+      "rarity": "Common",
+      "weight": 0,
+      "value": 50,
+      "description": "A creature that drinks this vial of liquid gains advantage on saving throws against poison for 1 hour."
+    }
+  ]
+}

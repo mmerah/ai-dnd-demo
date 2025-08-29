@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>D&D 5e AI Dungeon Master</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Character Selection Screen -->
+    <div id="characterSelection" class="screen">
+        <div class="selection-container">
+            <h1>D&D 5e AI Dungeon Master</h1>
+            <h2>Select Your Character</h2>
+            <div id="characterList" class="character-grid">
+                <!-- Characters loaded dynamically -->
+            </div>
+            <div class="premise-section">
+                <h3>Select Scenario</h3>
+                <div id="scenarioList" class="scenario-list">
+                    <!-- Scenarios loaded dynamically -->
+                </div>
+                <div class="divider">OR</div>
+                <label for="premise">Custom Campaign Premise:</label>
+                <textarea id="premise" placeholder="Leave empty for selected scenario or describe your custom adventure..."></textarea>
+                <button id="startGame" class="btn-primary" disabled>Start Adventure</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Game Interface -->
+    <div id="gameInterface" class="screen hidden">
+        <!-- Header Bar -->
+        <div class="header-bar">
+            <div class="location-time">
+                <span class="location">📍 <span id="currentLocation">Unknown</span></span>
+                <span class="time">🕐 <span id="gameTime">Day 1, 12:00</span></span>
+                <span id="combatIndicator" class="combat-indicator hidden">⚔️ COMBAT</span>
+            </div>
+            <button id="saveGame" class="btn-small">💾 Save</button>
+        </div>
+
+        <!-- Split Screen Container -->
+        <div class="game-container">
+            <!-- Character Sheet (Left) -->
+            <div class="character-sheet">
+                <h2>Character Sheet</h2>
+                
+                <!-- Basic Info -->
+                <div class="sheet-section">
+                    <h3>Basic Information</h3>
+                    <div class="basic-info">
+                        <div class="info-row">
+                            <span class="label">Name:</span>
+                            <span id="charName">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Race:</span>
+                            <span id="charRace">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Class:</span>
+                            <span id="charClass">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Level:</span>
+                            <span id="charLevel">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Combat Stats -->
+                <div class="sheet-section">
+                    <h3>Combat Stats</h3>
+                    <div class="combat-stats">
+                        <div class="hp-container">
+                            <span class="label">HP:</span>
+                            <div class="hp-bar">
+                                <div id="hpFill" class="hp-fill"></div>
+                                <span id="hpText" class="hp-text">0/0</span>
+                            </div>
+                        </div>
+                        <div class="stat-row">
+                            <div class="stat-item">
+                                <span class="label">AC:</span>
+                                <span id="charAC">-</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="label">Initiative:</span>
+                                <span id="charInitiative">-</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="label">Speed:</span>
+                                <span id="charSpeed">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Abilities -->
+                <div class="sheet-section collapsible">
+                    <h3 class="collapsible-header">Abilities <span class="toggle">▼</span></h3>
+                    <div class="collapsible-content">
+                        <div class="abilities-grid">
+                            <div class="ability">
+                                <span class="ability-name">STR</span>
+                                <span id="strScore" class="ability-score">-</span>
+                                <span id="strMod" class="ability-mod">+0</span>
+                            </div>
+                            <div class="ability">
+                                <span class="ability-name">DEX</span>
+                                <span id="dexScore" class="ability-score">-</span>
+                                <span id="dexMod" class="ability-mod">+0</span>
+                            </div>
+                            <div class="ability">
+                                <span class="ability-name">CON</span>
+                                <span id="conScore" class="ability-score">-</span>
+                                <span id="conMod" class="ability-mod">+0</span>
+                            </div>
+                            <div class="ability">
+                                <span class="ability-name">INT</span>
+                                <span id="intScore" class="ability-score">-</span>
+                                <span id="intMod" class="ability-mod">+0</span>
+                            </div>
+                            <div class="ability">
+                                <span class="ability-name">WIS</span>
+                                <span id="wisScore" class="ability-score">-</span>
+                                <span id="wisMod" class="ability-mod">+0</span>
+                            </div>
+                            <div class="ability">
+                                <span class="ability-name">CHA</span>
+                                <span id="chaScore" class="ability-score">-</span>
+                                <span id="chaMod" class="ability-mod">+0</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skills -->
+                <div class="sheet-section collapsible">
+                    <h3 class="collapsible-header">Skills <span class="toggle">▼</span></h3>
+                    <div class="collapsible-content">
+                        <div id="skillsList" class="skills-list">
+                            <!-- Skills loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Spellcasting -->
+                <div class="sheet-section collapsible">
+                    <h3 class="collapsible-header">Spellcasting <span class="toggle">▼</span></h3>
+                    <div class="collapsible-content">
+                        <div class="spell-slots">
+                            <h4>Spell Slots</h4>
+                            <div id="spellSlots" class="slots-grid">
+                                <!-- Spell slots loaded dynamically -->
+                            </div>
+                        </div>
+                        <div class="spell-list">
+                            <h4>Known Spells</h4>
+                            <div id="spellList" class="spells">
+                                <!-- Spells loaded dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Inventory -->
+                <div class="sheet-section collapsible">
+                    <h3 class="collapsible-header">Inventory <span class="toggle">▼</span></h3>
+                    <div class="collapsible-content">
+                        <div class="currency">
+                            <span>Gold: <span id="goldAmount">0</span></span>
+                            <span>Silver: <span id="silverAmount">0</span></span>
+                            <span>Copper: <span id="copperAmount">0</span></span>
+                        </div>
+                        <div id="inventoryList" class="inventory-list">
+                            <!-- Items loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Conditions -->
+                <div class="sheet-section" id="conditionsSection" style="display: none;">
+                    <h3>Active Conditions</h3>
+                    <div id="conditionsList" class="conditions-list">
+                        <!-- Conditions loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Interface (Right) -->
+            <div class="chat-interface">
+                <div id="chatMessages" class="chat-messages">
+                    <div class="message system">
+                        <p>Welcome to your D&D adventure! Type your actions and the AI Dungeon Master will respond.</p>
+                    </div>
+                </div>
+
+                <!-- Dice Roll Display -->
+                <div id="diceDisplay" class="dice-display hidden">
+                    <div class="dice-result">
+                        <span class="dice-label"></span>
+                        <span class="dice-value"></span>
+                        <span class="dice-details"></span>
+                    </div>
+                </div>
+
+                <!-- Input Area -->
+                <div class="input-area">
+                    <textarea id="messageInput" placeholder="What do you do?" rows="3"></textarea>
+                    <button id="sendMessage" class="btn-primary">Send</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

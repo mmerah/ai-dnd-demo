@@ -1,0 +1,389 @@
+{
+  "monsters": [
+    {
+      "name": "Goblin",
+      "type": "Humanoid (goblinoid)",
+      "size": "Small",
+      "alignment": "Neutral Evil",
+      "armor_class": 15,
+      "hit_points": 7,
+      "hit_dice": "2d6",
+      "speed": "30 ft",
+      "challenge_rating": 0.25,
+      "abilities": {
+        "STR": 8,
+        "DEX": 14,
+        "CON": 10,
+        "INT": 10,
+        "WIS": 8,
+        "CHA": 8
+      },
+      "skills": {
+        "Stealth": 6
+      },
+      "senses": "Darkvision 60 ft, passive Perception 9",
+      "languages": "Common, Goblin",
+      "attacks": [
+        {
+          "name": "Scimitar",
+          "type": "Melee",
+          "to_hit": 4,
+          "reach": "5 ft",
+          "damage": "1d6+2",
+          "damage_type": "Slashing"
+        },
+        {
+          "name": "Shortbow",
+          "type": "Ranged",
+          "to_hit": 4,
+          "range": "80/320 ft",
+          "damage": "1d6+2",
+          "damage_type": "Piercing"
+        }
+      ],
+      "special_abilities": [
+        {
+          "name": "Nimble Escape",
+          "description": "The goblin can take the Disengage or Hide action as a bonus action on each of its turns."
+        }
+      ]
+    },
+    {
+      "name": "Wolf",
+      "type": "Beast",
+      "size": "Medium",
+      "alignment": "Unaligned",
+      "armor_class": 13,
+      "hit_points": 11,
+      "hit_dice": "2d8+2",
+      "speed": "40 ft",
+      "challenge_rating": 0.25,
+      "abilities": {
+        "STR": 12,
+        "DEX": 15,
+        "CON": 12,
+        "INT": 3,
+        "WIS": 12,
+        "CHA": 6
+      },
+      "skills": {
+        "Perception": 3,
+        "Stealth": 4
+      },
+      "senses": "passive Perception 13",
+      "languages": null,
+      "attacks": [
+        {
+          "name": "Bite",
+          "type": "Melee",
+          "to_hit": 4,
+          "reach": "5 ft",
+          "damage": "2d4+2",
+          "damage_type": "Piercing",
+          "special": "Target must succeed on a DC 11 Strength saving throw or be knocked prone"
+        }
+      ],
+      "special_abilities": [
+        {
+          "name": "Keen Hearing and Smell",
+          "description": "The wolf has advantage on Wisdom (Perception) checks that rely on hearing or smell."
+        },
+        {
+          "name": "Pack Tactics",
+          "description": "The wolf has advantage on attack rolls against a creature if at least one of the wolf's allies is within 5 feet of the creature and the ally isn't incapacitated."
+        }
+      ]
+    },
+    {
+      "name": "Hobgoblin",
+      "type": "Humanoid (goblinoid)",
+      "size": "Medium",
+      "alignment": "Lawful Evil",
+      "armor_class": 18,
+      "hit_points": 11,
+      "hit_dice": "2d8+2",
+      "speed": "30 ft",
+      "challenge_rating": 0.5,
+      "abilities": {
+        "STR": 13,
+        "DEX": 12,
+        "CON": 12,
+        "INT": 10,
+        "WIS": 10,
+        "CHA": 9
+      },
+      "senses": "Darkvision 60 ft, passive Perception 10",
+      "languages": "Common, Goblin",
+      "attacks": [
+        {
+          "name": "Longsword",
+          "type": "Melee",
+          "to_hit": 3,
+          "reach": "5 ft",
+          "damage": "1d8+1",
+          "damage_type": "Slashing"
+        },
+        {
+          "name": "Longbow",
+          "type": "Ranged",
+          "to_hit": 3,
+          "range": "150/600 ft",
+          "damage": "1d8+1",
+          "damage_type": "Piercing"
+        }
+      ],
+      "special_abilities": [
+        {
+          "name": "Martial Advantage",
+          "description": "Once per turn, the hobgoblin can deal an extra 2d6 damage to a creature it hits with a weapon attack if that creature is within 5 feet of an ally of the hobgoblin that isn't incapacitated."
+        }
+      ]
+    },
+    {
+      "name": "Giant Spider",
+      "type": "Beast",
+      "size": "Large",
+      "alignment": "Unaligned",
+      "armor_class": 14,
+      "hit_points": 26,
+      "hit_dice": "4d10+4",
+      "speed": "30 ft, climb 30 ft",
+      "challenge_rating": 1,
+      "abilities": {
+        "STR": 14,
+        "DEX": 16,
+        "CON": 12,
+        "INT": 2,
+        "WIS": 11,
+        "CHA": 4
+      },
+      "skills": {
+        "Stealth": 7
+      },
+      "senses": "Blindsight 10 ft, Darkvision 60 ft, passive Perception 10",
+      "languages": null,
+      "attacks": [
+        {
+          "name": "Bite",
+          "type": "Melee",
+          "to_hit": 5,
+          "reach": "5 ft",
+          "damage": "1d8+3",
+          "damage_type": "Piercing",
+          "special": "Target must make a DC 11 Constitution saving throw, taking 2d8 poison damage on a failed save, or half as much on a successful one. If the poison damage reduces the target to 0 hit points, the target is stable but poisoned for 1 hour, even after regaining hit points, and is paralyzed while poisoned in this way."
+        }
+      ],
+      "special_abilities": [
+        {
+          "name": "Spider Climb",
+          "description": "The spider can climb difficult surfaces, including upside down on ceilings, without needing to make an ability check."
+        },
+        {
+          "name": "Web Sense",
+          "description": "While in contact with a web, the spider knows the exact location of any other creature in contact with the same web."
+        },
+        {
+          "name": "Web Walker",
+          "description": "The spider ignores movement restrictions caused by webbing."
+        }
+      ]
+    },
+    {
+      "name": "Dire Wolf",
+      "type": "Beast",
+      "size": "Large",
+      "alignment": "Unaligned",
+      "armor_class": 14,
+      "hit_points": 37,
+      "hit_dice": "5d10+10",
+      "speed": "50 ft",
+      "challenge_rating": 1,
+      "abilities": {
+        "STR": 17,
+        "DEX": 15,
+        "CON": 15,
+        "INT": 3,
+        "WIS": 12,
+        "CHA": 7
+      },
+      "skills": {
+        "Perception": 3,
+        "Stealth": 4
+      },
+      "senses": "passive Perception 13",
+      "languages": null,
+      "attacks": [
+        {
+          "name": "Bite",
+          "type": "Melee",
+          "to_hit": 5,
+          "reach": "5 ft",
+          "damage": "2d6+3",
+          "damage_type": "Piercing",
+          "special": "Target must succeed on a DC 13 Strength saving throw or be knocked prone"
+        }
+      ],
+      "special_abilities": [
+        {
+          "name": "Keen Hearing and Smell",
+          "description": "The wolf has advantage on Wisdom (Perception) checks that rely on hearing or smell."
+        },
+        {
+          "name": "Pack Tactics",
+          "description": "The wolf has advantage on attack rolls against a creature if at least one of the wolf's allies is within 5 feet of the creature and the ally isn't incapacitated."
+        }
+      ]
+    },
+    {
+      "name": "Goblin Boss",
+      "type": "Humanoid (goblinoid)",
+      "size": "Small",
+      "alignment": "Neutral Evil",
+      "armor_class": 17,
+      "hit_points": 21,
+      "hit_dice": "6d6",
+      "speed": "30 ft",
+      "challenge_rating": 1,
+      "abilities": {
+        "STR": 10,
+        "DEX": 14,
+        "CON": 10,
+        "INT": 10,
+        "WIS": 8,
+        "CHA": 10
+      },
+      "skills": {
+        "Stealth": 6
+      },
+      "senses": "Darkvision 60 ft, passive Perception 9",
+      "languages": "Common, Goblin",
+      "attacks": [
+        {
+          "name": "Scimitar",
+          "type": "Melee",
+          "to_hit": 4,
+          "reach": "5 ft",
+          "damage": "1d6+2",
+          "damage_type": "Slashing"
+        },
+        {
+          "name": "Javelin",
+          "type": "Melee or Ranged",
+          "to_hit": 4,
+          "reach": "5 ft",
+          "range": "30/120 ft",
+          "damage": "1d6+2",
+          "damage_type": "Piercing"
+        }
+      ],
+      "special_abilities": [
+        {
+          "name": "Nimble Escape",
+          "description": "The goblin can take the Disengage or Hide action as a bonus action on each of its turns."
+        },
+        {
+          "name": "Redirect Attack",
+          "description": "When a creature the goblin can see targets it with an attack, the goblin chooses another goblin within 5 feet of it. The two goblins swap places, and the chosen goblin becomes the target instead."
+        },
+        {
+          "name": "Multiattack",
+          "description": "The goblin makes two attacks with its scimitar. The second attack has disadvantage."
+        }
+      ]
+    },
+    {
+      "name": "Owlbear",
+      "type": "Monstrosity",
+      "size": "Large",
+      "alignment": "Unaligned",
+      "armor_class": 13,
+      "hit_points": 59,
+      "hit_dice": "7d10+21",
+      "speed": "40 ft",
+      "challenge_rating": 3,
+      "abilities": {
+        "STR": 20,
+        "DEX": 12,
+        "CON": 17,
+        "INT": 3,
+        "WIS": 12,
+        "CHA": 7
+      },
+      "skills": {
+        "Perception": 3
+      },
+      "senses": "Darkvision 60 ft, passive Perception 13",
+      "languages": null,
+      "attacks": [
+        {
+          "name": "Beak",
+          "type": "Melee",
+          "to_hit": 7,
+          "reach": "5 ft",
+          "damage": "1d10+5",
+          "damage_type": "Piercing"
+        },
+        {
+          "name": "Claw",
+          "type": "Melee",
+          "to_hit": 7,
+          "reach": "5 ft",
+          "damage": "2d8+5",
+          "damage_type": "Slashing"
+        }
+      ],
+      "special_abilities": [
+        {
+          "name": "Keen Sight and Smell",
+          "description": "The owlbear has advantage on Wisdom (Perception) checks that rely on sight or smell."
+        },
+        {
+          "name": "Multiattack",
+          "description": "The owlbear makes two attacks: one with its beak and one with its claws."
+        }
+      ]
+    },
+    {
+      "name": "Skeleton",
+      "type": "Undead",
+      "size": "Medium",
+      "alignment": "Lawful Evil",
+      "armor_class": 13,
+      "hit_points": 13,
+      "hit_dice": "2d8+4",
+      "speed": "30 ft",
+      "challenge_rating": 0.25,
+      "abilities": {
+        "STR": 10,
+        "DEX": 14,
+        "CON": 15,
+        "INT": 6,
+        "WIS": 8,
+        "CHA": 5
+      },
+      "damage_vulnerabilities": ["Bludgeoning"],
+      "damage_immunities": ["Poison"],
+      "condition_immunities": ["Exhaustion", "Poisoned"],
+      "senses": "Darkvision 60 ft, passive Perception 9",
+      "languages": "Understands all languages it knew in life but can't speak",
+      "attacks": [
+        {
+          "name": "Shortsword",
+          "type": "Melee",
+          "to_hit": 4,
+          "reach": "5 ft",
+          "damage": "1d6+2",
+          "damage_type": "Piercing"
+        },
+        {
+          "name": "Shortbow",
+          "type": "Ranged",
+          "to_hit": 4,
+          "range": "80/320 ft",
+          "damage": "1d6+2",
+          "damage_type": "Piercing"
+        }
+      ]
+    }
+  ]
+}

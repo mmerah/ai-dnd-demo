@@ -1,0 +1,250 @@
+"""Character model for D&D 5e character sheet."""
+
+from typing import Dict, List, Optional
+from pydantic import BaseModel, Field, ValidationInfo, field_validator
+
+
+class Abilities(BaseModel):
+    """Character ability scores."""
+    STR: int = Field(ge=1, le=30)
+    DEX: int = Field(ge=1, le=30)
+    CON: int = Field(ge=1, le=30)
+    INT: int = Field(ge=1, le=30)
+    WIS: int = Field(ge=1, le=30)
+    CHA: int = Field(ge=1, le=30)
+
+
+class AbilityModifiers(BaseModel):
+    """Calculated ability modifiers."""
+    STR: int
+    DEX: int
+    CON: int
+    INT: int
+    WIS: int
+    CHA: int
+
+
+class HitPoints(BaseModel):
+    """Character hit point tracking."""
+    current: int = Field(ge=0)
+    maximum: int = Field(ge=1)
+    temporary: int = Field(ge=0, default=0)
+
+    @field_validator('current')
+    @classmethod
+    def validate_current_hp(cls, v: int, info: ValidationInfo) -> int:
+        """Ensure current HP doesn't exceed maximum."""
+        if 'maximum' in info.data and v > info.data['maximum']:
+            raise ValueError(f"Current HP ({v}) cannot exceed maximum HP ({info.data['maximum']})")
+        return v
+
+
+class HitDice(BaseModel):
+    """Hit dice for resting mechanics."""
+    total: int = Field(ge=1)
+    current: int = Field(ge=0)
+    type: str = Field(pattern=r"^d(4|6|8|10|12|20)$")
+
+    @field_validator('current')
+    @classmethod
+    def validate_current_dice(cls, v: int, info: ValidationInfo) -> int:
+        """Ensure current dice don't exceed total."""
+        if 'total' in info.data and v > info.data['total']:
+            raise ValueError(f"Current hit dice ({v}) cannot exceed total ({info.data['total']})")
+        return v
+
+
+class Item(BaseModel):
+    """Inventory item with quantity tracking."""
+    name: str
+    quantity: int = Field(ge=1, default=1)
+    weight: float = Field(ge=0, default=0.0)
+    value: float = Field(ge=0, default=0)  # Value in gold pieces
+    description: str = ""
+    equipped: bool = False
+    item_type: Optional[str] = None  # weapon, armor, potion, etc.
+
+
+class Attack(BaseModel):
+    """Character weapon attack."""
+    name: str
+    to_hit: int
+    damage: str = Field(pattern=r"^\d+d\d+(\+\d+)?$")
+    damage_type: str
+    range: Optional[str] = None
+    properties: List[str] = Field(default_factory=list)
+
+
+class Feature(BaseModel):
+    """Character feature or trait."""
+    name: str
+    description: str
+
+
+class SpellSlot(BaseModel):
+    """Spell slot tracking for a spell level."""
+    total: int = Field(ge=0)
+    current: int = Field(ge=0)
+
+    @field_validator('current')
+    @classmethod
+    def validate_current_slots(cls, v: int, info: ValidationInfo) -> int:
+        """Ensure current slots don't exceed total."""
+        if 'total' in info.data and v > info.data['total']:
+            raise ValueError(f"Current spell slots ({v}) cannot exceed total ({info.data['total']})")
+        return v
+
+
+class Spellcasting(BaseModel):
+    """Character spellcasting information."""
+    ability: str = Field(pattern="^(Intelligence|Wisdom|Charisma|INT|WIS|CHA)$")
+    spell_save_dc: int = Field(ge=1)
+    spell_attack_bonus: int
+    spells_known: List[str]
+    spell_slots: Dict[str, SpellSlot]
+
+
+class Currency(BaseModel):
+    """Character wealth tracking."""
+    copper: int = Field(ge=0, default=0)
+    silver: int = Field(ge=0, default=0)
+    electrum: int = Field(ge=0, default=0)
+    gold: int = Field(ge=0, default=0)
+    platinum: int = Field(ge=0, default=0)
+
+
+class Personality(BaseModel):
+    """Character personality traits for roleplay."""
+    traits: List[str] = Field(default_factory=list)
+    ideals: List[str] = Field(default_factory=list)
+    bonds: List[str] = Field(default_factory=list)
+    flaws: List[str] = Field(default_factory=list)
+
+
+class CharacterSheet(BaseModel):
+    """Complete D&D 5e character sheet."""
+    # Basic Information
+    id: str
+    name: str
+    race: str
+    class_name: str
+    level: int = Field(ge=1, le=20)
+    background: str
+    alignment: str
+    experience_points: int = Field(ge=0, default=0)
+
+    # Ability Scores
+    abilities: Abilities
+    ability_modifiers: AbilityModifiers
+
+    # Combat Stats
+    proficiency_bonus: int = Field(ge=2, le=6)
+    armor_class: int = Field(ge=1)
+    initiative: int
+    speed: int = Field(ge=0)
+    hit_points: HitPoints
+    hit_dice: HitDice
+
+    # Saving Throws & Skills
+    saving_throws: Dict[str, int]
+    skills: Dict[str, int]
+
+    # Attacks
+    attacks: List[Attack]
+
+    # Features & Traits
+    features_and_traits: List[Feature]
+
+    # Spellcasting (optional)
+    spellcasting: Optional[Spellcasting] = None
+
+    # Inventory & Currency
+    inventory: List[Item] = Field(default_factory=list)
+    currency: Currency
+
+    # Personality & Background
+    personality: Personality
+    backstory: str
+    languages: List[str]
+
+    # Status
+    conditions: List[str] = Field(default_factory=list)
+    exhaustion_level: int = Field(ge=0, le=6, default=0)
+    inspiration: bool = False
+
+    class Config:
+        """Pydantic configuration."""
+        populate_by_name = True
+
+    def calculate_modifier(self, ability_score: int) -> int:
+        """Calculate ability modifier from score."""
+        return (ability_score - 10) // 2
+
+    def add_condition(self, condition: str) -> None:
+        """Add a condition to the character."""
+        if condition not in self.conditions:
+            self.conditions.append(condition)
+
+    def remove_condition(self, condition: str) -> None:
+        """Remove a condition from the character."""
+        if condition in self.conditions:
+            self.conditions.remove(condition)
+
+    def take_damage(self, amount: int) -> int:
+        """Apply damage to character, returns actual damage taken."""
+        # First reduce temporary HP
+        if self.hit_points.temporary > 0:
+            if amount <= self.hit_points.temporary:
+                self.hit_points.temporary -= amount
+                return 0
+            else:
+                amount -= self.hit_points.temporary
+                self.hit_points.temporary = 0
+
+        # Then reduce actual HP
+        actual_damage = min(amount, self.hit_points.current)
+        self.hit_points.current -= actual_damage
+        return actual_damage
+
+    def heal(self, amount: int) -> int:
+        """Heal character, returns actual healing done."""
+        actual_healing = min(amount, self.hit_points.maximum - self.hit_points.current)
+        self.hit_points.current += actual_healing
+        return actual_healing
+
+    def short_rest(self) -> Dict[str, int]:
+        """Perform a short rest, returns HP healed."""
+        # Use hit dice to heal
+        dice_used = 0
+        hp_healed = 0
+        # This is a simplified version - actual implementation would roll dice
+        # For now, we'll just restore some HP based on available hit dice
+        if self.hit_dice.current > 0:
+            # Simplified: use one hit die and add CON modifier
+            self.hit_dice.current -= 1
+            dice_used = 1
+            # Average roll plus CON modifier
+            con_mod = self.ability_modifiers.CON
+            healing = 6 + con_mod  # Assuming d10 hit die average
+            hp_healed = self.heal(healing)
+
+        return {"dice_used": dice_used, "hp_healed": hp_healed}
+
+    def long_rest(self) -> None:
+        """Perform a long rest."""
+        # Restore all HP
+        self.hit_points.current = self.hit_points.maximum
+        self.hit_points.temporary = 0
+
+        # Restore half of max hit dice (minimum 1)
+        dice_to_restore = max(1, self.hit_dice.total // 2)
+        self.hit_dice.current = min(self.hit_dice.total, self.hit_dice.current + dice_to_restore)
+
+        # Restore all spell slots
+        if self.spellcasting:
+            for slot_level in self.spellcasting.spell_slots.values():
+                slot_level.current = slot_level.total
+
+        # Remove exhaustion (one level)
+        if self.exhaustion_level > 0:
+            self.exhaustion_level -= 1

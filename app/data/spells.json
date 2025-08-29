@@ -1,0 +1,100 @@
+{
+  "spells": [
+    {
+      "name": "Cure Wounds",
+      "level": 1,
+      "school": "Evocation",
+      "casting_time": "1 action",
+      "range": "Touch",
+      "components": "V, S",
+      "duration": "Instantaneous",
+      "description": "A creature you touch regains a number of hit points equal to 1d8 + your spellcasting ability modifier. This spell has no effect on undead or constructs.",
+      "higher_levels": "When you cast this spell using a spell slot of 2nd level or higher, the healing increases by 1d8 for each slot level above 1st.",
+      "classes": ["Bard", "Cleric", "Druid", "Paladin", "Ranger"]
+    },
+    {
+      "name": "Hunter's Mark",
+      "level": 1,
+      "school": "Divination",
+      "casting_time": "1 bonus action",
+      "range": "90 feet",
+      "components": "V",
+      "duration": "Concentration, up to 1 hour",
+      "description": "You choose a creature you can see within range and mystically mark it as your quarry. Until the spell ends, you deal an extra 1d6 damage to the target whenever you hit it with a weapon attack, and you have advantage on any Wisdom (Perception) or Wisdom (Survival) check you make to find it.",
+      "higher_levels": "When you cast this spell using a spell slot of 3rd or 4th level, you can maintain concentration for up to 8 hours. Using a 5th level or higher slot allows concentration for up to 24 hours.",
+      "classes": ["Ranger"]
+    },
+    {
+      "name": "Entangle",
+      "level": 1,
+      "school": "Conjuration",
+      "casting_time": "1 action",
+      "range": "90 feet",
+      "components": "V, S",
+      "duration": "Concentration, up to 1 minute",
+      "description": "Grasping weeds and vines sprout from the ground in a 20-foot square starting from a point within range. For the duration, these plants turn the ground in the area into difficult terrain. A creature in the area must succeed on a Strength saving throw or be restrained by the entangling plants until the spell ends.",
+      "higher_levels": null,
+      "classes": ["Druid", "Ranger"]
+    },
+    {
+      "name": "Fog Cloud",
+      "level": 1,
+      "school": "Conjuration",
+      "casting_time": "1 action",
+      "range": "120 feet",
+      "components": "V, S",
+      "duration": "Concentration, up to 1 hour",
+      "description": "You create a 20-foot-radius sphere of fog centered on a point within range. The sphere spreads around corners, and its area is heavily obscured. It lasts for the duration or until a wind of moderate or greater speed (at least 10 miles per hour) disperses it.",
+      "higher_levels": "When you cast this spell using a spell slot of 2nd level or higher, the radius of the fog increases by 20 feet for each slot level above 1st.",
+      "classes": ["Druid", "Ranger", "Sorcerer", "Wizard"]
+    },
+    {
+      "name": "Goodberry",
+      "level": 1,
+      "school": "Transmutation",
+      "casting_time": "1 action",
+      "range": "Touch",
+      "components": "V, S, M (a sprig of mistletoe)",
+      "duration": "Instantaneous",
+      "description": "Up to ten berries appear in your hand and are infused with magic for the duration. A creature can use its action to eat one berry. Eating a berry restores 1 hit point, and the berry provides enough nourishment to sustain a creature for one day. The berries lose their potency if they have not been consumed within 24 hours of the casting of this spell.",
+      "higher_levels": null,
+      "classes": ["Druid", "Ranger"]
+    },
+    {
+      "name": "Longstrider",
+      "level": 1,
+      "school": "Transmutation",
+      "casting_time": "1 action",
+      "range": "Touch",
+      "components": "V, S, M (a pinch of dirt)",
+      "duration": "1 hour",
+      "description": "You touch a creature. The target's speed increases by 10 feet until the spell ends.",
+      "higher_levels": "When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st.",
+      "classes": ["Bard", "Druid", "Ranger", "Wizard"]
+    },
+    {
+      "name": "Animal Friendship",
+      "level": 1,
+      "school": "Enchantment",
+      "casting_time": "1 action",
+      "range": "30 feet",
+      "components": "V, S, M (a morsel of food)",
+      "duration": "24 hours",
+      "description": "This spell lets you convince a beast that you mean it no harm. Choose a beast that you can see within range. It must see and hear you. If the beast's Intelligence is 4 or higher, the spell fails. Otherwise, the beast must succeed on a Wisdom saving throw or be charmed by you for the spell's duration.",
+      "higher_levels": "When you cast this spell using a spell slot of 2nd level or higher, you can affect one additional beast for each slot level above 1st.",
+      "classes": ["Bard", "Druid", "Ranger"]
+    },
+    {
+      "name": "Speak with Animals",
+      "level": 1,
+      "school": "Divination",
+      "casting_time": "1 action",
+      "range": "Self",
+      "components": "V, S",
+      "duration": "10 minutes",
+      "description": "You gain the ability to comprehend and verbally communicate with beasts for the duration. The knowledge and awareness of many beasts is limited by their intelligence, but at minimum, beasts can give you information about nearby locations and monsters.",
+      "higher_levels": null,
+      "classes": ["Bard", "Druid", "Ranger"]
+    }
+  ]
+}
