@@ -2,24 +2,9 @@
 API routes for D&D 5e AI Dungeon Master.
 """
 
-import logging
-
-# Configure logging
-import os
-
-# TODO: Clean this up. Shouldn't there be a config.py and this kind of thing should not be necessary
-# Check if debug mode is enabled via environment variable
-DEBUG_MODE = os.getenv("DEBUG_AI", "false").lower() == "true"
-log_level = logging.DEBUG if DEBUG_MODE else logging.INFO
-
-logging.basicConfig(level=log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-logger = logging.getLogger(__name__)
-
-if DEBUG_MODE:
-    logger.info("DEBUG MODE ENABLED - Verbose logging active")
-
-import asyncio
 import json
+import logging
+import os
 from collections.abc import AsyncGenerator
 from pathlib import Path
 from typing import Any
@@ -35,6 +20,17 @@ from app.services.broadcast_service import broadcast_service
 from app.services.game_service import GameService
 from app.services.message_service import message_service
 from app.services.scenario_service import ScenarioService
+
+# TODO: Clean this up. Shouldn't there be a config.py and this kind of thing should not be necessary
+# Check if debug mode is enabled via environment variable
+DEBUG_MODE = os.getenv("DEBUG_AI", "false").lower() == "true"
+log_level = logging.DEBUG if DEBUG_MODE else logging.INFO
+
+logging.basicConfig(level=log_level, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
+if DEBUG_MODE:
+    logger.info("DEBUG MODE ENABLED - Verbose logging active")
 
 # Initialize router
 router = APIRouter()
@@ -99,7 +95,7 @@ async def create_new_game(request: NewGameRequest) -> NewGameResponse:
         raise
     except Exception as e:
         # Fail fast principle - no silent failures
-        raise HTTPException(status_code=500, detail=f"Failed to create game: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create game: {str(e)}") from e
 
 
 @router.get("/game/{game_id}", response_model=GameState)
@@ -126,7 +122,7 @@ async def get_game_state(game_id: str) -> GameState:
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to load game: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to load game: {str(e)}") from e
 
 
 # TODO: Separate tasks from routes.py into app/api/tasks.py or something similar
@@ -151,18 +147,15 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
         logger.info(f"Requesting AI response for game {game_id}")
         narrative = None
 
-        # Stream the AI response (narrative start signal will be sent after tools)
+        # Get the AI response (simplified for MVP - no streaming)
         async for chunk in ai_service.generate_response(
             user_message=message,
             game_state=game_state,
             game_service=game_service,
-            stream=True,  # Use streaming for better UX
+            stream=False,  # MVP: Use non-streaming for simplicity
         ):
-            if chunk["type"] == "narrative_chunk":
-                # Stream narrative chunks directly
-                await message_service.send_narrative(game_id, chunk["content"], is_chunk=True)
-                await asyncio.sleep(0.01)  # Small delay for streaming effect
-            elif chunk["type"] == "complete":
+            logger.debug(f"Received response: type={chunk.get('type')}")
+            if chunk["type"] == "complete":
                 narrative = chunk.get("narrative", "")
                 break
             elif chunk["type"] == "error":
@@ -248,7 +241,7 @@ async def process_player_action(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to process action: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to process action: {str(e)}") from e
 
 
 @router.get("/game/{game_id}/sse")
@@ -316,7 +309,7 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to establish SSE connection: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to establish SSE connection: {str(e)}") from e
 
 
 @router.get("/scenarios")
@@ -334,7 +327,7 @@ async def list_available_scenarios() -> list[dict[str, str]]:
         scenarios = scenario_service.list_scenarios()
         return scenarios
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to load scenarios: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to load scenarios: {str(e)}") from e
 
 
 @router.get("/scenarios/{scenario_id}")
@@ -366,7 +359,7 @@ async def get_scenario(scenario_id: str) -> dict[str, Any]:
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to load scenario: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to load scenario: {str(e)}") from e
 
 
 @router.get("/characters", response_model=list[CharacterSheet])
@@ -397,4 +390,4 @@ async def list_available_characters() -> list[CharacterSheet]:
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to load characters: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to load characters: {str(e)}") from e

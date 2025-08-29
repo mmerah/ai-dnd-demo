@@ -2,6 +2,8 @@
 FastAPI application entry point for D&D 5e AI Dungeon Master.
 """
 
+import logging
+import sys
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -12,12 +14,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-# Load environment variables
-load_dotenv()
-
-# Import configuration and API routes
 from app.api.routes import router as api_router
 from app.config import get_settings
+
+# Configure logging
+logging.basicConfig(
+    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", stream=sys.stdout
+)
+
+# Load environment variables
+load_dotenv()
 
 
 @asynccontextmanager
@@ -34,7 +40,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         print(f"Save directory: {settings.save_directory}")
         print(f"Using model: {settings.openrouter_model}")
     except Exception as e:
-        raise RuntimeError(f"Configuration error: {e}")
+        raise RuntimeError(f"Configuration error: {e}") from e
 
     print("Application started successfully!")
 

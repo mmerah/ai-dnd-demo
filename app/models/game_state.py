@@ -15,19 +15,34 @@ class MessageRole(str, Enum):
 
     PLAYER = "player"
     DM = "dm"
-    SYSTEM = "system"
 
 
 class Message(BaseModel):
-    """Chat message in game history."""
+    """Chat message in game history - narrative only."""
 
     role: MessageRole
     content: str
     timestamp: datetime = Field(default_factory=datetime.now)
 
-    # Optional metadata for tool calls or dice rolls
-    tool_calls: list[dict[str, Any]] | None = None
-    dice_results: dict[str, Any] | None = None
+
+class GameEventType(str, Enum):
+    """Types of game events."""
+
+    TOOL_CALL = "tool_call"
+    TOOL_RESULT = "tool_result"
+    DICE_ROLL = "dice_roll"
+    STATE_CHANGE = "state_change"
+
+
+class GameEvent(BaseModel):
+    """Game mechanics event - separate from narrative."""
+
+    event_type: GameEventType
+    timestamp: datetime = Field(default_factory=datetime.now)
+    tool_name: str | None = None
+    parameters: dict[str, Any] | None = None
+    result: Any | None = None  # Can be dict, str, or other types
+    metadata: dict[str, Any] | None = None  # Additional context
 
 
 class GameTime(BaseModel):
@@ -165,17 +180,38 @@ class GameState(BaseModel):
     quest_flags: dict[str, bool] = Field(default_factory=dict)
     story_notes: list[str] = Field(default_factory=list)
 
-    # Conversation history
+    # Conversation history (narrative only)
     conversation_history: list[Message] = Field(default_factory=list)
+
+    # Game events (mechanics and tool calls)
+    game_events: list[GameEvent] = Field(default_factory=list)
 
     # Session metadata
     session_number: int = Field(ge=1, default=1)
     total_play_time_minutes: int = Field(ge=0, default=0)
 
-    def add_message(self, role: MessageRole, content: str, **kwargs: Any) -> None:
-        """Add a message to conversation history."""
-        message = Message(role=role, content=content, **kwargs)
+    def add_message(self, role: MessageRole, content: str) -> None:
+        """Add a narrative message to conversation history."""
+        message = Message(role=role, content=content)
         self.conversation_history.append(message)
+
+    def add_game_event(
+        self,
+        event_type: GameEventType,
+        tool_name: str | None = None,
+        parameters: dict[str, Any] | None = None,
+        result: Any | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> None:
+        """Add a game mechanics event."""
+        event = GameEvent(
+            event_type=event_type,
+            tool_name=tool_name,
+            parameters=parameters,
+            result=result,
+            metadata=metadata,
+        )
+        self.game_events.append(event)
 
     def add_npc(self, npc: NPCSheet) -> None:
         """Add an NPC to the game."""

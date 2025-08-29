@@ -5,46 +5,53 @@ let selectedCharacter = null;
 let selectedScenario = null;
 let sseSource = null;
 
-// DOM elements
-const characterSelection = document.getElementById('characterSelection');
-const gameInterface = document.getElementById('gameInterface');
-const characterList = document.getElementById('characterList');
-const premise = document.getElementById('premise');
-const startGameBtn = document.getElementById('startGame');
-const saveGameBtn = document.getElementById('saveGame');
-const chatMessages = document.getElementById('chatMessages');
-const messageInput = document.getElementById('messageInput');
-const sendMessageBtn = document.getElementById('sendMessage');
-const diceDisplay = document.getElementById('diceDisplay');
+// DOM elements - cached for performance
+const elements = {};
 
-// Initialize
+// Initialize DOM element cache
+function initializeElements() {
+    console.log('[INIT] Caching DOM elements...');
+    elements.characterSelection = document.getElementById('characterSelection');
+    elements.gameInterface = document.getElementById('gameInterface');
+    elements.characterList = document.getElementById('characterList');
+    elements.scenarioList = document.getElementById('scenarioList');
+    elements.premise = document.getElementById('premise');
+    elements.startGameBtn = document.getElementById('startGame');
+    elements.saveGameBtn = document.getElementById('saveGame');
+    elements.chatMessages = document.getElementById('chatMessages');
+    elements.messageInput = document.getElementById('messageInput');
+    elements.sendMessageBtn = document.getElementById('sendMessage');
+    elements.diceDisplay = document.getElementById('diceDisplay');
+    
+    // Log any missing elements
+    for (const [key, element] of Object.entries(elements)) {
+        if (!element) {
+            console.error(`[ERROR] Missing DOM element: ${key}`);
+        }
+    }
+    console.log('[INIT] DOM elements cached successfully');
+}
+
+// Initialize application
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM Content Loaded - Initializing...');
+    console.log('[APP] Starting D&D 5e AI Dungeon Master frontend...');
     
-    // Check if elements exist
-    const scenarioList = document.getElementById('scenarioList');
-    const characterList = document.getElementById('characterList');
-    
-    console.log('scenarioList element:', scenarioList);
-    console.log('characterList element:', characterList);
-    
-    if (!scenarioList) {
-        console.error('ERROR: scenarioList element not found in DOM!');
-    }
-    if (!characterList) {
-        console.error('ERROR: characterList element not found in DOM!');
-    }
-    
+    initializeElements();
     loadCharacters();
     loadScenarios();
     setupEventListeners();
+    
+    console.log('[APP] Frontend initialization complete');
 });
 
 // Event Listeners
 function setupEventListeners() {
-    startGameBtn.addEventListener('click', startGame);
-    sendMessageBtn.addEventListener('click', sendMessage);
-    messageInput.addEventListener('keydown', (e) => {
+    console.log('[INIT] Setting up event listeners...');
+    
+    elements.startGameBtn.addEventListener('click', startGame);
+    elements.sendMessageBtn.addEventListener('click', sendMessage);
+    
+    elements.messageInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
             sendMessage();
@@ -56,24 +63,37 @@ function setupEventListeners() {
         header.addEventListener('click', () => {
             const section = header.parentElement;
             section.classList.toggle('collapsed');
+            console.log(`[UI] Toggled section: ${header.textContent.trim()}`);
         });
     });
     
-    saveGameBtn.addEventListener('click', saveGame);
+    // Save game button
+    elements.saveGameBtn.addEventListener('click', saveGame);
+    
+    // Custom premise input clears scenario selection
+    elements.premise.addEventListener('input', () => {
+        if (elements.premise.value.trim()) {
+            document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('selected'));
+            selectedScenario = null;
+            console.log('[UI] Custom premise entered, cleared scenario selection');
+        }
+    });
+    
+    console.log('[INIT] Event listeners setup complete');
 }
 
 // Load available scenarios
 async function loadScenarios() {
-    console.log('loadScenarios called');
-    const scenarioList = document.getElementById('scenarioList');
+    console.log('[API] Loading scenarios...');
     
-    // Show loading indicator
-    if (scenarioList) {
-        scenarioList.innerHTML = '<div style="color: #888;">Loading scenarios...</div>';
+    if (!elements.scenarioList) {
+        console.error('[ERROR] scenarioList element not found');
+        return;
     }
     
+    elements.scenarioList.innerHTML = '<div style="color: #888;">Loading scenarios...</div>';
+    
     try {
-        console.log('Fetching scenarios from /api/scenarios...');
         const response = await fetch('/api/scenarios');
         
         if (!response.ok) {
@@ -81,35 +101,28 @@ async function loadScenarios() {
         }
         
         const scenarios = await response.json();
-        console.log('Scenarios received:', scenarios);
+        console.log(`[API] Loaded ${scenarios.length} scenarios:`, scenarios);
         
-        if (scenarioList) {
-            scenarioList.innerHTML = '';
+        elements.scenarioList.innerHTML = '';
+        
+        if (scenarios && scenarios.length > 0) {
+            scenarios.forEach(scenario => {
+                const card = createScenarioCard(scenario);
+                elements.scenarioList.appendChild(card);
+            });
             
-            if (scenarios && scenarios.length > 0) {
-                scenarios.forEach(scenario => {
-                    const card = createScenarioCard(scenario);
-                    scenarioList.appendChild(card);
-                });
-                
-                // Auto-select first scenario if available
-                const firstCard = scenarioList.querySelector('.scenario-card');
-                if (firstCard) {
-                    firstCard.click();
-                }
-                console.log(`Successfully loaded ${scenarios.length} scenario(s)`);
-            } else {
-                scenarioList.innerHTML = '<div style="color: #666;">No scenarios available</div>';
-                console.warn('No scenarios returned from API');
+            // Auto-select first scenario
+            const firstCard = elements.scenarioList.querySelector('.scenario-card');
+            if (firstCard) {
+                firstCard.click();
+                console.log('[UI] Auto-selected first scenario');
             }
+        } else {
+            elements.scenarioList.innerHTML = '<div style="color: #666;">No scenarios available</div>';
         }
     } catch (error) {
-        console.error('Failed to load scenarios:', error);
-        // Display error in the UI
-        const scenarioList = document.getElementById('scenarioList');
-        if (scenarioList) {
-            scenarioList.innerHTML = '<div style="color: red;">Failed to load scenarios: ' + error + '</div>';
-        }
+        console.error('[ERROR] Failed to load scenarios:', error);
+        elements.scenarioList.innerHTML = `<div style="color: red;">Failed to load scenarios: ${error.message}</div>`;
     }
 }
 
@@ -127,9 +140,8 @@ function createScenarioCard(scenario) {
         document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         selectedScenario = scenario.id;
-        // Clear custom premise when scenario selected
-        const premise = document.getElementById('premise');
-        if (premise) premise.value = '';
+        elements.premise.value = ''; // Clear custom premise
+        console.log(`[UI] Selected scenario: ${scenario.title} (${scenario.id})`);
     });
     
     return card;
@@ -137,17 +149,20 @@ function createScenarioCard(scenario) {
 
 // Load available characters
 async function loadCharacters() {
+    console.log('[API] Loading characters...');
+    
     try {
         const response = await fetch('/api/characters');
         const characters = await response.json();
+        console.log(`[API] Loaded ${characters.length} characters:`, characters);
         
-        characterList.innerHTML = '';
+        elements.characterList.innerHTML = '';
         characters.forEach(char => {
             const card = createCharacterCard(char);
-            characterList.appendChild(card);
+            elements.characterList.appendChild(card);
         });
     } catch (error) {
-        console.error('Failed to load characters:', error);
+        console.error('[ERROR] Failed to load characters:', error);
         showError('Failed to load characters. Please refresh the page.');
     }
 }
@@ -168,7 +183,8 @@ function createCharacterCard(character) {
         document.querySelectorAll('.character-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         selectedCharacter = character.id;
-        startGameBtn.disabled = false;
+        elements.startGameBtn.disabled = false;
+        console.log(`[UI] Selected character: ${character.name} (${character.id})`);
     });
     
     return card;
@@ -176,71 +192,101 @@ function createCharacterCard(character) {
 
 // Start new game
 async function startGame() {
-    if (!selectedCharacter) return;
+    if (!selectedCharacter) {
+        console.warn('[UI] No character selected');
+        return;
+    }
     
-    startGameBtn.disabled = true;
-    startGameBtn.textContent = 'Starting...';
+    console.log('[GAME] Starting new game...');
+    console.log(`[GAME] Character: ${selectedCharacter}`);
+    console.log(`[GAME] Scenario: ${selectedScenario || 'custom'}`);
+    console.log(`[GAME] Custom premise: ${elements.premise.value || 'none'}`);
+    
+    elements.startGameBtn.disabled = true;
+    elements.startGameBtn.textContent = 'Starting...';
     
     try {
+        const requestBody = {
+            character_id: selectedCharacter,
+            premise: elements.premise.value || null,
+            scenario_id: selectedScenario || null
+        };
+        
+        console.log('[API] Sending game creation request:', requestBody);
+        
         const response = await fetch('/api/game/new', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                character_id: selectedCharacter,
-                premise: premise.value || null,
-                scenario_id: selectedScenario || null
-            })
+            body: JSON.stringify(requestBody)
         });
         
-        if (!response.ok) throw new Error('Failed to start game');
+        if (!response.ok) {
+            throw new Error(`Failed to start game: ${response.status}`);
+        }
         
         const data = await response.json();
         currentGameId = data.game_id;
+        console.log(`[GAME] Game created with ID: ${currentGameId}`);
         
         await loadGameState();
         initializeSSE();
         
-        characterSelection.classList.add('hidden');
-        gameInterface.classList.remove('hidden');
+        elements.characterSelection.classList.add('hidden');
+        elements.gameInterface.classList.remove('hidden');
         
+        console.log('[GAME] Game started successfully');
     } catch (error) {
-        console.error('Failed to start game:', error);
+        console.error('[ERROR] Failed to start game:', error);
         showError('Failed to start game. Please try again.');
-        startGameBtn.disabled = false;
-        startGameBtn.textContent = 'Start Adventure';
+        elements.startGameBtn.disabled = false;
+        elements.startGameBtn.textContent = 'Start Adventure';
     }
 }
 
 // Load game state
 async function loadGameState() {
-    if (!currentGameId) return;
+    if (!currentGameId) {
+        console.warn('[GAME] No current game ID');
+        return;
+    }
+    
+    console.log(`[API] Loading game state for: ${currentGameId}`);
     
     try {
         const response = await fetch(`/api/game/${currentGameId}`);
-        if (!response.ok) throw new Error('Failed to load game state');
+        if (!response.ok) {
+            throw new Error(`Failed to load game state: ${response.status}`);
+        }
         
         gameState = await response.json();
+        console.log('[GAME] Game state loaded:', gameState);
         updateUI();
     } catch (error) {
-        console.error('Failed to load game state:', error);
+        console.error('[ERROR] Failed to load game state:', error);
         showError('Failed to load game state.');
     }
 }
 
 // Initialize Server-Sent Events
 function initializeSSE() {
-    if (sseSource) sseSource.close();
+    if (sseSource) {
+        console.log('[SSE] Closing existing connection');
+        sseSource.close();
+    }
     
-    sseSource = new EventSource(`/api/game/${currentGameId}/sse`);
+    const sseUrl = `/api/game/${currentGameId}/sse`;
+    console.log(`[SSE] Connecting to: ${sseUrl}`);
     
-    console.log('SSE connection established for game:', currentGameId);
+    sseSource = new EventSource(sseUrl);
     
+    // Connection established
     sseSource.addEventListener('connected', (event) => {
-        console.log('Connected event received:', event.data);
+        console.log('[SSE] Connection established:', event.data);
     });
     
-    // Handle initial narrative
+    // Initial narrative (scenario start)
     sseSource.addEventListener('initial_narrative', (event) => {
+        console.log('[SSE] Initial narrative received');
         const data = JSON.parse(event.data);
         if (data.scenario_title) {
             addMessage(`=== ${data.scenario_title} ===`, 'system');
@@ -248,61 +294,177 @@ function initializeSSE() {
         addMessage(data.narrative, 'dm');
     });
     
-    // Handle tool calls
+    // Tool calls - IMPORTANT: Display these in chat
     sseSource.addEventListener('tool_call', (event) => {
         const data = JSON.parse(event.data);
-        const params = data.parameters ? JSON.stringify(data.parameters) : '';
-        addMessage(`🔧 Using tool: ${data.tool_name} ${params}`, 'system');
+        console.log('[SSE] Tool call received:', data);
+        
+        // Format the tool call display
+        let toolMessage = `🎲 ${data.tool_name}`;
+        
+        // Parse parameters if they're in raw_args format
+        let params = data.parameters || {};
+        if (params.raw_args && typeof params.raw_args === 'string') {
+            try {
+                params = JSON.parse(params.raw_args);
+                console.log('[SSE] Parsed raw_args:', params);
+            } catch (e) {
+                console.log('[SSE] Could not parse raw_args, using as-is');
+            }
+        }
+        
+        // Add parameters if present
+        if (params && Object.keys(params).length > 0) {
+            // Special formatting for dice rolls
+            if (data.tool_name.includes('roll')) {
+                if (params.ability) {
+                    toolMessage += ` - ${params.ability}`;
+                }
+                if (params.skill) {
+                    toolMessage += ` (${params.skill})`;
+                }
+                if (params.dc !== undefined) {
+                    toolMessage += ` DC ${params.dc}`;
+                }
+                if (params.target && params.target !== 'player') {
+                    toolMessage += ` for ${params.target}`;
+                }
+            } else {
+                // Generic parameter display for other tools
+                const filteredParams = Object.entries(params)
+                    .filter(([key]) => key !== 'raw_args')
+                    .map(([key, value]) => `${key}: ${value}`)
+                    .join(', ');
+                if (filteredParams) {
+                    toolMessage += ` (${filteredParams})`;
+                }
+            }
+        }
+        
+        addMessage(toolMessage, 'tool');
     });
     
-    // Handle scenario info
-    sseSource.addEventListener('scenario_info', (event) => {
+    // Tool results
+    sseSource.addEventListener('tool_result', (event) => {
         const data = JSON.parse(event.data);
-        if (data.current_scenario) {
-            const header = document.querySelector('.location-time');
-            if (header) {
-                let scenarioDisplay = header.querySelector('.current-scenario');
-                if (!scenarioDisplay) {
-                    scenarioDisplay = document.createElement('span');
-                    scenarioDisplay.className = 'current-scenario';
-                    header.appendChild(scenarioDisplay);
-                }
-                scenarioDisplay.textContent = `📚 ${data.current_scenario.title}`;
+        console.log('[SSE] Tool result received:', data);
+        
+        // Format tool result based on type
+        let resultMessage = '';
+        
+        // Try to parse the result if it's a string representation of an object
+        let result = data.result;
+        if (typeof result === 'string' && result.startsWith('{')) {
+            try {
+                // Use eval carefully - only for dict-like strings from Python
+                result = eval('(' + result + ')');
+                console.log('[SSE] Parsed tool result:', result);
+            } catch (e) {
+                console.log('[SSE] Could not parse result, using as string');
             }
+        }
+        
+        if (data.tool_name && data.tool_name.includes('roll')) {
+            // Dice roll result - handle both object and string formats
+            if (typeof result === 'object' && result !== null) {
+                // Extract key information
+                const roll = result.roll || result.total || '?';
+                const naturalRoll = result.natural_roll;
+                const modifier = result.modifier;
+                const success = result.success;
+                const critSuccess = result.critical_success;
+                const critFail = result.critical_failure;
+                
+                // Build the message
+                resultMessage = `📊 Rolled: ${roll}`;
+                
+                // Add natural roll and modifier if available
+                if (naturalRoll !== undefined && modifier !== undefined) {
+                    const modStr = modifier >= 0 ? `+${modifier}` : `${modifier}`;
+                    resultMessage = `📊 Rolled: ${roll} (${naturalRoll}${modStr})`;
+                }
+                
+                // Add success/failure
+                if (success !== undefined) {
+                    if (critSuccess) {
+                        resultMessage += ' - 🎯 CRITICAL SUCCESS!';
+                    } else if (critFail) {
+                        resultMessage += ' - 💀 CRITICAL FAILURE!';
+                    } else if (success) {
+                        resultMessage += ' - ✅ Success';
+                    } else {
+                        resultMessage += ' - ❌ Failure';
+                    }
+                }
+            } else {
+                // Fallback for string results
+                resultMessage = `📊 Result: ${result}`;
+            }
+        } else {
+            // Generic tool result
+            const resultText = typeof result === 'object' 
+                ? JSON.stringify(result) 
+                : result;
+            resultMessage = `✓ ${data.tool_name} completed: ${resultText}`;
+        }
+        
+        if (resultMessage) {
+            addMessage(resultMessage, 'tool-result');
         }
     });
     
+    // Narrative text (non-streaming for MVP)
     sseSource.addEventListener('narrative', (event) => {
-        console.log('Raw narrative event:', event);
+        console.log('[SSE] Narrative event received');
         const data = JSON.parse(event.data);
-        handleNarrative(data);
+        
+        // For non-streaming, we get the complete content at once
+        if (data.content) {
+            console.log(`[SSE] Adding narrative: ${data.content.substring(0, 50)}...`);
+            addMessage(data.content, 'dm');
+        }
     });
     
+    // Character updates
     sseSource.addEventListener('character_update', (event) => {
         const data = JSON.parse(event.data);
-        handleCharacterUpdate(data);
+        console.log('[SSE] Character update received:', data);
+        gameState.character = data.character;
+        updateCharacterSheet();
     });
     
+    // Dice roll animations
     sseSource.addEventListener('dice_roll', (event) => {
         const data = JSON.parse(event.data);
-        handleDiceRoll(data);
+        console.log('[SSE] Dice roll animation:', data);
+        showDiceRoll(data);
     });
     
-    sseSource.addEventListener('tool_result', (event) => {
+    // Game state updates
+    sseSource.addEventListener('game_update', (event) => {
         const data = JSON.parse(event.data);
-        handleToolResult(data);
+        console.log('[SSE] Game state update received');
+        gameState = data;
+        updateUI();
     });
     
+    // Error handling
     sseSource.onerror = (error) => {
-        console.error('SSE error:', error);
-        reconnectSSE();
+        console.error('[SSE] Connection error:', error);
+        if (sseSource.readyState === EventSource.CLOSED) {
+            console.log('[SSE] Connection closed, attempting reconnect...');
+            reconnectSSE();
+        }
     };
+    
+    console.log('[SSE] Event listeners configured');
 }
 
 // Reconnect SSE on error
 function reconnectSSE() {
     setTimeout(() => {
         if (currentGameId) {
+            console.log('[SSE] Attempting to reconnect...');
             initializeSSE();
         }
     }, 5000);
@@ -310,13 +472,18 @@ function reconnectSSE() {
 
 // Send message to AI DM
 async function sendMessage() {
-    const message = messageInput.value.trim();
-    if (!message || !currentGameId) return;
+    const message = elements.messageInput.value.trim();
+    if (!message || !currentGameId) {
+        console.warn('[UI] Cannot send message: empty or no game');
+        return;
+    }
+    
+    console.log(`[CHAT] Sending message: ${message}`);
     
     // Add player message to chat
     addMessage(message, 'player');
-    messageInput.value = '';
-    sendMessageBtn.disabled = true;
+    elements.messageInput.value = '';
+    elements.sendMessageBtn.disabled = true;
     
     try {
         const response = await fetch(`/api/game/${currentGameId}/action`, {
@@ -325,92 +492,76 @@ async function sendMessage() {
             body: JSON.stringify({ message })
         });
         
-        if (!response.ok) throw new Error('Failed to send message');
+        if (!response.ok) {
+            throw new Error(`Failed to send message: ${response.status}`);
+        }
         
-        // The response will come through SSE
+        console.log('[CHAT] Message sent successfully, awaiting SSE response');
     } catch (error) {
-        console.error('Failed to send message:', error);
+        console.error('[ERROR] Failed to send message:', error);
         showError('Failed to send message. Please try again.');
     } finally {
-        sendMessageBtn.disabled = false;
+        elements.sendMessageBtn.disabled = false;
     }
 }
 
-// Handle narrative streaming
-let currentDMMessage = null;
-function handleNarrative(data) {
-    console.log('Narrative event received:', data);
-    if (data.start) {
-        currentDMMessage = addMessage('', 'dm');
-    } else if (data.word && currentDMMessage) {
-        const p = currentDMMessage.querySelector('p');
-        p.textContent += data.word;
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-    } else if (data.complete) {
-        currentDMMessage = null;
-    }
-}
-
-// Handle character updates
-function handleCharacterUpdate(data) {
-    gameState.character = data.character;
-    updateCharacterSheet();
-}
-
-// Handle dice rolls
-function handleDiceRoll(data) {
-    showDiceRoll(data);
-}
-
-// Handle tool results
-function handleToolResult(data) {
-    // Display the tool result in chat
-    const resultText = typeof data.result === 'object' 
-        ? JSON.stringify(data.result) 
-        : data.result;
-    addMessage(`📊 ${data.tool_name} result: ${resultText}`, 'system');
+// Simple markdown parser for chat messages
+function parseMarkdown(text) {
+    // Convert markdown to HTML
+    let html = text
+        // Bold: **text** or __text__
+        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/__(.+?)__/g, '<strong>$1</strong>')
+        // Italic: *text* or _text_
+        .replace(/\*(.+?)\*/g, '<em>$1</em>')
+        .replace(/_(.+?)_/g, '<em>$1</em>')
+        // Headers: ### Header
+        .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+        .replace(/^## (.+)$/gm, '<h4>$1</h4>')
+        .replace(/^# (.+)$/gm, '<h5>$1</h5>')
+        // Lists: - item or * item
+        .replace(/^[*-] (.+)$/gm, '<li>$1</li>')
+        // Wrap consecutive <li> in <ul>
+        .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+        // Line breaks
+        .replace(/\n/g, '<br>');
     
-    // Also handle game state updates if present
-    if (data.type === 'game_state_update') {
-        gameState = data.state;
-        updateUI();
-    }
+    return html;
 }
 
 // Add message to chat
 function addMessage(text, type) {
+    console.log(`[CHAT] Adding ${type} message: ${text.substring(0, 50)}...`);
+    
     const message = document.createElement('div');
     message.className = `message ${type}`;
     const p = document.createElement('p');
-    p.textContent = text;
+    
+    // Use innerHTML for DM messages to support markdown, textContent for others
+    if (type === 'dm' && text) {
+        p.innerHTML = parseMarkdown(text);
+    } else {
+        p.textContent = text;
+    }
+    
     message.appendChild(p);
-    chatMessages.appendChild(message);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    elements.chatMessages.appendChild(message);
+    elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+    
     return message;
 }
 
-// Also clear scenario selection when typing custom premise
-document.addEventListener('DOMContentLoaded', () => {
-    const premise = document.getElementById('premise');
-    if (premise) {
-        premise.addEventListener('input', () => {
-            if (premise.value.trim()) {
-                document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('selected'));
-                selectedScenario = null;
-            }
-        });
-    }
-});
-
 // Show dice roll animation
 function showDiceRoll(rollData) {
-    const display = document.getElementById('diceDisplay');
+    console.log('[UI] Showing dice roll:', rollData);
+    
+    const display = elements.diceDisplay;
     const label = display.querySelector('.dice-label');
     const value = display.querySelector('.dice-value');
     const details = display.querySelector('.dice-details');
     
-    label.textContent = rollData.type;
-    value.textContent = rollData.total;
+    label.textContent = rollData.type || 'Dice Roll';
+    value.textContent = rollData.total || rollData.result || '?';
     details.textContent = rollData.details || '';
     
     display.classList.remove('hidden');
@@ -422,8 +573,12 @@ function showDiceRoll(rollData) {
 
 // Update entire UI
 function updateUI() {
-    if (!gameState) return;
+    if (!gameState) {
+        console.warn('[UI] No game state to update');
+        return;
+    }
     
+    console.log('[UI] Updating UI with game state');
     updateCharacterSheet();
     updateLocationTime();
     updateCombatIndicator();
@@ -431,8 +586,12 @@ function updateUI() {
 
 // Update character sheet
 function updateCharacterSheet() {
-    if (!gameState || !gameState.character) return;
+    if (!gameState || !gameState.character) {
+        console.warn('[UI] No character data to update');
+        return;
+    }
     
+    console.log('[UI] Updating character sheet');
     const char = gameState.character;
     
     // Basic info
@@ -442,8 +601,8 @@ function updateCharacterSheet() {
     document.getElementById('charLevel').textContent = char.level;
     
     // HP
-    const current_hp = char.hit_points ? char.hit_points.current : char.hit_points_current || 0;
-    const max_hp = char.hit_points ? char.hit_points.maximum : char.hit_points_maximum || 0;
+    const current_hp = char.hit_points?.current ?? char.hit_points_current ?? 0;
+    const max_hp = char.hit_points?.maximum ?? char.hit_points_maximum ?? 0;
     const hpPercent = max_hp > 0 ? (current_hp / max_hp) * 100 : 0;
     document.getElementById('hpFill').style.width = `${hpPercent}%`;
     document.getElementById('hpText').textContent = `${current_hp}/${max_hp}`;
@@ -465,7 +624,7 @@ function updateCharacterSheet() {
         updateSpellList(char.spellcasting.spells_known);
     }
     
-    // Inventory - The backend sends currency and inventory
+    // Inventory
     updateInventory({
         gold: char.currency?.gold || 0,
         silver: char.currency?.silver || 0,
@@ -622,6 +781,7 @@ function updateCombatIndicator() {
     const indicator = document.getElementById('combatIndicator');
     if (gameState && gameState.combat && gameState.combat.active) {
         indicator.classList.remove('hidden');
+        console.log('[UI] Combat mode active');
     } else {
         indicator.classList.add('hidden');
     }
@@ -629,42 +789,47 @@ function updateCombatIndicator() {
 
 // Save game
 async function saveGame() {
-    if (!currentGameId) return;
+    if (!currentGameId) {
+        console.warn('[GAME] No game to save');
+        return;
+    }
     
-    saveGameBtn.disabled = true;
-    saveGameBtn.textContent = 'Saving...';
+    console.log(`[GAME] Saving game: ${currentGameId}`);
+    
+    elements.saveGameBtn.disabled = true;
+    elements.saveGameBtn.textContent = 'Saving...';
     
     try {
         // Game auto-saves on server, but we can trigger a manual save
         await loadGameState();
         showNotification('Game saved successfully!');
     } catch (error) {
-        console.error('Failed to save game:', error);
+        console.error('[ERROR] Failed to save game:', error);
         showError('Failed to save game.');
     } finally {
-        saveGameBtn.disabled = false;
-        saveGameBtn.textContent = '💾 Save';
+        elements.saveGameBtn.disabled = false;
+        elements.saveGameBtn.textContent = '💾 Save';
     }
 }
 
 // Show error message
 function showError(message) {
+    console.error(`[ERROR] ${message}`);
     const errorMsg = document.createElement('div');
-    errorMsg.className = 'message system';
-    errorMsg.style.background = '#f44336';
-    errorMsg.innerHTML = `<p>Error: ${message}</p>`;
-    chatMessages.appendChild(errorMsg);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    errorMsg.className = 'message error';
+    errorMsg.innerHTML = `<p>❌ Error: ${message}</p>`;
+    elements.chatMessages.appendChild(errorMsg);
+    elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
 }
 
 // Show notification
 function showNotification(message) {
+    console.log(`[NOTIFICATION] ${message}`);
     const notification = document.createElement('div');
-    notification.className = 'message system';
-    notification.style.background = '#4caf50';
-    notification.innerHTML = `<p>${message}</p>`;
-    chatMessages.appendChild(notification);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    notification.className = 'message success';
+    notification.innerHTML = `<p>✅ ${message}</p>`;
+    elements.chatMessages.appendChild(notification);
+    elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
     
     setTimeout(() => {
         notification.remove();

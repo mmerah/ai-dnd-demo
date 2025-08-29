@@ -478,6 +478,47 @@ body {
     align-self: flex-start;
 }
 
+/* Markdown styling for DM messages */
+.message.dm strong {
+    color: var(--accent-color);
+    font-weight: bold;
+}
+
+.message.dm em {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.message.dm h3 {
+    color: var(--accent-color);
+    font-size: 1.2em;
+    margin: 0.5em 0 0.3em 0;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.2em;
+}
+
+.message.dm h4 {
+    color: var(--accent-color);
+    font-size: 1.1em;
+    margin: 0.4em 0 0.2em 0;
+}
+
+.message.dm h5 {
+    color: var(--accent-color);
+    font-size: 1em;
+    margin: 0.3em 0 0.2em 0;
+}
+
+.message.dm ul {
+    margin: 0.5em 0;
+    padding-left: 1.5em;
+}
+
+.message.dm li {
+    margin: 0.2em 0;
+    list-style-type: disc;
+}
+
 .message.system {
     background: var(--background-light);
     border: 1px solid var(--accent-color);
@@ -707,4 +748,54 @@ body {
     font-size: 0.9rem;
     padding: 0.5rem 1rem;
     margin: 0.5rem 0;
+}
+
+/* Tool call messages */
+.message.tool {
+    background: rgba(139, 105, 20, 0.15);
+    border-left: 3px solid var(--accent-color);
+    color: var(--accent-color);
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    margin: 0.5rem 0;
+    align-self: center;
+    max-width: 90%;
+}
+
+/* Tool result messages */
+.message.tool-result {
+    background: rgba(76, 175, 80, 0.1);
+    border-left: 3px solid var(--success-color);
+    color: #9ccc65;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    margin: 0.5rem 0;
+    align-self: center;
+    max-width: 90%;
+}
+
+/* Error messages */
+.message.error {
+    background: rgba(244, 67, 54, 0.1);
+    border-left: 3px solid var(--danger-color);
+    color: #ef5350;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    margin: 0.5rem 0;
+    align-self: center;
+    max-width: 90%;
+}
+
+/* Success messages */
+.message.success {
+    background: rgba(76, 175, 80, 0.1);
+    border-left: 3px solid var(--success-color);
+    color: #81c784;
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    margin: 0.5rem 0;
+    align-self: center;
+    max-width: 90%;
 }

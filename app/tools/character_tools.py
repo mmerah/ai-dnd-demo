@@ -39,10 +39,7 @@ async def update_hp(
         old_hp = character.hit_points.current
         max_hp = character.hit_points.maximum
 
-        if amount > 0:
-            new_hp = min(old_hp + amount, max_hp)
-        else:
-            new_hp = max(0, old_hp + amount)
+        new_hp = min(old_hp + amount, max_hp) if amount > 0 else max(0, old_hp + amount)
 
         character.hit_points.current = new_hp
     else:
@@ -51,10 +48,7 @@ async def update_hp(
             old_hp = npc.hit_points.current
             max_hp = npc.hit_points.maximum
 
-            if amount > 0:
-                new_hp = min(old_hp + amount, max_hp)
-            else:
-                new_hp = max(0, old_hp + amount)
+            new_hp = min(old_hp + amount, max_hp) if amount > 0 else max(0, old_hp + amount)
 
             npc.hit_points.current = new_hp
 

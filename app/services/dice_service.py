@@ -95,10 +95,7 @@ class DiceService:
         # For d20 rolls with advantage/disadvantage
         if dice_sides == 20 and dice_count == 1 and roll_type != RollType.NORMAL:
             rolls = [random.randint(1, dice_sides), random.randint(1, dice_sides)]
-            if roll_type == RollType.ADVANTAGE:
-                selected_roll = max(rolls)
-            else:  # DISADVANTAGE
-                selected_roll = min(rolls)
+            selected_roll = max(rolls) if roll_type == RollType.ADVANTAGE else min(rolls)
 
             total = selected_roll + modifier
             is_critical_success = selected_roll == 20

@@ -7,7 +7,14 @@ from typing import Any
 
 from app.config import get_settings
 from app.models.character import CharacterSheet, Item
-from app.models.game_state import CombatParticipant, CombatState, GameState, GameTime, Message, MessageRole
+from app.models.game_state import (
+    CombatParticipant,
+    CombatState,
+    GameState,
+    GameTime,
+    Message,
+    MessageRole,
+)
 from app.models.npc import NPCSheet
 from app.services.scenario_service import ScenarioService
 
@@ -84,7 +91,7 @@ class GameService:
             scenario_title = None
             scenario_id = None
 
-        initial_message = Message(role=MessageRole.SYSTEM, content=initial_narrative, timestamp=datetime.now())
+        initial_message = Message(role=MessageRole.DM, content=initial_narrative, timestamp=datetime.now())
 
         game_state = GameState(
             game_id=game_id,
@@ -127,7 +134,7 @@ class GameService:
                 f.write(json_data)
             return str(save_path)
         except Exception as e:
-            raise OSError(f"Failed to save game {game_state.game_id}: {e}")
+            raise OSError(f"Failed to save game {game_state.game_id}: {e}") from e
 
     def load_game(self, game_id: str) -> GameState:
         """
@@ -157,9 +164,9 @@ class GameService:
             return game_state
 
         except json.JSONDecodeError as e:
-            raise ValueError(f"Corrupted save file for game {game_id}: {e}")
+            raise ValueError(f"Corrupted save file for game {game_id}: {e}") from e
         except Exception as e:
-            raise ValueError(f"Failed to load game {game_id}: {e}")
+            raise ValueError(f"Failed to load game {game_id}: {e}") from e
 
     def get_game(self, game_id: str) -> GameState | None:
         """
@@ -377,6 +384,46 @@ class GameService:
             raise ValueError(f"Game {game_id} not found")
 
         game_state.location = location
+        self.save_game(game_state)
+        return game_state
+
+    def add_game_event(
+        self,
+        game_id: str,
+        event_type: str,
+        tool_name: str | None = None,
+        parameters: dict[str, Any] | None = None,
+        result: Any | None = None,
+        metadata: dict[str, Any] | None = None,
+    ) -> GameState:
+        """
+        Add a game event to the history.
+
+        Args:
+            game_id: Game ID
+            event_type: Type of event (tool_call, tool_result, etc.)
+            tool_name: Name of the tool
+            parameters: Tool parameters
+            result: Tool result
+            metadata: Additional metadata
+
+        Returns:
+            Updated GameState
+        """
+        game_state = self.get_game(game_id)
+        if not game_state:
+            raise ValueError(f"Game {game_id} not found")
+
+        # Import here to avoid circular dependency
+        from app.models.game_state import GameEventType
+
+        game_state.add_game_event(
+            event_type=GameEventType(event_type),
+            tool_name=tool_name,
+            parameters=parameters,
+            result=result,
+            metadata=metadata,
+        )
         self.save_game(game_state)
         return game_state
 
