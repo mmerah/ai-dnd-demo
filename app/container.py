@@ -82,7 +82,7 @@ class Container:
             dice_service = self.get_dice_service()
             scenario_service = self.get_scenario_service()
             data_service = self.get_data_service()
-            broadcast_service = self.get_broadcast_service()
+            message_service = self.get_message_service()
 
             event_bus = EventBus(game_service)
 
@@ -91,7 +91,7 @@ class Container:
             event_bus.register_handler("dice", DiceHandler(game_service, dice_service))
             event_bus.register_handler("inventory", InventoryHandler(game_service))
             event_bus.register_handler("time", TimeHandler(game_service))
-            event_bus.register_handler("broadcast", BroadcastHandler(game_service, broadcast_service))
+            event_bus.register_handler("broadcast", BroadcastHandler(game_service, message_service))
             event_bus.register_handler("location", LocationHandler(game_service, scenario_service, data_service))
             event_bus.register_handler("combat", CombatHandler(game_service, scenario_service, data_service))
             event_bus.register_handler("quest", QuestHandler(game_service, scenario_service, data_service))

@@ -68,11 +68,11 @@ You have access to game tools that handle mechanics. Use them naturally when:
 - **Combat**: Use start_combat for encounters, trigger_scenario_encounter for predefined battles, spawn_monsters to add enemies
 - **Quests**: Use start_quest when accepting missions, complete_objective for progress, complete_quest when done
 - **Progression**: Use progress_act to advance the story when major milestones are reached
-- **Character State**: 
+- **Character State**:
   - Use update_hp for damage (negative) or healing (positive)
   - Use update_condition with action="add" or "remove" for status effects
   - Use update_spell_slots to track spell usage
-- **Inventory**: 
+- **Inventory**:
   - Use modify_inventory with positive quantity to add items, negative to remove
   - Use modify_currency for gold/silver/copper transactions
 - **Time**: Handle rests with short_rest/long_rest, use advance_time for time passage
@@ -83,7 +83,7 @@ Let the tools handle the mechanical resolution while you focus on narrative.
 1. Call for initiative using roll_dice with roll_type="initiative"
 2. Describe actions cinematically
 3. For attacks: Use roll_dice with roll_type="attack" (you calculate the modifier)
-4. For damage: Use roll_dice with roll_type="damage" 
+4. For damage: Use roll_dice with roll_type="damage"
 5. Apply damage with update_hp (negative amount)
 6. Track conditions with update_condition
 7. End combat when appropriate

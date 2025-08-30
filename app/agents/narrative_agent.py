@@ -1,38 +1,27 @@
 """Agent that handles all narrative D&D gameplay."""
 
-import json
 import logging
 from collections.abc import AsyncIterable, AsyncIterator
-from dataclasses import dataclass, field
-from typing import Any, TypeAlias
+from dataclasses import dataclass
 
-from pydantic import BaseModel
 from pydantic_ai import Agent, RunContext
-from pydantic_ai.messages import (
-    FunctionToolCallEvent,
-    FunctionToolResultEvent,
-    ModelResponse,
-    PartDeltaEvent,
-    PartStartEvent,
-    ThinkingPart,
-    ThinkingPartDelta,
-    ToolCallPart,
-)
+from pydantic_ai.messages import ModelResponse, ToolCallPart
 
 from app.agents.base import BaseAgent, ToolFunction
 from app.agents.dependencies import AgentDependencies
+from app.agents.event_handlers import EventStreamProcessor, ToolEventHandler
+from app.agents.event_handlers.base import EventContext
+from app.agents.event_handlers.thinking_handler import ThinkingHandler
 from app.events.commands.broadcast_commands import BroadcastNarrativeCommand
 from app.interfaces.events import IEventBus
 from app.interfaces.services import IDataService, IGameService, IScenarioService
 from app.models.ai_response import (
-    CapturedToolEvent,
     NarrativeResponse,
     StreamEvent,
     StreamEventType,
     ToolCallEvent,
 )
 from app.models.game_state import GameState, MessageRole
-from app.models.tool_results import ToolResult
 from app.services.context_service import ContextService
 from app.services.event_logger_service import EventLoggerService
 from app.services.message_converter_service import MessageConverterService
@@ -49,9 +38,6 @@ from app.tools import (
 
 logger = logging.getLogger(__name__)
 
-# Type alias for PydanticAI streaming events
-PydanticAIEvent: TypeAlias = PartStartEvent | PartDeltaEvent | FunctionToolCallEvent | FunctionToolResultEvent
-
 
 @dataclass
 class NarrativeAgent(BaseAgent):
@@ -65,7 +51,7 @@ class NarrativeAgent(BaseAgent):
     event_bus: IEventBus
     scenario_service: IScenarioService
     data_service: IDataService
-    captured_events: list[CapturedToolEvent] = field(default_factory=list)
+    event_processor: EventStreamProcessor | None = None
 
     def get_required_tools(self) -> list[ToolFunction]:
         """Return list of tools this agent requires."""
@@ -98,154 +84,39 @@ class NarrativeAgent(BaseAgent):
             quest_tools.progress_act,
         ]
 
+    def _get_event_processor(self) -> EventStreamProcessor:
+        """Get or create the event processor."""
+        if self.event_processor is None:
+            # Create a new context and processor
+            context = EventContext(game_id="")
+            self.event_processor = EventStreamProcessor(context)
+
+            # Register handlers
+            tool_handler = ToolEventHandler(self.event_logger)
+            for handler in tool_handler.get_handlers():
+                self.event_processor.register_handler(handler)
+
+            thinking_handler = ThinkingHandler(self.event_logger)
+            self.event_processor.register_handler(thinking_handler)
+
+        return self.event_processor
+
     async def event_stream_handler(
         self,
-        _ctx: RunContext[AgentDependencies],
-        event_stream: AsyncIterable[Any],  # PydanticAI's internal event type
+        ctx: RunContext[AgentDependencies],
+        event_stream: AsyncIterable[object],
     ) -> None:
-        """Handle streaming events and log tool calls."""
+        """Handle streaming events"""
         logger.debug("Event stream handler started")
+        processor = self._get_event_processor()
 
-        # Track tool calls by ID to match with results
-        tool_calls_by_id: dict[str, str] = {}
-        # Track which tool calls we've already processed to avoid duplicates
-        processed_tool_calls: set[str] = set()
-        # DO NOT clear captured_events here - it gets called multiple times!
+        # Update context with current game ID
+        processor.context.game_id = ctx.deps.game_state.game_id
 
-        async for event in event_stream:
-            # Skip logging delta events to reduce spam
-            if not isinstance(event, PartDeltaEvent):
-                logger.debug(f"Event received: {type(event).__name__} - details: {event}")
+        # Process the stream
+        await processor.process_stream(event_stream, ctx)
 
-            if isinstance(event, PartStartEvent):
-                # Starting a new part (text, tool call, thinking)
-                logger.debug(f"PartStartEvent - Part type: {type(event.part).__name__}")
-                if hasattr(event.part, "content") and isinstance(event.part, ThinkingPart):
-                    content = getattr(event.part, "content", None)
-                    if content:
-                        self.event_logger.log_thinking(content)
-                # Check if it's a tool call part
-                if isinstance(event.part, ToolCallPart):
-                    tool_name = event.part.tool_name
-                    tool_call_id = getattr(event.part, "tool_call_id", None)
-                    args = event.part.args if hasattr(event.part, "args") else {}
-
-                    # Store tool name by ID for later matching
-                    if tool_call_id:
-                        # Check if we've already processed this tool call
-                        if tool_call_id in processed_tool_calls:
-                            logger.debug(f"Skipping duplicate tool call {tool_call_id} for {tool_name}")
-                            continue
-                        processed_tool_calls.add(tool_call_id)
-                        tool_calls_by_id[tool_call_id] = tool_name
-
-                    # Skip broadcasting if args are empty or just an empty string
-                    # This avoids the duplicate empty tool call
-                    should_skip = False
-                    if not args or args == "" or args == {}:
-                        logger.debug(f"Skipping empty tool call broadcast for {tool_name}")
-                        should_skip = True
-                    elif isinstance(args, str):
-                        # Try to parse args if it's a string (JSON)
-                        raw_args_str = args.strip()
-                        if not raw_args_str:
-                            logger.debug(f"Skipping empty string args for {tool_name}")
-                            should_skip = True
-                        else:
-                            try:
-                                parsed_args = json.loads(raw_args_str)
-                                args = parsed_args
-                            except (json.JSONDecodeError, ValueError):
-                                args = {"raw_args": raw_args_str}
-                    else:
-                        # For any other type, convert to string
-                        args = {"raw_args": str(args)}
-
-                    if not should_skip:
-                        # Ensure args is a dict at this point
-                        if not isinstance(args, dict):
-                            args = {"raw_args": str(args)}
-                        self.event_logger.log_tool_call(tool_name, args)
-                        # Save event for later storage
-                        self.captured_events.append(CapturedToolEvent(tool_name=tool_name, parameters=args))
-                        # Don't broadcast here - tools broadcast themselves via event bus
-                        logger.debug(f"Tool call detected: {tool_name} with args: {args}")
-
-            elif isinstance(event, PartDeltaEvent):
-                # Receiving delta updates - only process thinking deltas
-                if isinstance(event.delta, ThinkingPartDelta) and event.delta.content_delta:
-                    self.event_logger.log_thinking(event.delta.content_delta)
-                # Skip logging text deltas to prevent spam
-
-            elif isinstance(event, FunctionToolCallEvent):
-                # Alternative: Tool is being called (for compatibility)
-                logger.debug("FunctionToolCallEvent detected")
-                if hasattr(event, "part") and hasattr(event.part, "tool_name"):
-                    tool_name = event.part.tool_name
-                    tool_call_id = getattr(event.part, "tool_call_id", None)
-                    args = getattr(event.part, "args", {})
-
-                    # Store tool name by ID for later matching
-                    if tool_call_id:
-                        # Check if we've already processed this tool call
-                        if tool_call_id in processed_tool_calls:
-                            logger.debug(
-                                f"Skipping duplicate FunctionToolCallEvent for {tool_name} (already processed)",
-                            )
-                            continue
-                        processed_tool_calls.add(tool_call_id)
-                        tool_calls_by_id[tool_call_id] = tool_name
-
-                    if not isinstance(args, dict):
-                        args = {"raw_args": str(args)}
-                    self.event_logger.log_tool_call(tool_name, args)
-                    # Save event for later storage
-                    self.captured_events.append(CapturedToolEvent(tool_name=tool_name, parameters=args))
-                    # Don't broadcast here - tools broadcast themselves via event bus
-                    logger.debug(f"Tool call detected via FunctionToolCallEvent: {tool_name} with args: {args}")
-
-            elif isinstance(event, FunctionToolResultEvent):
-                # Tool returned a result
-                logger.debug(f"FunctionToolResultEvent detected - details: {event}")
-
-                # Try different ways to get the tool name and result
-                tool_name = "unknown"
-
-                # First try to get tool name from our tracking dictionary
-                if hasattr(event, "tool_call_id") and event.tool_call_id in tool_calls_by_id:
-                    tool_name = tool_calls_by_id[event.tool_call_id]
-
-                # Get the result content
-                if hasattr(event, "result"):
-                    result = event.result
-
-                    # For logging, use string representation
-                    result_str = str(result.content) if hasattr(result, "content") else str(result)
-                    self.event_logger.log_tool_result(tool_name, result_str)
-
-                    # Find the corresponding tool call event and update it with the result
-                    for captured_event in reversed(self.captured_events):
-                        if captured_event.tool_name == tool_name and captured_event.result is None:
-                            # The result from the handler is already a typed ToolResult model
-                            # We need to convert the raw result to the appropriate ToolResult
-                            if hasattr(result, "content") and hasattr(result.content, "model_dump"):
-                                # The content is already a BaseModel/ToolResult, use it directly
-                                if isinstance(result.content, BaseModel):
-                                    # We can only assign if it's actually a ToolResult subtype
-                                    # For now, we'll just log if we can't match it
-                                    try:
-                                        # This is a bit of a hack but works for our case
-                                        captured_event.result = result.content  # type: ignore[assignment]
-                                    except Exception:
-                                        logger.warning(f"Could not assign result for tool {tool_name}")
-                            else:
-                                # For now, log that we couldn't match the result to a typed model
-                                logger.warning(f"Could not type result for tool {tool_name}")
-                            break
-
-                    # Don't broadcast here - tools broadcast results via event bus
-                    logger.debug(f"Tool result detected: {tool_name} -> {result_str[:100]}")
-
+    # TODO: Refactor process to be simpler to understand and follow. SOLID.
     async def process(
         self,
         prompt: str,
@@ -281,8 +152,10 @@ class NarrativeAgent(BaseAgent):
         logger.debug(f"Processing prompt: {prompt[:100]}... (stream={stream})")
 
         try:
-            # Clear captured events at the start of processing
-            self.captured_events = []
+            # Get or create event processor
+            processor = self._get_event_processor()
+            processor.context.game_id = game_state.game_id
+            processor.context.clear()
 
             # For MVP, we'll use non-streaming but still capture tool events
             logger.debug(f"Starting response generation (stream={stream})")
@@ -292,7 +165,7 @@ class NarrativeAgent(BaseAgent):
                 full_prompt,
                 deps=deps,
                 message_history=message_history,
-                event_stream_handler=self.event_stream_handler,  # Always enabled to broadcast tool calls
+                event_stream_handler=self.event_stream_handler,
             )
 
             logger.debug(f"Response generated: {result.output[:100]}...")
@@ -300,7 +173,8 @@ class NarrativeAgent(BaseAgent):
             all_commands = []
 
             # Extract commands from tool results
-            for event in self.captured_events:
+            captured_events = processor.context.captured_tool_events
+            for event in captured_events:
                 if event.result and hasattr(event.result, "model_dump"):
                     result_data = event.result.model_dump(mode="json")
                     if isinstance(result_data, dict) and "commands" in result_data:
@@ -360,8 +234,9 @@ class NarrativeAgent(BaseAgent):
             )
 
             # Save captured game events
-            logger.debug(f"Saving {len(self.captured_events)} captured events to game state")
-            for event in self.captured_events:
+            captured_events = processor.context.captured_tool_events
+            logger.debug(f"Saving {len(captured_events)} captured events to game state")
+            for event in captured_events:
                 logger.debug(
                     f"Processing event: tool={event.tool_name}, has_params={event.parameters is not None}, has_result={event.result is not None}",
                 )

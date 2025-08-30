@@ -1,23 +1,23 @@
 """Centralized message display service following SOLID principles."""
 
 import logging
+from collections.abc import AsyncGenerator
 
 from app.common.types import JSONSerializable
 from app.interfaces.services import IBroadcastService, IMessageService
 from app.models.character import CharacterSheet
-from app.models.combat import CombatState
 from app.models.game_state import GameState
 from app.models.scenario import Scenario
 from app.models.sse_events import (
     CharacterUpdateData,
-    CombatUpdateData,
+    CompleteData,
     ErrorData,
     GameUpdateData,
     InitialNarrativeData,
     NarrativeData,
     ScenarioInfoData,
+    SSEEvent,
     SSEEventType,
-    SystemMessageData,
     ToolCallData,
     ToolResultData,
 )
@@ -57,18 +57,6 @@ class MessageService(IMessageService):
         )
         await self.broadcast_service.publish(game_id, SSEEventType.NARRATIVE.value, data)
 
-    async def send_initial_narrative(self, game_id: str, scenario_title: str, narrative: str) -> None:
-        """
-        Send the initial narrative when a game starts.
-
-        Args:
-            game_id: Game identifier
-            scenario_title: Title of the scenario
-            narrative: Initial narrative text
-        """
-        data = InitialNarrativeData(scenario_title=scenario_title, narrative=narrative)
-        await self.broadcast_service.publish(game_id, SSEEventType.INITIAL_NARRATIVE.value, data)
-
     async def send_tool_call(self, game_id: str, tool_name: str, parameters: dict[str, JSONSerializable]) -> None:
         """
         Send tool call information to the chat.
@@ -104,29 +92,6 @@ class MessageService(IMessageService):
         data = CharacterUpdateData(character=character)
         await self.broadcast_service.publish(game_id, SSEEventType.CHARACTER_UPDATE.value, data)
 
-    async def send_combat_update(self, game_id: str, combat: CombatState) -> None:
-        """
-        Send combat state update.
-
-        Args:
-            game_id: Game identifier
-            combat: CombatState instance
-        """
-        data = CombatUpdateData(combat=combat)
-        await self.broadcast_service.publish(game_id, SSEEventType.COMBAT_UPDATE.value, data)
-
-    async def send_system_message(self, game_id: str, message: str, level: str = "info") -> None:
-        """
-        Send system message to the chat.
-
-        Args:
-            game_id: Game identifier
-            message: System message text
-            level: Message level (info, warning, error)
-        """
-        data = SystemMessageData(message=message, level=level)  # type: ignore[arg-type]
-        await self.broadcast_service.publish(game_id, SSEEventType.SYSTEM.value, data)
-
     async def send_error(self, game_id: str, error: str, error_type: str | None = None) -> None:
         """
         Send error message to the chat.
@@ -150,19 +115,71 @@ class MessageService(IMessageService):
         data = GameUpdateData(game_state=game_state)
         await self.broadcast_service.publish(game_id, SSEEventType.GAME_UPDATE.value, data)
 
-    async def send_scenario_info(
-        self,
-        game_id: str,
-        current_scenario: Scenario,
-        available_scenarios: list[Scenario],
-    ) -> None:
+    async def send_complete(self, game_id: str) -> None:
         """
-        Send scenario information to the frontend.
+        Send completion event indicating processing is done.
 
         Args:
             game_id: Game identifier
-            current_scenario: Current Scenario instance
-            available_scenarios: List of available Scenario instances
         """
-        data = ScenarioInfoData(current_scenario=current_scenario, available_scenarios=available_scenarios)
-        await self.broadcast_service.publish(game_id, SSEEventType.SCENARIO_INFO.value, data)
+        data = CompleteData(status="success")
+        await self.broadcast_service.publish(game_id, SSEEventType.COMPLETE.value, data)
+
+    async def generate_sse_events(
+        self,
+        game_id: str,
+        game_state: GameState,
+        scenario: Scenario | None = None,
+        available_scenarios: list[Scenario] | None = None,
+    ) -> AsyncGenerator[dict[str, str], None]:
+        """
+        Generate SSE events for a client connection.
+
+        This includes initial events (narrative, game state, scenario info) followed by
+        subscribing to the broadcast service for ongoing events.
+
+        Args:
+            game_id: Game identifier
+            game_state: Current game state
+            scenario: Current scenario if available
+            available_scenarios: List of available scenarios
+
+        Yields:
+            SSE formatted event dictionaries
+        """
+        logger.info(f"Client subscribed to SSE for game {game_id}")
+
+        # Send initial narrative if exists
+        if game_state.conversation_history:
+            initial_event = SSEEvent(
+                event=SSEEventType.INITIAL_NARRATIVE,
+                data=InitialNarrativeData(
+                    scenario_title=game_state.scenario_title or "Custom Adventure",
+                    narrative=game_state.conversation_history[0].content,
+                ),
+            )
+            yield initial_event.to_sse_format()
+
+        # Send initial game state
+        game_update_event = SSEEvent(
+            event=SSEEventType.GAME_UPDATE,
+            data=GameUpdateData(game_state=game_state),
+        )
+        yield game_update_event.to_sse_format()
+
+        # Send scenario info if available
+        if scenario and available_scenarios:
+            scenario_event = SSEEvent(
+                event=SSEEventType.SCENARIO_INFO,
+                data=ScenarioInfoData(
+                    current_scenario=scenario,
+                    available_scenarios=available_scenarios,
+                ),
+            )
+            yield scenario_event.to_sse_format()
+
+        # Subscribe to ongoing events
+        async for event_data in self.broadcast_service.subscribe(game_id):
+            if event_data["event"] != "narrative":
+                logger.debug(f"Sending SSE event '{event_data['event']}' to game {game_id}")
+            yield event_data

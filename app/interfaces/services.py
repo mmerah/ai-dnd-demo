@@ -8,12 +8,12 @@ from pydantic import BaseModel
 from app.common.types import JSONSerializable
 from app.models.ai_response import AIResponse
 from app.models.character import CharacterSheet
-from app.models.combat import CombatState
 from app.models.game_state import GameState, MessageRole
 from app.models.item import ItemDefinition
 from app.models.npc import NPCSheet
 from app.models.scenario import Scenario
 from app.models.spell import SpellDefinition
+from app.models.tool_results import ToolResult
 
 
 class ICharacterService(ABC):
@@ -192,13 +192,35 @@ class IMessageService(ABC):
         pass
 
     @abstractmethod
+    async def send_tool_call(self, game_id: str, tool_name: str, parameters: dict[str, JSONSerializable]) -> None:
+        pass
+
+    @abstractmethod
+    async def send_tool_result(self, game_id: str, tool_name: str, result: ToolResult) -> None:
+        pass
+
+    @abstractmethod
     async def send_character_update(self, game_id: str, character: CharacterSheet) -> None:
         pass
 
     @abstractmethod
-    async def send_combat_update(self, game_id: str, combat: CombatState) -> None:
+    async def send_error(self, game_id: str, error: str, error_type: str | None = None) -> None:
         pass
 
     @abstractmethod
     async def send_game_update(self, game_id: str, game_state: GameState) -> None:
+        pass
+
+    @abstractmethod
+    async def send_complete(self, game_id: str) -> None:
+        pass
+
+    @abstractmethod
+    def generate_sse_events(
+        self,
+        game_id: str,
+        game_state: GameState,
+        scenario: Scenario | None = None,
+        available_scenarios: list[Scenario] | None = None,
+    ) -> AsyncGenerator[dict[str, str], None]:
         pass

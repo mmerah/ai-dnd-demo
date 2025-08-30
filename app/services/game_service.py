@@ -47,7 +47,10 @@ class GameService(IGameService):
         return f"{clean_name}-{timestamp}-{short_uuid}"
 
     def initialize_game(
-        self, character: CharacterSheet, premise: str | None = None, scenario_id: str | None = None,
+        self,
+        character: CharacterSheet,
+        premise: str | None = None,
+        scenario_id: str | None = None,
     ) -> GameState:
         """
         Initialize a new game state.

@@ -3,7 +3,6 @@ API routes for D&D 5e AI Dungeon Master.
 """
 
 import logging
-from collections.abc import AsyncGenerator
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from sse_starlette.sse import EventSourceResponse
@@ -18,13 +17,6 @@ from app.models.item import ItemDefinition
 from app.models.requests import NewGameRequest, NewGameResponse, PlayerActionRequest
 from app.models.scenario import Scenario
 from app.models.spell import SpellDefinition
-from app.models.sse_events import (
-    GameUpdateData,
-    InitialNarrativeData,
-    ScenarioInfoData,
-    SSEEvent,
-    SSEEventType,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -223,52 +215,26 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
         if not game_state:
             raise HTTPException(status_code=404, detail=f"Game with ID '{game_id}' not found")
 
-        async def event_generator() -> AsyncGenerator[dict[str, str], None]:
-            scenario_service = container.get_scenario_service()
-            broadcast_service = container.get_broadcast_service()
+        # Get services
+        message_service = container.get_message_service()
+        scenario_service = container.get_scenario_service()
 
-            """Generate SSE events by subscribing to broadcast service."""
-            logger.info(f"Client subscribed to SSE for game {game_id}")
+        # Get scenario info if available
+        scenario = None
+        available_scenarios = None
+        if game_state.scenario_id:
+            scenario = scenario_service.get_scenario(game_state.scenario_id)
+            available_scenarios = scenario_service.list_scenarios()
 
-            # Send initial narrative
-            if game_state.conversation_history:
-                initial_event = SSEEvent(
-                    event=SSEEventType.INITIAL_NARRATIVE,
-                    data=InitialNarrativeData(
-                        scenario_title=game_state.scenario_title or "Custom Adventure",
-                        narrative=game_state.conversation_history[0].content,
-                    ),
-                )
-                yield initial_event.to_sse_format()
-
-            # Send initial full game state
-            initial_game_update_event = SSEEvent(
-                event=SSEEventType.GAME_UPDATE,
-                data=GameUpdateData(game_state=game_state),
+        # Use MessageService to generate SSE events
+        return EventSourceResponse(
+            message_service.generate_sse_events(
+                game_id,
+                game_state,
+                scenario,
+                available_scenarios,
             )
-            yield initial_game_update_event.to_sse_format()
-
-            # Send scenario info
-            if game_state.scenario_id:
-                scenario = scenario_service.get_scenario(game_state.scenario_id)
-                scenarios = scenario_service.list_scenarios()
-                if scenario:
-                    scenario_event = SSEEvent(
-                        event=SSEEventType.SCENARIO_INFO,
-                        data=ScenarioInfoData(
-                            current_scenario=scenario,
-                            available_scenarios=scenarios,
-                        ),
-                    )
-                    yield scenario_event.to_sse_format()
-
-            async for event_data in broadcast_service.subscribe(game_id):
-                # event_data is already in SSE format from broadcast_service
-                if event_data["event"] != "narrative":
-                    logger.debug(f"Sending SSE event '{event_data['event']}' to game {game_id}")
-                yield event_data
-
-        return EventSourceResponse(event_generator())
+        )
 
     except HTTPException:
         raise

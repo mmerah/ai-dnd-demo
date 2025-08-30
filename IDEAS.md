@@ -11,7 +11,7 @@ Full D&D 5e functionality with scenario management, character management, functi
 5. Review scenarios, acts, quests, location, npcs (game state does seem to properly populate the npcs of the area for example), and how game state and tools handle every possible case
 6. Handle all the TODO comments in the code
 7. ContextService should just be the GameState + current Scenario ? Maybe a curated version but that would make ContextService MUCH easier to handle and scale
-8.  Vulture, verify no TYPE_CHECKING
+8.  Vulture, verify no TYPE_CHECKING, verify unused (including methods)
 9.  Cleanup logger calls to minimum
 10. Review manually the code
 11. Re-organize the code ? (cut routes, review models, services all dependency inversion, ...)

@@ -168,5 +168,6 @@ class CharacterHandler(BaseHandler):
     def can_handle(self, command: BaseCommand) -> bool:
         """Check if this handler can process the given command."""
         return isinstance(
-            command, UpdateHPCommand | AddConditionCommand | RemoveConditionCommand | UpdateSpellSlotsCommand,
+            command,
+            UpdateHPCommand | AddConditionCommand | RemoveConditionCommand | UpdateSpellSlotsCommand,
         )
