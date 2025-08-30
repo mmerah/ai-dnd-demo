@@ -11,7 +11,6 @@ from app.events.commands.location_commands import (
     DiscoverSecretCommand,
     UpdateLocationStateCommand,
 )
-from app.models.tool_results import SearchLocationResult
 from app.tools.decorators import tool_handler
 
 logger = logging.getLogger(__name__)
@@ -49,49 +48,6 @@ async def discover_secret(ctx: RunContext[AgentDependencies], secret_id: str) ->
         - Reveal inscription: secret_id="ancient_inscription"
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")
-
-
-async def search_location(ctx: RunContext[AgentDependencies], dc: int = 15) -> BaseModel:
-    """Search the current location for secrets and hidden items.
-
-    Use when the player actively searches or investigates.
-
-    Args:
-        dc: Difficulty class for the search (default 15)
-
-    Examples:
-        - Search room thoroughly: dc=15
-        - Quick glance around: dc=10
-        - Detailed investigation: dc=20
-    """
-    deps = ctx.deps
-    game_state = deps.game_state
-    game_service = deps.game_service
-
-    # Get current location state
-    if not game_state.current_location_id:
-        return SearchLocationResult(success=False, message="No current location to search")
-
-    location_state = game_state.get_location_state(game_state.current_location_id)
-
-    # Perform search (would normally roll dice)
-    # For now, return available secrets based on DC
-    discovered = []
-    scenario = deps.scenario_service.get_scenario(game_state.scenario_id) if game_state.scenario_id else None
-
-    if scenario:
-        location = scenario.get_location(game_state.current_location_id)
-        if location:
-            for secret in location.secrets:
-                if secret.id not in location_state.discovered_secrets and secret.dc and secret.dc <= dc:
-                    discovered.append(secret.description)
-                    location_state.discover_secret(secret.id)
-
-    if discovered:
-        game_service.save_game(game_state)
-        return SearchLocationResult(success=True, discovered=discovered, message=f"Found {len(discovered)} secret(s)!")
-
-    return SearchLocationResult(success=False, message="Nothing unusual found")
 
 
 @tool_handler(UpdateLocationStateCommand)

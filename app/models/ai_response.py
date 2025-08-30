@@ -57,14 +57,6 @@ class ToolCallEvent(BaseModel):
     tool_call_id: str | None = None
 
 
-class ToolResultEvent(BaseModel):
-    """Event for tool results."""
-
-    tool_name: str
-    result: Any
-    tool_call_id: str | None = None
-
-
 class NarrativeResponse(BaseModel):
     """Complete narrative response from the AI."""
 

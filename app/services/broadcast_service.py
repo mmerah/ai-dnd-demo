@@ -7,20 +7,24 @@ import logging
 from collections import defaultdict
 from collections.abc import AsyncGenerator
 
-from app.models.sse_events import SSEData, SSEEvent, SSEEventType
+from pydantic import BaseModel
+
+from app.interfaces.services import IBroadcastService
+from app.models.sse_events import SSEEvent, SSEEventType
 
 logger = logging.getLogger(__name__)
 
 
-class BroadcastService:
+class BroadcastService(IBroadcastService):
     """Service for broadcasting SSE events to connected clients."""
 
     def __init__(self) -> None:
         """Initialize the broadcast service with empty queues."""
         # Dictionary of game_id -> list of subscriber queues
+        # Queues hold dict[str, str] because SSEEvent.to_sse_format() returns that
         self.subscribers: dict[str, list[asyncio.Queue[dict[str, str]]]] = defaultdict(list)
 
-    async def publish(self, game_id: str, event: str | SSEEventType, data: SSEData) -> None:
+    async def publish(self, game_id: str, event: str, data: BaseModel) -> None:
         """
         Publish an event to all subscribers for a specific game.
 
@@ -32,12 +36,13 @@ class BroadcastService:
         # Get all subscriber queues for this game
         queues = self.subscribers.get(game_id, [])
 
-        # Convert string event to SSEEventType if needed
-        if isinstance(event, str):
-            event = SSEEventType(event)
+        # Convert string event to SSEEventType
+        event_type = SSEEventType(event)
 
         # Create the SSE event
-        sse_event = SSEEvent(event=event, data=data)
+        # The data is already an SSEData type from all callers (they pass specific SSEData models)
+        # We cast it here since the interface uses BaseModel for genericity
+        sse_event = SSEEvent(event=event_type, data=data)  # type: ignore[arg-type]
         sse_format = sse_event.to_sse_format()
 
         # Remove dead queues (full or closed)
@@ -69,6 +74,7 @@ class BroadcastService:
             Event dictionaries with 'event' and 'data' fields
         """
         # Create a new queue for this subscriber
+        # Queue holds dict[str, str] to match SSEEvent.to_sse_format() return type
         queue: asyncio.Queue[dict[str, str]] = asyncio.Queue(maxsize=100)  # Limit queue size to prevent memory issues
 
         # Add to subscribers list
@@ -96,15 +102,3 @@ class BroadcastService:
                 if not self.subscribers[game_id]:
                     # No more subscribers for this game
                     self.subscribers.pop(game_id, None)
-
-    def get_subscriber_count(self, game_id: str) -> int:
-        """Get the number of active subscribers for a game."""
-        return len(self.subscribers.get(game_id, []))
-
-    def get_all_games_with_subscribers(self) -> list[str]:
-        """Get list of all game IDs that have active subscribers."""
-        return list(self.subscribers.keys())
-
-
-# Create singleton instance
-broadcast_service = BroadcastService()

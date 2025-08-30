@@ -11,9 +11,8 @@ from .character import (
     HitPoints,
     Personality,
 )
+from .combat import CombatParticipant, CombatState, MonsterSpawnInfo
 from .game_state import (
-    CombatParticipant,
-    CombatState,
     GameState,
     GameTime,
     Message,
@@ -54,12 +53,14 @@ __all__ = [
     "NPCAttack",
     "SpecialAbility",
     "NPCSheet",
+    # Combat models
+    "CombatParticipant",
+    "CombatState",
+    "MonsterSpawnInfo",
     # Game state models
     "MessageRole",
     "Message",
     "GameTime",
-    "CombatParticipant",
-    "CombatState",
     "GameState",
     # Routes Requests/Responses models
     "NewGameRequest",

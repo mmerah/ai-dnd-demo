@@ -3,15 +3,14 @@
 from dataclasses import dataclass, field
 
 from app.events.base import BaseCommand
+from app.models.combat import CombatParticipant, MonsterSpawnInfo
 
 
 @dataclass
 class StartCombatCommand(BaseCommand):
     """Command to start general combat."""
 
-    npcs: list[dict[str, str | int]] = field(
-        default_factory=list,
-    )  # List of NPC definitions with name and optional initiative
+    npcs: list[CombatParticipant] = field(default_factory=list)
 
     def get_handler_name(self) -> str:
         return "combat"
@@ -31,7 +30,7 @@ class TriggerScenarioEncounterCommand(BaseCommand):
 class SpawnMonstersCommand(BaseCommand):
     """Command to spawn monsters from database."""
 
-    monsters: list[dict[str, int]] = field(default_factory=list)  # Dict of monster_name: quantity
+    monsters: list[MonsterSpawnInfo] = field(default_factory=list)
 
     def get_handler_name(self) -> str:
         return "combat"

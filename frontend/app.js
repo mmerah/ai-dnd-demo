@@ -131,8 +131,8 @@ function createSavedGameCard(game) {
     const card = document.createElement('div');
     card.className = 'saved-game-card';
     
-    // Format the last modified date
-    const lastPlayed = new Date(game.last_modified);
+    // Format the last saved date
+    const lastPlayed = new Date(game.last_saved);
     const now = new Date();
     const timeDiff = now - lastPlayed;
     const hoursAgo = Math.floor(timeDiff / (1000 * 60 * 60));
@@ -147,9 +147,13 @@ function createSavedGameCard(game) {
         timeText = 'Recently';
     }
     
+    // Get the title to display - prefer scenario_title, fallback to character name
+    const title = game.scenario_title || `${game.character.name}'s Adventure`;
+    
     card.innerHTML = `
         <div class="saved-game-info">
-            <h3>${game.character_name}</h3>
+            <h3>${title}</h3>
+            <p class="character">🧝 ${game.character.name} - Level ${game.character.level} ${game.character.class_name}</p>
             <p class="location">📍 ${game.location}</p>
             <p class="time-ago">⏰ ${timeText}</p>
         </div>

@@ -3,8 +3,10 @@
 import logging
 
 from app.common.types import JSONSerializable
+from app.interfaces.services import IBroadcastService, IMessageService
 from app.models.character import CharacterSheet
-from app.models.game_state import CombatState, GameState
+from app.models.combat import CombatState
+from app.models.game_state import GameState
 from app.models.quest import Quest
 from app.models.sse_events import (
     ActUpdateData,
@@ -25,13 +27,16 @@ from app.models.sse_events import (
     ToolCallData,
     ToolResultData,
 )
-from app.services.broadcast_service import broadcast_service
 
 logger = logging.getLogger(__name__)
 
 
-class MessageService:
+class MessageService(IMessageService):
     """Service for managing and broadcasting all game messages."""
+
+    def __init__(self, broadcast_service: IBroadcastService) -> None:
+        """Initialize with broadcast service dependency."""
+        self.broadcast_service = broadcast_service
 
     async def send_narrative(
         self,
@@ -55,7 +60,7 @@ class MessageService:
             start=True if not is_chunk and not is_complete else None,
             content=content if not is_chunk and not is_complete and content else None,
         )
-        await broadcast_service.publish(game_id, SSEEventType.NARRATIVE, data)
+        await self.broadcast_service.publish(game_id, SSEEventType.NARRATIVE.value, data)
 
     async def send_initial_narrative(self, game_id: str, scenario_title: str, narrative: str) -> None:
         """
@@ -67,7 +72,7 @@ class MessageService:
             narrative: Initial narrative text
         """
         data = InitialNarrativeData(scenario_title=scenario_title, narrative=narrative)
-        await broadcast_service.publish(game_id, SSEEventType.INITIAL_NARRATIVE, data)
+        await self.broadcast_service.publish(game_id, SSEEventType.INITIAL_NARRATIVE.value, data)
 
     async def send_tool_call(self, game_id: str, tool_name: str, parameters: dict[str, JSONSerializable]) -> None:
         """
@@ -79,7 +84,7 @@ class MessageService:
             parameters: Tool parameters
         """
         data = ToolCallData(tool_name=tool_name, parameters=parameters)
-        await broadcast_service.publish(game_id, SSEEventType.TOOL_CALL, data)
+        await self.broadcast_service.publish(game_id, SSEEventType.TOOL_CALL.value, data)
 
     async def send_tool_result(self, game_id: str, tool_name: str, result: JSONSerializable) -> None:
         """
@@ -91,7 +96,7 @@ class MessageService:
             result: Result from the tool
         """
         data = ToolResultData(tool_name=tool_name, result=result)
-        await broadcast_service.publish(game_id, SSEEventType.TOOL_RESULT, data)
+        await self.broadcast_service.publish(game_id, SSEEventType.TOOL_RESULT.value, data)
 
     async def send_dice_roll(
         self,
@@ -114,7 +119,7 @@ class MessageService:
             details: Additional details about the roll
         """
         data = DiceRollData(roll_type=roll_type, dice=dice, modifier=modifier, result=result, details=details or {})
-        await broadcast_service.publish(game_id, SSEEventType.DICE_ROLL, data)
+        await self.broadcast_service.publish(game_id, SSEEventType.DICE_ROLL.value, data)
 
     async def send_character_update(self, game_id: str, character: CharacterSheet) -> None:
         """
@@ -124,10 +129,8 @@ class MessageService:
             game_id: Game identifier
             character: CharacterSheet instance
         """
-        # Convert CharacterSheet to dict at the boundary
-        character_dict = character.model_dump(mode="json")
-        data = CharacterUpdateData(character=character_dict)
-        await broadcast_service.publish(game_id, SSEEventType.CHARACTER_UPDATE, data)
+        data = CharacterUpdateData(character=character)
+        await self.broadcast_service.publish(game_id, SSEEventType.CHARACTER_UPDATE.value, data)
 
     async def send_combat_update(self, game_id: str, combat: CombatState) -> None:
         """
@@ -137,10 +140,8 @@ class MessageService:
             game_id: Game identifier
             combat: CombatState instance
         """
-        # Convert CombatState to dict at the boundary
-        combat_dict = combat.model_dump(mode="json")
-        data = CombatUpdateData(combat=combat_dict)
-        await broadcast_service.publish(game_id, SSEEventType.COMBAT_UPDATE, data)
+        data = CombatUpdateData(combat=combat)
+        await self.broadcast_service.publish(game_id, SSEEventType.COMBAT_UPDATE.value, data)
 
     async def send_system_message(self, game_id: str, message: str, level: str = "info") -> None:
         """
@@ -152,7 +153,7 @@ class MessageService:
             level: Message level (info, warning, error)
         """
         data = SystemMessageData(message=message, level=level)  # type: ignore[arg-type]
-        await broadcast_service.publish(game_id, SSEEventType.SYSTEM, data)
+        await self.broadcast_service.publish(game_id, SSEEventType.SYSTEM.value, data)
 
     async def send_error(self, game_id: str, error: str, error_type: str | None = None) -> None:
         """
@@ -164,7 +165,7 @@ class MessageService:
             error_type: Type of error if available
         """
         data = ErrorData(error=error, type=error_type)
-        await broadcast_service.publish(game_id, SSEEventType.ERROR, data)
+        await self.broadcast_service.publish(game_id, SSEEventType.ERROR.value, data)
 
     async def send_game_update(self, game_id: str, game_state: GameState) -> None:
         """
@@ -174,10 +175,8 @@ class MessageService:
             game_id: Game identifier
             game_state: GameState instance
         """
-        # Convert GameState to dict at the boundary
-        game_state_dict = game_state.model_dump(mode="json")
-        data = GameUpdateData(game_state=game_state_dict)
-        await broadcast_service.publish(game_id, SSEEventType.GAME_UPDATE, data)
+        data = GameUpdateData(game_state=game_state)
+        await self.broadcast_service.publish(game_id, SSEEventType.GAME_UPDATE.value, data)
 
     async def send_location_update(
         self,
@@ -209,7 +208,7 @@ class MessageService:
             danger_level=danger_level,
             npcs_present=npcs_present,
         )
-        await broadcast_service.publish(game_id, SSEEventType.LOCATION_UPDATE, data)
+        await self.broadcast_service.publish(game_id, SSEEventType.LOCATION_UPDATE.value, data)
 
     async def send_quest_update(
         self,
@@ -225,10 +224,8 @@ class MessageService:
             active_quests: List of active Quest instances
             completed_quest_ids: List of completed quest IDs
         """
-        # Convert Quest models to dicts at the boundary
-        active_quests_data = [quest.model_dump(mode="json") for quest in active_quests]
-        data = QuestUpdateData(active_quests=active_quests_data, completed_quest_ids=completed_quest_ids)
-        await broadcast_service.publish(game_id, SSEEventType.QUEST_UPDATE, data)
+        data = QuestUpdateData(active_quests=active_quests, completed_quest_ids=completed_quest_ids)
+        await self.broadcast_service.publish(game_id, SSEEventType.QUEST_UPDATE.value, data)
 
     async def send_act_update(self, game_id: str, act_id: str, act_name: str, act_index: int) -> None:
         """
@@ -241,7 +238,7 @@ class MessageService:
             act_index: Current act index
         """
         data = ActUpdateData(act_id=act_id, act_name=act_name, act_index=act_index)
-        await broadcast_service.publish(game_id, SSEEventType.ACT_UPDATE, data)
+        await self.broadcast_service.publish(game_id, SSEEventType.ACT_UPDATE.value, data)
 
     async def send_scenario_info(
         self,
@@ -262,8 +259,4 @@ class MessageService:
         current = ScenarioSummary(id=scenario_id, title=scenario_title)
         available = [ScenarioSummary(**s) for s in available_scenarios]
         data = ScenarioInfoData(current_scenario=current, available_scenarios=available)
-        await broadcast_service.publish(game_id, SSEEventType.SCENARIO_INFO, data)
-
-
-# Create singleton instance
-message_service = MessageService()
+        await self.broadcast_service.publish(game_id, SSEEventType.SCENARIO_INFO.value, data)

@@ -2,6 +2,8 @@
 
 from pydantic import BaseModel
 
+from app.models.combat import CombatParticipant
+
 
 class UpdateHPResult(BaseModel):
     type: str = "hp_update"
@@ -89,21 +91,6 @@ class AdvanceTimeResult(BaseModel):
     minutes_advanced: int
 
 
-class QuestAvailabilityResult(BaseModel):
-    type: str = "quest_availability"
-    available: bool
-    message: str
-    missing_prerequisites: list[str] | None = None
-
-
-class ObjectiveStatusResult(BaseModel):
-    type: str = "objective_status"
-    quest_id: str
-    objective_id: str
-    status: str
-    message: str
-
-
 class StartQuestResult(BaseModel):
     type: str = "start_quest"
     quest_id: str
@@ -136,13 +123,6 @@ class ProgressActResult(BaseModel):
     message: str
 
 
-class SearchLocationResult(BaseModel):
-    type: str = "search_location"
-    success: bool
-    message: str
-    discovered: list[str] | None = None
-
-
 class ChangeLocationResult(BaseModel):
     type: str = "change_location"
     location_id: str
@@ -165,19 +145,10 @@ class UpdateLocationStateResult(BaseModel):
     message: str
 
 
-class GroupInitiativeResult(BaseModel):
-    type: str = "group_initiative"
-    group: str
-    roll: int
-    modifier: int
-    total: int
-    message: str
-
-
 class StartCombatResult(BaseModel):
     type: str = "start_combat"
     combat_started: bool
-    participants: list[dict[str, str | int | bool]]
+    participants: list[CombatParticipant]
     message: str
 
 
@@ -185,13 +156,13 @@ class TriggerEncounterResult(BaseModel):
     type: str = "trigger_encounter"
     encounter_id: str
     encounter_type: str
-    monsters_spawned: list[dict[str, str | int]]
+    monsters_spawned: list[CombatParticipant]
     message: str
 
 
 class SpawnMonstersResult(BaseModel):
     type: str = "spawn_monsters"
-    monsters_spawned: list[dict[str, str | int]]
+    monsters_spawned: list[CombatParticipant]
     message: str
 
 

@@ -12,6 +12,7 @@ from app.events.commands.combat_commands import (
 )
 from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.services import IDataService, IGameService, IScenarioService
+from app.models.combat import CombatParticipant
 from app.models.game_state import GameState
 from app.models.tool_results import (
     SpawnMonstersResult,
@@ -39,21 +40,17 @@ class CombatHandler(BaseHandler):
             if not game_state.combat:
                 game_state.start_combat()
 
-            participants_added: list[dict[str, str | int | bool]] = []
+            participants_added: list[CombatParticipant] = []
 
             # Add NPCs to combat
             for npc_def in command.npcs:
-                name = str(npc_def.get("name", "Unknown"))
-                # Roll initiative if not provided
-                if "initiative" in npc_def and isinstance(npc_def["initiative"], int):
-                    initiative = npc_def["initiative"]
-                else:
-                    # Roll d20 + dex modifier (assume +2 for now)
-                    initiative = random.randint(1, 20) + 2
+                name = npc_def.name
+                # Roll initiative if not provided (d20 + dex modifier, assume +2 for now)
+                initiative = npc_def.initiative if npc_def.initiative is not None else random.randint(1, 20) + 2
 
                 if game_state.combat:
                     game_state.combat.add_participant(name, initiative, is_player=False)
-                    participants_added.append({"name": name, "initiative": initiative})
+                    participants_added.append(CombatParticipant(name=name, initiative=initiative, is_player=False))
 
             # Add player if not already in combat
             if game_state.combat and not any(p.is_player for p in game_state.combat.participants):
@@ -62,7 +59,7 @@ class CombatHandler(BaseHandler):
                 player_initiative = random.randint(1, 20) + player_dex_mod
                 game_state.combat.add_participant(game_state.character.name, player_initiative, is_player=True)
                 participants_added.append(
-                    {"name": game_state.character.name, "initiative": player_initiative, "is_player": True},
+                    CombatParticipant(name=game_state.character.name, initiative=player_initiative, is_player=True)
                 )
 
             # Save game state
@@ -98,7 +95,7 @@ class CombatHandler(BaseHandler):
             if not game_state.combat:
                 game_state.start_combat()
 
-            monsters_spawned: list[dict[str, str | int]] = []
+            monsters_spawned: list[CombatParticipant] = []
 
             # Spawn monsters from encounter
             for spawn in encounter.monster_spawns:
@@ -130,7 +127,9 @@ class CombatHandler(BaseHandler):
                             if game_state.combat:
                                 game_state.combat.add_participant(name, initiative, is_player=False)
 
-                            monsters_spawned.append({"name": name, "initiative": initiative})
+                            monsters_spawned.append(
+                                CombatParticipant(name=name, initiative=initiative, is_player=False)
+                            )
                     except KeyError as e:
                         logger.error(f"Failed to spawn monster '{spawn.monster_name}': {e}")
 
@@ -150,11 +149,11 @@ class CombatHandler(BaseHandler):
             logger.info(f"Triggered encounter '{command.encounter_id}' with {len(monsters_spawned)} monsters")
 
         elif isinstance(command, SpawnMonstersCommand):
-            spawned_monsters: list[dict[str, str | int]] = []
+            spawned_monsters: list[CombatParticipant] = []
 
             for monster_spec in command.monsters:
-                monster_name = str(monster_spec.get("monster_name", ""))
-                quantity = int(monster_spec.get("quantity", 1))
+                monster_name = monster_spec.monster_name
+                quantity = monster_spec.quantity
 
                 for i in range(quantity):
                     try:
@@ -168,14 +167,17 @@ class CombatHandler(BaseHandler):
                             # Add to game state
                             game_state.add_npc(monster_data)
 
+                            # Roll initiative for the monster
+                            dex_mod = (monster_data.abilities.DEX - 10) // 2
+                            initiative = random.randint(1, 20) + dex_mod
+
                             # If in combat, add to combat
                             if game_state.combat:
-                                dex_mod = (monster_data.abilities.DEX - 10) // 2
-                                initiative = random.randint(1, 20) + dex_mod
                                 game_state.combat.add_participant(name, initiative, is_player=False)
-                                spawned_monsters.append({"name": name, "initiative": initiative})
-                            else:
-                                spawned_monsters.append({"name": name})
+
+                            spawned_monsters.append(
+                                CombatParticipant(name=name, initiative=initiative, is_player=False)
+                            )
                     except KeyError as e:
                         logger.error(f"Failed to spawn monster '{monster_name}': {e}")
                         result.success = False

@@ -1,8 +1,6 @@
 """Combat initialization tools for D&D 5e AI Dungeon Master."""
 
 import logging
-import random
-from typing import Any
 
 from pydantic import BaseModel
 from pydantic_ai import RunContext
@@ -13,26 +11,25 @@ from app.events.commands.combat_commands import (
     StartCombatCommand,
     TriggerScenarioEncounterCommand,
 )
-from app.models.tool_results import GroupInitiativeResult
+from app.models.combat import CombatParticipant, MonsterSpawnInfo
 from app.tools.decorators import tool_handler
 
 logger = logging.getLogger(__name__)
 
 
 @tool_handler(StartCombatCommand)
-async def start_combat(ctx: RunContext[AgentDependencies], npcs: list[dict[str, Any]]) -> BaseModel:
+async def start_combat(ctx: RunContext[AgentDependencies], npcs: list[CombatParticipant]) -> BaseModel:
     """Initialize combat with specific NPCs or monsters.
 
     Use when combat begins with known enemies.
 
     Args:
-        npcs: List of NPCs with name and optional initiative
-              Format: [{"name": "Goblin", "initiative": 15}, ...]
+        npcs: List of CombatParticipant objects with name and optional initiative
 
     Examples:
-        - Ambush by goblins: npcs=[{"name": "Goblin 1"}, {"name": "Goblin 2"}]
-        - Boss fight: npcs=[{"name": "Hobgoblin Boss", "initiative": 18}]
-        - Mixed enemies: npcs=[{"name": "Wolf"}, {"name": "Goblin Scout"}]
+        - Ambush by goblins: npcs=[CombatParticipant(name="Goblin 1"), CombatParticipant(name="Goblin 2")]
+        - Boss fight: npcs=[CombatParticipant(name="Hobgoblin Boss", initiative=18)]
+        - Mixed enemies: npcs=[CombatParticipant(name="Wolf"), CombatParticipant(name="Goblin Scout")]
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
@@ -55,47 +52,17 @@ async def trigger_scenario_encounter(ctx: RunContext[AgentDependencies], encount
 
 
 @tool_handler(SpawnMonstersCommand)
-async def spawn_monsters(ctx: RunContext[AgentDependencies], monsters: list[dict[str, int]]) -> BaseModel:
+async def spawn_monsters(ctx: RunContext[AgentDependencies], monsters: list[MonsterSpawnInfo]) -> BaseModel:
     """Spawn monsters from the database.
 
     Use when adding monsters to the game from the monster database.
 
     Args:
-        monsters: List of monster types and quantities
-                 Format: [{"monster_name": "Goblin", "quantity": 2}, ...]
+        monsters: List of MonsterSpawnInfo objects with monster_name and quantity
 
     Examples:
-        - Goblin patrol: monsters=[{"monster_name": "Goblin", "quantity": 3}]
-        - Wolf pack: monsters=[{"monster_name": "Wolf", "quantity": 2}]
-        - Mixed group: monsters=[{"monster_name": "Hobgoblin", "quantity": 1}, {"monster_name": "Goblin", "quantity": 2}]
+        - Goblin patrol: monsters=[MonsterSpawnInfo(monster_name="Goblin", quantity=3)]
+        - Wolf pack: monsters=[MonsterSpawnInfo(monster_name="Wolf", quantity=2)]
+        - Mixed group: monsters=[MonsterSpawnInfo(monster_name="Hobgoblin", quantity=1), MonsterSpawnInfo(monster_name="Goblin", quantity=2)]
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")
-
-
-async def roll_group_initiative(ctx: RunContext[AgentDependencies], group_name: str, modifier: int = 0) -> BaseModel:
-    """Roll initiative for a group of similar enemies.
-
-    Use for groups that act together in combat.
-
-    Args:
-        group_name: Name of the group (e.g., "Goblins")
-        modifier: Initiative modifier for the group
-
-    Examples:
-        - Goblin group: group_name="Goblins", modifier=2
-        - Wolf pack: group_name="Wolves", modifier=2
-    """
-    # Roll d20 + modifier
-    roll = random.randint(1, 20)
-    total = roll + modifier
-
-    result = GroupInitiativeResult(
-        group=group_name,
-        roll=roll,
-        modifier=modifier,
-        total=total,
-        message=f"{group_name} initiative: {roll} + {modifier} = {total}",
-    )
-
-    # Would normally update combat state here
-    return result

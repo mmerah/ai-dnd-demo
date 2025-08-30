@@ -95,7 +95,11 @@ async def roll_ability_check(
 
 
 async def roll_saving_throw(
-    ctx: RunContext[AgentDependencies], ability: str, dc: int = 15, advantage: str | None = None, target: str = "player",
+    ctx: RunContext[AgentDependencies],
+    ability: str,
+    dc: int = 15,
+    advantage: str | None = None,
+    target: str = "player",
 ) -> BaseModel:
     # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Roll a saving throw for D&D 5e.
@@ -274,61 +278,17 @@ async def roll_damage(
     # Execute the roll command and get the result
     result = await event_bus.execute_command(
         RollDiceCommand(
-            game_id=game_state.game_id, roll_type="damage", dice=damage_dice, modifier=0, damage_type=damage_type,
+            game_id=game_state.game_id,
+            roll_type="damage",
+            dice=damage_dice,
+            modifier=0,
+            damage_type=damage_type,
         ),
     )
 
     # Return the actual result with critical and source info
     if not result:
         raise RuntimeError("Failed to execute damage command")
-
-    if not isinstance(result, BaseModel):
-        raise TypeError(f"Expected BaseModel from command, got {type(result)}")
-
-    return result
-
-
-async def roll_initiative(ctx: RunContext[AgentDependencies], combatants: list[str]) -> BaseModel:
-    # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
-    """Roll initiative for combat.
-
-    Use at the start of combat to determine turn order.
-
-    Args:
-        combatants: List of character/NPC names in combat
-
-    Examples:
-        - Start of combat: combatants=["player", "Goblin", "Wolf"]
-        - Ambush scenario: combatants=["player", "Bandit1", "Bandit2", "Bandit3"]
-    """
-    game_state = ctx.deps.game_state
-    event_bus = ctx.deps.event_bus
-
-    # Player always has their dexterity modifier for initiative
-    modifier = 0
-    if "player" in combatants:
-        character = game_state.character
-        modifier = (character.abilities.DEX - 10) // 2
-
-    # Broadcast the tool call
-    from app.common.types import JSONSerializable
-
-    combatants_data: JSONSerializable = combatants
-    await event_bus.submit_command(
-        BroadcastToolCallCommand(
-            game_id=game_state.game_id, tool_name="roll_initiative", parameters={"combatants": combatants_data},
-        ),
-    )
-
-    # Execute the roll command and get the result
-    result = await event_bus.execute_command(
-        RollDiceCommand(game_id=game_state.game_id, roll_type="initiative", dice="1d20", modifier=modifier),
-    )
-
-    # Return the actual result with combatants info
-    # Never fallback, just raise an error because that's wrong to not have a result available
-    if not result:
-        raise RuntimeError("Failed to execute initiative command")
 
     if not isinstance(result, BaseModel):
         raise TypeError(f"Expected BaseModel from command, got {type(result)}")

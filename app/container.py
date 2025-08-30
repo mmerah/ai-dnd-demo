@@ -13,12 +13,22 @@ from app.events.handlers.location_handler import LocationHandler
 from app.events.handlers.quest_handler import QuestHandler
 from app.events.handlers.time_handler import TimeHandler
 from app.interfaces.events import IEventBus
-from app.interfaces.services import IAIService, ICharacterService, IDataService, IGameService, IScenarioService
+from app.interfaces.services import (
+    IAIService,
+    IBroadcastService,
+    ICharacterService,
+    IDataService,
+    IGameService,
+    IMessageService,
+    IScenarioService,
+)
 from app.services.ai_service import AIService
+from app.services.broadcast_service import BroadcastService
 from app.services.character_service import CharacterService
 from app.services.data_service import DataService
 from app.services.dice_service import DiceService
 from app.services.game_service import GameService
+from app.services.message_service import MessageService
 from app.services.scenario_service import ScenarioService
 
 
@@ -36,6 +46,8 @@ class Container:
         self._data_service: IDataService | None = None
         self._event_bus: IEventBus | None = None
         self._ai_service: IAIService | None = None
+        self._message_service: IMessageService | None = None
+        self._broadcast_service: IBroadcastService | None = None
 
     def get_game_service(self) -> IGameService:
         if self._game_service is None:
@@ -70,6 +82,7 @@ class Container:
             dice_service = self.get_dice_service()
             scenario_service = self.get_scenario_service()
             data_service = self.get_data_service()
+            broadcast_service = self.get_broadcast_service()
 
             event_bus = EventBus(game_service)
 
@@ -78,7 +91,7 @@ class Container:
             event_bus.register_handler("dice", DiceHandler(game_service, dice_service))
             event_bus.register_handler("inventory", InventoryHandler(game_service))
             event_bus.register_handler("time", TimeHandler(game_service))
-            event_bus.register_handler("broadcast", BroadcastHandler(game_service))
+            event_bus.register_handler("broadcast", BroadcastHandler(game_service, broadcast_service))
             event_bus.register_handler("location", LocationHandler(game_service, scenario_service, data_service))
             event_bus.register_handler("combat", CombatHandler(game_service, scenario_service, data_service))
             event_bus.register_handler("quest", QuestHandler(game_service, scenario_service, data_service))
@@ -104,6 +117,17 @@ class Container:
             )
             self._ai_service = ai_service
         return self._ai_service
+
+    def get_message_service(self) -> IMessageService:
+        if self._message_service is None:
+            broadcast_service = self.get_broadcast_service()
+            self._message_service = MessageService(broadcast_service)
+        return self._message_service
+
+    def get_broadcast_service(self) -> IBroadcastService:
+        if self._broadcast_service is None:
+            self._broadcast_service = BroadcastService()
+        return self._broadcast_service
 
 
 # Singleton instance of the container

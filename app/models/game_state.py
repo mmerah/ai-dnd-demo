@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from app.common.types import JSONSerializable
 
 from .character import CharacterSheet
+from .combat import CombatState
 from .location import LocationState
 from .npc import NPCSheet
 from .quest import Quest
@@ -89,74 +90,6 @@ class GameTime(BaseModel):
         hour_12 = self.hour % 12 if self.hour % 12 != 0 else 12
         am_pm = "AM" if self.hour < 12 else "PM"
         return f"Day {self.day}, {hour_12}:{self.minute:02d} {am_pm}"
-
-
-class CombatParticipant(BaseModel):
-    """Participant in combat with initiative."""
-
-    name: str
-    initiative: int
-    is_player: bool = False
-    is_active: bool = True
-    conditions: list[str] = Field(default_factory=list)
-
-
-class CombatState(BaseModel):
-    """Combat encounter state."""
-
-    round_number: int = Field(ge=1, default=1)
-    turn_index: int = Field(ge=0, default=0)
-    participants: list[CombatParticipant] = Field(default_factory=list)
-    is_active: bool = True
-
-    def add_participant(self, name: str, initiative: int, is_player: bool = False) -> None:
-        """Add a participant to combat."""
-        participant = CombatParticipant(name=name, initiative=initiative, is_player=is_player)
-        self.participants.append(participant)
-        self.sort_by_initiative()
-
-    def sort_by_initiative(self) -> None:
-        """Sort participants by initiative (highest first)."""
-        self.participants.sort(key=lambda p: p.initiative, reverse=True)
-
-    def get_current_turn(self) -> CombatParticipant | None:
-        """Get the participant whose turn it is."""
-        active_participants = [p for p in self.participants if p.is_active]
-        if not active_participants:
-            return None
-
-        # Ensure turn index is within bounds
-        if self.turn_index >= len(active_participants):
-            self.turn_index = 0
-
-        return active_participants[self.turn_index]
-
-    def next_turn(self) -> None:
-        """Advance to next turn in combat."""
-        active_participants = [p for p in self.participants if p.is_active]
-        if not active_participants:
-            self.is_active = False
-            return
-
-        self.turn_index += 1
-
-        # Check if we've completed a round
-        if self.turn_index >= len(active_participants):
-            self.turn_index = 0
-            self.round_number += 1
-
-    def remove_participant(self, name: str) -> None:
-        """Remove a participant from combat."""
-        self.participants = [p for p in self.participants if p.name != name]
-
-        # Adjust turn index if needed
-        active_participants = [p for p in self.participants if p.is_active]
-        if self.turn_index >= len(active_participants):
-            self.turn_index = 0
-
-    def end_combat(self) -> None:
-        """End the combat encounter."""
-        self.is_active = False
 
 
 class GameState(BaseModel):

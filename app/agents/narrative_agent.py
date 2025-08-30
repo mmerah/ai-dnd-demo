@@ -73,7 +73,6 @@ class NarrativeAgent(BaseAgent):
             dice_tools.roll_saving_throw,
             dice_tools.roll_attack,
             dice_tools.roll_damage,
-            dice_tools.roll_initiative,
             # Character management tools
             character_tools.update_hp,
             character_tools.add_condition,
@@ -90,20 +89,16 @@ class NarrativeAgent(BaseAgent):
             # Location and navigation tools
             location_tools.change_location,
             location_tools.discover_secret,
-            location_tools.search_location,
             location_tools.update_location_danger,
             # Combat management tools
             combat_tools.start_combat,
             combat_tools.trigger_scenario_encounter,
             combat_tools.spawn_monsters,
-            combat_tools.roll_group_initiative,
             # Quest management tools
             quest_tools.start_quest,
             quest_tools.complete_objective,
             quest_tools.complete_quest,
             quest_tools.progress_act,
-            quest_tools.check_quest_prerequisites,
-            quest_tools.update_objective_status,
         ]
 
     async def event_stream_handler(

@@ -4,8 +4,6 @@ import logging
 
 from app.container import container
 from app.models.sse_events import CompleteData, ConnectionInfo, ErrorData, SSEEventType
-from app.services.broadcast_service import broadcast_service
-from app.services.message_service import message_service
 
 logger = logging.getLogger(__name__)
 
@@ -20,6 +18,8 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
     """
     game_service = container.get_game_service()
     ai_service = container.get_ai_service()
+    message_service = container.get_message_service()
+    broadcast_service = container.get_broadcast_service()
 
     logger.info(f"Starting AI processing for game {game_id}")
     try:

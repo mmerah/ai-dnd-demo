@@ -23,7 +23,8 @@ class ContextService:
             if scenario:
                 # Get base scenario context
                 scenario_context = self.scenario_service.get_scenario_context_for_ai(
-                    scenario, game_state.current_location_id,
+                    scenario,
+                    game_state.current_location_id,
                 )
                 context_parts.append(scenario_context)
 
@@ -78,6 +79,7 @@ class ContextService:
         context_parts = ["Enhanced Location Details:"]
 
         # Location state information
+        context_parts.append(f"- Current Location ID: {game_state.current_location_id}")
         context_parts.append(f"- Danger Level: {location_state.danger_level.value}")
         context_parts.append(f"- Visited: {location_state.times_visited} time(s)")
 
@@ -88,7 +90,7 @@ class ContextService:
                 if conn.is_visible:
                     target_loc = scenario.get_location(conn.to_location_id)
                     if target_loc:
-                        exit_desc = f"  - {conn.description} to {target_loc.name}"
+                        exit_desc = f"  - {conn.description} to {target_loc.name} [ID: {conn.to_location_id}]"
                         if conn.requirements:
                             req_status = "✓" if conn.can_traverse() else "✗"
                             exit_desc += f" [{req_status}]"
@@ -101,7 +103,7 @@ class ContextService:
         if uncompleted_encounters:
             context_parts.append("\nPotential Encounters:")
             for enc in uncompleted_encounters[:3]:  # Limit to avoid too much context
-                context_parts.append(f"  - {enc.type}: {enc.description[:50]}...")
+                context_parts.append(f"  - {enc.type} [ID: {enc.id}]: {enc.description[:50]}...")
 
         # Available loot (if any not taken)
         if location.loot_table:
@@ -126,17 +128,17 @@ class ContextService:
         context_parts = ["Active Quests:"]
 
         for quest in game_state.active_quests:
-            context_parts.append(f"\n• {quest.name} ({quest.get_progress_percentage():.0f}% complete)")
+            context_parts.append(f"\n• {quest.name} [ID: {quest.id}] ({quest.get_progress_percentage():.0f}% complete)")
 
-            # Show active objectives
+            # Show active objectives with their IDs
             active_objectives = quest.get_active_objectives()
             if active_objectives:
                 context_parts.append("  Objectives:")
                 for obj in active_objectives[:3]:  # Limit objectives shown
                     status_marker = "○" if obj.status == ObjectiveStatus.PENDING else "◐"
-                    context_parts.append(f"    {status_marker} {obj.description}")
+                    context_parts.append(f"    {status_marker} {obj.description} [ID: {obj.id}]")
 
-        # Mention available quests based on prerequisites
+        # Mention available quests based on prerequisites with their IDs
         available_quests = []
         for quest_def in scenario.quests:
             if (
@@ -144,7 +146,7 @@ class ContextService:
                 and quest_def.id not in game_state.completed_quest_ids
                 and quest_def.is_available(game_state.completed_quest_ids)
             ):
-                available_quests.append(quest_def.name)
+                available_quests.append(f"{quest_def.name} [ID: {quest_def.id}]")
 
         if available_quests:
             context_parts.append(f"\nAvailable New Quests: {', '.join(available_quests[:2])}")
@@ -167,7 +169,9 @@ class ContextService:
 
             # If NPC has notable abilities, mention them briefly
             if npc.abilities:
-                ability_summary = f"    STR: {npc.abilities.STR}, DEX: {npc.abilities.DEX}, CON: {npc.abilities.CON}"
+                ability_summary = (
+                    f"    Abilities - STR: {npc.abilities.STR}, DEX: {npc.abilities.DEX}, CON: {npc.abilities.CON}"
+                )
                 npc_lines.append(ability_summary)
 
         return "\n".join(npc_lines)

@@ -7,6 +7,10 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from app.common.types import JSONSerializable
+from app.models.character import CharacterSheet
+from app.models.combat import CombatState
+from app.models.game_state import GameState
+from app.models.quest import Quest
 
 
 class SSEEventType(str, Enum):
@@ -91,15 +95,15 @@ class DiceRollData(BaseSSEData):
 
 
 class CharacterUpdateData(BaseSSEData):
-    """Data for character update events - wraps CharacterSheet.model_dump()."""
+    """Data for character update events."""
 
-    character: dict[str, JSONSerializable]
+    character: CharacterSheet
 
 
 class CombatUpdateData(BaseSSEData):
-    """Data for combat update events - wraps CombatState.model_dump()."""
+    """Data for combat update events."""
 
-    combat: dict[str, JSONSerializable]
+    combat: CombatState
 
 
 class SystemMessageData(BaseSSEData):
@@ -117,16 +121,11 @@ class ErrorData(BaseSSEData):
 
 
 class GameUpdateData(BaseSSEData):
-    """Data for complete game state update events - wraps GameState.model_dump().
+    """Data for complete game state update events."""
 
-    This wraps the entire GameState as a dictionary to avoid duplicating
-    the GameState model structure and maintain DRY principles.
-    """
+    game_state: GameState
 
-    # The entire GameState.model_dump() result
-    game_state: dict[str, JSONSerializable]
-
-
+# TODO: Should just hold a LocationConnection
 class ConnectionInfo(BaseModel):
     """Information about a location connection."""
 
@@ -136,7 +135,7 @@ class ConnectionInfo(BaseModel):
     is_accessible: bool = True
     is_visible: bool = True
 
-
+# TODO: Should contain just a LocationState
 class LocationUpdateData(BaseSSEData):
     """Data for location update events."""
 
@@ -149,12 +148,12 @@ class LocationUpdateData(BaseSSEData):
 
 
 class QuestUpdateData(BaseSSEData):
-    """Data for quest update events - wraps quest data."""
+    """Data for quest update events."""
 
-    active_quests: list[dict[str, JSONSerializable]]  # List of Quest.model_dump() results
+    active_quests: list[Quest]
     completed_quest_ids: list[str]
 
-
+# TODO: Should contain just a ScenarioAct
 class ActUpdateData(BaseSSEData):
     """Data for act update events."""
 
@@ -162,7 +161,7 @@ class ActUpdateData(BaseSSEData):
     act_name: str
     act_index: int
 
-
+# TODO: Should contain just a Scenario or be moved to scenario.py
 class ScenarioSummary(BaseModel):
     """Summary information for a scenario."""
 
@@ -170,7 +169,7 @@ class ScenarioSummary(BaseModel):
     title: str
     description: str | None = None
 
-
+# TODO: contain just A Scenario and a list of Scenario. Or we move ScenarioSummary to scenario.py and use that ?
 class ScenarioInfoData(BaseSSEData):
     """Data for scenario info events."""
 

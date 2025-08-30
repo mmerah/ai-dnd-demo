@@ -29,7 +29,6 @@ from app.models.sse_events import (
     SSEEvent,
     SSEEventType,
 )
-from app.services.broadcast_service import broadcast_service
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +62,9 @@ async def create_new_game(request: NewGameRequest) -> NewGameResponse:
 
         # Initialize game state
         game_state = game_service.initialize_game(
-            character=character, premise=request.premise, scenario_id=request.scenario_id,
+            character=character,
+            premise=request.premise,
+            scenario_id=request.scenario_id,
         )
 
         # Don't send initial narrative here - it will be sent when SSE connects
@@ -162,7 +163,9 @@ async def resume_game(game_id: str) -> dict[str, str]:
 
 @router.post("/game/{game_id}/action")
 async def process_player_action(
-    game_id: str, request: PlayerActionRequest, background_tasks: BackgroundTasks,
+    game_id: str,
+    request: PlayerActionRequest,
+    background_tasks: BackgroundTasks,
 ) -> dict[str, str]:
     """
     Process a player action and trigger AI response processing.
@@ -226,11 +229,10 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
 
         async def event_generator() -> AsyncGenerator[dict[str, str], None]:
             scenario_service = container.get_scenario_service()
+            broadcast_service = container.get_broadcast_service()
 
             """Generate SSE events by subscribing to broadcast service."""
             logger.info(f"Client subscribed to SSE for game {game_id}")
-            subscriber_count = broadcast_service.get_subscriber_count(game_id)
-            logger.debug(f"Current subscribers for game {game_id}: {subscriber_count}")
 
             # Send initial narrative and scenario info when SSE connects
             if game_state.conversation_history:
@@ -250,7 +252,8 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
                     event=SSEEventType.SCENARIO_INFO,
                     data=ScenarioInfoData(
                         current_scenario=ScenarioSummary(
-                            id=game_state.scenario_id, title=game_state.scenario_title or "",
+                            id=game_state.scenario_id,
+                            title=game_state.scenario_title or "",
                         ),
                         available_scenarios=[
                             ScenarioSummary(id=s.id, title=s.title, description=s.description) for s in scenarios
@@ -290,11 +293,11 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
                         yield location_event.to_sse_format()
 
                 # Send quest info
-                active_quests_data = [quest.model_dump() for quest in game_state.active_quests]
                 quest_event = SSEEvent(
                     event=SSEEventType.QUEST_UPDATE,
                     data=QuestUpdateData(
-                        active_quests=active_quests_data, completed_quest_ids=game_state.completed_quest_ids,
+                        active_quests=game_state.active_quests,
+                        completed_quest_ids=game_state.completed_quest_ids,
                     ),
                 )
                 yield quest_event.to_sse_format()
