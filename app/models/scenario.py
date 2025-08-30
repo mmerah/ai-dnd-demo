@@ -2,7 +2,6 @@
 
 from pydantic import BaseModel, Field
 
-from app.interfaces.services import IDataService
 from app.models.location import LocationConnection, LootEntry, MonsterSpawn
 from app.models.quest import Quest
 
@@ -184,35 +183,6 @@ class Scenario(BaseModel):
                 return encounter
 
         return None
-
-    def validate_references(self, data_service: IDataService) -> list[str]:
-        """
-        Validate all monster and item references.
-
-        Returns list of validation errors.
-        """
-        errors = []
-
-        # Check all monster references
-        for location in self.locations:
-            for encounter in location.encounters:
-                for spawn in encounter.monster_spawns:
-                    if not data_service.validate_monster_reference(spawn.monster_name):
-                        errors.append(
-                            f"Location '{location.name}': Monster '{spawn.monster_name}' not found in database"
-                        )
-
-            # Check loot references
-            for loot in location.loot_table:
-                if not data_service.validate_item_reference(loot.item_name):
-                    errors.append(f"Location '{location.name}': Item '{loot.item_name}' not found in database")
-
-            # Check NPC valuable items
-            for npc in location.npcs:
-                if npc.valuable_item and not data_service.validate_item_reference(npc.valuable_item):
-                    errors.append(f"NPC '{npc.name}': Item '{npc.valuable_item}' not found in database")
-
-        return errors
 
     def get_initial_narrative(self) -> str:
         """Generate initial narrative for scenario start."""

@@ -4,7 +4,7 @@ Full D&D 5e functionality with scenario management, character management, functi
 
 ## Ideas
 
-1. Save/Load game handling in the frontend. If it is correct in the backend
+1. Character need a character_service.py similar to scenario_service.py (with validate_scenario_references equivalent) instead of being loaded from characters.json directly in routes
 2. Frontend upgrades needed:
    - Display current location name and available connections/exits
    - Show quest log with active quests and objectives progress

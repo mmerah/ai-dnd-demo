@@ -58,6 +58,10 @@ class IGameService(ABC):
     ) -> GameState:
         pass
 
+    @abstractmethod
+    def list_saved_games(self) -> list[dict[str, str]]:
+        pass
+
 
 class IAIService(ABC):
     """Interface for the main AI service."""

@@ -42,7 +42,8 @@ class Container:
 
     def get_scenario_service(self) -> IScenarioService:
         if self._scenario_service is None:
-            self._scenario_service = ScenarioService()
+            data_service = self.get_data_service()
+            self._scenario_service = ScenarioService(data_service=data_service)
         return self._scenario_service
 
     def get_dice_service(self) -> DiceService:

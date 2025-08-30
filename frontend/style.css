@@ -756,3 +756,133 @@ body {
     align-self: center;
     max-width: 90%;
 }
+
+/* Saved Games Section */
+.saved-games-section {
+    margin-bottom: 2rem;
+    text-align: left;
+}
+
+.saved-games-section h2 {
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    cursor: pointer;
+}
+
+.saved-games-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.saved-game-card {
+    background: var(--background-light);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.saved-game-card:hover {
+    border-color: var(--accent-color);
+    box-shadow: 0 2px 8px rgba(212, 175, 55, 0.2);
+}
+
+.saved-game-info h3 {
+    color: var(--accent-color);
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.saved-game-info p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin: 0.25rem 0;
+}
+
+.saved-game-info .location {
+    color: var(--text-primary);
+}
+
+.saved-game-info .time-ago {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.saved-game-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-continue {
+    background: var(--accent-color);
+    color: var(--background-dark);
+    border: none;
+    padding: 0.5rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-continue:hover {
+    background: #e0c347;
+    transform: translateY(-1px);
+}
+
+/* Section Divider */
+.section-divider {
+    text-align: center;
+    margin: 2rem 0;
+    position: relative;
+}
+
+.section-divider::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: 45%;
+    height: 1px;
+    background: var(--border-color);
+}
+
+.section-divider::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    width: 45%;
+    height: 1px;
+    background: var(--border-color);
+}
+
+.section-divider span {
+    background: var(--background-dark);
+    padding: 0 1rem;
+    color: var(--text-secondary);
+    font-weight: bold;
+}
+
+/* New Game Section */
+.new-game-section {
+    text-align: left;
+}
+
+.new-game-section h2 {
+    color: var(--accent-color);
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    cursor: pointer;
+}
+
+.new-game-section h3 {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}

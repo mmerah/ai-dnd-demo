@@ -83,6 +83,26 @@ async def create_new_game(request: NewGameRequest) -> NewGameResponse:
         raise HTTPException(status_code=500, detail=f"Failed to create game: {str(e)}") from e
 
 
+@router.get("/games")
+async def list_saved_games() -> list[dict[str, str]]:
+    """
+    List all saved games.
+
+    Returns:
+        List of saved game summaries with metadata
+
+    Raises:
+        HTTPException: If unable to list games
+    """
+    game_service = container.get_game_service()
+
+    try:
+        saved_games = game_service.list_saved_games()
+        return saved_games
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list saved games: {str(e)}") from e
+
+
 @router.get("/game/{game_id}", response_model=GameState)
 async def get_game_state(game_id: str) -> GameState:
     """
@@ -110,6 +130,36 @@ async def get_game_state(game_id: str) -> GameState:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to load game: {str(e)}") from e
+
+
+@router.post("/game/{game_id}/resume")
+async def resume_game(game_id: str) -> dict[str, str]:
+    """
+    Resume a saved game session.
+
+    Args:
+        game_id: Unique game identifier
+
+    Returns:
+        Confirmation with game_id
+
+    Raises:
+        HTTPException: If game not found
+    """
+    game_service = container.get_game_service()
+
+    try:
+        game_state = game_service.load_game(game_id)
+        if not game_state:
+            raise HTTPException(status_code=404, detail=f"Game with ID '{game_id}' not found")
+
+        # Game successfully loaded and cached in memory
+        return {"game_id": game_id, "status": "resumed"}
+
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Game with ID '{game_id}' not found") from e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to resume game: {str(e)}") from e
 
 
 @router.post("/game/{game_id}/action")

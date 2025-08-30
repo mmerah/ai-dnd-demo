@@ -11,19 +11,37 @@
     <div id="characterSelection" class="screen">
         <div class="selection-container">
             <h1>D&D 5e AI Dungeon Master</h1>
-            <h2>Select Your Character</h2>
-            <div id="characterList" class="character-grid">
-                <!-- Characters loaded dynamically -->
-            </div>
-            <div class="premise-section">
-                <h3>Select Scenario</h3>
-                <div id="scenarioList" class="scenario-list">
-                    <!-- Scenarios loaded dynamically -->
+            
+            <!-- Saved Games Section -->
+            <div id="savedGamesSection" class="saved-games-section">
+                <h2>▼ Continue Your Adventures</h2>
+                <div id="savedGamesList" class="saved-games-list">
+                    <!-- Saved games loaded dynamically -->
                 </div>
-                <div class="divider">OR</div>
-                <label for="premise">Custom Campaign Premise:</label>
-                <textarea id="premise" placeholder="Leave empty for selected scenario or describe your custom adventure..."></textarea>
-                <button id="startGame" class="btn-primary" disabled>Start Adventure</button>
+            </div>
+            
+            <!-- Divider between sections -->
+            <div class="section-divider">
+                <span>OR</span>
+            </div>
+            
+            <!-- New Game Section -->
+            <div id="newGameSection" class="new-game-section">
+                <h2>▼ Start New Adventure</h2>
+                <h3>Select Your Character</h3>
+                <div id="characterList" class="character-grid">
+                    <!-- Characters loaded dynamically -->
+                </div>
+                <div class="premise-section">
+                    <h3>Select Scenario</h3>
+                    <div id="scenarioList" class="scenario-list">
+                        <!-- Scenarios loaded dynamically -->
+                    </div>
+                    <div class="divider">OR</div>
+                    <label for="premise">Custom Campaign Premise:</label>
+                    <textarea id="premise" placeholder="Leave empty for selected scenario or describe your custom adventure..."></textarea>
+                    <button id="startGame" class="btn-primary" disabled>Start Adventure</button>
+                </div>
             </div>
         </div>
     </div>

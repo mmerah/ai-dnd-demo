@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('[APP] Starting D&D 5e AI Dungeon Master frontend...');
     
     initializeElements();
+    loadSavedGames();
     loadCharacters();
     loadScenarios();
     setupEventListeners();
@@ -79,6 +80,141 @@ function setupEventListeners() {
     });
     
     console.log('[INIT] Event listeners setup complete');
+}
+
+// Load saved games
+async function loadSavedGames() {
+    console.log('[API] Loading saved games...');
+    
+    const savedGamesSection = document.getElementById('savedGamesSection');
+    const savedGamesList = document.getElementById('savedGamesList');
+    
+    if (!savedGamesList) {
+        console.error('[ERROR] savedGamesList element not found');
+        return;
+    }
+    
+    savedGamesList.innerHTML = '<div style="color: #888;">Loading saved games...</div>';
+    
+    try {
+        const response = await fetch('/api/games');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const savedGames = await response.json();
+        console.log(`[API] Loaded ${savedGames.length} saved games:`, savedGames);
+        
+        savedGamesList.innerHTML = '';
+        
+        if (savedGames && savedGames.length > 0) {
+            savedGamesSection.style.display = 'block';
+            
+            savedGames.forEach(game => {
+                const card = createSavedGameCard(game);
+                savedGamesList.appendChild(card);
+            });
+        } else {
+            savedGamesSection.style.display = 'none';
+            console.log('[UI] No saved games found, hiding section');
+        }
+    } catch (error) {
+        console.error('[ERROR] Failed to load saved games:', error);
+        savedGamesList.innerHTML = `<div style="color: #666;">No saved games available</div>`;
+        savedGamesSection.style.display = 'none';
+    }
+}
+
+// Create saved game card element
+function createSavedGameCard(game) {
+    const card = document.createElement('div');
+    card.className = 'saved-game-card';
+    
+    // Format the last modified date
+    const lastPlayed = new Date(game.last_modified);
+    const now = new Date();
+    const timeDiff = now - lastPlayed;
+    const hoursAgo = Math.floor(timeDiff / (1000 * 60 * 60));
+    const daysAgo = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+    
+    let timeText = '';
+    if (daysAgo > 0) {
+        timeText = `${daysAgo} day${daysAgo > 1 ? 's' : ''} ago`;
+    } else if (hoursAgo > 0) {
+        timeText = `${hoursAgo} hour${hoursAgo > 1 ? 's' : ''} ago`;
+    } else {
+        timeText = 'Recently';
+    }
+    
+    card.innerHTML = `
+        <div class="saved-game-info">
+            <h3>${game.character_name}</h3>
+            <p class="location">📍 ${game.location}</p>
+            <p class="time-ago">⏰ ${timeText}</p>
+        </div>
+        <div class="saved-game-actions">
+            <button class="btn-continue" data-game-id="${game.game_id}">Continue</button>
+        </div>
+    `;
+    
+    // Add event listener for continue button
+    const continueBtn = card.querySelector('.btn-continue');
+    continueBtn.addEventListener('click', () => continueGame(game.game_id));
+    
+    return card;
+}
+
+// Continue a saved game
+async function continueGame(gameId) {
+    console.log(`[GAME] Continuing game: ${gameId}`);
+    
+    try {
+        // First, resume the game on the backend
+        const resumeResponse = await fetch(`/api/game/${gameId}/resume`, {
+            method: 'POST'
+        });
+        
+        if (!resumeResponse.ok) {
+            throw new Error(`Failed to resume game: ${resumeResponse.status}`);
+        }
+        
+        // Set the current game ID
+        currentGameId = gameId;
+        
+        // Load the game state
+        await loadGameState();
+        
+        // Clear chat and populate with conversation history
+        elements.chatMessages.innerHTML = '';
+        if (gameState && gameState.conversation_history) {
+            console.log(`[GAME] Loading ${gameState.conversation_history.length} messages from history`);
+            gameState.conversation_history.forEach(msg => {
+                if (msg.role === 'player') {
+                    addMessage(msg.content, 'player');
+                } else if (msg.role === 'dm') {
+                    addMessage(msg.content, 'dm');
+                }
+            });
+        }
+        
+        // Initialize SSE connection (set flag to not show initial narrative)
+        window.skipInitialNarrative = true;
+        initializeSSE();
+        
+        // Switch to game interface
+        elements.characterSelection.classList.add('hidden');
+        elements.gameInterface.classList.remove('hidden');
+        
+        console.log('[GAME] Game resumed successfully');
+        
+        // Add a message indicating the game was loaded
+        addMessage('Game loaded successfully. Continue your adventure!', 'system');
+        
+    } catch (error) {
+        console.error('[ERROR] Failed to continue game:', error);
+        showError('Failed to load saved game. Please try again.');
+    }
 }
 
 // Load available scenarios
@@ -228,6 +364,12 @@ async function startGame() {
         console.log(`[GAME] Game created with ID: ${currentGameId}`);
         
         await loadGameState();
+        
+        // Clear chat for new game
+        elements.chatMessages.innerHTML = '';
+        
+        // Initialize SSE (will show initial narrative for new game)
+        window.skipInitialNarrative = false;
         initializeSSE();
         
         elements.characterSelection.classList.add('hidden');
@@ -283,9 +425,17 @@ function initializeSSE() {
         console.log('[SSE] Connection established:', event.data);
     });
     
-    // Initial narrative (scenario start)
+    // Initial narrative (scenario start) - only for new games
     sseSource.addEventListener('initial_narrative', (event) => {
         console.log('[SSE] Initial narrative received');
+        
+        // Skip if we're resuming a game
+        if (window.skipInitialNarrative) {
+            console.log('[SSE] Skipping initial narrative for resumed game');
+            window.skipInitialNarrative = false;
+            return;
+        }
+        
         const data = JSON.parse(event.data);
         if (data.scenario_title) {
             addMessage(`=== ${data.scenario_title} ===`, 'system');
@@ -490,6 +640,13 @@ async function sendMessage() {
         }
         
         console.log('[CHAT] Message sent successfully, awaiting SSE response');
+        
+        // Show auto-save indicator
+        const originalText = elements.saveGameBtn.textContent;
+        elements.saveGameBtn.textContent = '💾 Auto-saved';
+        setTimeout(() => {
+            elements.saveGameBtn.textContent = originalText;
+        }, 2000);
     } catch (error) {
         console.error('[ERROR] Failed to send message:', error);
         showError('Failed to send message. Please try again.');
@@ -769,19 +926,32 @@ async function saveGame() {
     
     console.log(`[GAME] Saving game: ${currentGameId}`);
     
+    const originalText = elements.saveGameBtn.textContent;
     elements.saveGameBtn.disabled = true;
-    elements.saveGameBtn.textContent = 'Saving...';
+    elements.saveGameBtn.textContent = '💾 Saving...';
     
     try {
         // Game auto-saves on server, but we can trigger a manual save
         await loadGameState();
+        
+        // Update save button with timestamp
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        elements.saveGameBtn.textContent = `✅ Saved at ${timeStr}`;
+        
         showNotification('Game saved successfully!');
+        
+        // Reset button text after 3 seconds
+        setTimeout(() => {
+            elements.saveGameBtn.textContent = originalText;
+        }, 3000);
+        
     } catch (error) {
         console.error('[ERROR] Failed to save game:', error);
         showError('Failed to save game.');
+        elements.saveGameBtn.textContent = originalText;
     } finally {
         elements.saveGameBtn.disabled = false;
-        elements.saveGameBtn.textContent = '💾 Save';
     }
 }
 
