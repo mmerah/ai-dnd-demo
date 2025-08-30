@@ -1,16 +1,20 @@
 """Inventory management tools for D&D 5e AI Dungeon Master."""
 
 import logging
+from typing import cast
 
 from pydantic import BaseModel
 from pydantic_ai import RunContext
 
+from app.events.base import BaseCommand
 from app.agents.dependencies import AgentDependencies
+from app.events.commands.broadcast_commands import BroadcastToolCallCommand, BroadcastToolResultCommand
 from app.events.commands.inventory_commands import (
     AddItemCommand,
     ModifyCurrencyCommand,
     RemoveItemCommand,
 )
+from app.models.tool_results import ToolResult
 from app.tools.decorators import tool_handler
 
 logger = logging.getLogger(__name__)
@@ -18,7 +22,10 @@ logger = logging.getLogger(__name__)
 
 @tool_handler(ModifyCurrencyCommand)
 async def modify_currency(
-    ctx: RunContext[AgentDependencies], gold: int = 0, silver: int = 0, copper: int = 0,
+    ctx: RunContext[AgentDependencies],
+    gold: int = 0,
+    silver: int = 0,
+    copper: int = 0,
 ) -> BaseModel:
     # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Modify the player's currency.
@@ -38,39 +45,53 @@ async def modify_currency(
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 
-@tool_handler(AddItemCommand)
-async def add_item(ctx: RunContext[AgentDependencies], item_name: str, quantity: int = 1) -> BaseModel:
+async def modify_inventory(ctx: RunContext[AgentDependencies], item_name: str, quantity: int) -> BaseModel:
     # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
-    """Add an item to the player's inventory.
-
-    Use when the player acquires items.
+    """Add or remove items from the player's inventory.
 
     Args:
-        item_name: Name of the item
-        quantity: Number to add
+        item_name: The name of the item to modify
+        quantity: The number of items to add (positive) or remove (negative)
 
     Examples:
-        - Find potion: item_name="Healing Potion"
-        - Buy rope: item_name="Rope (50 ft)"
+        - Find potion: item_name="Healing Potion", quantity=1
+        - Use potion: item_name="Healing Potion", quantity=-1
+        - Buy rope: item_name="Rope (50 ft)", quantity=1
+        - Give rope away: item_name="Rope (50 ft)", quantity=-1
         - Loot arrows: item_name="Arrows", quantity=20
+        - Shoot arrows: item_name="Arrows", quantity=-2
     """
-    raise NotImplementedError("This is handled by the @tool_handler decorator")
+    game_state = ctx.deps.game_state
+    event_bus = ctx.deps.event_bus
 
+    # Broadcast the tool call
+    await event_bus.submit_command(
+        BroadcastToolCallCommand(
+            game_id=game_state.game_id,
+            tool_name="modify_inventory",
+            parameters={"item_name": item_name, "quantity": quantity},
+        ),
+    )
 
-@tool_handler(RemoveItemCommand)
-async def remove_item(ctx: RunContext[AgentDependencies], item_name: str, quantity: int = 1) -> BaseModel:
-    # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
-    """Remove an item from the player's inventory.
+    # Determine which command to use based on quantity
+    command: BaseCommand
+    if quantity > 0:
+        command = AddItemCommand(game_id=game_state.game_id, item_name=item_name, quantity=quantity)
+    else:
+        command = RemoveItemCommand(game_id=game_state.game_id, item_name=item_name, quantity=abs(quantity))
 
-    Use when the player uses or loses items.
+    # Execute the command
+    result = await event_bus.execute_command(command)
 
-    Args:
-        item_name: Name of the item
-        quantity: Number to remove
+    if not result:
+        raise RuntimeError(f"Failed to modify inventory for {item_name}")
 
-    Examples:
-        - Use potion: item_name="Healing Potion"
-        - Give rope: item_name="Rope (50 ft)"
-        - Shoot arrows: item_name="Arrows", quantity=2
-    """
-    raise NotImplementedError("This is handled by the @tool_handler decorator")
+    if not isinstance(result, BaseModel):
+        raise TypeError(f"Expected BaseModel from command, got {type(result)}")
+
+    tool_result = cast(ToolResult, result)
+    await event_bus.submit_command(
+        BroadcastToolResultCommand(game_id=game_state.game_id, tool_name="modify_inventory", result=tool_result),
+    )
+
+    return result

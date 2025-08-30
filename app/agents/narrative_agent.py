@@ -2,10 +2,11 @@
 
 import json
 import logging
-from collections.abc import AsyncIterable, AsyncIterator, Callable
+from collections.abc import AsyncIterable, AsyncIterator
 from dataclasses import dataclass, field
 from typing import Any, TypeAlias
 
+from pydantic import BaseModel
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.messages import (
     FunctionToolCallEvent,
@@ -18,17 +19,20 @@ from pydantic_ai.messages import (
     ToolCallPart,
 )
 
-from app.agents.base import BaseAgent
+from app.agents.base import BaseAgent, ToolFunction
 from app.agents.dependencies import AgentDependencies
+from app.events.commands.broadcast_commands import BroadcastNarrativeCommand
 from app.interfaces.events import IEventBus
 from app.interfaces.services import IDataService, IGameService, IScenarioService
 from app.models.ai_response import (
+    CapturedToolEvent,
     NarrativeResponse,
     StreamEvent,
     StreamEventType,
     ToolCallEvent,
 )
 from app.models.game_state import GameState, MessageRole
+from app.models.tool_results import ToolResult
 from app.services.context_service import ContextService
 from app.services.event_logger_service import EventLoggerService
 from app.services.message_converter_service import MessageConverterService
@@ -61,27 +65,20 @@ class NarrativeAgent(BaseAgent):
     event_bus: IEventBus
     scenario_service: IScenarioService
     data_service: IDataService
-    # Any types are unavoidable here as tool arguments and results vary by tool
-    # Format: (tool_name, args_dict | None, result | None)
-    captured_events: list[tuple[str, dict[str, Any] | None, Any | None]] = field(default_factory=list)
+    captured_events: list[CapturedToolEvent] = field(default_factory=list)
 
-    def get_required_tools(self) -> list[Callable[..., Any]]:
+    def get_required_tools(self) -> list[ToolFunction]:
         """Return list of tools this agent requires."""
         return [
             # Dice and combat tools
-            dice_tools.roll_ability_check,
-            dice_tools.roll_saving_throw,
-            dice_tools.roll_attack,
-            dice_tools.roll_damage,
+            dice_tools.roll_dice,
             # Character management tools
             character_tools.update_hp,
-            character_tools.add_condition,
-            character_tools.remove_condition,
+            character_tools.update_condition,
             character_tools.update_spell_slots,
             # Inventory tools
             inventory_tools.modify_currency,
-            inventory_tools.add_item,
-            inventory_tools.remove_item,
+            inventory_tools.modify_inventory,
             # Time management tools
             time_tools.short_rest,
             time_tools.long_rest,
@@ -170,7 +167,7 @@ class NarrativeAgent(BaseAgent):
                             args = {"raw_args": str(args)}
                         self.event_logger.log_tool_call(tool_name, args)
                         # Save event for later storage
-                        self.captured_events.append((tool_name, args, None))
+                        self.captured_events.append(CapturedToolEvent(tool_name=tool_name, parameters=args))
                         # Don't broadcast here - tools broadcast themselves via event bus
                         logger.debug(f"Tool call detected: {tool_name} with args: {args}")
 
@@ -203,7 +200,7 @@ class NarrativeAgent(BaseAgent):
                         args = {"raw_args": str(args)}
                     self.event_logger.log_tool_call(tool_name, args)
                     # Save event for later storage
-                    self.captured_events.append((tool_name, args, None))
+                    self.captured_events.append(CapturedToolEvent(tool_name=tool_name, parameters=args))
                     # Don't broadcast here - tools broadcast themselves via event bus
                     logger.debug(f"Tool call detected via FunctionToolCallEvent: {tool_name} with args: {args}")
 
@@ -221,25 +218,31 @@ class NarrativeAgent(BaseAgent):
                 # Get the result content
                 if hasattr(event, "result"):
                     result = event.result
-                    # Convert the BaseModel result to a dictionary for storage
-                    if hasattr(result, "model_dump"):
-                        # It's a Pydantic BaseModel, convert to dict
-                        result_dict = result.model_dump(mode="json")
-                    elif hasattr(result, "content") and hasattr(result.content, "model_dump"):
-                        # The content is a BaseModel
-                        result_dict = result.content.model_dump(mode="json")
-                    elif isinstance(result, dict):
-                        # Already a dict
-                        result_dict = result
-                    else:
-                        # Fallback: create a simple dict with the string representation
-                        result_dict = {"result": str(result)}
 
                     # For logging, use string representation
                     result_str = str(result.content) if hasattr(result, "content") else str(result)
                     self.event_logger.log_tool_result(tool_name, result_str)
-                    # Save result event as dict for game state storage
-                    self.captured_events.append((tool_name, None, result_dict))
+
+                    # Find the corresponding tool call event and update it with the result
+                    for captured_event in reversed(self.captured_events):
+                        if captured_event.tool_name == tool_name and captured_event.result is None:
+                            # The result from the handler is already a typed ToolResult model
+                            # We need to convert the raw result to the appropriate ToolResult
+                            if hasattr(result, "content") and hasattr(result.content, "model_dump"):
+                                # The content is already a BaseModel/ToolResult, use it directly
+                                if isinstance(result.content, BaseModel):
+                                    # We can only assign if it's actually a ToolResult subtype
+                                    # For now, we'll just log if we can't match it
+                                    try:
+                                        # This is a bit of a hack but works for our case
+                                        captured_event.result = result.content  # type: ignore[assignment]
+                                    except Exception:
+                                        logger.warning(f"Could not assign result for tool {tool_name}")
+                            else:
+                                # For now, log that we couldn't match the result to a typed model
+                                logger.warning(f"Could not type result for tool {tool_name}")
+                            break
+
                     # Don't broadcast here - tools broadcast results via event bus
                     logger.debug(f"Tool result detected: {tool_name} -> {result_str[:100]}")
 
@@ -294,16 +297,15 @@ class NarrativeAgent(BaseAgent):
 
             logger.debug(f"Response generated: {result.output[:100]}...")
 
-            # Process commands through event bus
-            from app.events.commands.broadcast_commands import BroadcastNarrativeCommand
-
             all_commands = []
 
             # Extract commands from tool results
-            for _tool_name, _params, result_data in self.captured_events:
-                if result_data and isinstance(result_data, dict) and "commands" in result_data:
-                    commands = result_data.get("commands", [])
-                    all_commands.extend(commands)
+            for event in self.captured_events:
+                if event.result and hasattr(event.result, "model_dump"):
+                    result_data = event.result.model_dump(mode="json")
+                    if isinstance(result_data, dict) and "commands" in result_data:
+                        commands = result_data.get("commands", [])
+                        all_commands.extend(commands)
 
             # Add narrative broadcast commands
             all_commands.append(
@@ -359,24 +361,26 @@ class NarrativeAgent(BaseAgent):
 
             # Save captured game events
             logger.debug(f"Saving {len(self.captured_events)} captured events to game state")
-            for tool_name, params, result_data in self.captured_events:
+            for event in self.captured_events:
                 logger.debug(
-                    f"Processing event: tool={tool_name}, has_params={params is not None}, has_result={result_data is not None}",
+                    f"Processing event: tool={event.tool_name}, has_params={event.parameters is not None}, has_result={event.result is not None}",
                 )
-                if params is not None:  # Tool call
-                    logger.debug(f"Adding tool_call event for {tool_name}")
+                if event.parameters is not None:  # Tool call
+                    logger.debug(f"Adding tool_call event for {event.tool_name}")
                     game_service.add_game_event(
                         game_state.game_id,
                         event_type="tool_call",
-                        tool_name=tool_name,
-                        parameters=params,
+                        tool_name=event.tool_name,
+                        parameters=event.parameters,
                     )
-                elif result_data is not None:  # Tool result
-                    logger.debug(f"Adding tool_result event for {tool_name}")
+                if event.result is not None:  # Tool result
+                    logger.debug(f"Adding tool_result event for {event.tool_name}")
+                    # event.result is a ToolResult which is a BaseModel
+                    result_data = event.result.model_dump(mode="json")
                     game_service.add_game_event(
                         game_state.game_id,
                         event_type="tool_result",
-                        tool_name=tool_name,
+                        tool_name=event.tool_name,
                         result=result_data,
                     )
 

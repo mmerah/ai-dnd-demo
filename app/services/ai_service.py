@@ -60,21 +60,24 @@ class AIService(IAIService):
 
                 # Convert StreamEvent to the expected format
                 if event.type == StreamEventType.NARRATIVE_CHUNK:
-                    logger.debug(f"Yielding narrative_chunk: '{event.content[:30]}...'")
-                    yield NarrativeChunkResponse(content=event.content)
+                    if isinstance(event.content, str):
+                        logger.debug(f"Yielding narrative_chunk: '{event.content[:30]}...'")
+                        yield NarrativeChunkResponse(content=event.content)
                 elif event.type == StreamEventType.COMPLETE:
-                    response: NarrativeResponse = event.content
-                    logger.info(
-                        f"Yielding complete event with narrative length: {len(response.narrative) if response.narrative else 0}",
-                    )
-                    yield CompleteResponse(
-                        narrative=response.narrative
-                        if response.narrative
-                        else "I couldn't generate a response. Please try again.",
-                    )
+                    if isinstance(event.content, NarrativeResponse):
+                        response = event.content
+                        logger.info(
+                            f"Yielding complete event with narrative length: {len(response.narrative) if response.narrative else 0}",
+                        )
+                        yield CompleteResponse(
+                            narrative=response.narrative
+                            if response.narrative
+                            else "I couldn't generate a response. Please try again.",
+                        )
                 elif event.type == StreamEventType.ERROR:
-                    logger.error(f"Yielding error event: {event.content}")
-                    yield ErrorResponse(message=f"Failed to generate response: {event.content}")
+                    error_msg = str(event.content)
+                    logger.error(f"Yielding error event: {error_msg}")
+                    yield ErrorResponse(message=f"Failed to generate response: {error_msg}")
             logger.info(f"AIService.generate_response completed. Total events: {event_count}")
         except Exception as e:
             logger.error(f"Error in generate_response: {e}", exc_info=True)

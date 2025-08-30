@@ -1,9 +1,12 @@
 """AI Response models for streaming and display."""
 
 from enum import Enum
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel, Field
+
+from app.common.types import JSONSerializable
+from app.models.tool_results import ToolResult
 
 
 class NarrativeChunkResponse(BaseModel):
@@ -41,19 +44,19 @@ class StreamEventType(Enum):
     ERROR = "error"
 
 
-class StreamEvent(BaseModel):
-    """Base event for streaming responses."""
+class CapturedToolEvent(BaseModel):
+    """A structured model for an executed tool call and its result."""
 
-    type: StreamEventType
-    content: Any
-    metadata: dict[str, Any] = Field(default_factory=dict)
+    tool_name: str
+    parameters: dict[str, JSONSerializable] | None = None
+    result: ToolResult | None = None
 
 
 class ToolCallEvent(BaseModel):
     """Event for tool calls."""
 
     tool_name: str
-    args: dict[str, Any]
+    args: dict[str, JSONSerializable]
     tool_call_id: str | None = None
 
 
@@ -63,4 +66,20 @@ class NarrativeResponse(BaseModel):
     narrative: str
     tool_calls: list[ToolCallEvent] = Field(default_factory=list)
     thinking: str | None = None
-    usage: dict[str, int] | None = None
+    usage: dict[str, JSONSerializable] | None = None
+
+
+StreamEventContent = (
+    str  # For narrative chunks and error messages
+    | NarrativeResponse  # For the complete response
+    | ToolCallEvent  # For tool calls
+    | ToolResult  # For tool results
+)
+
+
+class StreamEvent(BaseModel):
+    """Base event for streaming responses."""
+
+    type: StreamEventType
+    content: StreamEventContent
+    metadata: dict[str, JSONSerializable] = Field(default_factory=dict)

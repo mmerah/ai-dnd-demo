@@ -1,17 +1,21 @@
 """Character management tools for D&D 5e AI Dungeon Master."""
 
 import logging
+from typing import Literal, cast
 
 from pydantic import BaseModel
 from pydantic_ai import RunContext
 
+from app.events.base import BaseCommand
 from app.agents.dependencies import AgentDependencies
+from app.events.commands.broadcast_commands import BroadcastToolCallCommand, BroadcastToolResultCommand
 from app.events.commands.character_commands import (
     AddConditionCommand,
     RemoveConditionCommand,
     UpdateHPCommand,
     UpdateSpellSlotsCommand,
 )
+from app.models.tool_results import ToolResult
 from app.tools.decorators import tool_handler
 
 logger = logging.getLogger(__name__)
@@ -19,7 +23,10 @@ logger = logging.getLogger(__name__)
 
 @tool_handler(UpdateHPCommand)
 async def update_hp(
-    ctx: RunContext[AgentDependencies], amount: int, damage_type: str = "untyped", target: str = "player",
+    ctx: RunContext[AgentDependencies],
+    amount: int,
+    damage_type: str = "untyped",
+    target: str = "player",
 ) -> BaseModel:
     # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Update hit points for damage or healing.
@@ -39,47 +46,72 @@ async def update_hp(
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 
-@tool_handler(AddConditionCommand)
-async def add_condition(
-    ctx: RunContext[AgentDependencies], condition: str, duration: int = 0, target: str = "player",
+async def update_condition(
+    ctx: RunContext[AgentDependencies],
+    target: str,
+    condition: str,
+    action: Literal["add", "remove"],
+    duration: int = 0,
 ) -> BaseModel:
     # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
-    """Add a status condition to a character.
-
-    Use when effects impose conditions.
+    """Add or remove a status condition from a target.
 
     Args:
-        condition: Name of condition (poisoned, frightened, prone, etc.)
-        duration: Duration in rounds (0 for until removed)
-        target: 'player' or NPC name
+        target: 'player' or the name of an NPC
+        condition: The condition to apply or remove (e.g., 'poisoned', 'prone', 'frightened')
+        action: Whether to 'add' or 'remove' the condition
+        duration: Duration in rounds (0 for until removed) - only used when adding
 
     Examples:
-        - Poison effect: condition="poisoned", duration=3
-        - Knocked prone: condition="prone", duration=0
-        - Fear spell on NPC: condition="frightened", duration=2, target="Goblin"
+        - Apply poison: target="player", condition="poisoned", action="add", duration=3
+        - Remove poison: target="player", condition="poisoned", action="remove"
+        - Knock prone: target="Goblin", condition="prone", action="add"
+        - Stand up: target="player", condition="prone", action="remove"
+        - Fear spell: target="Orc", condition="frightened", action="add", duration=2
     """
-    raise NotImplementedError("This is handled by the @tool_handler decorator")
+    game_state = ctx.deps.game_state
+    event_bus = ctx.deps.event_bus
 
+    # Broadcast the tool call
+    await event_bus.submit_command(
+        BroadcastToolCallCommand(
+            game_id=game_state.game_id,
+            tool_name="update_condition",
+            parameters={"target": target, "condition": condition, "action": action, "duration": duration},
+        ),
+    )
 
-@tool_handler(RemoveConditionCommand)
-async def remove_condition(
-    ctx: RunContext[AgentDependencies], condition: str, target: str = "player",
-) -> BaseModel:
-    # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
-    """Remove a condition from a character.
+    # Execute the appropriate command based on action
+    command: BaseCommand
+    if action == "add":
+        command = AddConditionCommand(
+            game_id=game_state.game_id,
+            target=target,
+            condition=condition,
+            duration=duration,
+        )
+    else:  # action == "remove"
+        command = RemoveConditionCommand(
+            game_id=game_state.game_id,
+            target=target,
+            condition=condition,
+        )
 
-    Use when conditions end or are cured.
+    result = await event_bus.execute_command(command)
 
-    Args:
-        condition: Name of condition to remove
-        target: 'player' or NPC name
+    if not result:
+        raise RuntimeError(f"Failed to {action} condition {condition} for {target}")
 
-    Examples:
-        - Remove poison: condition="poisoned"
-        - Stand up: condition="prone"
-        - End fear on NPC: condition="frightened", target="Goblin"
-    """
-    raise NotImplementedError("This is handled by the @tool_handler decorator")
+    if not isinstance(result, BaseModel):
+        raise TypeError(f"Expected BaseModel from command, got {type(result)}")
+
+    # Broadcast the result
+    tool_result = cast(ToolResult, result)
+    await event_bus.submit_command(
+        BroadcastToolResultCommand(game_id=game_state.game_id, tool_name="update_condition", result=tool_result),
+    )
+
+    return result
 
 
 @tool_handler(UpdateSpellSlotsCommand)

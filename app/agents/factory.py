@@ -1,8 +1,6 @@
 """Factory for creating specialized agents following Factory pattern."""
 
 import logging
-from collections.abc import Callable
-from typing import Any
 
 import httpx
 from pydantic_ai import Agent
@@ -10,7 +8,7 @@ from pydantic_ai.models.openai import OpenAIModel
 from pydantic_ai.providers.openai import OpenAIProvider
 from pydantic_ai.settings import ModelSettings
 
-from app.agents.base import BaseAgent
+from app.agents.base import BaseAgent, ToolFunction
 from app.agents.dependencies import AgentDependencies
 from app.agents.narrative_agent import NarrativeAgent
 from app.agents.types import AgentType
@@ -59,24 +57,36 @@ You are the narrator, rules arbiter, and controller of all NPCs and monsters. Yo
 
 ## Tool Usage Guidelines
 You have access to game tools that handle mechanics. Use them naturally when:
+- **Dice Rolling**: Use roll_dice for ALL dice rolls - you must calculate modifiers yourself based on character stats:
+  - For ability checks: Include the ability modifier and proficiency if applicable
+  - For saving throws: Include the appropriate save modifier
+  - For attacks: Include the attack bonus (to hit modifier)
+  - For damage: Include any damage modifiers
+  - For advantage/disadvantage: Use "2d20kh" (keep highest) or "2d20kl" (keep lowest)
 - **Navigation**: Use change_location when moving between areas, discover_secret when revealing hidden content
-- **Exploration**: Use search_location when players investigate, update_location_danger after clearing threats
+- **Exploration**: Use update_location_state when the environment changes
 - **Combat**: Use start_combat for encounters, trigger_scenario_encounter for predefined battles, spawn_monsters to add enemies
 - **Quests**: Use start_quest when accepting missions, complete_objective for progress, complete_quest when done
 - **Progression**: Use progress_act to advance the story when major milestones are reached
-- **Mechanics**: Handle attacks, damage, initiative, ability checks, saves
-- **State changes**: Update HP, conditions, inventory, spell slots
-- **Time**: Handle rests, travel, time advancement
-- **Resources**: Manage currency, items, spell resources
+- **Character State**: 
+  - Use update_hp for damage (negative) or healing (positive)
+  - Use update_condition with action="add" or "remove" for status effects
+  - Use update_spell_slots to track spell usage
+- **Inventory**: 
+  - Use modify_inventory with positive quantity to add items, negative to remove
+  - Use modify_currency for gold/silver/copper transactions
+- **Time**: Handle rests with short_rest/long_rest, use advance_time for time passage
 
 Let the tools handle the mechanical resolution while you focus on narrative.
 
 ## Combat Flow
-1. Call for initiative when combat starts
+1. Call for initiative using roll_dice with roll_type="initiative"
 2. Describe actions cinematically
-3. Resolve attacks and damage through tools
-4. Track conditions and HP changes
-5. End combat when appropriate
+3. For attacks: Use roll_dice with roll_type="attack" (you calculate the modifier)
+4. For damage: Use roll_dice with roll_type="damage" 
+5. Apply damage with update_hp (negative amount)
+6. Track conditions with update_condition
+7. End combat when appropriate
 
 ## Important Reminders
 - You are the final authority on rules and outcomes
@@ -115,7 +125,7 @@ The current game state and character information will be provided with each inte
         return OpenAIModel(settings.openrouter_model, provider=provider)
 
     @classmethod
-    def _register_agent_tools(cls, agent: Agent[AgentDependencies, str], tools: list[Callable[..., Any]]) -> None:
+    def _register_agent_tools(cls, agent: Agent[AgentDependencies, str], tools: list[ToolFunction]) -> None:
         """Register tools with an agent."""
         for tool in tools:
             agent.tool(tool)
