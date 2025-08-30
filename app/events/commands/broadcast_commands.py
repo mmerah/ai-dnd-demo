@@ -2,8 +2,8 @@
 
 from dataclasses import dataclass, field
 
+from app.common.types import JSONSerializable
 from app.events.base import BaseCommand
-from app.models.game_state import JSONSerializable
 
 
 @dataclass

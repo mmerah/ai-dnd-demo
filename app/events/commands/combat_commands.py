@@ -10,7 +10,7 @@ class StartCombatCommand(BaseCommand):
     """Command to start general combat."""
 
     npcs: list[dict[str, str | int]] = field(
-        default_factory=list
+        default_factory=list,
     )  # List of NPC definitions with name and optional initiative
 
     def get_handler_name(self) -> str:

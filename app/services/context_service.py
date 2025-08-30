@@ -23,7 +23,7 @@ class ContextService:
             if scenario:
                 # Get base scenario context
                 scenario_context = self.scenario_service.get_scenario_context_for_ai(
-                    scenario, game_state.current_location_id
+                    scenario, game_state.current_location_id,
                 )
                 context_parts.append(scenario_context)
 
@@ -44,7 +44,7 @@ class ContextService:
 - Character: {char.name} ({char.race} {char.class_name} Level {char.level})
 - HP: {char.hit_points.current}/{char.hit_points.maximum}, AC: {char.armor_class}
 - Location: {game_state.location}
-- Time: Day {game_state.game_time.day}, {game_state.game_time.hour:02d}:{game_state.game_time.minute:02d}"""
+- Time: Day {game_state.game_time.day}, {game_state.game_time.hour:02d}:{game_state.game_time.minute:02d}""",
         )
 
         # Add detailed NPC information

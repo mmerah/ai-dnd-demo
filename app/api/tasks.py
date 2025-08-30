@@ -36,18 +36,29 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
 
         # Get the AI response (MVP uses non-streaming for simplicity)
         async for chunk in ai_service.generate_response(
-            user_message=message, game_state=game_state, game_service=game_service, stream=False
+            user_message=message,
+            game_state=game_state,
+            game_service=game_service,
+            stream=False,
         ):
-            logger.debug(f"Received response: type={chunk.get('type')}")
-            if chunk["type"] == "complete":
-                narrative = chunk.get("narrative", "")
-                break
-            elif chunk["type"] == "error":
-                error_msg: str = chunk.get("message", "Unknown error")  # type: ignore[assignment]
-                logger.error(f"AI error for game {game_id}: {error_msg}")
-                error_data = ErrorData(error=error_msg)
-                await broadcast_service.publish(game_id, SSEEventType.ERROR, error_data)
-                return
+            logger.debug(f"Received response: type={chunk.type}")
+            if chunk.type == "complete":
+                # chunk is CompleteResponse
+                from app.models.ai_response import CompleteResponse
+
+                if isinstance(chunk, CompleteResponse):
+                    narrative = chunk.narrative
+                    break
+            elif chunk.type == "error":
+                # chunk is ErrorResponse
+                from app.models.ai_response import ErrorResponse
+
+                if isinstance(chunk, ErrorResponse):
+                    error_msg: str = chunk.message
+                    logger.error(f"AI error for game {game_id}: {error_msg}")
+                    error_data = ErrorData(error=error_msg)
+                    await broadcast_service.publish(game_id, SSEEventType.ERROR, error_data)
+                    return
 
         if not narrative:
             logger.error(f"Failed to get AI response for game {game_id} - narrative is empty")
@@ -66,8 +77,8 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
             game_service.save_game(updated_game_state)
 
             # Send character and game updates
-            await message_service.send_character_update(game_id, updated_game_state.character.model_dump())
-            await message_service.send_game_update(game_id, updated_game_state.model_dump())
+            await message_service.send_character_update(game_id, updated_game_state.character)
+            await message_service.send_game_update(game_id, updated_game_state)
 
             # Send detailed location update if we have scenario data
             scenario_service = container.get_scenario_service()
@@ -102,15 +113,19 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
                         )
 
             # Send quest update
-            active_quests_data = [quest.model_dump() for quest in updated_game_state.active_quests]
-            await message_service.send_quest_update(game_id, active_quests_data, updated_game_state.completed_quest_ids)
+            await message_service.send_quest_update(
+                game_id, updated_game_state.active_quests, updated_game_state.completed_quest_ids
+            )
 
             # Send act update if we have scenario data
             if updated_game_state.scenario_id and scenario:
                 current_act = scenario.progression.get_current_act()
                 if current_act:
                     await message_service.send_act_update(
-                        game_id, current_act.id, current_act.name, scenario.progression.current_act_index
+                        game_id,
+                        current_act.id,
+                        current_act.name,
+                        scenario.progression.current_act_index,
                     )
 
         complete_data = CompleteData(status="success")

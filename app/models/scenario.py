@@ -71,11 +71,11 @@ class ScenarioLocation(BaseModel):
 
         if variant == "first_visit" and self.descriptions.first_visit:
             return self.descriptions.first_visit
-        elif variant == "return_visit" and self.descriptions.return_visit:
+        if variant == "return_visit" and self.descriptions.return_visit:
             return self.descriptions.return_visit
-        elif variant == "cleared" and self.descriptions.cleared:
+        if variant == "cleared" and self.descriptions.cleared:
             return self.descriptions.cleared
-        elif variant in self.descriptions.special_conditions:
+        if variant in self.descriptions.special_conditions:
             return self.descriptions.special_conditions[variant]
 
         return self.description

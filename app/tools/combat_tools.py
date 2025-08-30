@@ -4,6 +4,7 @@ import logging
 import random
 from typing import Any
 
+from pydantic import BaseModel
 from pydantic_ai import RunContext
 
 from app.agents.dependencies import AgentDependencies
@@ -12,13 +13,14 @@ from app.events.commands.combat_commands import (
     StartCombatCommand,
     TriggerScenarioEncounterCommand,
 )
+from app.models.tool_results import GroupInitiativeResult
 from app.tools.decorators import tool_handler
 
 logger = logging.getLogger(__name__)
 
 
 @tool_handler(StartCombatCommand)
-async def start_combat(ctx: RunContext[AgentDependencies], npcs: list[dict[str, Any]]) -> dict[str, Any]:
+async def start_combat(ctx: RunContext[AgentDependencies], npcs: list[dict[str, Any]]) -> BaseModel:
     """Initialize combat with specific NPCs or monsters.
 
     Use when combat begins with known enemies.
@@ -36,7 +38,7 @@ async def start_combat(ctx: RunContext[AgentDependencies], npcs: list[dict[str, 
 
 
 @tool_handler(TriggerScenarioEncounterCommand)
-async def trigger_scenario_encounter(ctx: RunContext[AgentDependencies], encounter_id: str) -> dict[str, Any]:
+async def trigger_scenario_encounter(ctx: RunContext[AgentDependencies], encounter_id: str) -> BaseModel:
     """Start a predefined encounter from the scenario.
 
     Use when triggering specific scenario encounters.
@@ -53,7 +55,7 @@ async def trigger_scenario_encounter(ctx: RunContext[AgentDependencies], encount
 
 
 @tool_handler(SpawnMonstersCommand)
-async def spawn_monsters(ctx: RunContext[AgentDependencies], monsters: list[dict[str, int]]) -> dict[str, Any]:
+async def spawn_monsters(ctx: RunContext[AgentDependencies], monsters: list[dict[str, int]]) -> BaseModel:
     """Spawn monsters from the database.
 
     Use when adding monsters to the game from the monster database.
@@ -70,9 +72,7 @@ async def spawn_monsters(ctx: RunContext[AgentDependencies], monsters: list[dict
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 
-async def roll_group_initiative(
-    ctx: RunContext[AgentDependencies], group_name: str, modifier: int = 0
-) -> dict[str, Any]:
+async def roll_group_initiative(ctx: RunContext[AgentDependencies], group_name: str, modifier: int = 0) -> BaseModel:
     """Roll initiative for a group of similar enemies.
 
     Use for groups that act together in combat.
@@ -89,13 +89,13 @@ async def roll_group_initiative(
     roll = random.randint(1, 20)
     total = roll + modifier
 
-    result = {
-        "group": group_name,
-        "roll": roll,
-        "modifier": modifier,
-        "total": total,
-        "message": f"{group_name} initiative: {roll} + {modifier} = {total}",
-    }
+    result = GroupInitiativeResult(
+        group=group_name,
+        roll=roll,
+        modifier=modifier,
+        total=total,
+        message=f"{group_name} initiative: {roll} + {modifier} = {total}",
+    )
 
     # Would normally update combat state here
     return result

@@ -4,8 +4,9 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any
 from uuid import uuid4
+
+from pydantic import BaseModel
 
 
 class CommandPriority(Enum):
@@ -28,7 +29,6 @@ class BaseCommand(ABC):
     @abstractmethod
     def get_handler_name(self) -> str:
         """Return the name of the handler for this command."""
-        pass
 
 
 @dataclass
@@ -42,15 +42,14 @@ class BaseEvent(ABC):
     @abstractmethod
     def get_event_name(self) -> str:
         """Return the name of the SSE event."""
-        pass
 
 
 class CommandResult:
     """Result of command execution."""
 
-    def __init__(self, success: bool, data: dict[str, Any] | None = None, error: str | None = None):
+    def __init__(self, success: bool, data: BaseModel | None = None, error: str | None = None):
         self.success = success
-        self.data = data if data is not None else {}
+        self.data = data
         self.error = error
         self.follow_up_commands: list[BaseCommand] = []
 

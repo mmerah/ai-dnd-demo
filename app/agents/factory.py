@@ -169,11 +169,10 @@ The current game state and character information will be provided with each inte
 
             return narrative_agent
 
-        elif agent_type == AgentType.COMBAT:
+        if agent_type == AgentType.COMBAT:
             raise NotImplementedError("Combat agent not yet implemented")
 
-        elif agent_type == AgentType.SUMMARIZER:
+        if agent_type == AgentType.SUMMARIZER:
             raise NotImplementedError("Summarizer agent not yet implemented")
 
-        else:
-            raise ValueError(f"Unknown agent type: {agent_type}")
+        raise ValueError(f"Unknown agent type: {agent_type}")

@@ -1,8 +1,8 @@
 """Dice and combat-related tools for D&D 5e AI Dungeon Master."""
 
 import logging
-from typing import Any
 
+from pydantic import BaseModel
 from pydantic_ai import RunContext
 
 from app.agents.dependencies import AgentDependencies
@@ -19,8 +19,8 @@ async def roll_ability_check(
     dc: int = 15,
     advantage: str | None = None,
     target: str = "player",
-) -> dict[str, Any]:
-    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
+) -> BaseModel:
+    # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Roll an ability check for D&D 5e.
 
     Use this when a character attempts an action requiring an ability check.
@@ -68,7 +68,7 @@ async def roll_ability_check(
             game_id=game_state.game_id,
             tool_name="roll_ability_check",
             parameters={"ability": ability, "skill": skill, "dc": dc, "advantage": advantage, "target": target},
-        )
+        ),
     )
 
     # Execute the roll command and get the result
@@ -81,27 +81,23 @@ async def roll_ability_check(
             target=target,
             ability=ability,
             skill=skill,
-        )
+        ),
     )
 
     # Return the actual result with DC information
-    if result:
-        result["dc"] = dc  # Add DC to the result
-        return result
-    else:
-        return {
-            "type": "ability_check",
-            "ability": ability,
-            "skill": skill,
-            "target": target,
-            "dc": dc,
-        }
+    if not result:
+        raise RuntimeError("Failed to execute ability check command")
+
+    if not isinstance(result, BaseModel):
+        raise TypeError(f"Expected BaseModel from command, got {type(result)}")
+
+    return result
 
 
 async def roll_saving_throw(
-    ctx: RunContext[AgentDependencies], ability: str, dc: int = 15, advantage: str | None = None, target: str = "player"
-) -> dict[str, Any]:
-    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
+    ctx: RunContext[AgentDependencies], ability: str, dc: int = 15, advantage: str | None = None, target: str = "player",
+) -> BaseModel:
+    # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Roll a saving throw for D&D 5e.
 
     Use when a character must resist an effect or avoid danger.
@@ -136,7 +132,7 @@ async def roll_saving_throw(
             game_id=game_state.game_id,
             tool_name="roll_saving_throw",
             parameters={"ability": ability, "dc": dc, "advantage": advantage, "target": target},
-        )
+        ),
     )
 
     # Execute the roll command and get the result
@@ -148,15 +144,17 @@ async def roll_saving_throw(
             modifier=modifier,
             target=target,
             ability=ability,
-        )
+        ),
     )
 
     # Return the actual result with DC information
-    if result:
-        result["dc"] = dc  # Add DC to the result
-        return result
-    else:
-        return {"type": "saving_throw", "ability": ability, "target": target, "dc": dc}
+    if not result:
+        raise RuntimeError("Failed to execute saving throw command")
+
+    if not isinstance(result, BaseModel):
+        raise TypeError(f"Expected BaseModel from command, got {type(result)}")
+
+    return result
 
 
 async def roll_attack(
@@ -165,8 +163,8 @@ async def roll_attack(
     target: str,
     advantage: str | None = None,
     attacker: str = "player",
-) -> dict[str, Any]:
-    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
+) -> BaseModel:
+    # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Roll an attack in combat.
 
     Use when a character or NPC makes an attack.
@@ -207,21 +205,22 @@ async def roll_attack(
             game_id=game_state.game_id,
             tool_name="roll_attack",
             parameters={"weapon_name": weapon_name, "target": target, "advantage": advantage, "attacker": attacker},
-        )
+        ),
     )
 
     # Execute the roll command and get the result
     result = await event_bus.execute_command(
-        RollDiceCommand(game_id=game_state.game_id, roll_type="attack", dice=dice, modifier=modifier, target=target)
+        RollDiceCommand(game_id=game_state.game_id, roll_type="attack", dice=dice, modifier=modifier, target=target),
     )
 
     # Return the actual result with weapon and attacker info
-    if result:
-        result["weapon_name"] = weapon_name
-        result["attacker"] = attacker
-        return result
-    else:
-        return {"type": "attack", "weapon_name": weapon_name, "attacker": attacker, "target": target}
+    if not result:
+        raise RuntimeError("Failed to execute attack command")
+
+    if not isinstance(result, BaseModel):
+        raise TypeError(f"Expected BaseModel from command, got {type(result)}")
+
+    return result
 
 
 async def roll_damage(
@@ -230,8 +229,8 @@ async def roll_damage(
     damage_type: str = "slashing",
     critical: bool = False,
     source: str = "weapon",
-) -> dict[str, Any]:
-    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
+) -> BaseModel:
+    # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Roll damage for an attack or effect.
 
     Use after a successful attack or when damage occurs.
@@ -269,33 +268,28 @@ async def roll_damage(
             game_id=game_state.game_id,
             tool_name="roll_damage",
             parameters={"damage_dice": damage_dice, "damage_type": damage_type, "critical": critical, "source": source},
-        )
+        ),
     )
 
     # Execute the roll command and get the result
     result = await event_bus.execute_command(
         RollDiceCommand(
-            game_id=game_state.game_id, roll_type="damage", dice=damage_dice, modifier=0, damage_type=damage_type
-        )
+            game_id=game_state.game_id, roll_type="damage", dice=damage_dice, modifier=0, damage_type=damage_type,
+        ),
     )
 
     # Return the actual result with critical and source info
-    if result:
-        result["critical"] = critical
-        result["source"] = source
-        return result
-    else:
-        return {
-            "type": "damage",
-            "damage_dice": damage_dice,
-            "damage_type": damage_type,
-            "critical": critical,
-            "source": source,
-        }
+    if not result:
+        raise RuntimeError("Failed to execute damage command")
+
+    if not isinstance(result, BaseModel):
+        raise TypeError(f"Expected BaseModel from command, got {type(result)}")
+
+    return result
 
 
-async def roll_initiative(ctx: RunContext[AgentDependencies], combatants: list[str]) -> dict[str, Any]:
-    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
+async def roll_initiative(ctx: RunContext[AgentDependencies], combatants: list[str]) -> BaseModel:
+    # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Roll initiative for combat.
 
     Use at the start of combat to determine turn order.
@@ -317,24 +311,26 @@ async def roll_initiative(ctx: RunContext[AgentDependencies], combatants: list[s
         modifier = (character.abilities.DEX - 10) // 2
 
     # Broadcast the tool call
-    from app.models.game_state import JSONSerializable
+    from app.common.types import JSONSerializable
 
     combatants_data: JSONSerializable = combatants
     await event_bus.submit_command(
         BroadcastToolCallCommand(
-            game_id=game_state.game_id, tool_name="roll_initiative", parameters={"combatants": combatants_data}
-        )
+            game_id=game_state.game_id, tool_name="roll_initiative", parameters={"combatants": combatants_data},
+        ),
     )
 
     # Execute the roll command and get the result
     result = await event_bus.execute_command(
-        RollDiceCommand(game_id=game_state.game_id, roll_type="initiative", dice="1d20", modifier=modifier)
+        RollDiceCommand(game_id=game_state.game_id, roll_type="initiative", dice="1d20", modifier=modifier),
     )
 
     # Return the actual result with combatants info
-    # TODO: We should never fallback, just raise an error because that's wrong to not have a result available
-    if result:
-        result["combatants"] = combatants
-        return result
-    else:
-        return {"type": "initiative", "combatants": combatants}
+    # Never fallback, just raise an error because that's wrong to not have a result available
+    if not result:
+        raise RuntimeError("Failed to execute initiative command")
+
+    if not isinstance(result, BaseModel):
+        raise TypeError(f"Expected BaseModel from command, got {type(result)}")
+
+    return result

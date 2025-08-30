@@ -4,7 +4,6 @@ import json
 from pathlib import Path
 
 from app.interfaces.services import IDataService, IScenarioService
-from app.models.api_responses import ScenarioSummaryResponse
 from app.models.scenario import Scenario
 
 
@@ -111,19 +110,14 @@ class ScenarioService(IScenarioService):
 
         return None
 
-    def list_scenarios(self) -> list[ScenarioSummaryResponse]:
+    def list_scenarios(self) -> list[Scenario]:
         """
         List all available scenarios.
 
         Returns:
-            List of scenario summaries
+            List of Scenario objects
         """
-        scenarios = []
-        for scenario_id, scenario in self._scenarios.items():
-            scenarios.append(
-                ScenarioSummaryResponse(id=scenario_id, title=scenario.title, description=scenario.description)
-            )
-        return scenarios
+        return list(self._scenarios.values())
 
     def get_scenario_context_for_ai(self, scenario: Scenario, current_location_id: str) -> str:
         """
@@ -193,7 +187,7 @@ class ScenarioService(IScenarioService):
                 for spawn in encounter.monster_spawns:
                     if not data_service.validate_monster_reference(spawn.monster_name):
                         errors.append(
-                            f"Location '{location.name}': Monster '{spawn.monster_name}' not found in database"
+                            f"Location '{location.name}': Monster '{spawn.monster_name}' not found in database",
                         )
 
             # Check loot references

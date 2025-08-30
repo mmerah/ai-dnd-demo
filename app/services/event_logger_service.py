@@ -24,4 +24,4 @@ class EventLoggerService:
             logger.debug(f"[THINKING] {content}")
 
     def log_error(self, error: Exception) -> None:
-        logger.error(f"[ERROR] {type(error).__name__}: {str(error)}", exc_info=True)
+        logger.error(f"[ERROR] {type(error).__name__}: {error!s}", exc_info=True)

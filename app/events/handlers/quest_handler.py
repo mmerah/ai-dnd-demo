@@ -14,6 +14,12 @@ from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.services import IDataService, IGameService, IScenarioService
 from app.models.game_state import GameState
 from app.models.quest import ObjectiveStatus, QuestStatus
+from app.models.tool_results import (
+    CompleteObjectiveResult,
+    CompleteQuestResult,
+    ProgressActResult,
+    StartQuestResult,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -66,15 +72,15 @@ class QuestHandler(BaseHandler):
             # Save game state
             self.game_service.save_game(game_state)
 
-            result.data = {
-                "quest_id": command.quest_id,
-                "quest_name": quest.name,
-                "objectives": [
+            result.data = StartQuestResult(
+                quest_id=command.quest_id,
+                quest_name=quest.name,
+                objectives=[
                     {"id": obj.id, "description": obj.description, "status": obj.status.value}
                     for obj in quest_copy.objectives
                 ],
-                "message": f"Quest started: {quest.name}",
-            }
+                message=f"Quest started: {quest.name}",
+            )
 
             # Broadcast update
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
@@ -97,13 +103,13 @@ class QuestHandler(BaseHandler):
                 # Save game state
                 self.game_service.save_game(game_state)
 
-                result.data = {
-                    "quest_id": command.quest_id,
-                    "objective_id": command.objective_id,
-                    "quest_complete": quest_complete,
-                    "progress": quest.get_progress_percentage(),
-                    "message": f"Objective completed: {command.objective_id}",
-                }
+                result.data = CompleteObjectiveResult(
+                    quest_id=command.quest_id,
+                    objective_id=command.objective_id,
+                    quest_complete=quest_complete,
+                    progress=quest.get_progress_percentage(),
+                    message=f"Objective completed: {command.objective_id}",
+                )
 
                 # Broadcast update
                 result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
@@ -137,12 +143,12 @@ class QuestHandler(BaseHandler):
                 # Save game state
                 self.game_service.save_game(game_state)
 
-                result.data = {
-                    "quest_id": command.quest_id,
-                    "quest_name": quest.name,
-                    "rewards": quest.rewards_description,
-                    "message": f"Quest completed: {quest.name}",
-                }
+                result.data = CompleteQuestResult(
+                    quest_id=command.quest_id,
+                    quest_name=quest.name,
+                    rewards=quest.rewards_description,
+                    message=f"Quest completed: {quest.name}",
+                )
 
                 # Broadcast update
                 result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
@@ -181,11 +187,11 @@ class QuestHandler(BaseHandler):
                     # Save game state
                     self.game_service.save_game(game_state)
 
-                    result.data = {
-                        "new_act_id": new_act.id,
-                        "new_act_name": new_act.name,
-                        "message": f"Progressed to Act: {new_act.name}",
-                    }
+                    result.data = ProgressActResult(
+                        new_act_id=new_act.id,
+                        new_act_name=new_act.name,
+                        message=f"Progressed to Act: {new_act.name}",
+                    )
 
                     # Broadcast update
                     result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))

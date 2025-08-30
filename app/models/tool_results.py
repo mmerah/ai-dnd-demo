@@ -89,6 +89,112 @@ class AdvanceTimeResult(BaseModel):
     minutes_advanced: int
 
 
+class QuestAvailabilityResult(BaseModel):
+    type: str = "quest_availability"
+    available: bool
+    message: str
+    missing_prerequisites: list[str] | None = None
+
+
+class ObjectiveStatusResult(BaseModel):
+    type: str = "objective_status"
+    quest_id: str
+    objective_id: str
+    status: str
+    message: str
+
+
+class StartQuestResult(BaseModel):
+    type: str = "start_quest"
+    quest_id: str
+    quest_name: str
+    objectives: list[dict[str, str]]
+    message: str
+
+
+class CompleteObjectiveResult(BaseModel):
+    type: str = "complete_objective"
+    quest_id: str
+    objective_id: str
+    quest_complete: bool
+    progress: float
+    message: str
+
+
+class CompleteQuestResult(BaseModel):
+    type: str = "complete_quest"
+    quest_id: str
+    quest_name: str
+    rewards: str | None
+    message: str
+
+
+class ProgressActResult(BaseModel):
+    type: str = "progress_act"
+    new_act_id: str
+    new_act_name: str
+    message: str
+
+
+class SearchLocationResult(BaseModel):
+    type: str = "search_location"
+    success: bool
+    message: str
+    discovered: list[str] | None = None
+
+
+class ChangeLocationResult(BaseModel):
+    type: str = "change_location"
+    location_id: str
+    location_name: str
+    description: str | None
+    message: str
+
+
+class DiscoverSecretResult(BaseModel):
+    type: str = "discover_secret"
+    secret_id: str
+    description: str
+    message: str
+
+
+class UpdateLocationStateResult(BaseModel):
+    type: str = "update_location_state"
+    location_id: str
+    updates: list[str]
+    message: str
+
+
+class GroupInitiativeResult(BaseModel):
+    type: str = "group_initiative"
+    group: str
+    roll: int
+    modifier: int
+    total: int
+    message: str
+
+
+class StartCombatResult(BaseModel):
+    type: str = "start_combat"
+    combat_started: bool
+    participants: list[dict[str, str | int | bool]]
+    message: str
+
+
+class TriggerEncounterResult(BaseModel):
+    type: str = "trigger_encounter"
+    encounter_id: str
+    encounter_type: str
+    monsters_spawned: list[dict[str, str | int]]
+    message: str
+
+
+class SpawnMonstersResult(BaseModel):
+    type: str = "spawn_monsters"
+    monsters_spawned: list[dict[str, str | int]]
+    message: str
+
+
 class RollDiceResult(BaseModel):
     type: str
     roll_type: str

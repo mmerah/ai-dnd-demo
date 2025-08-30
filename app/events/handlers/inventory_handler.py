@@ -39,12 +39,9 @@ class InventoryHandler(BaseHandler):
             character.currency.copper += command.copper
 
             # Handle negative values
-            if character.currency.gold < 0:
-                character.currency.gold = 0
-            if character.currency.silver < 0:
-                character.currency.silver = 0
-            if character.currency.copper < 0:
-                character.currency.copper = 0
+            character.currency.gold = max(character.currency.gold, 0)
+            character.currency.silver = max(character.currency.silver, 0)
+            character.currency.copper = max(character.currency.copper, 0)
 
             self.game_service.save_game(game_state)
 
@@ -58,14 +55,14 @@ class InventoryHandler(BaseHandler):
                 change_gold=command.gold,
                 change_silver=command.silver,
                 change_copper=command.copper,
-            ).model_dump()
+            )
 
             result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
 
             logger.info(
                 f"Currency Update: Gold {old_gold}→{character.currency.gold}, "
                 f"Silver {old_silver}→{character.currency.silver}, "
-                f"Copper {old_copper}→{character.currency.copper}"
+                f"Copper {old_copper}→{character.currency.copper}",
             )
 
         elif isinstance(command, AddItemCommand):
@@ -89,7 +86,7 @@ class InventoryHandler(BaseHandler):
                 item_name=command.item_name,
                 quantity=command.quantity,
                 total_quantity=existing_item.quantity if existing_item else command.quantity,
-            ).model_dump()
+            )
 
             result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
 
@@ -121,8 +118,8 @@ class InventoryHandler(BaseHandler):
             result.data = RemoveItemResult(
                 item_name=command.item_name,
                 quantity=command.quantity,
-                remaining_quantity=existing_item.quantity if existing_item.quantity > 0 else 0,
-            ).model_dump()
+                remaining_quantity=max(0, existing_item.quantity),
+            )
 
             result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
 

@@ -56,7 +56,7 @@ class TimeHandler(BaseHandler):
                 new_hp=character.hit_points.current,
                 healing=healing,
                 time=f"Day {game_state.game_time.day}, {game_state.game_time.hour:02d}:{game_state.game_time.minute:02d}",
-            ).model_dump()
+            )
 
             result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
@@ -94,7 +94,7 @@ class TimeHandler(BaseHandler):
                 conditions_removed=[c for c in old_conditions if c not in character.conditions],
                 spell_slots_restored=True,
                 time=f"Day {game_state.game_time.day}, {game_state.game_time.hour:02d}:{game_state.game_time.minute:02d}",
-            ).model_dump()
+            )
 
             result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
@@ -125,7 +125,7 @@ class TimeHandler(BaseHandler):
                 old_time=old_time,
                 new_time=new_time,
                 minutes_advanced=command.minutes,
-            ).model_dump()
+            )
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 

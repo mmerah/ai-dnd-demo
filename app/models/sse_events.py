@@ -6,7 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-from app.models.game_state import JSONSerializable
+from app.common.types import JSONSerializable
 
 
 class SSEEventType(str, Enum):
@@ -47,7 +47,7 @@ class ConnectedData(BaseSSEData):
 class HeartbeatData(BaseSSEData):
     """Data for heartbeat event."""
 
-    pass  # Empty data for heartbeat
+    # Empty data for heartbeat
 
 
 class NarrativeData(BaseSSEData):

@@ -107,7 +107,6 @@ class LocationState(BaseModel):
         """Get description variant based on state."""
         if self.times_visited == 0:
             return "first_visit"
-        elif self.danger_level == DangerLevel.CLEARED:
+        if self.danger_level == DangerLevel.CLEARED:
             return "cleared"
-        else:
-            return "return_visit"
+        return "return_visit"

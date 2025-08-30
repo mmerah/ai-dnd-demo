@@ -6,15 +6,12 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from app.common.types import JSONSerializable
+
 from .character import CharacterSheet
 from .location import LocationState
 from .npc import NPCSheet
 from .quest import Quest
-
-# Type alias for JSON-serializable data
-# Note: We use Any here to avoid recursive type issues with Pydantic
-# All actual data is validated through Pydantic models
-JSONSerializable = str | int | float | bool | None | dict[str, Any] | list[Any]
 
 
 class MessageRole(str, Enum):
@@ -51,8 +48,8 @@ class GameEvent(BaseModel):
     event_type: GameEventType
     timestamp: datetime = Field(default_factory=datetime.now)
     tool_name: str | None = None
-    parameters: dict[str, JSONSerializable] | None = None
-    result: JSONSerializable | None = None  # Can be dict, str, or other types
+    parameters: dict[str, JSONSerializable] | None = None  # Tool parameters for storage
+    result: dict[str, JSONSerializable] | None = None  # Tool result for storage
     metadata: dict[str, JSONSerializable] | None = None  # Additional context
 
 
@@ -235,7 +232,7 @@ class GameState(BaseModel):
         event_type: GameEventType,
         tool_name: str | None = None,
         parameters: dict[str, JSONSerializable] | None = None,
-        result: JSONSerializable | None = None,
+        result: dict[str, JSONSerializable] | None = None,
         metadata: dict[str, JSONSerializable] | None = None,
     ) -> None:
         """Add a game mechanics event."""

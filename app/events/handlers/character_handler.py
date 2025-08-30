@@ -66,14 +66,14 @@ class CharacterHandler(BaseHandler):
                 damage_type=command.damage_type,
                 is_healing=command.amount > 0,
                 is_unconscious=new_hp == 0,
-            ).model_dump()
+            )
 
             # Add broadcast command
             result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
 
             logger.info(
                 f"HP Update: {command.target} {'healed' if command.amount > 0 else 'took'} "
-                f"{abs(command.amount)} {command.damage_type} - HP: {old_hp} → {new_hp}/{max_hp}"
+                f"{abs(command.amount)} {command.damage_type} - HP: {old_hp} → {new_hp}/{max_hp}",
             )
 
         elif isinstance(command, AddConditionCommand):
@@ -81,13 +81,12 @@ class CharacterHandler(BaseHandler):
                 character = game_state.character
                 if command.condition not in character.conditions:
                     character.conditions.append(command.condition)
-            else:
-                if game_state.combat:
-                    for participant in game_state.combat.participants:
-                        if participant.name.lower() == command.target.lower():
-                            if command.condition not in participant.conditions:
-                                participant.conditions.append(command.condition)
-                            break
+            elif game_state.combat:
+                for participant in game_state.combat.participants:
+                    if participant.name.lower() == command.target.lower():
+                        if command.condition not in participant.conditions:
+                            participant.conditions.append(command.condition)
+                        break
 
             self.game_service.save_game(game_state)
 
@@ -95,7 +94,7 @@ class CharacterHandler(BaseHandler):
                 target=command.target,
                 condition=command.condition,
                 duration=command.duration,
-            ).model_dump()
+            )
 
             result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
 
@@ -109,14 +108,13 @@ class CharacterHandler(BaseHandler):
                 if command.condition in character.conditions:
                     character.conditions.remove(command.condition)
                     removed = True
-            else:
-                if game_state.combat:
-                    for participant in game_state.combat.participants:
-                        if participant.name.lower() == command.target.lower():
-                            if command.condition in participant.conditions:
-                                participant.conditions.remove(command.condition)
-                                removed = True
-                            break
+            elif game_state.combat:
+                for participant in game_state.combat.participants:
+                    if participant.name.lower() == command.target.lower():
+                        if command.condition in participant.conditions:
+                            participant.conditions.remove(command.condition)
+                            removed = True
+                        break
 
             self.game_service.save_game(game_state)
 
@@ -124,7 +122,7 @@ class CharacterHandler(BaseHandler):
                 target=command.target,
                 condition=command.condition,
                 removed=removed,
-            ).model_dump()
+            )
 
             result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
 
@@ -159,7 +157,7 @@ class CharacterHandler(BaseHandler):
                 new_slots=new_slots,
                 max_slots=max_slots,
                 change=command.amount,
-            ).model_dump()
+            )
 
             result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
 
@@ -170,5 +168,5 @@ class CharacterHandler(BaseHandler):
     def can_handle(self, command: BaseCommand) -> bool:
         """Check if this handler can process the given command."""
         return isinstance(
-            command, UpdateHPCommand | AddConditionCommand | RemoveConditionCommand | UpdateSpellSlotsCommand
+            command, UpdateHPCommand | AddConditionCommand | RemoveConditionCommand | UpdateSpellSlotsCommand,
         )

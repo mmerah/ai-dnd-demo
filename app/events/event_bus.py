@@ -3,7 +3,8 @@
 import asyncio
 import logging
 from datetime import datetime
-from typing import Any
+
+from pydantic import BaseModel
 
 from app.events.base import BaseCommand
 from app.events.handlers.base_handler import BaseHandler
@@ -39,11 +40,11 @@ class EventBus(IEventBus):
         if not self.processing:
             self.processing_task = asyncio.create_task(self._process_queue())
 
-    async def execute_command(self, command: BaseCommand) -> dict[str, Any] | None:
+    async def execute_command(self, command: BaseCommand) -> BaseModel | None:
         """Execute a command synchronously and return its result data.
 
         This is used by tools to get immediate results from their commands.
-        Returns the data field from the CommandResult.
+        Returns the data field from the CommandResult as a BaseModel.
         """
         logger.info(f"Executing command synchronously: {type(command).__name__}")
 

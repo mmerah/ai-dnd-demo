@@ -198,7 +198,7 @@ class NarrativeAgent(BaseAgent):
                         # Check if we've already processed this tool call
                         if tool_call_id in processed_tool_calls:
                             logger.debug(
-                                f"Skipping duplicate FunctionToolCallEvent for {tool_name} (already processed)"
+                                f"Skipping duplicate FunctionToolCallEvent for {tool_name} (already processed)",
                             )
                             continue
                         processed_tool_calls.add(tool_call_id)
@@ -218,7 +218,6 @@ class NarrativeAgent(BaseAgent):
 
                 # Try different ways to get the tool name and result
                 tool_name = "unknown"
-                result_content = None
 
                 # First try to get tool name from our tracking dictionary
                 if hasattr(event, "tool_call_id") and event.tool_call_id in tool_calls_by_id:
@@ -227,14 +226,27 @@ class NarrativeAgent(BaseAgent):
                 # Get the result content
                 if hasattr(event, "result"):
                     result = event.result
-                    result_content = str(result.content) if hasattr(result, "content") else str(result)
+                    # Convert the BaseModel result to a dictionary for storage
+                    if hasattr(result, "model_dump"):
+                        # It's a Pydantic BaseModel, convert to dict
+                        result_dict = result.model_dump(mode="json")
+                    elif hasattr(result, "content") and hasattr(result.content, "model_dump"):
+                        # The content is a BaseModel
+                        result_dict = result.content.model_dump(mode="json")
+                    elif isinstance(result, dict):
+                        # Already a dict
+                        result_dict = result
+                    else:
+                        # Fallback: create a simple dict with the string representation
+                        result_dict = {"result": str(result)}
 
-                if result_content:
-                    self.event_logger.log_tool_result(tool_name, result_content)
-                    # Save result event
-                    self.captured_events.append((tool_name, None, result_content))
+                    # For logging, use string representation
+                    result_str = str(result.content) if hasattr(result, "content") else str(result)
+                    self.event_logger.log_tool_result(tool_name, result_str)
+                    # Save result event as dict for game state storage
+                    self.captured_events.append((tool_name, None, result_dict))
                     # Don't broadcast here - tools broadcast results via event bus
-                    logger.debug(f"Tool result detected: {tool_name} -> {result_content[:100]}")
+                    logger.debug(f"Tool result detected: {tool_name} -> {result_str[:100]}")
 
     async def process(
         self,
@@ -261,7 +273,8 @@ class NarrativeAgent(BaseAgent):
 
         # Convert conversation history - filter to only narrative agent messages
         message_history = self.message_converter.to_pydantic_messages(
-            game_state.conversation_history, agent_type="narrative"
+            game_state.conversation_history,
+            agent_type="narrative",
         )
 
         # Create the full prompt with context
@@ -299,7 +312,7 @@ class NarrativeAgent(BaseAgent):
 
             # Add narrative broadcast commands
             all_commands.append(
-                BroadcastNarrativeCommand(game_id=game_state.game_id, content=result.output, is_complete=False)
+                BroadcastNarrativeCommand(game_id=game_state.game_id, content=result.output, is_complete=False),
             )
             all_commands.append(BroadcastNarrativeCommand(game_id=game_state.game_id, content="", is_complete=True))
 
@@ -320,7 +333,7 @@ class NarrativeAgent(BaseAgent):
                                     tool_name=part.tool_name,
                                     args=part.args,
                                     tool_call_id=part.tool_call_id,
-                                )
+                                ),
                             )
 
             # Extract metadata for messages
@@ -353,7 +366,7 @@ class NarrativeAgent(BaseAgent):
             logger.debug(f"Saving {len(self.captured_events)} captured events to game state")
             for tool_name, params, result_data in self.captured_events:
                 logger.debug(
-                    f"Processing event: tool={tool_name}, has_params={params is not None}, has_result={result_data is not None}"
+                    f"Processing event: tool={tool_name}, has_params={params is not None}, has_result={result_data is not None}",
                 )
                 if params is not None:  # Tool call
                     logger.debug(f"Adding tool_call event for {tool_name}")

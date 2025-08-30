@@ -15,7 +15,6 @@ class BaseAgent(ABC):
     @abstractmethod
     def get_required_tools(self) -> list[Callable[..., Any]]:
         """Return list of tools this agent requires."""
-        pass
 
     @abstractmethod
     def process(
@@ -26,4 +25,3 @@ class BaseAgent(ABC):
         stream: bool = True,
     ) -> AsyncIterator[StreamEvent]:
         """Process a prompt and yield stream events."""
-        pass

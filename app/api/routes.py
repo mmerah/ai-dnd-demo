@@ -10,18 +10,14 @@ from sse_starlette.sse import EventSourceResponse
 
 from app.api.tasks import process_ai_and_broadcast
 from app.container import container
-from app.models.api_responses import (
-    ActionAcknowledgement,
-    GameStatusResponse,
-    ItemDetailResponse,
-    SavedGameSummary,
-    ScenarioDetailResponse,
-    ScenarioSummaryResponse,
-    SpellDetailResponse,
-)
+
+# Import core models directly instead of duplicate API response models
 from app.models.character import CharacterSheet
 from app.models.game_state import GameState
+from app.models.item import ItemDefinition
 from app.models.requests import NewGameRequest, NewGameResponse, PlayerActionRequest
+from app.models.scenario import Scenario
+from app.models.spell import SpellDefinition
 from app.models.sse_events import (
     ActUpdateData,
     ConnectionInfo,
@@ -42,7 +38,7 @@ router = APIRouter()
 
 
 # Endpoints
-@router.post("/game/new", response_model=NewGameResponse)
+@router.post("/game/new")
 async def create_new_game(request: NewGameRequest) -> NewGameResponse:
     """
     Create a new game session.
@@ -67,7 +63,7 @@ async def create_new_game(request: NewGameRequest) -> NewGameResponse:
 
         # Initialize game state
         game_state = game_service.initialize_game(
-            character=character, premise=request.premise, scenario_id=request.scenario_id
+            character=character, premise=request.premise, scenario_id=request.scenario_id,
         )
 
         # Don't send initial narrative here - it will be sent when SSE connects
@@ -82,11 +78,11 @@ async def create_new_game(request: NewGameRequest) -> NewGameResponse:
         raise
     except Exception as e:
         # Fail fast principle - no silent failures
-        raise HTTPException(status_code=500, detail=f"Failed to create game: {str(e)}") from e
+        raise HTTPException(status_code=500, detail=f"Failed to create game: {e!s}") from e
 
 
-@router.get("/games", response_model=list[SavedGameSummary])
-async def list_saved_games() -> list[SavedGameSummary]:
+@router.get("/games")
+async def list_saved_games() -> list[GameState]:
     """
     List all saved games.
 
@@ -99,10 +95,10 @@ async def list_saved_games() -> list[SavedGameSummary]:
     game_service = container.get_game_service()
 
     try:
-        saved_games = game_service.list_saved_games()
-        return [SavedGameSummary(**game) for game in saved_games]
+        # Service will return list of GameState objects
+        return game_service.list_saved_games()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to list saved games: {str(e)}") from e
+        raise HTTPException(status_code=500, detail=f"Failed to list saved games: {e!s}") from e
 
 
 @router.get("/game/{game_id}", response_model=GameState)
@@ -131,11 +127,11 @@ async def get_game_state(game_id: str) -> GameState:
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to load game: {str(e)}") from e
+        raise HTTPException(status_code=500, detail=f"Failed to load game: {e!s}") from e
 
 
-@router.post("/game/{game_id}/resume", response_model=GameStatusResponse)
-async def resume_game(game_id: str) -> GameStatusResponse:
+@router.post("/game/{game_id}/resume")
+async def resume_game(game_id: str) -> dict[str, str]:
     """
     Resume a saved game session.
 
@@ -156,18 +152,18 @@ async def resume_game(game_id: str) -> GameStatusResponse:
             raise HTTPException(status_code=404, detail=f"Game with ID '{game_id}' not found")
 
         # Game successfully loaded and cached in memory
-        return GameStatusResponse(game_id=game_id, status="resumed")
+        return {"game_id": game_id, "status": "resumed"}
 
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=f"Game with ID '{game_id}' not found") from e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to resume game: {str(e)}") from e
+        raise HTTPException(status_code=500, detail=f"Failed to resume game: {e!s}") from e
 
 
-@router.post("/game/{game_id}/action", response_model=ActionAcknowledgement)
+@router.post("/game/{game_id}/action")
 async def process_player_action(
-    game_id: str, request: PlayerActionRequest, background_tasks: BackgroundTasks
-) -> ActionAcknowledgement:
+    game_id: str, request: PlayerActionRequest, background_tasks: BackgroundTasks,
+) -> dict[str, str]:
     """
     Process a player action and trigger AI response processing.
 
@@ -195,12 +191,12 @@ async def process_player_action(
         background_tasks.add_task(process_ai_and_broadcast, game_id, request.message)
 
         # Return immediate acknowledgment
-        return ActionAcknowledgement(status="action received")
+        return {"status": "action received"}
 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to process action: {str(e)}") from e
+        raise HTTPException(status_code=500, detail=f"Failed to process action: {e!s}") from e
 
 
 @router.get("/game/{game_id}/sse")
@@ -254,7 +250,7 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
                     event=SSEEventType.SCENARIO_INFO,
                     data=ScenarioInfoData(
                         current_scenario=ScenarioSummary(
-                            id=game_state.scenario_id, title=game_state.scenario_title or ""
+                            id=game_state.scenario_id, title=game_state.scenario_title or "",
                         ),
                         available_scenarios=[
                             ScenarioSummary(id=s.id, title=s.title, description=s.description) for s in scenarios
@@ -298,7 +294,7 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
                 quest_event = SSEEvent(
                     event=SSEEventType.QUEST_UPDATE,
                     data=QuestUpdateData(
-                        active_quests=active_quests_data, completed_quest_ids=game_state.completed_quest_ids
+                        active_quests=active_quests_data, completed_quest_ids=game_state.completed_quest_ids,
                     ),
                 )
                 yield quest_event.to_sse_format()
@@ -328,11 +324,11 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to establish SSE connection: {str(e)}") from e
+        raise HTTPException(status_code=500, detail=f"Failed to establish SSE connection: {e!s}") from e
 
 
-@router.get("/scenarios", response_model=list[ScenarioSummaryResponse])
-async def list_available_scenarios() -> list[ScenarioSummaryResponse]:
+@router.get("/scenarios")
+async def list_available_scenarios() -> list[Scenario]:
     """
     List all available scenarios.
 
@@ -345,14 +341,14 @@ async def list_available_scenarios() -> list[ScenarioSummaryResponse]:
     scenario_service = container.get_scenario_service()
 
     try:
-        scenarios = scenario_service.list_scenarios()
-        return scenarios  # Already returns list[ScenarioSummaryResponse]
+        # Return full scenario objects, not summaries
+        return scenario_service.list_scenarios()
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to load scenarios: {str(e)}") from e
+        raise HTTPException(status_code=500, detail=f"Failed to load scenarios: {e!s}") from e
 
 
-@router.get("/scenarios/{scenario_id}", response_model=ScenarioDetailResponse)
-async def get_scenario(scenario_id: str) -> ScenarioDetailResponse:
+@router.get("/scenarios/{scenario_id}")
+async def get_scenario(scenario_id: str) -> Scenario:
     """
     Get a specific scenario by ID.
 
@@ -372,17 +368,12 @@ async def get_scenario(scenario_id: str) -> ScenarioDetailResponse:
         if not scenario:
             raise HTTPException(status_code=404, detail=f"Scenario with ID '{scenario_id}' not found")
 
-        return ScenarioDetailResponse(
-            id=scenario.id,
-            title=scenario.title,
-            description=scenario.description,
-            starting_location=scenario.starting_location,
-        )
+        return scenario
 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to load scenario: {str(e)}") from e
+        raise HTTPException(status_code=500, detail=f"Failed to load scenario: {e!s}") from e
 
 
 @router.get("/characters", response_model=list[CharacterSheet])
@@ -404,11 +395,11 @@ async def list_available_characters() -> list[CharacterSheet]:
         return characters
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to load characters: {str(e)}") from e
+        raise HTTPException(status_code=500, detail=f"Failed to load characters: {e!s}") from e
 
 
-@router.get("/items/{item_name}", response_model=ItemDetailResponse)
-async def get_item_details(item_name: str) -> ItemDetailResponse:
+@router.get("/items/{item_name}")
+async def get_item_details(item_name: str) -> ItemDefinition:
     """
     Get detailed information about an item.
 
@@ -428,27 +419,16 @@ async def get_item_details(item_name: str) -> ItemDetailResponse:
         if not item:
             raise HTTPException(status_code=404, detail=f"Item '{item_name}' not found")
 
-        return ItemDetailResponse(
-            name=item.name,
-            type=item.type.value,
-            rarity=item.rarity.value,
-            weight=item.weight,
-            value=item.value,
-            description=item.description,
-            damage=item.damage,
-            damage_type=item.damage_type,
-            properties=item.properties,
-            armor_class=item.armor_class,
-        )
+        return item
 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get item details: {str(e)}") from e
+        raise HTTPException(status_code=500, detail=f"Failed to get item details: {e!s}") from e
 
 
-@router.get("/spells/{spell_name}", response_model=SpellDetailResponse)
-async def get_spell_details(spell_name: str) -> SpellDetailResponse:
+@router.get("/spells/{spell_name}")
+async def get_spell_details(spell_name: str) -> SpellDefinition:
     """
     Get detailed information about a spell.
 
@@ -468,22 +448,9 @@ async def get_spell_details(spell_name: str) -> SpellDetailResponse:
         if not spell:
             raise HTTPException(status_code=404, detail=f"Spell '{spell_name}' not found")
 
-        return SpellDetailResponse(
-            name=spell.name,
-            level=spell.level,
-            school=spell.school.value,
-            casting_time=spell.casting_time,
-            range=spell.range,
-            components=spell.components,
-            duration=spell.duration,
-            description=spell.description,
-            higher_levels=spell.higher_levels,
-            classes=spell.classes,
-            ritual=spell.ritual,
-            concentration=spell.concentration,
-        )
+        return spell
 
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to get spell details: {str(e)}") from e
+        raise HTTPException(status_code=500, detail=f"Failed to get spell details: {e!s}") from e

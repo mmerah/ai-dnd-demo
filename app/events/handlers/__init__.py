@@ -9,9 +9,9 @@ from app.events.handlers.time_handler import TimeHandler
 
 __all__ = [
     "BaseHandler",
+    "BroadcastHandler",
     "CharacterHandler",
     "DiceHandler",
     "InventoryHandler",
     "TimeHandler",
-    "BroadcastHandler",
 ]

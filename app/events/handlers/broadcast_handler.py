@@ -55,13 +55,15 @@ class BroadcastHandler(BaseHandler):
             logger.debug(f"Broadcast tool result: {command.tool_name}")
 
         elif isinstance(command, BroadcastCharacterUpdateCommand):
-            character_dict = game_state.character.model_dump()
+            # Convert CharacterSheet BaseModel to dict at boundary
+            character_dict = game_state.character.model_dump(mode="json")
             character_update_data = CharacterUpdateData(character=character_dict)
             await broadcast_service.publish(command.game_id, SSEEventType.CHARACTER_UPDATE, character_update_data)
             logger.debug("Broadcast character update")
 
         elif isinstance(command, BroadcastGameUpdateCommand):
-            game_state_dict = game_state.model_dump()
+            # Convert GameState BaseModel to dict at boundary
+            game_state_dict = game_state.model_dump(mode="json")
             game_update_data = GameUpdateData(game_state=game_state_dict)
             await broadcast_service.publish(command.game_id, SSEEventType.GAME_UPDATE, game_update_data)
             logger.debug("Broadcast game state update")

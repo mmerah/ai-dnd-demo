@@ -6,7 +6,14 @@ from collections.abc import AsyncIterator
 from app.agents.base import BaseAgent
 from app.config import get_settings
 from app.interfaces.services import IAIService, IGameService
-from app.models.ai_response import AIResponse, NarrativeResponse, StreamEventType
+from app.models.ai_response import (
+    AIResponse,
+    CompleteResponse,
+    ErrorResponse,
+    NarrativeChunkResponse,
+    NarrativeResponse,
+    StreamEventType,
+)
 from app.models.game_state import GameState
 
 logger = logging.getLogger(__name__)
@@ -54,30 +61,23 @@ class AIService(IAIService):
                 # Convert StreamEvent to the expected format
                 if event.type == StreamEventType.NARRATIVE_CHUNK:
                     logger.debug(f"Yielding narrative_chunk: '{event.content[:30]}...'")
-                    yield {"type": "narrative_chunk", "content": event.content}
+                    yield NarrativeChunkResponse(content=event.content)
                 elif event.type == StreamEventType.COMPLETE:
                     response: NarrativeResponse = event.content
                     logger.info(
-                        f"Yielding complete event with narrative length: {len(response.narrative) if response.narrative else 0}"
+                        f"Yielding complete event with narrative length: {len(response.narrative) if response.narrative else 0}",
                     )
-                    yield {
-                        "type": "complete",
-                        "narrative": response.narrative
+                    yield CompleteResponse(
+                        narrative=response.narrative
                         if response.narrative
                         else "I couldn't generate a response. Please try again.",
-                    }
+                    )
                 elif event.type == StreamEventType.ERROR:
                     logger.error(f"Yielding error event: {event.content}")
-                    yield {
-                        "type": "error",
-                        "message": f"Failed to generate response: {event.content}",
-                    }
+                    yield ErrorResponse(message=f"Failed to generate response: {event.content}")
             logger.info(f"AIService.generate_response completed. Total events: {event_count}")
         except Exception as e:
             logger.error(f"Error in generate_response: {e}", exc_info=True)
-            yield {
-                "type": "error",
-                "message": f"Failed to generate response: {str(e)}",
-            }
+            yield ErrorResponse(message=f"Failed to generate response: {e!s}")
             # Fail fast
             raise

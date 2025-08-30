@@ -13,6 +13,11 @@ from app.events.commands.combat_commands import (
 from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.services import IDataService, IGameService, IScenarioService
 from app.models.game_state import GameState
+from app.models.tool_results import (
+    SpawnMonstersResult,
+    StartCombatResult,
+    TriggerEncounterResult,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -34,7 +39,7 @@ class CombatHandler(BaseHandler):
             if not game_state.combat:
                 game_state.start_combat()
 
-            participants_added = []
+            participants_added: list[dict[str, str | int | bool]] = []
 
             # Add NPCs to combat
             for npc_def in command.npcs:
@@ -57,17 +62,17 @@ class CombatHandler(BaseHandler):
                 player_initiative = random.randint(1, 20) + player_dex_mod
                 game_state.combat.add_participant(game_state.character.name, player_initiative, is_player=True)
                 participants_added.append(
-                    {"name": game_state.character.name, "initiative": player_initiative, "is_player": True}
+                    {"name": game_state.character.name, "initiative": player_initiative, "is_player": True},
                 )
 
             # Save game state
             self.game_service.save_game(game_state)
 
-            result.data = {
-                "combat_started": True,
-                "participants": participants_added,
-                "message": "Combat has begun!",
-            }
+            result.data = StartCombatResult(
+                combat_started=True,
+                participants=participants_added,
+                message="Combat has begun!",
+            )
 
             # Broadcast combat update
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
@@ -93,7 +98,7 @@ class CombatHandler(BaseHandler):
             if not game_state.combat:
                 game_state.start_combat()
 
-            monsters_spawned = []
+            monsters_spawned: list[dict[str, str | int]] = []
 
             # Spawn monsters from encounter
             for spawn in encounter.monster_spawns:
@@ -132,12 +137,12 @@ class CombatHandler(BaseHandler):
             # Save game state
             self.game_service.save_game(game_state)
 
-            result.data = {
-                "encounter_id": command.encounter_id,
-                "encounter_type": encounter.type,
-                "monsters_spawned": monsters_spawned,
-                "message": f"Encounter triggered: {encounter.description}",
-            }
+            result.data = TriggerEncounterResult(
+                encounter_id=command.encounter_id,
+                encounter_type=encounter.type,
+                monsters_spawned=monsters_spawned,
+                message=f"Encounter triggered: {encounter.description}",
+            )
 
             # Broadcast combat update
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
@@ -145,7 +150,7 @@ class CombatHandler(BaseHandler):
             logger.info(f"Triggered encounter '{command.encounter_id}' with {len(monsters_spawned)} monsters")
 
         elif isinstance(command, SpawnMonstersCommand):
-            monsters_spawned = []
+            spawned_monsters: list[dict[str, str | int]] = []
 
             for monster_spec in command.monsters:
                 monster_name = str(monster_spec.get("monster_name", ""))
@@ -168,9 +173,9 @@ class CombatHandler(BaseHandler):
                                 dex_mod = (monster_data.abilities.DEX - 10) // 2
                                 initiative = random.randint(1, 20) + dex_mod
                                 game_state.combat.add_participant(name, initiative, is_player=False)
-                                monsters_spawned.append({"name": name, "initiative": initiative})
+                                spawned_monsters.append({"name": name, "initiative": initiative})
                             else:
-                                monsters_spawned.append({"name": name})
+                                spawned_monsters.append({"name": name})
                     except KeyError as e:
                         logger.error(f"Failed to spawn monster '{monster_name}': {e}")
                         result.success = False
@@ -180,16 +185,16 @@ class CombatHandler(BaseHandler):
             # Save game state
             self.game_service.save_game(game_state)
 
-            result.data = {
-                "monsters_spawned": monsters_spawned,
-                "message": f"Spawned {len(monsters_spawned)} monster(s)",
-            }
+            result.data = SpawnMonstersResult(
+                monsters_spawned=spawned_monsters,
+                message=f"Spawned {len(spawned_monsters)} monster(s)",
+            )
 
             # Broadcast update
             if game_state.combat:
                 result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
-            logger.info(f"Spawned {len(monsters_spawned)} monsters")
+            logger.info(f"Spawned {len(spawned_monsters)} monsters")
 
         return result
 

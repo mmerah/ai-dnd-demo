@@ -1,8 +1,8 @@
 """Location and navigation tools for D&D 5e AI Dungeon Master."""
 
 import logging
-from typing import Any
 
+from pydantic import BaseModel
 from pydantic_ai import RunContext
 
 from app.agents.dependencies import AgentDependencies
@@ -11,13 +11,14 @@ from app.events.commands.location_commands import (
     DiscoverSecretCommand,
     UpdateLocationStateCommand,
 )
+from app.models.tool_results import SearchLocationResult
 from app.tools.decorators import tool_handler
 
 logger = logging.getLogger(__name__)
 
 
 @tool_handler(ChangeLocationCommand)
-async def change_location(ctx: RunContext[AgentDependencies], location_id: str) -> dict[str, Any]:
+async def change_location(ctx: RunContext[AgentDependencies], location_id: str) -> BaseModel:
     """Move to a connected location.
 
     Use when the player travels to a new area.
@@ -34,7 +35,7 @@ async def change_location(ctx: RunContext[AgentDependencies], location_id: str) 
 
 
 @tool_handler(DiscoverSecretCommand)
-async def discover_secret(ctx: RunContext[AgentDependencies], secret_id: str) -> dict[str, Any]:
+async def discover_secret(ctx: RunContext[AgentDependencies], secret_id: str) -> BaseModel:
     """Reveal a hidden secret or area.
 
     Use when the player discovers something hidden.
@@ -50,7 +51,7 @@ async def discover_secret(ctx: RunContext[AgentDependencies], secret_id: str) ->
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 
-async def search_location(ctx: RunContext[AgentDependencies], dc: int = 15) -> dict[str, Any]:
+async def search_location(ctx: RunContext[AgentDependencies], dc: int = 15) -> BaseModel:
     """Search the current location for secrets and hidden items.
 
     Use when the player actively searches or investigates.
@@ -69,7 +70,7 @@ async def search_location(ctx: RunContext[AgentDependencies], dc: int = 15) -> d
 
     # Get current location state
     if not game_state.current_location_id:
-        return {"success": False, "message": "No current location to search"}
+        return SearchLocationResult(success=False, message="No current location to search")
 
     location_state = game_state.get_location_state(game_state.current_location_id)
 
@@ -88,13 +89,13 @@ async def search_location(ctx: RunContext[AgentDependencies], dc: int = 15) -> d
 
     if discovered:
         game_service.save_game(game_state)
-        return {"success": True, "discovered": discovered, "message": f"Found {len(discovered)} secret(s)!"}
+        return SearchLocationResult(success=True, discovered=discovered, message=f"Found {len(discovered)} secret(s)!")
 
-    return {"success": False, "message": "Nothing unusual found"}
+    return SearchLocationResult(success=False, message="Nothing unusual found")
 
 
 @tool_handler(UpdateLocationStateCommand)
-async def update_location_danger(ctx: RunContext[AgentDependencies], danger_level: str) -> dict[str, Any]:
+async def update_location_danger(ctx: RunContext[AgentDependencies], danger_level: str) -> BaseModel:
     """Update the danger level of the current location.
 
     Use when the threat level changes.

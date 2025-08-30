@@ -175,9 +175,8 @@ class CharacterSheet(BaseModel):
             if amount <= self.hit_points.temporary:
                 self.hit_points.temporary -= amount
                 return 0
-            else:
-                amount -= self.hit_points.temporary
-                self.hit_points.temporary = 0
+            amount -= self.hit_points.temporary
+            self.hit_points.temporary = 0
 
         # Then reduce actual HP
         actual_damage = min(amount, self.hit_points.current)

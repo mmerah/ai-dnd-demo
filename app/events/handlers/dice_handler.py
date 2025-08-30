@@ -8,6 +8,7 @@ from app.events.commands.dice_commands import RollDiceCommand
 from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.services import IGameService
 from app.models.game_state import GameState
+from app.models.tool_results import RollDiceResult
 from app.services.dice_service import DiceService
 
 logger = logging.getLogger(__name__)
@@ -49,28 +50,32 @@ class DiceHandler(BaseHandler):
             # Perform the dice roll
             roll_result = self.dice_service.roll_dice(formula, roll_type)
 
-            result.data = {
-                "type": f"dice_roll_{command.roll_type}",
-                "roll_type": command.roll_type,
-                "dice": command.dice,
-                "modifier": command.modifier,
-                "rolls": roll_result.rolls,
-                "total": roll_result.total,
-                "target": command.target,
-                "ability": command.ability,
-                "skill": command.skill,
-                "damage_type": command.damage_type,
-            }
+            # Create the result model
+            dice_result = RollDiceResult(
+                type=f"dice_roll_{command.roll_type}",
+                roll_type=command.roll_type,
+                dice=command.dice,
+                modifier=command.modifier,
+                rolls=roll_result.rolls,
+                total=roll_result.total,
+                target=command.target,
+                ability=command.ability,
+                skill=command.skill,
+                damage_type=command.damage_type,
+            )
+            result.data = dice_result
 
-            # Create broadcast command for the result
+            # Create broadcast command for the result (convert to dict at boundary)
             result.add_command(
                 BroadcastToolResultCommand(
-                    game_id=command.game_id, tool_name=f"roll_{command.roll_type}", result=result.data
-                )
+                    game_id=command.game_id,
+                    tool_name=f"roll_{command.roll_type}",
+                    result=dice_result.model_dump(mode="json"),
+                ),
             )
 
             logger.info(
-                f"Dice Roll: {command.roll_type} - {formula} = {roll_result.total} " f"(rolls: {roll_result.rolls})"
+                f"Dice Roll: {command.roll_type} - {formula} = {roll_result.total} (rolls: {roll_result.rolls})",
             )
 
         return result

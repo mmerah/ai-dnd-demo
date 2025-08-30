@@ -13,6 +13,11 @@ from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.services import IDataService, IGameService, IScenarioService
 from app.models.game_state import GameState
 from app.models.location import DangerLevel
+from app.models.tool_results import (
+    ChangeLocationResult,
+    DiscoverSecretResult,
+    UpdateLocationStateResult,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -40,12 +45,12 @@ class LocationHandler(BaseHandler):
             # Save game state
             self.game_service.save_game(game_state)
 
-            result.data = {
-                "location_id": command.location_id,
-                "location_name": command.location_name,
-                "description": command.description,
-                "message": f"Moved to {command.location_name}",
-            }
+            result.data = ChangeLocationResult(
+                location_id=command.location_id,
+                location_name=command.location_name,
+                description=command.description,
+                message=f"Moved to {command.location_name}",
+            )
 
             # Broadcast update
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
@@ -61,11 +66,11 @@ class LocationHandler(BaseHandler):
                 # Save game state
                 self.game_service.save_game(game_state)
 
-                result.data = {
-                    "secret_id": command.secret_id,
-                    "description": command.secret_description,
-                    "message": f"Discovered secret: {command.secret_description}",
-                }
+                result.data = DiscoverSecretResult(
+                    secret_id=command.secret_id,
+                    description=command.secret_description,
+                    message=f"Discovered secret: {command.secret_description}",
+                )
 
                 # Broadcast update
                 result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
@@ -117,11 +122,11 @@ class LocationHandler(BaseHandler):
             # Save game state
             self.game_service.save_game(game_state)
 
-            result.data = {
-                "location_id": command.location_id or game_state.current_location_id,
-                "updates": updates,
-                "message": f"Location state updated: {', '.join(updates)}",
-            }
+            result.data = UpdateLocationStateResult(
+                location_id=command.location_id or game_state.current_location_id,
+                updates=updates,
+                message=f"Location state updated: {', '.join(updates)}",
+            )
 
             # Broadcast update
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))

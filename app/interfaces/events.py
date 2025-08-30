@@ -1,7 +1,9 @@
 """Event and command interfaces for dependency inversion."""
 
 from abc import ABC, abstractmethod
-from typing import Any, TypeVar
+from typing import TypeVar
+
+from pydantic import BaseModel
 
 from app.events.base import BaseCommand, CommandResult
 from app.models.game_state import GameState
@@ -21,7 +23,7 @@ class IEventBus(ABC):
         pass
 
     @abstractmethod
-    async def execute_command(self, command: BaseCommand) -> dict[str, Any] | None:
+    async def execute_command(self, command: BaseCommand) -> BaseModel | None:
         pass
 
     @abstractmethod

@@ -1,8 +1,8 @@
 """Inventory management tools for D&D 5e AI Dungeon Master."""
 
 import logging
-from typing import Any
 
+from pydantic import BaseModel
 from pydantic_ai import RunContext
 
 from app.agents.dependencies import AgentDependencies
@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)
 
 @tool_handler(ModifyCurrencyCommand)
 async def modify_currency(
-    ctx: RunContext[AgentDependencies], gold: int = 0, silver: int = 0, copper: int = 0
-) -> dict[str, Any]:
-    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
+    ctx: RunContext[AgentDependencies], gold: int = 0, silver: int = 0, copper: int = 0,
+) -> BaseModel:
+    # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Modify the player's currency.
 
     Use when the player gains or spends money.
@@ -39,8 +39,8 @@ async def modify_currency(
 
 
 @tool_handler(AddItemCommand)
-async def add_item(ctx: RunContext[AgentDependencies], item_name: str, quantity: int = 1) -> dict[str, Any]:
-    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
+async def add_item(ctx: RunContext[AgentDependencies], item_name: str, quantity: int = 1) -> BaseModel:
+    # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Add an item to the player's inventory.
 
     Use when the player acquires items.
@@ -58,8 +58,8 @@ async def add_item(ctx: RunContext[AgentDependencies], item_name: str, quantity:
 
 
 @tool_handler(RemoveItemCommand)
-async def remove_item(ctx: RunContext[AgentDependencies], item_name: str, quantity: int = 1) -> dict[str, Any]:
-    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
+async def remove_item(ctx: RunContext[AgentDependencies], item_name: str, quantity: int = 1) -> BaseModel:
+    # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Remove an item from the player's inventory.
 
     Use when the player uses or loses items.

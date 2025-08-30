@@ -3,10 +3,10 @@
 from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator, AsyncIterator
 
+from app.common.types import JSONSerializable
 from app.models.ai_response import AIResponse
-from app.models.api_responses import ScenarioSummaryResponse
 from app.models.character import CharacterSheet
-from app.models.game_state import GameState, JSONSerializable, MessageRole
+from app.models.game_state import GameState, MessageRole
 from app.models.item import ItemDefinition
 from app.models.npc import NPCSheet
 from app.models.scenario import Scenario
@@ -21,7 +21,7 @@ class ICharacterService(ABC):
         pass
 
     @abstractmethod
-    def list_characters(self) -> list[dict[str, str]]:
+    def list_characters(self) -> list[CharacterSheet]:
         pass
 
     @abstractmethod
@@ -38,7 +38,7 @@ class IGameService(ABC):
 
     @abstractmethod
     def initialize_game(
-        self, character: CharacterSheet, premise: str | None = None, scenario_id: str | None = None
+        self, character: CharacterSheet, premise: str | None = None, scenario_id: str | None = None,
     ) -> GameState:
         pass
 
@@ -74,13 +74,13 @@ class IGameService(ABC):
         event_type: str,
         tool_name: str | None = None,
         parameters: dict[str, JSONSerializable] | None = None,
-        result: JSONSerializable | None = None,
+        result: dict[str, JSONSerializable] | None = None,
         metadata: dict[str, JSONSerializable] | None = None,
     ) -> GameState:
         pass
 
     @abstractmethod
-    def list_saved_games(self) -> list[dict[str, str | None]]:
+    def list_saved_games(self) -> list[GameState]:
         pass
 
 
@@ -89,7 +89,7 @@ class IAIService(ABC):
 
     @abstractmethod
     def generate_response(
-        self, user_message: str, game_state: GameState, game_service: IGameService, stream: bool = True
+        self, user_message: str, game_state: GameState, game_service: IGameService, stream: bool = True,
     ) -> AsyncIterator[AIResponse]:
         pass
 
@@ -102,7 +102,7 @@ class IScenarioService(ABC):
         pass
 
     @abstractmethod
-    def list_scenarios(self) -> list[ScenarioSummaryResponse]:
+    def list_scenarios(self) -> list[Scenario]:
         pass
 
     @abstractmethod

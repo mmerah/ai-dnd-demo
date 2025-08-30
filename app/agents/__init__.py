@@ -6,8 +6,8 @@ from app.agents.narrative_agent import NarrativeAgent
 from app.agents.types import AgentType
 
 __all__ = [
-    "BaseAgent",
     "AgentFactory",
     "AgentType",
+    "BaseAgent",
     "NarrativeAgent",
 ]

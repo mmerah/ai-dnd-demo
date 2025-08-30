@@ -2,7 +2,10 @@
 
 import logging
 
-from app.models.game_state import JSONSerializable
+from app.common.types import JSONSerializable
+from app.models.character import CharacterSheet
+from app.models.game_state import CombatState, GameState
+from app.models.quest import Quest
 from app.models.sse_events import (
     ActUpdateData,
     CharacterUpdateData,
@@ -31,7 +34,11 @@ class MessageService:
     """Service for managing and broadcasting all game messages."""
 
     async def send_narrative(
-        self, game_id: str, content: str, is_chunk: bool = False, is_complete: bool = False
+        self,
+        game_id: str,
+        content: str,
+        is_chunk: bool = False,
+        is_complete: bool = False,
     ) -> None:
         """
         Send narrative content to the chat.
@@ -109,26 +116,30 @@ class MessageService:
         data = DiceRollData(roll_type=roll_type, dice=dice, modifier=modifier, result=result, details=details or {})
         await broadcast_service.publish(game_id, SSEEventType.DICE_ROLL, data)
 
-    async def send_character_update(self, game_id: str, character_data: dict[str, JSONSerializable]) -> None:
+    async def send_character_update(self, game_id: str, character: CharacterSheet) -> None:
         """
         Send character sheet update.
 
         Args:
             game_id: Game identifier
-            character_data: Updated character data
+            character: CharacterSheet instance
         """
-        data = CharacterUpdateData(character=character_data)
+        # Convert CharacterSheet to dict at the boundary
+        character_dict = character.model_dump(mode="json")
+        data = CharacterUpdateData(character=character_dict)
         await broadcast_service.publish(game_id, SSEEventType.CHARACTER_UPDATE, data)
 
-    async def send_combat_update(self, game_id: str, combat_data: dict[str, JSONSerializable]) -> None:
+    async def send_combat_update(self, game_id: str, combat: CombatState) -> None:
         """
         Send combat state update.
 
         Args:
             game_id: Game identifier
-            combat_data: Combat state data
+            combat: CombatState instance
         """
-        data = CombatUpdateData(combat=combat_data)
+        # Convert CombatState to dict at the boundary
+        combat_dict = combat.model_dump(mode="json")
+        data = CombatUpdateData(combat=combat_dict)
         await broadcast_service.publish(game_id, SSEEventType.COMBAT_UPDATE, data)
 
     async def send_system_message(self, game_id: str, message: str, level: str = "info") -> None:
@@ -155,15 +166,17 @@ class MessageService:
         data = ErrorData(error=error, type=error_type)
         await broadcast_service.publish(game_id, SSEEventType.ERROR, data)
 
-    async def send_game_update(self, game_id: str, game_state_data: dict[str, JSONSerializable]) -> None:
+    async def send_game_update(self, game_id: str, game_state: GameState) -> None:
         """
         Send complete game state update.
 
         Args:
             game_id: Game identifier
-            game_state_data: Complete game state data from GameState.model_dump()
+            game_state: GameState instance
         """
-        data = GameUpdateData(game_state=game_state_data)
+        # Convert GameState to dict at the boundary
+        game_state_dict = game_state.model_dump(mode="json")
+        data = GameUpdateData(game_state=game_state_dict)
         await broadcast_service.publish(game_id, SSEEventType.GAME_UPDATE, data)
 
     async def send_location_update(
@@ -199,17 +212,22 @@ class MessageService:
         await broadcast_service.publish(game_id, SSEEventType.LOCATION_UPDATE, data)
 
     async def send_quest_update(
-        self, game_id: str, active_quests: list[dict[str, JSONSerializable]], completed_quest_ids: list[str]
+        self,
+        game_id: str,
+        active_quests: list[Quest],
+        completed_quest_ids: list[str],
     ) -> None:
         """
         Send quest status update.
 
         Args:
             game_id: Game identifier
-            active_quests: List of active quests with objectives
+            active_quests: List of active Quest instances
             completed_quest_ids: List of completed quest IDs
         """
-        data = QuestUpdateData(active_quests=active_quests, completed_quest_ids=completed_quest_ids)
+        # Convert Quest models to dicts at the boundary
+        active_quests_data = [quest.model_dump(mode="json") for quest in active_quests]
+        data = QuestUpdateData(active_quests=active_quests_data, completed_quest_ids=completed_quest_ids)
         await broadcast_service.publish(game_id, SSEEventType.QUEST_UPDATE, data)
 
     async def send_act_update(self, game_id: str, act_id: str, act_name: str, act_index: int) -> None:
@@ -226,7 +244,11 @@ class MessageService:
         await broadcast_service.publish(game_id, SSEEventType.ACT_UPDATE, data)
 
     async def send_scenario_info(
-        self, game_id: str, scenario_title: str, scenario_id: str, available_scenarios: list[dict[str, str]]
+        self,
+        game_id: str,
+        scenario_title: str,
+        scenario_id: str,
+        available_scenarios: list[dict[str, str]],
     ) -> None:
         """
         Send scenario information to the frontend.

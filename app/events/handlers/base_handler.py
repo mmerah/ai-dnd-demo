@@ -16,9 +16,7 @@ class BaseHandler(ABC):
     @abstractmethod
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle a command and return result with any follow-up commands."""
-        pass
 
     @abstractmethod
     def can_handle(self, command: BaseCommand) -> bool:
         """Check if this handler can process the given command."""
-        pass

@@ -34,7 +34,7 @@ class DiceRoll:
         base = f"{self.dice_count}d{self.dice_sides}"
         if self.modifier > 0:
             return f"{base}+{self.modifier}"
-        elif self.modifier < 0:
+        if self.modifier < 0:
             return f"{base}{self.modifier}"
         return base
 
@@ -175,7 +175,7 @@ class DiceService:
         return result
 
     def roll_saving_throw(
-        self, ability_modifier: int, proficiency_bonus: int = 0, dc: int = 10, roll_type: RollType = RollType.NORMAL
+        self, ability_modifier: int, proficiency_bonus: int = 0, dc: int = 10, roll_type: RollType = RollType.NORMAL,
     ) -> dict[str, Any]:
         """
         Roll a saving throw.
@@ -190,7 +190,7 @@ class DiceService:
             Dict with roll details and success status
         """
         return self.roll_ability_check(
-            ability_modifier=ability_modifier, proficiency_bonus=proficiency_bonus, dc=dc, roll_type=roll_type
+            ability_modifier=ability_modifier, proficiency_bonus=proficiency_bonus, dc=dc, roll_type=roll_type,
         )
 
     def roll_attack(self, attack_bonus: int, target_ac: int, roll_type: RollType = RollType.NORMAL) -> dict[str, Any]:

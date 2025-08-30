@@ -1,8 +1,8 @@
 """Quest management tools for D&D 5e AI Dungeon Master."""
 
 import logging
-from typing import Any
 
+from pydantic import BaseModel
 from pydantic_ai import RunContext
 
 from app.agents.dependencies import AgentDependencies
@@ -13,13 +13,14 @@ from app.events.commands.quest_commands import (
     StartQuestCommand,
 )
 from app.models.quest import ObjectiveStatus
+from app.models.tool_results import ObjectiveStatusResult, QuestAvailabilityResult
 from app.tools.decorators import tool_handler
 
 logger = logging.getLogger(__name__)
 
 
 @tool_handler(StartQuestCommand)
-async def start_quest(ctx: RunContext[AgentDependencies], quest_id: str) -> dict[str, Any]:
+async def start_quest(ctx: RunContext[AgentDependencies], quest_id: str) -> BaseModel:
     """Activate a new quest.
 
     Use when the player accepts or begins a quest.
@@ -36,7 +37,7 @@ async def start_quest(ctx: RunContext[AgentDependencies], quest_id: str) -> dict
 
 
 @tool_handler(CompleteObjectiveCommand)
-async def complete_objective(ctx: RunContext[AgentDependencies], quest_id: str, objective_id: str) -> dict[str, Any]:
+async def complete_objective(ctx: RunContext[AgentDependencies], quest_id: str, objective_id: str) -> BaseModel:
     """Mark a quest objective as completed.
 
     Use when the player achieves a quest objective.
@@ -54,7 +55,7 @@ async def complete_objective(ctx: RunContext[AgentDependencies], quest_id: str, 
 
 
 @tool_handler(CompleteQuestCommand)
-async def complete_quest(ctx: RunContext[AgentDependencies], quest_id: str) -> dict[str, Any]:
+async def complete_quest(ctx: RunContext[AgentDependencies], quest_id: str) -> BaseModel:
     """Complete an entire quest.
 
     Use when all quest objectives are done.
@@ -70,7 +71,7 @@ async def complete_quest(ctx: RunContext[AgentDependencies], quest_id: str) -> d
 
 
 @tool_handler(ProgressActCommand)
-async def progress_act(ctx: RunContext[AgentDependencies]) -> dict[str, Any]:
+async def progress_act(ctx: RunContext[AgentDependencies]) -> BaseModel:
     """Progress to the next act of the scenario.
 
     Use when moving to the next chapter of the story.
@@ -83,7 +84,7 @@ async def progress_act(ctx: RunContext[AgentDependencies]) -> dict[str, Any]:
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 
-async def check_quest_prerequisites(ctx: RunContext[AgentDependencies], quest_id: str) -> dict[str, Any]:
+async def check_quest_prerequisites(ctx: RunContext[AgentDependencies], quest_id: str) -> BaseModel:
     """Check if a quest's prerequisites are met.
 
     Use to verify if a quest can be started.
@@ -101,30 +102,29 @@ async def check_quest_prerequisites(ctx: RunContext[AgentDependencies], quest_id
     # Get scenario
     scenario = deps.scenario_service.get_scenario(game_state.scenario_id) if game_state.scenario_id else None
     if not scenario:
-        return {"available": False, "message": "No scenario loaded"}
+        return QuestAvailabilityResult(available=False, message="No scenario loaded")
 
     # Get quest
     quest = scenario.get_quest(quest_id)
     if not quest:
-        return {"available": False, "message": f"Quest '{quest_id}' not found"}
+        return QuestAvailabilityResult(available=False, message=f"Quest '{quest_id}' not found")
 
     # Check prerequisites
     is_available = quest.is_available(game_state.completed_quest_ids)
 
     if is_available:
-        return {"available": True, "message": f"Quest '{quest.name}' is available"}
-    else:
-        missing = [prereq for prereq in quest.prerequisites if prereq not in game_state.completed_quest_ids]
-        return {
-            "available": False,
-            "message": f"Quest '{quest.name}' requires completing: {', '.join(missing)}",
-            "missing_prerequisites": missing,
-        }
+        return QuestAvailabilityResult(available=True, message=f"Quest '{quest.name}' is available")
+    missing = [prereq for prereq in quest.prerequisites if prereq not in game_state.completed_quest_ids]
+    return QuestAvailabilityResult(
+        available=False,
+        message=f"Quest '{quest.name}' requires completing: {', '.join(missing)}",
+        missing_prerequisites=missing,
+    )
 
 
 async def update_objective_status(
-    ctx: RunContext[AgentDependencies], quest_id: str, objective_id: str, status: str
-) -> dict[str, Any]:
+    ctx: RunContext[AgentDependencies], quest_id: str, objective_id: str, status: str,
+) -> BaseModel:
     """Update the status of a quest objective.
 
     Use to change objective status (pending/active/completed/failed).
@@ -145,21 +145,33 @@ async def update_objective_status(
     # Get the active quest
     quest = game_state.get_active_quest(quest_id)
     if not quest:
-        return {"success": False, "message": f"Quest '{quest_id}' not found in active quests"}
+        return ObjectiveStatusResult(
+            quest_id=quest_id,
+            objective_id=objective_id,
+            status="failed",
+            message=f"Quest '{quest_id}' not found in active quests",
+        )
 
     # Update objective status
     try:
         objective_status = ObjectiveStatus(status)
     except ValueError:
-        return {"success": False, "message": f"Invalid status '{status}'"}
+        return ObjectiveStatusResult(
+            quest_id=quest_id, objective_id=objective_id, status="failed", message=f"Invalid status '{status}'",
+        )
 
     if quest.update_objective(objective_id, objective_status):
         game_service.save_game(game_state)
-        return {
-            "success": True,
-            "message": f"Objective '{objective_id}' status updated to {status}",
-            "quest_status": quest.status.value,
-            "progress": quest.get_progress_percentage(),
-        }
+        return ObjectiveStatusResult(
+            quest_id=quest_id,
+            objective_id=objective_id,
+            status=status,
+            message=f"Objective '{objective_id}' status updated to {status}",
+        )
 
-    return {"success": False, "message": f"Objective '{objective_id}' not found in quest"}
+    return ObjectiveStatusResult(
+        quest_id=quest_id,
+        objective_id=objective_id,
+        status="failed",
+        message=f"Objective '{objective_id}' not found in quest",
+    )

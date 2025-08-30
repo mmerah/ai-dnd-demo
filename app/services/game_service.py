@@ -4,13 +4,13 @@ import json
 import uuid
 from datetime import datetime
 
+from app.common.types import JSONSerializable
 from app.config import get_settings
 from app.interfaces.services import IGameService
 from app.models.character import CharacterSheet
 from app.models.game_state import (
     GameState,
     GameTime,
-    JSONSerializable,
     Message,
     MessageRole,
 )
@@ -47,7 +47,7 @@ class GameService(IGameService):
         return f"{clean_name}-{timestamp}-{short_uuid}"
 
     def initialize_game(
-        self, character: CharacterSheet, premise: str | None = None, scenario_id: str | None = None
+        self, character: CharacterSheet, premise: str | None = None, scenario_id: str | None = None,
     ) -> GameState:
         """
         Initialize a new game state.
@@ -206,12 +206,12 @@ class GameService(IGameService):
         except (FileNotFoundError, ValueError):
             return None
 
-    def list_saved_games(self) -> list[dict[str, str]]:
+    def list_saved_games(self) -> list[GameState]:
         """
         List all saved games.
 
         Returns:
-            List of game summaries with id, character name, and last modified
+            List of GameState objects for all saved games
         """
         games = []
 
@@ -220,19 +220,15 @@ class GameService(IGameService):
                 with open(save_file, encoding="utf-8") as f:
                     data = json.load(f)
 
-                games.append(
-                    {
-                        "game_id": data["game_id"],
-                        "character_name": data["character"]["name"],
-                        "location": data["location"],
-                        "last_played": datetime.fromtimestamp(save_file.stat().st_mtime).isoformat(),
-                        "scenario_title": data.get("scenario_title"),
-                    }
-                )
-            except (json.JSONDecodeError, KeyError):
+                # Create GameState from saved data
+                game_state = GameState.from_save_dict(data)
+                games.append(game_state)
+            except (json.JSONDecodeError, KeyError, ValueError):
+                # Skip corrupted save files
                 continue
 
-        return sorted(games, key=lambda x: x["last_played"], reverse=True)
+        # Sort by last_saved timestamp
+        return sorted(games, key=lambda x: x.last_saved, reverse=True)
 
     def add_game_event(
         self,
@@ -240,7 +236,7 @@ class GameService(IGameService):
         event_type: str,
         tool_name: str | None = None,
         parameters: dict[str, JSONSerializable] | None = None,
-        result: JSONSerializable | None = None,
+        result: dict[str, JSONSerializable] | None = None,
         metadata: dict[str, JSONSerializable] | None = None,
     ) -> GameState:
         """

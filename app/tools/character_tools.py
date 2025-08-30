@@ -1,8 +1,8 @@
 """Character management tools for D&D 5e AI Dungeon Master."""
 
 import logging
-from typing import Any
 
+from pydantic import BaseModel
 from pydantic_ai import RunContext
 
 from app.agents.dependencies import AgentDependencies
@@ -19,9 +19,9 @@ logger = logging.getLogger(__name__)
 
 @tool_handler(UpdateHPCommand)
 async def update_hp(
-    ctx: RunContext[AgentDependencies], amount: int, damage_type: str = "untyped", target: str = "player"
-) -> dict[str, Any]:
-    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
+    ctx: RunContext[AgentDependencies], amount: int, damage_type: str = "untyped", target: str = "player",
+) -> BaseModel:
+    # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Update hit points for damage or healing.
 
     Use after damage rolls or healing effects.
@@ -41,9 +41,9 @@ async def update_hp(
 
 @tool_handler(AddConditionCommand)
 async def add_condition(
-    ctx: RunContext[AgentDependencies], condition: str, duration: int = 0, target: str = "player"
-) -> dict[str, Any]:
-    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
+    ctx: RunContext[AgentDependencies], condition: str, duration: int = 0, target: str = "player",
+) -> BaseModel:
+    # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Add a status condition to a character.
 
     Use when effects impose conditions.
@@ -63,9 +63,9 @@ async def add_condition(
 
 @tool_handler(RemoveConditionCommand)
 async def remove_condition(
-    ctx: RunContext[AgentDependencies], condition: str, target: str = "player"
-) -> dict[str, Any]:
-    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
+    ctx: RunContext[AgentDependencies], condition: str, target: str = "player",
+) -> BaseModel:
+    # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Remove a condition from a character.
 
     Use when conditions end or are cured.
@@ -83,8 +83,8 @@ async def remove_condition(
 
 
 @tool_handler(UpdateSpellSlotsCommand)
-async def update_spell_slots(ctx: RunContext[AgentDependencies], level: int, amount: int) -> dict[str, Any]:
-    # Note: The return type is dict[str, Any] as required by the pydantic-ai tool interface.
+async def update_spell_slots(ctx: RunContext[AgentDependencies], level: int, amount: int) -> BaseModel:
+    # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Update spell slots for the player.
 
     Use when spells are cast or slots are restored.

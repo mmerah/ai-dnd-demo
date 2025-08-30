@@ -20,7 +20,7 @@ from app.container import container
 
 # Configure logging
 logging.basicConfig(
-    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", stream=sys.stdout
+    level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", stream=sys.stdout,
 )
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logging.getLogger("httpcore").setLevel(logging.WARNING)
@@ -87,8 +87,7 @@ if frontend_path.exists():
         index_path = frontend_path / "index.html"
         if index_path.exists():
             return FileResponse(str(index_path))
-        else:
-            raise HTTPException(status_code=404, detail="Frontend not found")
+        raise HTTPException(status_code=404, detail="Frontend not found")
 
 
 # Global exception handler

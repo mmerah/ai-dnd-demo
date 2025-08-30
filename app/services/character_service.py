@@ -130,25 +130,14 @@ class CharacterService(ICharacterService):
         """
         return self._characters.get(character_id)
 
-    def list_characters(self) -> list[dict[str, str]]:
+    def list_characters(self) -> list[CharacterSheet]:
         """
         List all available characters.
 
         Returns:
-            List of character summaries with id, name, race, class, and level
+            List of CharacterSheet objects
         """
-        characters = []
-        for char_id, character in self._characters.items():
-            characters.append(
-                {
-                    "id": char_id,
-                    "name": character.name,
-                    "race": character.race,
-                    "class": character.class_name,
-                    "level": str(character.level),
-                }
-            )
-        return characters
+        return list(self._characters.values())
 
     def get_all_characters(self) -> list[CharacterSheet]:
         """
