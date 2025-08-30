@@ -886,3 +886,344 @@ body {
     margin-bottom: 1rem;
     font-size: 1.1rem;
 }
+
+/* Location Info Styles */
+.location-info {
+    padding: 0.5rem;
+}
+
+.location-description {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    line-height: 1.5;
+    font-style: italic;
+}
+
+.location-connections h4,
+.location-npcs h4 {
+    color: var(--accent-color);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.connections-list {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.connection-item {
+    background: var(--background-dark);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.connection-item:hover {
+    border-color: var(--accent-color);
+    background: rgba(212, 175, 55, 0.1);
+}
+
+.connection-item.blocked {
+    opacity: 0.6;
+    border-color: var(--danger-color);
+}
+
+.connection-direction {
+    font-weight: bold;
+    color: var(--accent-color);
+    margin-right: 0.5rem;
+}
+
+.connection-description {
+    flex: 1;
+    color: var(--text-secondary);
+}
+
+.connection-status {
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    background: var(--success-color);
+    color: white;
+}
+
+.connection-status.blocked {
+    background: var(--danger-color);
+}
+
+.npcs-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.npc-tag {
+    background: var(--background-dark);
+    border: 1px solid var(--accent-color);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+/* Danger Level Indicator */
+.danger-indicator {
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-left: 0.5rem;
+}
+
+.danger-safe {
+    background: var(--success-color);
+    color: white;
+}
+
+.danger-low {
+    background: #66bb6a;
+    color: white;
+}
+
+.danger-moderate {
+    background: var(--warning-color);
+    color: white;
+}
+
+.danger-high {
+    background: #ff7043;
+    color: white;
+}
+
+.danger-extreme {
+    background: var(--danger-color);
+    color: white;
+    animation: pulse 1.5s infinite;
+}
+
+.danger-cleared {
+    background: #42a5f5;
+    color: white;
+}
+
+/* Act/Chapter Display */
+.act-chapter {
+    color: var(--accent-color);
+    font-weight: bold;
+}
+
+/* Quest Log Styles */
+.quest-count {
+    background: var(--accent-color);
+    color: var(--background-dark);
+    padding: 0.1rem 0.4rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    margin-left: 0.5rem;
+}
+
+.quest-log {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.quest-item {
+    background: var(--background-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 1rem;
+}
+
+.quest-item.completed {
+    opacity: 0.6;
+    border-color: var(--success-color);
+}
+
+.quest-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.quest-name {
+    color: var(--accent-color);
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.quest-progress {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.quest-description {
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.quest-objectives {
+    margin-top: 0.5rem;
+}
+
+.quest-objectives h5 {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+}
+
+.objective-list {
+    list-style: none;
+    padding: 0;
+}
+
+.objective-item {
+    padding: 0.25rem 0;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+}
+
+.objective-item.completed {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.objective-item.active {
+    color: var(--text-primary);
+}
+
+.objective-status {
+    margin-right: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.objective-status.pending {
+    color: var(--text-secondary);
+}
+
+.objective-status.active {
+    color: var(--warning-color);
+}
+
+.objective-status.completed {
+    color: var(--success-color);
+}
+
+.completed-quests-note {
+    margin-top: 1rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* Enhanced Inventory Tooltips */
+.inventory-item {
+    position: relative;
+    cursor: pointer;
+}
+
+.item-tooltip,
+.spell-tooltip {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--background-light);
+    border: 2px solid var(--accent-color);
+    border-radius: 4px;
+    padding: 0.75rem;
+    min-width: 250px;
+    max-width: 350px;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.inventory-item:hover .item-tooltip,
+.spell-item:hover .spell-tooltip {
+    opacity: 1;
+    visibility: visible;
+    bottom: calc(100% + 5px);
+}
+
+.tooltip-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tooltip-name {
+    color: var(--accent-color);
+    font-weight: bold;
+}
+
+.tooltip-type {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.tooltip-rarity {
+    font-size: 0.8rem;
+    padding: 0.1rem 0.3rem;
+    border-radius: 3px;
+}
+
+.rarity-common {
+    background: #616161;
+    color: white;
+}
+
+.rarity-uncommon {
+    background: #4caf50;
+    color: white;
+}
+
+.rarity-rare {
+    background: #2196f3;
+    color: white;
+}
+
+.rarity-very-rare {
+    background: #9c27b0;
+    color: white;
+}
+
+.rarity-legendary {
+    background: #ff9800;
+    color: white;
+}
+
+.tooltip-description {
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+}
+
+.tooltip-stats {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.tooltip-stat {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.1rem 0;
+}
+

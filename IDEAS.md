@@ -4,18 +4,11 @@ Full D&D 5e functionality with scenario management, character management, functi
 
 ## Ideas
 
-1. Character need a character_service.py similar to scenario_service.py (with validate_scenario_references equivalent) instead of being loaded from characters.json directly in routes
-2. Frontend upgrades needed:
-   - Display current location name and available connections/exits
-   - Show quest log with active quests and objectives progress
-   - Item/spell tooltips pulling descriptions from database
-   - Location danger level indicator
-   - Act/chapter display
-   - Enhanced inventory with item descriptions on hover
-   - Quest completion notifications 
-3. data/ and saves/ need better organization to avoid thousand lines files. Scenarios should be put in data/scenarios/. Then a folder with the name of the scenario. Same for characters instead of having all characters in 1 json file. For items, spells, monsters it is fine. saves/ also need somehow to be cut correctly. A save has a name which is a folder. Then it should be separated into the character of the save, then separation into things that make sense
-4. Characters should be loaded through the IDataService as well, same as spells, items, monsters. Scenarios as well ?
-5. Complete the D&D foundation: Subraces, Subclasses are missing. Ideally look in something like https://github.com/5e-bits/5e-database for reference.
+1. Type Safety is very poor: Backend operates with manually declared .json a little bit everywhere (e.g. message_service, broadcast_service, routes). Most of everything should be a BaseModel and only at the very tip of the code should it be decoded into a json.
+2. Frontend should use typescript with ban of 'any'.
+3. data/ and saves/ need better organization to avoid thousand lines files. Scenarios should be put in data/scenarios/. Then a folder with the name of the scenario. Same for characters instead of having all characters in 1 json file. For items, spells, monsters it is fine. saves/ also need somehow to be cut correctly. A save has a name which is a folder. Then it should be separated into the character of the save, then separation into things that make sense ? (think about it, if we want a memory system in the future that might make sense)
+4. Complete the D&D foundation: Subraces, Subclasses are missing. Ideally look in something like https://github.com/5e-bits/5e-database for reference. That means all 27 type of stuff need to be in with correct format. Conditions, attack types, ability-scores, alignments, backgrounds, ... all become database content. DataService would become much bigger as well.
+5. Review scenarios, acts, quests, location, npcs (game state does seem to properly populate the npcs of the area for example), and how game state and tools handle every possible case
 6. Handle all the TODO comments in the code
 7. Cleanup logger calls to minimum
 8. Review manually the code
@@ -32,3 +25,4 @@ Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic 
 4.  Characters template ? Scenario Template ? Separated from instances ? Same as ai-gamemaster. Save is a lot more complicated than it seems. Probably need a folder/subfolder to put in memory, and specificities
 5.  Frontend: ASCII map of the location and connection ? (frontend)
 6.  Scenario: If wandering outside of the defined scenario, should enter some sandbox mode.
+7.  Ability to play with a party of NPCs

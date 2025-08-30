@@ -14,6 +14,7 @@ from app.models.game_state import (
     Message,
     MessageRole,
 )
+from app.models.quest import QuestStatus
 from app.services.scenario_service import ScenarioService
 
 
@@ -108,11 +109,23 @@ class GameService(IGameService):
             current_location_id=initial_location_id,
             scenario_id=scenario_id,
             scenario_title=scenario_title,
+            current_act_id=scenario.progression.acts[0].id if scenario and scenario.progression.acts else None,
             game_time=initial_time,
             combat=None,
             quest_flags={},
             conversation_history=[initial_message],
         )
+
+        # Initialize quests from scenario
+        if scenario and scenario.quests:
+            # Add the first act's quests as active
+            first_act = scenario.progression.get_current_act()
+            if first_act:
+                for quest_id in first_act.quests:
+                    quest = scenario.get_quest(quest_id)
+                    if quest and quest.is_available([]):
+                        quest.status = QuestStatus.ACTIVE
+                        game_state.add_quest(quest)
 
         self._active_games[game_id] = game_state
         self.save_game(game_state)

@@ -591,6 +591,27 @@ function initializeSSE() {
         updateUI();
     });
     
+    // Location updates
+    sseSource.addEventListener('location_update', (event) => {
+        const data = JSON.parse(event.data);
+        console.log('[SSE] Location update received:', data);
+        updateLocationInfo(data);
+    });
+    
+    // Quest updates
+    sseSource.addEventListener('quest_update', (event) => {
+        const data = JSON.parse(event.data);
+        console.log('[SSE] Quest update received:', data);
+        updateQuestLog(data);
+    });
+    
+    // Act updates
+    sseSource.addEventListener('act_update', (event) => {
+        const data = JSON.parse(event.data);
+        console.log('[SSE] Act update received:', data);
+        updateActInfo(data);
+    });
+    
     // Error handling
     sseSource.onerror = (error) => {
         console.error('[SSE] Connection error:', error);
@@ -842,6 +863,27 @@ function updateSpellList(spells) {
         const spellDiv = document.createElement('div');
         spellDiv.className = 'spell-item';
         spellDiv.textContent = spell;
+        spellDiv.style.position = 'relative';
+        spellDiv.style.cursor = 'pointer';
+        
+        // Add hover event for tooltip
+        let tooltipTimeout;
+        spellDiv.addEventListener('mouseenter', () => {
+            tooltipTimeout = setTimeout(() => {
+                if (!spellDiv.querySelector('.spell-tooltip')) {
+                    showSpellTooltip(spell, spellDiv);
+                }
+            }, 500); // Delay to avoid too many requests
+        });
+        
+        spellDiv.addEventListener('mouseleave', () => {
+            clearTimeout(tooltipTimeout);
+            const tooltip = spellDiv.querySelector('.spell-tooltip');
+            if (tooltip) {
+                tooltip.remove();
+            }
+        });
+        
         spellList.appendChild(spellDiv);
     });
 }
@@ -868,6 +910,25 @@ function updateInventory(inventory) {
                 <span>${item.name}${equipped}</span>
                 <span>×${item.quantity || 1}</span>
             `;
+            
+            // Add hover event for tooltip
+            let tooltipTimeout;
+            itemDiv.addEventListener('mouseenter', () => {
+                tooltipTimeout = setTimeout(() => {
+                    if (!itemDiv.querySelector('.item-tooltip')) {
+                        showItemTooltip(item.name, itemDiv);
+                    }
+                }, 500); // Delay to avoid too many requests
+            });
+            
+            itemDiv.addEventListener('mouseleave', () => {
+                clearTimeout(tooltipTimeout);
+                const tooltip = itemDiv.querySelector('.item-tooltip');
+                if (tooltip) {
+                    tooltip.remove();
+                }
+            });
+            
             inventoryList.appendChild(itemDiv);
         });
     }
@@ -977,4 +1038,256 @@ function showNotification(message) {
     setTimeout(() => {
         notification.remove();
     }, 3000);
+}
+
+// Update location information
+function updateLocationInfo(locationData) {
+    console.log('[UI] Updating location info:', locationData);
+    
+    // Update location description
+    const locationDesc = document.getElementById('locationDescription');
+    if (locationDesc) {
+        locationDesc.textContent = locationData.description || '';
+    }
+    
+    // Update location connections
+    const connectionsContainer = document.getElementById('locationConnections');
+    if (connectionsContainer) {
+        connectionsContainer.innerHTML = '';
+        
+        if (locationData.connections && locationData.connections.length > 0) {
+            locationData.connections.forEach(conn => {
+                const connDiv = document.createElement('div');
+                connDiv.className = `connection-item ${!conn.is_accessible ? 'blocked' : ''}`;
+                
+                const direction = conn.direction ? `<span class="connection-direction">[${conn.direction.toUpperCase()}]</span>` : '';
+                const status = conn.is_accessible ? '' : '<span class="connection-status blocked">Blocked</span>';
+                
+                connDiv.innerHTML = `
+                    ${direction}
+                    <span class="connection-description">${conn.description}</span>
+                    ${status}
+                `;
+                
+                connectionsContainer.appendChild(connDiv);
+            });
+        } else {
+            connectionsContainer.innerHTML = '<div style="color: #666;">No visible exits</div>';
+        }
+    }
+    
+    // Update NPCs present
+    const npcsSection = document.getElementById('locationNPCs');
+    const npcsList = document.getElementById('npcsList');
+    if (npcsSection && npcsList) {
+        if (locationData.npcs_present && locationData.npcs_present.length > 0) {
+            npcsSection.style.display = 'block';
+            npcsList.innerHTML = '';
+            
+            locationData.npcs_present.forEach(npc => {
+                const npcTag = document.createElement('div');
+                npcTag.className = 'npc-tag';
+                npcTag.textContent = npc;
+                npcsList.appendChild(npcTag);
+            });
+        } else {
+            npcsSection.style.display = 'none';
+        }
+    }
+    
+    // Update danger level
+    updateDangerLevel(locationData.danger_level);
+}
+
+// Update danger level indicator
+function updateDangerLevel(dangerLevel) {
+    const dangerIndicator = document.getElementById('dangerLevel');
+    if (!dangerIndicator) return;
+    
+    // Remove existing classes
+    dangerIndicator.className = 'danger-indicator';
+    
+    // Add appropriate class and text based on danger level
+    switch (dangerLevel) {
+        case 'safe':
+            dangerIndicator.classList.add('danger-safe');
+            dangerIndicator.textContent = '🛡️ Safe';
+            break;
+        case 'low':
+            dangerIndicator.classList.add('danger-low');
+            dangerIndicator.textContent = '⚠️ Low Danger';
+            break;
+        case 'moderate':
+            dangerIndicator.classList.add('danger-moderate');
+            dangerIndicator.textContent = '⚠️ Moderate Danger';
+            break;
+        case 'high':
+            dangerIndicator.classList.add('danger-high');
+            dangerIndicator.textContent = '⚠️ High Danger';
+            break;
+        case 'extreme':
+            dangerIndicator.classList.add('danger-extreme');
+            dangerIndicator.textContent = '☠️ EXTREME DANGER';
+            break;
+        case 'cleared':
+            dangerIndicator.classList.add('danger-cleared');
+            dangerIndicator.textContent = '✓ Cleared';
+            break;
+        default:
+            dangerIndicator.textContent = '';
+    }
+}
+
+// Update quest log
+function updateQuestLog(questData) {
+    console.log('[UI] Updating quest log:', questData);
+    
+    const questLog = document.getElementById('questLog');
+    const questCount = document.getElementById('questCount');
+    
+    if (!questLog) return;
+    
+    questLog.innerHTML = '';
+    
+    let totalQuests = 0;
+    
+    // Show active quests
+    if (questData.active_quests && questData.active_quests.length > 0) {
+        totalQuests += questData.active_quests.length;
+        
+        questData.active_quests.forEach(quest => {
+            const questDiv = document.createElement('div');
+            const isCompleted = quest.status === 'completed';
+            questDiv.className = `quest-item ${isCompleted ? 'completed' : ''}`;
+            
+            // Calculate progress
+            const completedObjectives = quest.objectives.filter(obj => obj.status === 'completed').length;
+            const totalObjectives = quest.objectives.length;
+            const progressPercent = totalObjectives > 0 ? Math.round((completedObjectives / totalObjectives) * 100) : 0;
+            
+            questDiv.innerHTML = `
+                <div class="quest-header">
+                    <span class="quest-name">${quest.name} ${isCompleted ? '✓' : ''}</span>
+                    <span class="quest-progress">${progressPercent}%</span>
+                </div>
+                <div class="quest-description">${quest.description}</div>
+                <div class="quest-objectives">
+                    <h5>Objectives:</h5>
+                    <ul class="objective-list">
+                        ${quest.objectives.map(obj => `
+                            <li class="objective-item ${obj.status}">
+                                <span class="objective-status ${obj.status}">
+                                    ${obj.status === 'completed' ? '✓' : obj.status === 'active' ? '○' : '◯'}
+                                </span>
+                                ${obj.description}
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+            `;
+            
+            questLog.appendChild(questDiv);
+        });
+    }
+    
+    // Show completed quests count if any
+    if (questData.completed_quest_ids && questData.completed_quest_ids.length > 0) {
+        const completedDiv = document.createElement('div');
+        completedDiv.className = 'completed-quests-note';
+        completedDiv.innerHTML = `<em>${questData.completed_quest_ids.length} quest(s) completed</em>`;
+        questLog.appendChild(completedDiv);
+    }
+    
+    // Update quest count
+    if (questCount) {
+        questCount.textContent = totalQuests;
+    }
+    
+    if (totalQuests === 0 && (!questData.completed_quest_ids || questData.completed_quest_ids.length === 0)) {
+        questLog.innerHTML = '<div style="color: #666; text-align: center;">No active quests</div>';
+    }
+    
+    // Track completed quests (no popup, just for tracking)
+    window.previousQuestIds = questData.completed_quest_ids || [];
+}
+
+// Update act/chapter information
+function updateActInfo(actData) {
+    console.log('[UI] Updating act info:', actData);
+    
+    const actDisplay = document.getElementById('currentAct');
+    if (actDisplay) {
+        actDisplay.textContent = actData.act_name || 'Act I';
+    }
+}
+
+
+// Fetch and display item tooltip
+async function showItemTooltip(itemName, element) {
+    try {
+        const response = await fetch(`/api/items/${encodeURIComponent(itemName)}`);
+        if (!response.ok) return;
+        
+        const itemData = await response.json();
+        
+        // Create tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'item-tooltip';
+        
+        const rarityClass = `rarity-${itemData.rarity.toLowerCase().replace(' ', '-')}`;
+        
+        tooltip.innerHTML = `
+            <div class="tooltip-header">
+                <span class="tooltip-name">${itemData.name}</span>
+                <span class="tooltip-rarity ${rarityClass}">${itemData.rarity}</span>
+            </div>
+            <div class="tooltip-type">${itemData.type}</div>
+            <div class="tooltip-description">${itemData.description}</div>
+            <div class="tooltip-stats">
+                ${itemData.damage ? `<div class="tooltip-stat"><span>Damage:</span><span>${itemData.damage} ${itemData.damage_type || ''}</span></div>` : ''}
+                ${itemData.armor_class ? `<div class="tooltip-stat"><span>AC:</span><span>${itemData.armor_class}</span></div>` : ''}
+                ${itemData.weight ? `<div class="tooltip-stat"><span>Weight:</span><span>${itemData.weight} lbs</span></div>` : ''}
+                ${itemData.value ? `<div class="tooltip-stat"><span>Value:</span><span>${itemData.value} gp</span></div>` : ''}
+            </div>
+        `;
+        
+        element.appendChild(tooltip);
+    } catch (error) {
+        console.error('[ERROR] Failed to fetch item tooltip:', error);
+    }
+}
+
+// Fetch and display spell tooltip
+async function showSpellTooltip(spellName, element) {
+    try {
+        const response = await fetch(`/api/spells/${encodeURIComponent(spellName)}`);
+        if (!response.ok) return;
+        
+        const spellData = await response.json();
+        
+        // Create tooltip
+        const tooltip = document.createElement('div');
+        tooltip.className = 'spell-tooltip';
+        
+        const levelText = spellData.level === 0 ? 'Cantrip' : `Level ${spellData.level}`;
+        
+        tooltip.innerHTML = `
+            <div class="tooltip-header">
+                <span class="tooltip-name">${spellData.name}</span>
+                <span class="tooltip-type">${levelText} - ${spellData.school}</span>
+            </div>
+            <div class="tooltip-description">${spellData.description}</div>
+            <div class="tooltip-stats">
+                <div class="tooltip-stat"><span>Casting Time:</span><span>${spellData.casting_time}</span></div>
+                <div class="tooltip-stat"><span>Range:</span><span>${spellData.range}</span></div>
+                <div class="tooltip-stat"><span>Duration:</span><span>${spellData.duration}</span></div>
+                <div class="tooltip-stat"><span>Components:</span><span>${spellData.components}</span></div>
+                ${spellData.concentration ? '<div class="tooltip-stat"><span>Concentration:</span><span>Yes</span></div>' : ''}
+            </div>
+        `;
+        
+        element.appendChild(tooltip);
+    } catch (error) {
+        console.error('[ERROR] Failed to fetch spell tooltip:', error);
+    }
 }

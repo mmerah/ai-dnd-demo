@@ -51,8 +51,9 @@
         <!-- Header Bar -->
         <div class="header-bar">
             <div class="location-time">
-                <span class="location">📍 <span id="currentLocation">Unknown</span></span>
+                <span class="location">📍 <span id="currentLocation">Unknown</span> <span id="dangerLevel" class="danger-indicator"></span></span>
                 <span class="time">🕐 <span id="gameTime">Day 1, 12:00</span></span>
+                <span class="act-chapter">📖 <span id="currentAct">Act I</span></span>
                 <span id="combatIndicator" class="combat-indicator hidden">⚔️ COMBAT</span>
             </div>
             <button id="saveGame" class="btn-small">💾 Save</button>
@@ -63,6 +64,38 @@
             <!-- Character Sheet (Left) -->
             <div class="character-sheet">
                 <h2>Character Sheet</h2>
+                
+                <!-- Location Info -->
+                <div class="sheet-section">
+                    <h3>Current Location</h3>
+                    <div class="location-info">
+                        <div class="location-description" id="locationDescription">
+                            <!-- Location description will be populated here -->
+                        </div>
+                        <div class="location-connections">
+                            <h4>Available Exits:</h4>
+                            <div id="locationConnections" class="connections-list">
+                                <!-- Connections will be populated here -->
+                            </div>
+                        </div>
+                        <div class="location-npcs" id="locationNPCs" style="display: none;">
+                            <h4>People here:</h4>
+                            <div id="npcsList" class="npcs-list">
+                                <!-- NPCs will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quest Log -->
+                <div class="sheet-section collapsible">
+                    <h3 class="collapsible-header">Quest Log <span class="quest-count" id="questCount"></span> <span class="toggle">▼</span></h3>
+                    <div class="collapsible-content">
+                        <div id="questLog" class="quest-log">
+                            <!-- Quests will be populated here -->
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- Basic Info -->
                 <div class="sheet-section">

@@ -190,6 +190,84 @@ class MessageService:
         """
         await broadcast_service.publish(game_id, MessageType.GAME_UPDATE.value, game_state_data)
 
+    async def send_location_update(
+        self,
+        game_id: str,
+        location_id: str,
+        location_name: str,
+        description: str,
+        connections: list[dict[str, Any]],
+        danger_level: str,
+        npcs_present: list[str],
+    ) -> None:
+        """
+        Send detailed location update.
+
+        Args:
+            game_id: Game identifier
+            location_id: Location identifier
+            location_name: Name of the location
+            description: Location description
+            connections: Available connections/exits
+            danger_level: Danger level of the location
+            npcs_present: NPCs currently at the location
+        """
+        await broadcast_service.publish(
+            game_id,
+            "location_update",
+            {
+                "location_id": location_id,
+                "location_name": location_name,
+                "description": description,
+                "connections": connections,
+                "danger_level": danger_level,
+                "npcs_present": npcs_present,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
+
+    async def send_quest_update(
+        self, game_id: str, active_quests: list[dict[str, Any]], completed_quest_ids: list[str]
+    ) -> None:
+        """
+        Send quest status update.
+
+        Args:
+            game_id: Game identifier
+            active_quests: List of active quests with objectives
+            completed_quest_ids: List of completed quest IDs
+        """
+        await broadcast_service.publish(
+            game_id,
+            "quest_update",
+            {
+                "active_quests": active_quests,
+                "completed_quest_ids": completed_quest_ids,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
+
+    async def send_act_update(self, game_id: str, act_id: str, act_name: str, act_index: int) -> None:
+        """
+        Send act/chapter update.
+
+        Args:
+            game_id: Game identifier
+            act_id: Act identifier
+            act_name: Name of the act
+            act_index: Current act index
+        """
+        await broadcast_service.publish(
+            game_id,
+            "act_update",
+            {
+                "act_id": act_id,
+                "act_name": act_name,
+                "act_index": act_index,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
+        )
+
     async def send_scenario_info(
         self, game_id: str, scenario_title: str, scenario_id: str, available_scenarios: list[dict[str, str]]
     ) -> None:

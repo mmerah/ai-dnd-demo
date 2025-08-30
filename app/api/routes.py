@@ -243,6 +243,65 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
                     ),
                 }
 
+                # Send location info if available
+                scenario = scenario_service.get_scenario(game_state.scenario_id)
+                if scenario and game_state.current_location_id:
+                    location = scenario.get_location(game_state.current_location_id)
+                    if location:
+                        location_state = game_state.get_location_state(game_state.current_location_id)
+                        connections = []
+                        for conn in location.connections:
+                            connections.append(
+                                {
+                                    "to_location_id": conn.to_location_id,
+                                    "description": conn.description,
+                                    "direction": conn.direction,
+                                    "is_accessible": conn.can_traverse(),
+                                    "is_visible": conn.is_visible,
+                                }
+                            )
+
+                        yield {
+                            "event": "location_update",
+                            "data": json.dumps(
+                                {
+                                    "location_id": location.id,
+                                    "location_name": location.name,
+                                    "description": location.get_description(location_state.get_description_variant()),
+                                    "connections": connections,
+                                    "danger_level": location_state.danger_level.value,
+                                    "npcs_present": location_state.npcs_present,
+                                }
+                            ),
+                        }
+
+                # Send quest info
+                active_quests_data = [quest.model_dump() for quest in game_state.active_quests]
+                yield {
+                    "event": "quest_update",
+                    "data": json.dumps(
+                        {
+                            "active_quests": active_quests_data,
+                            "completed_quest_ids": game_state.completed_quest_ids,
+                        }
+                    ),
+                }
+
+                # Send act info
+                if scenario:
+                    current_act = scenario.progression.get_current_act()
+                    if current_act:
+                        yield {
+                            "event": "act_update",
+                            "data": json.dumps(
+                                {
+                                    "act_id": current_act.id,
+                                    "act_name": current_act.name,
+                                    "act_index": scenario.progression.current_act_index,
+                                }
+                            ),
+                        }
+
             async for event_data in broadcast_service.subscribe(game_id):
                 # Format the event for SSE - only log non-narrative events
                 if event_data["event"] != "narrative":
@@ -331,3 +390,85 @@ async def list_available_characters() -> list[CharacterSheet]:
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to load characters: {str(e)}") from e
+
+
+@router.get("/items/{item_name}")
+async def get_item_details(item_name: str) -> dict[str, Any]:
+    """
+    Get detailed information about an item.
+
+    Args:
+        item_name: Name of the item
+
+    Returns:
+        Item details including description
+
+    Raises:
+        HTTPException: If item not found
+    """
+    data_service = container.get_data_service()
+
+    try:
+        item = data_service.get_item(item_name, allow_missing=True)
+        if not item:
+            raise HTTPException(status_code=404, detail=f"Item '{item_name}' not found")
+
+        return {
+            "name": item.name,
+            "type": item.type.value,
+            "rarity": item.rarity.value,
+            "weight": item.weight,
+            "value": item.value,
+            "description": item.description,
+            "damage": item.damage,
+            "damage_type": item.damage_type,
+            "properties": item.properties,
+            "armor_class": item.armor_class,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get item details: {str(e)}") from e
+
+
+@router.get("/spells/{spell_name}")
+async def get_spell_details(spell_name: str) -> dict[str, Any]:
+    """
+    Get detailed information about a spell.
+
+    Args:
+        spell_name: Name of the spell
+
+    Returns:
+        Spell details including description
+
+    Raises:
+        HTTPException: If spell not found
+    """
+    data_service = container.get_data_service()
+
+    try:
+        spell = data_service.get_spell(spell_name, allow_missing=True)
+        if not spell:
+            raise HTTPException(status_code=404, detail=f"Spell '{spell_name}' not found")
+
+        return {
+            "name": spell.name,
+            "level": spell.level,
+            "school": spell.school.value,
+            "casting_time": spell.casting_time,
+            "range": spell.range,
+            "components": spell.components,
+            "duration": spell.duration,
+            "description": spell.description,
+            "higher_levels": spell.higher_levels,
+            "classes": spell.classes,
+            "ritual": spell.ritual,
+            "concentration": spell.concentration,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get spell details: {str(e)}") from e

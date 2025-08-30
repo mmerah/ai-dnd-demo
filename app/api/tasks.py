@@ -69,6 +69,51 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
             game_state_dict = json.loads(updated_game_state.model_dump_json())
             await message_service.send_game_update(game_id, game_state_dict)
 
+            # Send detailed location update if we have scenario data
+            scenario_service = container.get_scenario_service()
+            if updated_game_state.scenario_id and updated_game_state.current_location_id:
+                scenario = scenario_service.get_scenario(updated_game_state.scenario_id)
+                if scenario:
+                    location = scenario.get_location(updated_game_state.current_location_id)
+                    if location:
+                        # Get location state for danger level and NPCs
+                        location_state = updated_game_state.get_location_state(updated_game_state.current_location_id)
+
+                        # Format connections for frontend
+                        connections = []
+                        for conn in location.connections:
+                            connections.append(
+                                {
+                                    "to_location_id": conn.to_location_id,
+                                    "description": conn.description,
+                                    "direction": conn.direction,
+                                    "is_accessible": conn.can_traverse(),
+                                    "is_visible": conn.is_visible,
+                                }
+                            )
+
+                        await message_service.send_location_update(
+                            game_id,
+                            location.id,
+                            location.name,
+                            location.get_description(location_state.get_description_variant()),
+                            connections,
+                            location_state.danger_level.value,
+                            location_state.npcs_present,
+                        )
+
+            # Send quest update
+            active_quests_data = [quest.model_dump() for quest in updated_game_state.active_quests]
+            await message_service.send_quest_update(game_id, active_quests_data, updated_game_state.completed_quest_ids)
+
+            # Send act update if we have scenario data
+            if updated_game_state.scenario_id and scenario:
+                current_act = scenario.progression.get_current_act()
+                if current_act:
+                    await message_service.send_act_update(
+                        game_id, current_act.id, current_act.name, scenario.progression.current_act_index
+                    )
+
         await broadcast_service.publish(game_id, "complete", {"status": "success"})
         logger.info(f"AI processing completed successfully for game {game_id}")
 
