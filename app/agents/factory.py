@@ -16,7 +16,7 @@ from app.agents.narrative_agent import NarrativeAgent
 from app.agents.types import AgentType
 from app.config import get_settings
 from app.interfaces.events import IEventBus
-from app.interfaces.services import IScenarioService
+from app.interfaces.services import IDataService, IScenarioService
 from app.services.context_service import ContextService
 from app.services.data_service import DataService
 from app.services.event_logger_service import EventLoggerService
@@ -127,7 +127,7 @@ The current game state and character information will be provided with each inte
         agent_type: AgentType,
         event_bus: IEventBus | None = None,
         scenario_service: IScenarioService | None = None,
-        data_service: DataService | None = None,
+        data_service: IDataService | None = None,
         debug: bool = False,
     ) -> BaseAgent:
         """Create a specialized agent based on type."""

@@ -10,8 +10,8 @@ from app.events.commands.inventory_commands import (
     RemoveItemCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.models.character import Item
 from app.models.game_state import GameState
+from app.models.item import InventoryItem
 from app.models.tool_results import (
     AddItemResult,
     ModifyCurrencyResult,
@@ -75,7 +75,7 @@ class InventoryHandler(BaseHandler):
             if existing_item:
                 existing_item.quantity += command.quantity
             else:
-                new_item = Item(
+                new_item = InventoryItem(
                     name=command.item_name,
                     quantity=command.quantity,
                     weight=0.0,  # Would need item database for accurate weight

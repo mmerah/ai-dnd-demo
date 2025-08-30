@@ -139,14 +139,13 @@ class CharacterHandler(BaseHandler):
                 return result
 
             spell_slots = character.spellcasting.spell_slots
-            level_key = f"level_{command.level}"
 
-            if level_key not in spell_slots:
+            if command.level not in spell_slots:
                 result.success = False
                 result.error = f"No spell slots for level {command.level}"
                 return result
 
-            slot = spell_slots[level_key]
+            slot = spell_slots[command.level]
             old_slots = slot.current
             slot.current = max(0, min(slot.total, old_slots + command.amount))
             new_slots = slot.current

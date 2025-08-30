@@ -130,23 +130,24 @@
           "Goodberry"
         ],
         "spell_slots": {
-          "1st": {
+          "1": {
+            "level": 1,
             "total": 3,
             "current": 3
           }
         }
       },
       "inventory": [
-        {"name": "Longbow", "quantity": 1, "weight": 2.0, "value": 50.0, "equipped": true, "item_type": "weapon"},
-        {"name": "Arrows", "quantity": 40, "weight": 2.0, "value": 2.0, "equipped": true, "item_type": "ammunition"},
-        {"name": "Shortsword", "quantity": 1, "weight": 2.0, "value": 10.0, "equipped": true, "item_type": "weapon"},
-        {"name": "Dagger", "quantity": 2, "weight": 2.0, "value": 4.0, "equipped": false, "item_type": "weapon"},
-        {"name": "Leather Armor", "quantity": 1, "weight": 10.0, "value": 10.0, "equipped": true, "item_type": "armor"},
-        {"name": "Explorer's Pack", "quantity": 1, "weight": 59.0, "value": 10.0, "equipped": false, "item_type": "gear"},
-        {"name": "Component Pouch", "quantity": 1, "weight": 2.0, "value": 25.0, "equipped": false, "item_type": "gear"},
-        {"name": "Hunting Trap", "quantity": 1, "weight": 25.0, "value": 5.0, "equipped": false, "item_type": "gear"},
-        {"name": "Traveler's Clothes", "quantity": 1, "weight": 4.0, "value": 2.0, "equipped": true, "item_type": "clothing"},
-        {"name": "Belt Pouch", "quantity": 1, "weight": 1.0, "value": 0.5, "equipped": true, "item_type": "gear"}
+        {"name": "Longbow", "quantity": 1, "weight": 2.0, "value": 50.0, "equipped": true, "item_type": "Weapon"},
+        {"name": "Arrows", "quantity": 40, "weight": 2.0, "value": 2.0, "equipped": true, "item_type": "Ammunition"},
+        {"name": "Shortsword", "quantity": 1, "weight": 2.0, "value": 10.0, "equipped": true, "item_type": "Weapon"},
+        {"name": "Dagger", "quantity": 2, "weight": 2.0, "value": 4.0, "equipped": false, "item_type": "Weapon"},
+        {"name": "Leather Armor", "quantity": 1, "weight": 10.0, "value": 10.0, "equipped": true, "item_type": "Armor"},
+        {"name": "Explorer's Pack", "quantity": 1, "weight": 59.0, "value": 10.0, "equipped": false, "item_type": "Equipment Pack"},
+        {"name": "Component Pouch", "quantity": 1, "weight": 2.0, "value": 25.0, "equipped": false, "item_type": "Adventuring Gear"},
+        {"name": "Hunting Trap", "quantity": 1, "weight": 25.0, "value": 5.0, "equipped": false, "item_type": "Adventuring Gear"},
+        {"name": "Traveler's Clothes", "quantity": 1, "weight": 4.0, "value": 2.0, "equipped": true, "item_type": "Adventuring Gear"},
+        {"name": "Belt Pouch", "quantity": 1, "weight": 1.0, "value": 0.5, "equipped": true, "item_type": "Container"}
       ],
       "currency": {
         "copper": 0,

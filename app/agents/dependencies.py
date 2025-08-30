@@ -3,9 +3,8 @@
 from dataclasses import dataclass
 
 from app.interfaces.events import IEventBus
-from app.interfaces.services import IGameService, IScenarioService
+from app.interfaces.services import IDataService, IGameService, IScenarioService
 from app.models.game_state import GameState
-from app.services.data_service import DataService
 
 
 @dataclass
@@ -16,4 +15,4 @@ class AgentDependencies:
     game_service: IGameService
     event_bus: IEventBus
     scenario_service: IScenarioService
-    data_service: DataService
+    data_service: IDataService

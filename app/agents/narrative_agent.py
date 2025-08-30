@@ -21,7 +21,7 @@ from pydantic_ai.messages import (
 from app.agents.base import BaseAgent
 from app.agents.dependencies import AgentDependencies
 from app.interfaces.events import IEventBus
-from app.interfaces.services import IGameService, IScenarioService
+from app.interfaces.services import IDataService, IGameService, IScenarioService
 from app.models.ai_response import (
     NarrativeResponse,
     StreamEvent,
@@ -30,7 +30,6 @@ from app.models.ai_response import (
 )
 from app.models.game_state import GameState, MessageRole
 from app.services.context_service import ContextService
-from app.services.data_service import DataService
 from app.services.event_logger_service import EventLoggerService
 from app.services.message_converter_service import MessageConverterService
 from app.services.message_metadata_service import MessageMetadataService
@@ -61,7 +60,7 @@ class NarrativeAgent(BaseAgent):
     metadata_service: MessageMetadataService
     event_bus: IEventBus
     scenario_service: IScenarioService
-    data_service: DataService
+    data_service: IDataService
     # Any types are unavoidable here as tool arguments and results vary by tool
     # Format: (tool_name, args_dict | None, result | None)
     captured_events: list[tuple[str, dict[str, Any] | None, Any | None]] = field(default_factory=list)

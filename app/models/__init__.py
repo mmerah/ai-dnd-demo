@@ -10,8 +10,6 @@ from .character import (
     HitDice,
     HitPoints,
     Personality,
-    Spellcasting,
-    SpellSlot,
 )
 from .game_state import (
     CombatParticipant,
@@ -21,12 +19,14 @@ from .game_state import (
     Message,
     MessageRole,
 )
+from .item import InventoryItem, ItemDefinition, ItemRarity, ItemSubtype, ItemType
 from .npc import (
     NPCAttack,
     NPCSheet,
     SpecialAbility,
 )
 from .requests import NewGameRequest, NewGameResponse, PlayerActionRequest
+from .spell import Spellcasting, SpellDefinition, SpellSchool, SpellSlot
 
 __all__ = [
     # Character models
@@ -36,11 +36,20 @@ __all__ = [
     "HitDice",
     "Attack",
     "Feature",
-    "SpellSlot",
-    "Spellcasting",
     "Currency",
     "Personality",
     "CharacterSheet",
+    # Item models
+    "InventoryItem",
+    "ItemDefinition",
+    "ItemRarity",
+    "ItemSubtype",
+    "ItemType",
+    # Spell models
+    "SpellSlot",
+    "Spellcasting",
+    "SpellDefinition",
+    "SpellSchool",
     # NPC models
     "NPCAttack",
     "SpecialAbility",

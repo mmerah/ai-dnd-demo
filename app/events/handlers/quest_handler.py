@@ -11,10 +11,9 @@ from app.events.commands.quest_commands import (
     StartQuestCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services import IGameService, IScenarioService
+from app.interfaces.services import IDataService, IGameService, IScenarioService
 from app.models.game_state import GameState
 from app.models.quest import ObjectiveStatus, QuestStatus
-from app.services.data_service import DataService
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +21,7 @@ logger = logging.getLogger(__name__)
 class QuestHandler(BaseHandler):
     """Handler for quest management commands."""
 
-    def __init__(self, game_service: IGameService, scenario_service: IScenarioService, data_service: DataService):
+    def __init__(self, game_service: IGameService, scenario_service: IScenarioService, data_service: IDataService):
         super().__init__(game_service)
         self.scenario_service = scenario_service
         self.data_service = data_service

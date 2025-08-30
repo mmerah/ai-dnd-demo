@@ -2,46 +2,19 @@
 
 import json
 from pathlib import Path
-from typing import TypedDict
+from typing import Any
 
+from app.interfaces.services import IDataService
+from app.models.item import ItemDefinition, ItemRarity, ItemSubtype, ItemType
 from app.models.npc import NPCSheet
+from app.models.spell import SpellDefinition, SpellSchool
 
 
-class ItemData(TypedDict):
-    """Type definition for item data."""
+class DataService(IDataService):
+    """Service for loading and managing game data with caching.
 
-    name: str
-    type: str
-    rarity: str
-    weight: float
-    value: int
-    description: str
-    # Optional fields
-    subtype: str | None
-    damage: str | None
-    damage_type: str | None
-    properties: list[str] | None
-    armor_class: int | None
-    quantity_available: int | None
-
-
-class SpellData(TypedDict):
-    """Type definition for spell data."""
-
-    name: str
-    level: int
-    school: str
-    casting_time: str
-    range: str
-    components: str
-    duration: str
-    description: str
-    higher_levels: str | None
-    classes: list[str]
-
-
-class DataService:
-    """Service for loading and managing game data with caching."""
+    Implements IDataService interface for dependency injection.
+    """
 
     def __init__(self, data_directory: Path | None = None):
         """
@@ -55,9 +28,9 @@ class DataService:
         self.data_directory = data_directory
 
         # Cache for loaded data
-        self._items: dict[str, ItemData] = {}
+        self._items: dict[str, ItemDefinition] = {}
         self._monsters: dict[str, NPCSheet] = {}
-        self._spells: dict[str, SpellData] = {}
+        self._spells: dict[str, SpellDefinition] = {}
 
         # Load all data on initialization
         self._load_all_data()
@@ -78,8 +51,10 @@ class DataService:
             with open(items_path, encoding="utf-8") as f:
                 data = json.load(f)
 
-            for item in data.get("items", []):
-                self._items[item["name"]] = item
+            for item_data in data.get("items", []):
+                # Convert JSON data to ItemDefinition model
+                item_def = self._parse_item_data(item_data)
+                self._items[item_def.name] = item_def
 
         except Exception as e:
             raise RuntimeError(f"Failed to load items data: {e}") from e
@@ -120,13 +95,64 @@ class DataService:
             with open(spells_path, encoding="utf-8") as f:
                 data = json.load(f)
 
-            for spell in data.get("spells", []):
-                self._spells[spell["name"]] = spell
+            for spell_data in data.get("spells", []):
+                # Convert JSON data to SpellDefinition model
+                spell_def = self._parse_spell_data(spell_data)
+                self._spells[spell_def.name] = spell_def
 
         except Exception as e:
             raise RuntimeError(f"Failed to load spells data: {e}") from e
 
-    def get_item(self, name: str, allow_missing: bool = False) -> ItemData | None:
+    def _parse_item_data(self, data: dict[str, Any]) -> ItemDefinition:
+        """Parse item data from JSON into ItemDefinition model."""
+        # Map string values to enums
+        item_type = ItemType(data["type"])
+        rarity = ItemRarity(data["rarity"])
+        subtype = ItemSubtype(data["subtype"]) if data.get("subtype") else None
+
+        return ItemDefinition(
+            name=data["name"],
+            type=item_type,
+            rarity=rarity,
+            weight=data.get("weight", 0.0),
+            value=data.get("value", 0),
+            description=data.get("description", ""),
+            subtype=subtype,
+            damage=data.get("damage"),
+            damage_type=data.get("damage_type"),
+            properties=data.get("properties", []),
+            armor_class=data.get("armor_class"),
+            dex_bonus=data.get("dex_bonus"),
+            capacity=data.get("capacity"),
+            contents=data.get("contents", []),
+            quantity_available=data.get("quantity_available"),
+        )
+
+    def _parse_spell_data(self, data: dict[str, Any]) -> SpellDefinition:
+        """Parse spell data from JSON into SpellDefinition model."""
+        # Map string school to enum
+        school = SpellSchool(data["school"])
+
+        # Check if spell requires concentration
+        duration = data.get("duration", "")
+        concentration = "concentration" in duration.lower()
+
+        return SpellDefinition(
+            name=data["name"],
+            level=data["level"],
+            school=school,
+            casting_time=data["casting_time"],
+            range=data["range"],
+            components=data["components"],
+            duration=duration,
+            description=data["description"],
+            higher_levels=data.get("higher_levels"),
+            classes=data.get("classes", []),
+            ritual=data.get("ritual", False),
+            concentration=concentration,
+        )
+
+    def get_item(self, name: str, allow_missing: bool = False) -> ItemDefinition | None:
         """
         Get item data by name.
 
@@ -135,7 +161,7 @@ class DataService:
             allow_missing: If False, raise error when item not found
 
         Returns:
-            Item data or None if not found and allow_missing is True
+            ItemDefinition or None if not found and allow_missing is True
 
         Raises:
             KeyError: If item not found and allow_missing is False
@@ -173,7 +199,7 @@ class DataService:
 
         return None
 
-    def get_spell(self, name: str, allow_missing: bool = False) -> SpellData | None:
+    def get_spell(self, name: str, allow_missing: bool = False) -> SpellDefinition | None:
         """
         Get spell data by name.
 
@@ -182,7 +208,7 @@ class DataService:
             allow_missing: If False, raise error when spell not found
 
         Returns:
-            Spell data or None if not found and allow_missing is True
+            SpellDefinition or None if not found and allow_missing is True
 
         Raises:
             KeyError: If spell not found and allow_missing is False

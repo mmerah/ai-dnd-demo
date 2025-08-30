@@ -2,6 +2,9 @@
 
 from pydantic import BaseModel, Field, ValidationInfo, field_validator
 
+from app.models.item import InventoryItem
+from app.models.spell import Spellcasting
+
 
 class Abilities(BaseModel):
     """Character ability scores."""
@@ -57,18 +60,6 @@ class HitDice(BaseModel):
         return v
 
 
-class Item(BaseModel):
-    """Inventory item with quantity tracking."""
-
-    name: str
-    quantity: int = Field(ge=1, default=1)
-    weight: float = Field(ge=0, default=0.0)
-    value: float = Field(ge=0, default=0)  # Value in gold pieces
-    description: str = ""
-    equipped: bool = False
-    item_type: str | None = None  # weapon, armor, potion, etc.
-
-
 class Attack(BaseModel):
     """Character weapon attack."""
 
@@ -85,31 +76,6 @@ class Feature(BaseModel):
 
     name: str
     description: str
-
-
-class SpellSlot(BaseModel):
-    """Spell slot tracking for a spell level."""
-
-    total: int = Field(ge=0)
-    current: int = Field(ge=0)
-
-    @field_validator("current")
-    @classmethod
-    def validate_current_slots(cls, v: int, info: ValidationInfo) -> int:
-        """Ensure current slots don't exceed total."""
-        if "total" in info.data and v > info.data["total"]:
-            raise ValueError(f"Current spell slots ({v}) cannot exceed total ({info.data['total']})")
-        return v
-
-
-class Spellcasting(BaseModel):
-    """Character spellcasting information."""
-
-    ability: str = Field(pattern="^(Intelligence|Wisdom|Charisma|INT|WIS|CHA)$")
-    spell_save_dc: int = Field(ge=1)
-    spell_attack_bonus: int
-    spells_known: list[str]
-    spell_slots: dict[str, SpellSlot]
 
 
 class Currency(BaseModel):
@@ -170,7 +136,7 @@ class CharacterSheet(BaseModel):
     spellcasting: Spellcasting | None = None
 
     # Inventory & Currency
-    inventory: list[Item] = Field(default_factory=list)
+    inventory: list[InventoryItem] = Field(default_factory=list)
     currency: Currency
 
     # Personality & Background
@@ -254,8 +220,7 @@ class CharacterSheet(BaseModel):
 
         # Restore all spell slots
         if self.spellcasting:
-            for slot_level in self.spellcasting.spell_slots.values():
-                slot_level.current = slot_level.total
+            self.spellcasting.restore_all_slots()
 
         # Remove exhaustion (one level)
         if self.exhaustion_level > 0:

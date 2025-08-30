@@ -1,14 +1,10 @@
 """Scenario models for D&D adventure content."""
 
-from typing import TYPE_CHECKING
-
 from pydantic import BaseModel, Field
 
+from app.interfaces.services import IDataService
 from app.models.location import LocationConnection, LootEntry, MonsterSpawn
 from app.models.quest import Quest
-
-if TYPE_CHECKING:
-    from app.services.data_service import DataService
 
 
 class ScenarioNPC(BaseModel):
@@ -189,7 +185,7 @@ class Scenario(BaseModel):
 
         return None
 
-    def validate_references(self, data_service: "DataService") -> list[str]:
+    def validate_references(self, data_service: IDataService) -> list[str]:
         """
         Validate all monster and item references.
 

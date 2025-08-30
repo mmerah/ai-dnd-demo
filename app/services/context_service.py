@@ -1,20 +1,15 @@
 """Service for building AI context following Single Responsibility."""
 
-from typing import TYPE_CHECKING
-
-from app.interfaces.services import IScenarioService
+from app.interfaces.services import IDataService, IScenarioService
 from app.models.game_state import GameState
 from app.models.quest import ObjectiveStatus
-from app.services.data_service import DataService
-
-if TYPE_CHECKING:
-    from app.models.scenario import Scenario
+from app.models.scenario import Scenario
 
 
 class ContextService:
     """Service for building AI context following Single Responsibility."""
 
-    def __init__(self, scenario_service: IScenarioService, data_service: DataService | None = None):
+    def __init__(self, scenario_service: IScenarioService, data_service: IDataService | None = None):
         self.scenario_service = scenario_service
         self.data_service = data_service
 
@@ -70,7 +65,7 @@ class ContextService:
 
         return "\n\n".join(context_parts)
 
-    def _build_location_context(self, game_state: GameState, scenario: "Scenario") -> str | None:
+    def _build_location_context(self, game_state: GameState, scenario: Scenario) -> str | None:
         """Build enhanced location context with connections, encounters, and loot."""
         if not game_state.current_location_id:
             return None
@@ -123,7 +118,7 @@ class ContextService:
 
         return "\n".join(context_parts)
 
-    def _build_quest_context(self, game_state: GameState, scenario: "Scenario") -> str | None:
+    def _build_quest_context(self, game_state: GameState, scenario: Scenario) -> str | None:
         """Build quest context with active quests and objectives."""
         if not game_state.active_quests:
             return None
@@ -208,11 +203,9 @@ class ContextService:
         context_parts = ["Known Spells:"]
 
         for spell_name in spells[:5]:  # Limit to 5 spells to avoid context overflow
-            spell_data = self.data_service.get_spell(spell_name, allow_missing=True)
-            if spell_data:
-                context_parts.append(
-                    f"  • {spell_name} (Level {spell_data['level']}): {spell_data['description'][:100]}..."
-                )
+            spell_def = self.data_service.get_spell(spell_name, allow_missing=True)
+            if spell_def:
+                context_parts.append(f"  • {spell_name} (Level {spell_def.level}): {spell_def.description[:100]}...")
             else:
                 context_parts.append(f"  • {spell_name}")
 

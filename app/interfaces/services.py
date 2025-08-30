@@ -6,7 +6,10 @@ from collections.abc import AsyncGenerator, AsyncIterator
 from app.models.ai_response import AIResponse
 from app.models.character import CharacterSheet
 from app.models.game_state import GameState, JSONSerializable, MessageRole
+from app.models.item import ItemDefinition
+from app.models.npc import NPCSheet
 from app.models.scenario import Scenario
+from app.models.spell import SpellDefinition
 
 
 class IGameService(ABC):
@@ -91,4 +94,44 @@ class IBroadcastService(ABC):
 
     @abstractmethod
     async def subscribe(self, game_id: str) -> AsyncGenerator[dict[str, JSONSerializable], None]:
+        pass
+
+
+class IDataService(ABC):
+    """Interface for loading and managing game data."""
+
+    @abstractmethod
+    def get_item(self, name: str, allow_missing: bool = False) -> ItemDefinition | None:
+        pass
+
+    @abstractmethod
+    def get_monster(self, name: str, allow_missing: bool = False) -> NPCSheet | None:
+        pass
+
+    @abstractmethod
+    def get_spell(self, name: str, allow_missing: bool = False) -> SpellDefinition | None:
+        pass
+
+    @abstractmethod
+    def list_items(self) -> list[str]:
+        pass
+
+    @abstractmethod
+    def list_monsters(self) -> list[str]:
+        pass
+
+    @abstractmethod
+    def list_spells(self) -> list[str]:
+        pass
+
+    @abstractmethod
+    def validate_item_reference(self, name: str) -> bool:
+        pass
+
+    @abstractmethod
+    def validate_monster_reference(self, name: str) -> bool:
+        pass
+
+    @abstractmethod
+    def validate_spell_reference(self, name: str) -> bool:
         pass

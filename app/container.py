@@ -13,7 +13,7 @@ from app.events.handlers.location_handler import LocationHandler
 from app.events.handlers.quest_handler import QuestHandler
 from app.events.handlers.time_handler import TimeHandler
 from app.interfaces.events import IEventBus
-from app.interfaces.services import IAIService, IGameService, IScenarioService
+from app.interfaces.services import IAIService, IDataService, IGameService, IScenarioService
 from app.services.ai_service import AIService
 from app.services.data_service import DataService
 from app.services.dice_service import DiceService
@@ -31,7 +31,7 @@ class Container:
         self._game_service: IGameService | None = None
         self._scenario_service: IScenarioService | None = None
         self._dice_service: DiceService | None = None
-        self._data_service: DataService | None = None
+        self._data_service: IDataService | None = None
         self._event_bus: IEventBus | None = None
         self._ai_service: IAIService | None = None
 
@@ -50,7 +50,7 @@ class Container:
             self._dice_service = DiceService()
         return self._dice_service
 
-    def get_data_service(self) -> DataService:
+    def get_data_service(self) -> IDataService:
         if self._data_service is None:
             self._data_service = DataService()
         return self._data_service
