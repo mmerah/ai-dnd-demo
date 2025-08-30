@@ -12,6 +12,26 @@ from app.models.scenario import Scenario
 from app.models.spell import SpellDefinition
 
 
+class ICharacterService(ABC):
+    """Interface for managing character data."""
+
+    @abstractmethod
+    def get_character(self, character_id: str) -> CharacterSheet | None:
+        pass
+
+    @abstractmethod
+    def list_characters(self) -> list[dict[str, str]]:
+        pass
+
+    @abstractmethod
+    def get_all_characters(self) -> list[CharacterSheet]:
+        pass
+
+    @abstractmethod
+    def validate_character_references(self, character: CharacterSheet) -> list[str]:
+        pass
+
+
 class IGameService(ABC):
     """Interface for managing game state."""
 

@@ -5,7 +5,6 @@ API routes for D&D 5e AI Dungeon Master.
 import json
 import logging
 from collections.abc import AsyncGenerator
-from pathlib import Path
 from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException
@@ -40,28 +39,13 @@ async def create_new_game(request: NewGameRequest) -> NewGameResponse:
         HTTPException: If character not found or game creation fails
     """
     game_service = container.get_game_service()
+    character_service = container.get_character_service()
 
     try:
-        # Load available characters
-        characters_path = Path(__file__).parent.parent / "data" / "characters.json"
-        if not characters_path.exists():
-            raise HTTPException(status_code=500, detail="Characters data not found")
-
-        with open(characters_path) as f:
-            characters_data = json.load(f)
-
-        # Find selected character
-        character_data = None
-        for char in characters_data.get("characters", []):
-            if char.get("id") == request.character_id:
-                character_data = char
-                break
-
-        if not character_data:
+        # Get the selected character
+        character = character_service.get_character(request.character_id)
+        if not character:
             raise HTTPException(status_code=404, detail=f"Character with ID '{request.character_id}' not found")
-
-        # Create character sheet from data
-        character = CharacterSheet(**character_data)
 
         # Initialize game state
         game_state = game_service.initialize_game(
@@ -338,21 +322,12 @@ async def list_available_characters() -> list[CharacterSheet]:
     Raises:
         HTTPException: If characters data cannot be loaded
     """
+    character_service = container.get_character_service()
+
     try:
-        # Load characters data
-        characters_path = Path(__file__).parent.parent / "data" / "characters.json"
-        if not characters_path.exists():
-            raise HTTPException(status_code=500, detail="Characters data not found")
-
-        with open(characters_path) as f:
-            characters_data = json.load(f)
-
-        # Convert to CharacterSheet objects
-        characters = [CharacterSheet(**char_data) for char_data in characters_data.get("characters", [])]
-
+        # Get all characters from the service
+        characters = character_service.get_all_characters()
         return characters
 
-    except HTTPException:
-        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to load characters: {str(e)}") from e

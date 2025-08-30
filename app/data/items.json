@@ -138,6 +138,38 @@
       "weight": 0,
       "value": 50,
       "description": "A creature that drinks this vial of liquid gains advantage on saving throws against poison for 1 hour."
+    },
+    {
+      "name": "Component Pouch",
+      "type": "Adventuring Gear",
+      "rarity": "Common",
+      "weight": 2,
+      "value": 25,
+      "description": "A small, watertight leather belt pouch that has compartments to hold all the material components and other special items you need to cast your spells, except for those components that have a specific cost."
+    },
+    {
+      "name": "Hunting Trap",
+      "type": "Adventuring Gear",
+      "rarity": "Common",
+      "weight": 25,
+      "value": 5,
+      "description": "When you use your action to set it, this trap forms a saw-toothed steel ring that snaps shut when a creature steps on a pressure plate in the center. The trap is affixed by a heavy chain to an immobile object, such as a tree or a spike driven into the ground."
+    },
+    {
+      "name": "Traveler's Clothes",
+      "type": "Adventuring Gear",
+      "rarity": "Common",
+      "weight": 4,
+      "value": 2,
+      "description": "This set of clothes could consist of boots, a wool skirt or breeches, a sturdy belt, a shirt (perhaps with a vest or jacket), and an ample cloak with a hood."
+    },
+    {
+      "name": "Belt Pouch",
+      "type": "Container",
+      "rarity": "Common",
+      "weight": 1,
+      "value": 0.5,
+      "description": "A cloth or leather pouch can hold up to 20 sling bullets or 50 blowgun needles, among other things. A compartmentalized pouch for holding spell components is called a component pouch."
     }
   ]
 }
