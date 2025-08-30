@@ -65,12 +65,12 @@ class DiceHandler(BaseHandler):
             )
             result.data = dice_result
 
-            # Create broadcast command for the result (convert to dict at boundary)
+            # Create broadcast command for the result
             result.add_command(
                 BroadcastToolResultCommand(
                     game_id=command.game_id,
                     tool_name=f"roll_{command.roll_type}",
-                    result=dice_result.model_dump(mode="json"),
+                    result=dice_result,
                 ),
             )
 

@@ -7,26 +7,22 @@ from app.interfaces.services import IBroadcastService, IMessageService
 from app.models.character import CharacterSheet
 from app.models.combat import CombatState
 from app.models.game_state import GameState
-from app.models.quest import Quest
+from app.models.scenario import Scenario
 from app.models.sse_events import (
-    ActUpdateData,
     CharacterUpdateData,
     CombatUpdateData,
-    ConnectionInfo,
     DiceRollData,
     ErrorData,
     GameUpdateData,
     InitialNarrativeData,
-    LocationUpdateData,
     NarrativeData,
-    QuestUpdateData,
     ScenarioInfoData,
-    ScenarioSummary,
     SSEEventType,
     SystemMessageData,
     ToolCallData,
     ToolResultData,
 )
+from app.models.tool_results import ToolResult
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +82,7 @@ class MessageService(IMessageService):
         data = ToolCallData(tool_name=tool_name, parameters=parameters)
         await self.broadcast_service.publish(game_id, SSEEventType.TOOL_CALL.value, data)
 
-    async def send_tool_result(self, game_id: str, tool_name: str, result: JSONSerializable) -> None:
+    async def send_tool_result(self, game_id: str, tool_name: str, result: ToolResult) -> None:
         """
         Send tool result information to the chat.
 
@@ -178,85 +174,19 @@ class MessageService(IMessageService):
         data = GameUpdateData(game_state=game_state)
         await self.broadcast_service.publish(game_id, SSEEventType.GAME_UPDATE.value, data)
 
-    async def send_location_update(
-        self,
-        game_id: str,
-        location_id: str,
-        location_name: str,
-        description: str,
-        connections: list[ConnectionInfo],
-        danger_level: str,
-        npcs_present: list[str],
-    ) -> None:
-        """
-        Send detailed location update.
-
-        Args:
-            game_id: Game identifier
-            location_id: Location identifier
-            location_name: Name of the location
-            description: Location description
-            connections: Available connections/exits
-            danger_level: Danger level of the location
-            npcs_present: NPCs currently at the location
-        """
-        data = LocationUpdateData(
-            location_id=location_id,
-            location_name=location_name,
-            description=description,
-            connections=connections,
-            danger_level=danger_level,
-            npcs_present=npcs_present,
-        )
-        await self.broadcast_service.publish(game_id, SSEEventType.LOCATION_UPDATE.value, data)
-
-    async def send_quest_update(
-        self,
-        game_id: str,
-        active_quests: list[Quest],
-        completed_quest_ids: list[str],
-    ) -> None:
-        """
-        Send quest status update.
-
-        Args:
-            game_id: Game identifier
-            active_quests: List of active Quest instances
-            completed_quest_ids: List of completed quest IDs
-        """
-        data = QuestUpdateData(active_quests=active_quests, completed_quest_ids=completed_quest_ids)
-        await self.broadcast_service.publish(game_id, SSEEventType.QUEST_UPDATE.value, data)
-
-    async def send_act_update(self, game_id: str, act_id: str, act_name: str, act_index: int) -> None:
-        """
-        Send act/chapter update.
-
-        Args:
-            game_id: Game identifier
-            act_id: Act identifier
-            act_name: Name of the act
-            act_index: Current act index
-        """
-        data = ActUpdateData(act_id=act_id, act_name=act_name, act_index=act_index)
-        await self.broadcast_service.publish(game_id, SSEEventType.ACT_UPDATE.value, data)
-
     async def send_scenario_info(
         self,
         game_id: str,
-        scenario_title: str,
-        scenario_id: str,
-        available_scenarios: list[dict[str, str]],
+        current_scenario: Scenario,
+        available_scenarios: list[Scenario],
     ) -> None:
         """
         Send scenario information to the frontend.
 
         Args:
             game_id: Game identifier
-            scenario_title: Title of current scenario
-            scenario_id: ID of current scenario
-            available_scenarios: List of available scenarios
+            current_scenario: Current Scenario instance
+            available_scenarios: List of available Scenario instances
         """
-        current = ScenarioSummary(id=scenario_id, title=scenario_title)
-        available = [ScenarioSummary(**s) for s in available_scenarios]
-        data = ScenarioInfoData(current_scenario=current, available_scenarios=available)
+        data = ScenarioInfoData(current_scenario=current_scenario, available_scenarios=available_scenarios)
         await self.broadcast_service.publish(game_id, SSEEventType.SCENARIO_INFO.value, data)

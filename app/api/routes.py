@@ -19,13 +19,9 @@ from app.models.requests import NewGameRequest, NewGameResponse, PlayerActionReq
 from app.models.scenario import Scenario
 from app.models.spell import SpellDefinition
 from app.models.sse_events import (
-    ActUpdateData,
-    ConnectionInfo,
+    GameUpdateData,
     InitialNarrativeData,
-    LocationUpdateData,
-    QuestUpdateData,
     ScenarioInfoData,
-    ScenarioSummary,
     SSEEvent,
     SSEEventType,
 )
@@ -234,7 +230,7 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
             """Generate SSE events by subscribing to broadcast service."""
             logger.info(f"Client subscribed to SSE for game {game_id}")
 
-            # Send initial narrative and scenario info when SSE connects
+            # Send initial narrative
             if game_state.conversation_history:
                 initial_event = SSEEvent(
                     event=SSEEventType.INITIAL_NARRATIVE,
@@ -245,76 +241,26 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
                 )
                 yield initial_event.to_sse_format()
 
-            # Send scenario info if available
+            # Send initial full game state
+            initial_game_update_event = SSEEvent(
+                event=SSEEventType.GAME_UPDATE,
+                data=GameUpdateData(game_state=game_state),
+            )
+            yield initial_game_update_event.to_sse_format()
+
+            # Send scenario info
             if game_state.scenario_id:
-                scenarios = scenario_service.list_scenarios()
-                scenario_event = SSEEvent(
-                    event=SSEEventType.SCENARIO_INFO,
-                    data=ScenarioInfoData(
-                        current_scenario=ScenarioSummary(
-                            id=game_state.scenario_id,
-                            title=game_state.scenario_title or "",
-                        ),
-                        available_scenarios=[
-                            ScenarioSummary(id=s.id, title=s.title, description=s.description) for s in scenarios
-                        ],
-                    ),
-                )
-                yield scenario_event.to_sse_format()
-
-                # Send location info if available
                 scenario = scenario_service.get_scenario(game_state.scenario_id)
-                if scenario and game_state.current_location_id:
-                    location = scenario.get_location(game_state.current_location_id)
-                    if location:
-                        location_state = game_state.get_location_state(game_state.current_location_id)
-                        connections = [
-                            ConnectionInfo(
-                                to_location_id=conn.to_location_id,
-                                description=conn.description,
-                                direction=conn.direction,
-                                is_accessible=conn.can_traverse(),
-                                is_visible=conn.is_visible,
-                            )
-                            for conn in location.connections
-                        ]
-
-                        location_event = SSEEvent(
-                            event=SSEEventType.LOCATION_UPDATE,
-                            data=LocationUpdateData(
-                                location_id=location.id,
-                                location_name=location.name,
-                                description=location.get_description(location_state.get_description_variant()),
-                                connections=connections,
-                                danger_level=location_state.danger_level.value,
-                                npcs_present=location_state.npcs_present,
-                            ),
-                        )
-                        yield location_event.to_sse_format()
-
-                # Send quest info
-                quest_event = SSEEvent(
-                    event=SSEEventType.QUEST_UPDATE,
-                    data=QuestUpdateData(
-                        active_quests=game_state.active_quests,
-                        completed_quest_ids=game_state.completed_quest_ids,
-                    ),
-                )
-                yield quest_event.to_sse_format()
-
-                # Send act info
+                scenarios = scenario_service.list_scenarios()
                 if scenario:
-                    current_act = scenario.progression.get_current_act()
-                    if current_act:
-                        act_event = SSEEvent(
-                            event=SSEEventType.ACT_UPDATE,
-                            data=ActUpdateData(
-                                act_id=current_act.id,
-                                act_name=current_act.name,
-                                act_index=scenario.progression.current_act_index,
-                            ),
-                        )
-                        yield act_event.to_sse_format()
+                    scenario_event = SSEEvent(
+                        event=SSEEventType.SCENARIO_INFO,
+                        data=ScenarioInfoData(
+                            current_scenario=scenario,
+                            available_scenarios=scenarios,
+                        ),
+                    )
+                    yield scenario_event.to_sse_format()
 
             async for event_data in broadcast_service.subscribe(game_id):
                 # event_data is already in SSE format from broadcast_service

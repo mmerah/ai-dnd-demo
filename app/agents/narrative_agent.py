@@ -89,7 +89,7 @@ class NarrativeAgent(BaseAgent):
             # Location and navigation tools
             location_tools.change_location,
             location_tools.discover_secret,
-            location_tools.update_location_danger,
+            location_tools.update_location_state,
             # Combat management tools
             combat_tools.start_combat,
             combat_tools.trigger_scenario_encounter,

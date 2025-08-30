@@ -55,9 +55,12 @@ class BroadcastHandler(BaseHandler):
             logger.debug(f"Broadcast tool call: {command.tool_name}")
 
         elif isinstance(command, BroadcastToolResultCommand):
-            tool_result_data = ToolResultData(tool_name=command.tool_name, result=command.result)
-            await self.broadcast_service.publish(command.game_id, SSEEventType.TOOL_RESULT.value, tool_result_data)
-            logger.debug(f"Broadcast tool result: {command.tool_name}")
+            if command.result:
+                tool_result_data = ToolResultData(tool_name=command.tool_name, result=command.result)
+                await self.broadcast_service.publish(command.game_id, SSEEventType.TOOL_RESULT.value, tool_result_data)
+                logger.debug(f"Broadcast tool result: {command.tool_name}")
+            else:
+                logger.warning(f"Tool result for {command.tool_name} is None, skipping broadcast")
 
         elif isinstance(command, BroadcastCharacterUpdateCommand):
             # Pass CharacterSheet BaseModel directly

@@ -51,17 +51,29 @@ async def discover_secret(ctx: RunContext[AgentDependencies], secret_id: str) ->
 
 
 @tool_handler(UpdateLocationStateCommand)
-async def update_location_danger(ctx: RunContext[AgentDependencies], danger_level: str) -> BaseModel:
-    """Update the danger level of the current location.
+async def update_location_state(
+    ctx: RunContext[AgentDependencies],
+    danger_level: str | None = None,
+    add_npc: str | None = None,
+    remove_npc: str | None = None,
+    complete_encounter: str | None = None,
+    add_effect: str | None = None,
+) -> BaseModel:
+    """Update the state of the current location.
 
-    Use when the threat level changes.
+    Use this to reflect changes in the environment, such as clearing a room of enemies,
+    an NPC arriving or leaving, or a magical effect being applied to the area.
 
     Args:
-        danger_level: New danger level (safe/low/moderate/high/extreme/cleared)
+        danger_level: New danger level (safe/low/moderate/high/extreme/cleared).
+        add_npc: The name of an NPC that has arrived at the location.
+        remove_npc: The name of an NPC that has left the location.
+        complete_encounter: The ID of an encounter that has been resolved.
+        add_effect: A new environmental effect to add (e.g., 'magical darkness', 'heavy fog').
 
     Examples:
-        - After defeating enemies: danger_level="cleared"
-        - New threat arrives: danger_level="high"
-        - Area becomes safe: danger_level="safe"
+        - After defeating enemies: danger_level="cleared", complete_encounter="goblin_guards"
+        - An ally arrives: add_npc="Elara"
+        - A magical trap is sprung: add_effect="magical darkness"
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")

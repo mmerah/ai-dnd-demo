@@ -3,7 +3,7 @@
 import logging
 
 from app.container import container
-from app.models.sse_events import CompleteData, ConnectionInfo, ErrorData, SSEEventType
+from app.models.sse_events import CompleteData, ErrorData, SSEEventType
 
 logger = logging.getLogger(__name__)
 
@@ -76,57 +76,8 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
             # Save final game state
             game_service.save_game(updated_game_state)
 
-            # Send character and game updates
-            await message_service.send_character_update(game_id, updated_game_state.character)
+            # Send game state update
             await message_service.send_game_update(game_id, updated_game_state)
-
-            # Send detailed location update if we have scenario data
-            scenario_service = container.get_scenario_service()
-            if updated_game_state.scenario_id and updated_game_state.current_location_id:
-                scenario = scenario_service.get_scenario(updated_game_state.scenario_id)
-                if scenario:
-                    location = scenario.get_location(updated_game_state.current_location_id)
-                    if location:
-                        # Get location state for danger level and NPCs
-                        location_state = updated_game_state.get_location_state(updated_game_state.current_location_id)
-
-                        # Format connections for frontend
-                        connections = [
-                            ConnectionInfo(
-                                to_location_id=conn.to_location_id,
-                                description=conn.description,
-                                direction=conn.direction,
-                                is_accessible=conn.can_traverse(),
-                                is_visible=conn.is_visible,
-                            )
-                            for conn in location.connections
-                        ]
-
-                        await message_service.send_location_update(
-                            game_id,
-                            location.id,
-                            location.name,
-                            location.get_description(location_state.get_description_variant()),
-                            connections,
-                            location_state.danger_level.value,
-                            location_state.npcs_present,
-                        )
-
-            # Send quest update
-            await message_service.send_quest_update(
-                game_id, updated_game_state.active_quests, updated_game_state.completed_quest_ids
-            )
-
-            # Send act update if we have scenario data
-            if updated_game_state.scenario_id and scenario:
-                current_act = scenario.progression.get_current_act()
-                if current_act:
-                    await message_service.send_act_update(
-                        game_id,
-                        current_act.id,
-                        current_act.name,
-                        scenario.progression.current_act_index,
-                    )
 
         complete_data = CompleteData(status="success")
         await broadcast_service.publish(game_id, SSEEventType.COMPLETE, complete_data)

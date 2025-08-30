@@ -183,3 +183,29 @@ class RollDiceResult(BaseModel):
     weapon_name: str | None = None
     attacker: str | None = None
     combatants: list[str] | None = None
+
+
+# Union type representing any possible successful result from a tool
+ToolResult = (
+    UpdateHPResult
+    | AddConditionResult
+    | RemoveConditionResult
+    | UpdateSpellSlotsResult
+    | ModifyCurrencyResult
+    | AddItemResult
+    | RemoveItemResult
+    | ShortRestResult
+    | LongRestResult
+    | AdvanceTimeResult
+    | StartQuestResult
+    | CompleteObjectiveResult
+    | CompleteQuestResult
+    | ProgressActResult
+    | ChangeLocationResult
+    | DiscoverSecretResult
+    | UpdateLocationStateResult
+    | StartCombatResult
+    | TriggerEncounterResult
+    | SpawnMonstersResult
+    | RollDiceResult
+)

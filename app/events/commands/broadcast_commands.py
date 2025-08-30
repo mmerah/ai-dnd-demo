@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 
 from app.common.types import JSONSerializable
 from app.events.base import BaseCommand
+from app.models.tool_results import ToolResult
 
 
 @dataclass
@@ -34,7 +35,7 @@ class BroadcastToolResultCommand(BaseCommand):
     """Command to broadcast tool result to frontend."""
 
     tool_name: str = ""
-    result: JSONSerializable | None = None
+    result: ToolResult | None = None
 
     def get_handler_name(self) -> str:
         return "broadcast"

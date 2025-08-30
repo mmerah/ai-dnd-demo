@@ -10,7 +10,8 @@ from app.common.types import JSONSerializable
 from app.models.character import CharacterSheet
 from app.models.combat import CombatState
 from app.models.game_state import GameState
-from app.models.quest import Quest
+from app.models.scenario import Scenario
+from app.models.tool_results import ToolResult
 
 
 class SSEEventType(str, Enum):
@@ -28,9 +29,6 @@ class SSEEventType(str, Enum):
     SYSTEM = "system"
     ERROR = "error"
     GAME_UPDATE = "game_update"
-    LOCATION_UPDATE = "location_update"
-    QUEST_UPDATE = "quest_update"
-    ACT_UPDATE = "act_update"
     SCENARIO_INFO = "scenario_info"
     COMPLETE = "complete"
 
@@ -81,7 +79,7 @@ class ToolResultData(BaseSSEData):
     """Data for tool result events."""
 
     tool_name: str
-    result: JSONSerializable
+    result: ToolResult
 
 
 class DiceRollData(BaseSSEData):
@@ -125,56 +123,12 @@ class GameUpdateData(BaseSSEData):
 
     game_state: GameState
 
-# TODO: Should just hold a LocationConnection
-class ConnectionInfo(BaseModel):
-    """Information about a location connection."""
 
-    to_location_id: str
-    description: str
-    direction: str | None = None
-    is_accessible: bool = True
-    is_visible: bool = True
-
-# TODO: Should contain just a LocationState
-class LocationUpdateData(BaseSSEData):
-    """Data for location update events."""
-
-    location_id: str
-    location_name: str
-    description: str
-    connections: list[ConnectionInfo]
-    danger_level: str
-    npcs_present: list[str]
-
-
-class QuestUpdateData(BaseSSEData):
-    """Data for quest update events."""
-
-    active_quests: list[Quest]
-    completed_quest_ids: list[str]
-
-# TODO: Should contain just a ScenarioAct
-class ActUpdateData(BaseSSEData):
-    """Data for act update events."""
-
-    act_id: str
-    act_name: str
-    act_index: int
-
-# TODO: Should contain just a Scenario or be moved to scenario.py
-class ScenarioSummary(BaseModel):
-    """Summary information for a scenario."""
-
-    id: str
-    title: str
-    description: str | None = None
-
-# TODO: contain just A Scenario and a list of Scenario. Or we move ScenarioSummary to scenario.py and use that ?
 class ScenarioInfoData(BaseSSEData):
     """Data for scenario info events."""
 
-    current_scenario: ScenarioSummary
-    available_scenarios: list[ScenarioSummary]
+    current_scenario: Scenario
+    available_scenarios: list[Scenario]
 
 
 class CompleteData(BaseSSEData):
@@ -197,9 +151,6 @@ SSEData = (
     | SystemMessageData
     | ErrorData
     | GameUpdateData
-    | LocationUpdateData
-    | QuestUpdateData
-    | ActUpdateData
     | ScenarioInfoData
     | CompleteData
 )

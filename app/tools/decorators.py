@@ -2,7 +2,7 @@
 
 from collections.abc import Callable, Coroutine
 from functools import wraps
-from typing import Any
+from typing import Any, cast
 
 from pydantic import BaseModel
 from pydantic_ai import RunContext
@@ -10,6 +10,7 @@ from pydantic_ai import RunContext
 from app.agents.dependencies import AgentDependencies
 from app.events.base import BaseCommand
 from app.events.commands.broadcast_commands import BroadcastToolCallCommand, BroadcastToolResultCommand
+from app.models.tool_results import ToolResult
 
 
 def tool_handler(command_class: type[BaseCommand]) -> Callable[..., Callable[..., Coroutine[Any, Any, BaseModel]]]:
@@ -43,12 +44,12 @@ def tool_handler(command_class: type[BaseCommand]) -> Callable[..., Callable[...
             command = command_class(game_id=game_state.game_id, **kwargs)
             result = await event_bus.execute_command(command)
 
-            # 3. Broadcast tool result (convert BaseModel to dict for serialization)
+            # 3. Broadcast tool result
             if result:
-                # Result is a BaseModel from execute_command, convert to dict at boundary
-                result_dict = result.model_dump(mode="json")
+                # Cast to ToolResult since we know all tool handlers return ToolResult subtypes
+                tool_result = cast(ToolResult, result)
                 await event_bus.submit_command(
-                    BroadcastToolResultCommand(game_id=game_state.game_id, tool_name=tool_name, result=result_dict),
+                    BroadcastToolResultCommand(game_id=game_state.game_id, tool_name=tool_name, result=tool_result),
                 )
                 return result
             # No result is a serious error - commands should always return something

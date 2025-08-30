@@ -505,49 +505,43 @@ function initializeSSE() {
         // Format tool result based on type
         let resultMessage = '';
         
-        // Try to parse the result if it's a string representation of an object
+        // The result is now a Pydantic BaseModel object
         let result = data.result;
-        if (typeof result === 'string' && result.startsWith('{')) {
-            try {
-                // Use eval carefully - only for dict-like strings from Python
-                result = eval('(' + result + ')');
-                console.log('[SSE] Parsed tool result:', result);
-            } catch (e) {
-                console.log('[SSE] Could not parse result, using as string');
-            }
-        }
         
         if (data.tool_name && data.tool_name.includes('roll')) {
-            // Dice roll result - handle both object and string formats
+            // Dice roll result - handle BaseModel format
             if (typeof result === 'object' && result !== null) {
-                // Extract key information
-                const roll = result.roll || result.total || '?';
-                const naturalRoll = result.natural_roll;
-                const modifier = result.modifier;
-                const success = result.success;
-                const critSuccess = result.critical_success;
-                const critFail = result.critical_failure;
+                // Extract key information from the RollDiceResult model
+                const total = result.total || '?';
+                const rolls = result.rolls || [];
+                const modifier = result.modifier || 0;
+                const dice = result.dice || '';
+                const rollType = result.roll_type || '';
+                const ability = result.ability;
+                const skill = result.skill;
+                const critical = result.critical;
                 
                 // Build the message
-                resultMessage = `📊 Rolled: ${roll}`;
+                const rollsStr = rolls.length > 0 ? `[${rolls.join(', ')}]` : '';
+                const modStr = modifier !== 0 ? (modifier > 0 ? `+${modifier}` : `${modifier}`) : '';
                 
-                // Add natural roll and modifier if available
-                if (naturalRoll !== undefined && modifier !== undefined) {
-                    const modStr = modifier >= 0 ? `+${modifier}` : `${modifier}`;
-                    resultMessage = `📊 Rolled: ${roll} (${naturalRoll}${modStr})`;
+                resultMessage = `📊 ${rollType ? rollType.charAt(0).toUpperCase() + rollType.slice(1) : 'Dice'} Roll: ${dice}${modStr} = ${total}`;
+                
+                // Add the individual rolls if available
+                if (rollsStr) {
+                    resultMessage += ` ${rollsStr}`;
                 }
                 
-                // Add success/failure
-                if (success !== undefined) {
-                    if (critSuccess) {
-                        resultMessage += ' - 🎯 CRITICAL SUCCESS!';
-                    } else if (critFail) {
-                        resultMessage += ' - 💀 CRITICAL FAILURE!';
-                    } else if (success) {
-                        resultMessage += ' - ✅ Success';
-                    } else {
-                        resultMessage += ' - ❌ Failure';
-                    }
+                // Add ability/skill if specified
+                if (ability) {
+                    resultMessage += ` (${ability}${skill ? ' - ' + skill : ''})`;
+                }
+                
+                // Add critical indicator
+                if (critical === true) {
+                    resultMessage += ' - 🎯 CRITICAL!';
+                } else if (critical === false && rolls.includes(1)) {
+                    resultMessage += ' - 💀 CRITICAL FAIL!';
                 }
             } else {
                 // Fallback for string results
@@ -594,27 +588,35 @@ function initializeSSE() {
         // Extract game_state from the wrapper
         gameState = data.game_state;
         updateUI();
+        
+        // Extract and update location information from game state
+        if (gameState.current_location_id && gameState.location_states) {
+            updateLocationFromGameState();
+        }
+        
+        // Update quest information from game state
+        if (gameState.active_quests || gameState.completed_quest_ids) {
+            updateQuestLogFromGameState();
+        }
+        
+        // Update act information from game state
+        if (gameState.current_act_index !== undefined) {
+            updateActFromGameState();
+        }
     });
     
-    // Location updates
-    sseSource.addEventListener('location_update', (event) => {
+    // Scenario info contains full location data
+    sseSource.addEventListener('scenario_info', (event) => {
         const data = JSON.parse(event.data);
-        console.log('[SSE] Location update received:', data);
-        updateLocationInfo(data);
-    });
-    
-    // Quest updates
-    sseSource.addEventListener('quest_update', (event) => {
-        const data = JSON.parse(event.data);
-        console.log('[SSE] Quest update received:', data);
-        updateQuestLog(data);
-    });
-    
-    // Act updates
-    sseSource.addEventListener('act_update', (event) => {
-        const data = JSON.parse(event.data);
-        console.log('[SSE] Act update received:', data);
-        updateActInfo(data);
+        console.log('[SSE] Scenario info received:', data);
+        
+        // Store scenario data globally for location information
+        window.currentScenario = data.current_scenario;
+        
+        // Update location display with full scenario data
+        if (window.currentScenario && gameState && gameState.current_location_id) {
+            updateLocationWithScenarioData();
+        }
     });
     
     // Error handling
@@ -1141,6 +1143,133 @@ function updateDangerLevel(dangerLevel) {
         default:
             dangerIndicator.textContent = '';
     }
+}
+
+// Extract location data from game state and update UI
+function updateLocationFromGameState() {
+    if (!gameState) return;
+    
+    // Update the current location name display
+    const locationName = document.getElementById('currentLocation');
+    if (locationName) {
+        locationName.textContent = gameState.location || gameState.current_location_id || 'Unknown';
+    }
+    
+    // If we have location state data, update danger level and NPCs
+    if (gameState.current_location_id && gameState.location_states) {
+        const locationState = gameState.location_states[gameState.current_location_id];
+        if (locationState) {
+            // Update danger level
+            if (locationState.danger_level) {
+                updateDangerLevel(locationState.danger_level);
+            }
+            
+            // Update NPCs present
+            const npcsSection = document.getElementById('locationNPCs');
+            const npcsList = document.getElementById('npcsList');
+            if (npcsSection && npcsList) {
+                if (locationState.npcs_present && locationState.npcs_present.length > 0) {
+                    npcsSection.style.display = 'block';
+                    npcsList.innerHTML = '';
+                    
+                    locationState.npcs_present.forEach(npc => {
+                        const npcTag = document.createElement('div');
+                        npcTag.className = 'npc-tag';
+                        npcTag.textContent = npc;
+                        npcsList.appendChild(npcTag);
+                    });
+                } else {
+                    npcsSection.style.display = 'none';
+                }
+            }
+        }
+    }
+    
+    // If we have scenario data, update location with full details
+    if (window.currentScenario) {
+        updateLocationWithScenarioData();
+    }
+}
+
+// Update location display using scenario data
+function updateLocationWithScenarioData() {
+    if (!window.currentScenario || !gameState || !gameState.current_location_id) return;
+    
+    // Find the current location in the scenario
+    const currentLocation = window.currentScenario.locations?.find(
+        loc => loc.id === gameState.current_location_id
+    );
+    
+    if (!currentLocation) {
+        console.warn('[UI] Location not found in scenario:', gameState.current_location_id);
+        return;
+    }
+    
+    console.log('[UI] Updating location with scenario data:', currentLocation);
+    
+    // Update location name
+    const locationName = document.getElementById('currentLocation');
+    if (locationName) {
+        locationName.textContent = currentLocation.name || gameState.current_location_id;
+    }
+    
+    // Update location description
+    const locationDesc = document.getElementById('locationDescription');
+    if (locationDesc) {
+        locationDesc.textContent = currentLocation.description || '';
+    }
+    
+    // Update location connections/exits
+    const connectionsContainer = document.getElementById('locationConnections');
+    if (connectionsContainer) {
+        connectionsContainer.innerHTML = '';
+        
+        if (currentLocation.connections && currentLocation.connections.length > 0) {
+            currentLocation.connections.forEach(conn => {
+                const connDiv = document.createElement('div');
+                connDiv.className = `connection-item ${!conn.is_accessible ? 'blocked' : ''}`;
+                
+                const direction = conn.direction ? `<span class="connection-direction">[${conn.direction.toUpperCase()}]</span>` : '';
+                const status = conn.is_accessible !== false ? '' : '<span class="connection-status blocked">Blocked</span>';
+                
+                connDiv.innerHTML = `
+                    ${direction}
+                    <span class="connection-description">${conn.description}</span>
+                    ${status}
+                `;
+                
+                connectionsContainer.appendChild(connDiv);
+            });
+        } else {
+            connectionsContainer.innerHTML = '<div style="color: #666;">No visible exits</div>';
+        }
+    }
+}
+
+// Extract quest data from game state and update UI
+function updateQuestLogFromGameState() {
+    if (!gameState) return;
+    
+    const questData = {
+        active_quests: gameState.active_quests || [],
+        completed_quest_ids: gameState.completed_quest_ids || []
+    };
+    
+    updateQuestLog(questData);
+}
+
+// Extract act data from game state and update UI
+function updateActFromGameState() {
+    if (!gameState || gameState.current_act_index === undefined) return;
+    
+    // Create act data object compatible with existing updateActInfo
+    const actData = {
+        act_id: `act_${gameState.current_act_index}`,
+        act_name: `Act ${gameState.current_act_index + 1}`,
+        act_index: gameState.current_act_index
+    };
+    
+    updateActInfo(actData);
 }
 
 // Update quest log

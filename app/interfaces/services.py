@@ -12,10 +12,8 @@ from app.models.combat import CombatState
 from app.models.game_state import GameState, MessageRole
 from app.models.item import ItemDefinition
 from app.models.npc import NPCSheet
-from app.models.quest import Quest
 from app.models.scenario import Scenario
 from app.models.spell import SpellDefinition
-from app.models.sse_events import ConnectionInfo
 
 
 class ICharacterService(ABC):
@@ -203,32 +201,4 @@ class IMessageService(ABC):
 
     @abstractmethod
     async def send_game_update(self, game_id: str, game_state: GameState) -> None:
-        pass
-
-    # TODO: Ideally just a game_id and location model like others
-    @abstractmethod
-    async def send_location_update(
-        self,
-        game_id: str,
-        location_id: str,
-        location_name: str,
-        description: str,
-        connections: list[ConnectionInfo],
-        danger_level: str,
-        npcs_present: list[str],
-    ) -> None:
-        pass
-
-    # TODO: Can't we just send a list of all quests ?
-    @abstractmethod
-    async def send_quest_update(
-        self,
-        game_id: str,
-        active_quests: list[Quest],
-        completed_quest_ids: list[str],
-    ) -> None:
-        pass
-
-    @abstractmethod
-    async def send_act_update(self, game_id: str, act_id: str, act_name: str, act_index: int) -> None:
         pass
