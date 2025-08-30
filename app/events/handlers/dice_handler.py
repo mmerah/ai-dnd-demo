@@ -7,6 +7,7 @@ from app.events.commands.broadcast_commands import BroadcastToolResultCommand
 from app.events.commands.dice_commands import RollDiceCommand
 from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.services import IGameService
+from app.models.dice import RollType
 from app.models.game_state import GameState
 from app.models.tool_results import RollDiceResult
 from app.services.dice_service import DiceService
@@ -26,8 +27,6 @@ class DiceHandler(BaseHandler):
         result = CommandResult(success=True)
 
         if isinstance(command, RollDiceCommand):
-            from app.services.dice_service import RollType
-
             # Parse special dice notations for advantage/disadvantage
             dice_str = command.dice
             roll_type = RollType.NORMAL

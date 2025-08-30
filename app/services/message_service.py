@@ -11,7 +11,6 @@ from app.models.scenario import Scenario
 from app.models.sse_events import (
     CharacterUpdateData,
     CombatUpdateData,
-    DiceRollData,
     ErrorData,
     GameUpdateData,
     InitialNarrativeData,
@@ -93,29 +92,6 @@ class MessageService(IMessageService):
         """
         data = ToolResultData(tool_name=tool_name, result=result)
         await self.broadcast_service.publish(game_id, SSEEventType.TOOL_RESULT.value, data)
-
-    async def send_dice_roll(
-        self,
-        game_id: str,
-        roll_type: str,
-        dice: str,
-        modifier: int,
-        result: int,
-        details: dict[str, JSONSerializable] | None = None,
-    ) -> None:
-        """
-        Send dice roll result to the chat.
-
-        Args:
-            game_id: Game identifier
-            roll_type: Type of roll (attack, damage, save, etc.)
-            dice: Dice notation (e.g., "1d20")
-            modifier: Modifier applied to the roll
-            result: Final result
-            details: Additional details about the roll
-        """
-        data = DiceRollData(roll_type=roll_type, dice=dice, modifier=modifier, result=result, details=details or {})
-        await self.broadcast_service.publish(game_id, SSEEventType.DICE_ROLL.value, data)
 
     async def send_character_update(self, game_id: str, character: CharacterSheet) -> None:
         """

@@ -82,16 +82,6 @@ class ToolResultData(BaseSSEData):
     result: ToolResult
 
 
-class DiceRollData(BaseSSEData):
-    """Data for dice roll events."""
-
-    roll_type: str
-    dice: str
-    modifier: int
-    result: int
-    details: dict[str, JSONSerializable] = Field(default_factory=dict)
-
-
 class CharacterUpdateData(BaseSSEData):
     """Data for character update events."""
 
@@ -145,7 +135,6 @@ SSEData = (
     | InitialNarrativeData
     | ToolCallData
     | ToolResultData
-    | DiceRollData
     | CharacterUpdateData
     | CombatUpdateData
     | SystemMessageData
