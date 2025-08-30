@@ -587,7 +587,8 @@ function initializeSSE() {
     sseSource.addEventListener('game_update', (event) => {
         const data = JSON.parse(event.data);
         console.log('[SSE] Game state update received');
-        gameState = data;
+        // Extract game_state from the wrapper
+        gameState = data.game_state;
         updateUI();
     });
     

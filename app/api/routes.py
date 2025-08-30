@@ -2,19 +2,37 @@
 API routes for D&D 5e AI Dungeon Master.
 """
 
-import json
 import logging
 from collections.abc import AsyncGenerator
-from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException
 from sse_starlette.sse import EventSourceResponse
 
 from app.api.tasks import process_ai_and_broadcast
 from app.container import container
+from app.models.api_responses import (
+    ActionAcknowledgement,
+    GameStatusResponse,
+    ItemDetailResponse,
+    SavedGameSummary,
+    ScenarioDetailResponse,
+    ScenarioSummaryResponse,
+    SpellDetailResponse,
+)
 from app.models.character import CharacterSheet
 from app.models.game_state import GameState
 from app.models.requests import NewGameRequest, NewGameResponse, PlayerActionRequest
+from app.models.sse_events import (
+    ActUpdateData,
+    ConnectionInfo,
+    InitialNarrativeData,
+    LocationUpdateData,
+    QuestUpdateData,
+    ScenarioInfoData,
+    ScenarioSummary,
+    SSEEvent,
+    SSEEventType,
+)
 from app.services.broadcast_service import broadcast_service
 
 logger = logging.getLogger(__name__)
@@ -67,8 +85,8 @@ async def create_new_game(request: NewGameRequest) -> NewGameResponse:
         raise HTTPException(status_code=500, detail=f"Failed to create game: {str(e)}") from e
 
 
-@router.get("/games")
-async def list_saved_games() -> list[dict[str, str]]:
+@router.get("/games", response_model=list[SavedGameSummary])
+async def list_saved_games() -> list[SavedGameSummary]:
     """
     List all saved games.
 
@@ -82,7 +100,7 @@ async def list_saved_games() -> list[dict[str, str]]:
 
     try:
         saved_games = game_service.list_saved_games()
-        return saved_games
+        return [SavedGameSummary(**game) for game in saved_games]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to list saved games: {str(e)}") from e
 
@@ -116,8 +134,8 @@ async def get_game_state(game_id: str) -> GameState:
         raise HTTPException(status_code=500, detail=f"Failed to load game: {str(e)}") from e
 
 
-@router.post("/game/{game_id}/resume")
-async def resume_game(game_id: str) -> dict[str, str]:
+@router.post("/game/{game_id}/resume", response_model=GameStatusResponse)
+async def resume_game(game_id: str) -> GameStatusResponse:
     """
     Resume a saved game session.
 
@@ -138,7 +156,7 @@ async def resume_game(game_id: str) -> dict[str, str]:
             raise HTTPException(status_code=404, detail=f"Game with ID '{game_id}' not found")
 
         # Game successfully loaded and cached in memory
-        return {"game_id": game_id, "status": "resumed"}
+        return GameStatusResponse(game_id=game_id, status="resumed")
 
     except FileNotFoundError as e:
         raise HTTPException(status_code=404, detail=f"Game with ID '{game_id}' not found") from e
@@ -146,10 +164,10 @@ async def resume_game(game_id: str) -> dict[str, str]:
         raise HTTPException(status_code=500, detail=f"Failed to resume game: {str(e)}") from e
 
 
-@router.post("/game/{game_id}/action")
+@router.post("/game/{game_id}/action", response_model=ActionAcknowledgement)
 async def process_player_action(
     game_id: str, request: PlayerActionRequest, background_tasks: BackgroundTasks
-) -> dict[str, str]:
+) -> ActionAcknowledgement:
     """
     Process a player action and trigger AI response processing.
 
@@ -177,7 +195,7 @@ async def process_player_action(
         background_tasks.add_task(process_ai_and_broadcast, game_id, request.message)
 
         # Return immediate acknowledgment
-        return {"status": "action received"}
+        return ActionAcknowledgement(status="action received")
 
     except HTTPException:
         raise
@@ -220,28 +238,30 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
 
             # Send initial narrative and scenario info when SSE connects
             if game_state.conversation_history:
-                yield {
-                    "event": "initial_narrative",
-                    "data": json.dumps(
-                        {
-                            "scenario_title": game_state.scenario_title or "Custom Adventure",
-                            "narrative": game_state.conversation_history[0].content,
-                        }
+                initial_event = SSEEvent(
+                    event=SSEEventType.INITIAL_NARRATIVE,
+                    data=InitialNarrativeData(
+                        scenario_title=game_state.scenario_title or "Custom Adventure",
+                        narrative=game_state.conversation_history[0].content,
                     ),
-                }
+                )
+                yield initial_event.to_sse_format()
 
             # Send scenario info if available
             if game_state.scenario_id:
                 scenarios = scenario_service.list_scenarios()
-                yield {
-                    "event": "scenario_info",
-                    "data": json.dumps(
-                        {
-                            "current_scenario": {"id": game_state.scenario_id, "title": game_state.scenario_title},
-                            "available_scenarios": scenarios,
-                        }
+                scenario_event = SSEEvent(
+                    event=SSEEventType.SCENARIO_INFO,
+                    data=ScenarioInfoData(
+                        current_scenario=ScenarioSummary(
+                            id=game_state.scenario_id, title=game_state.scenario_title or ""
+                        ),
+                        available_scenarios=[
+                            ScenarioSummary(id=s.id, title=s.title, description=s.description) for s in scenarios
+                        ],
                     ),
-                }
+                )
+                yield scenario_event.to_sse_format()
 
                 # Send location info if available
                 scenario = scenario_service.get_scenario(game_state.scenario_id)
@@ -249,64 +269,59 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
                     location = scenario.get_location(game_state.current_location_id)
                     if location:
                         location_state = game_state.get_location_state(game_state.current_location_id)
-                        connections = []
-                        for conn in location.connections:
-                            connections.append(
-                                {
-                                    "to_location_id": conn.to_location_id,
-                                    "description": conn.description,
-                                    "direction": conn.direction,
-                                    "is_accessible": conn.can_traverse(),
-                                    "is_visible": conn.is_visible,
-                                }
+                        connections = [
+                            ConnectionInfo(
+                                to_location_id=conn.to_location_id,
+                                description=conn.description,
+                                direction=conn.direction,
+                                is_accessible=conn.can_traverse(),
+                                is_visible=conn.is_visible,
                             )
+                            for conn in location.connections
+                        ]
 
-                        yield {
-                            "event": "location_update",
-                            "data": json.dumps(
-                                {
-                                    "location_id": location.id,
-                                    "location_name": location.name,
-                                    "description": location.get_description(location_state.get_description_variant()),
-                                    "connections": connections,
-                                    "danger_level": location_state.danger_level.value,
-                                    "npcs_present": location_state.npcs_present,
-                                }
+                        location_event = SSEEvent(
+                            event=SSEEventType.LOCATION_UPDATE,
+                            data=LocationUpdateData(
+                                location_id=location.id,
+                                location_name=location.name,
+                                description=location.get_description(location_state.get_description_variant()),
+                                connections=connections,
+                                danger_level=location_state.danger_level.value,
+                                npcs_present=location_state.npcs_present,
                             ),
-                        }
+                        )
+                        yield location_event.to_sse_format()
 
                 # Send quest info
                 active_quests_data = [quest.model_dump() for quest in game_state.active_quests]
-                yield {
-                    "event": "quest_update",
-                    "data": json.dumps(
-                        {
-                            "active_quests": active_quests_data,
-                            "completed_quest_ids": game_state.completed_quest_ids,
-                        }
+                quest_event = SSEEvent(
+                    event=SSEEventType.QUEST_UPDATE,
+                    data=QuestUpdateData(
+                        active_quests=active_quests_data, completed_quest_ids=game_state.completed_quest_ids
                     ),
-                }
+                )
+                yield quest_event.to_sse_format()
 
                 # Send act info
                 if scenario:
                     current_act = scenario.progression.get_current_act()
                     if current_act:
-                        yield {
-                            "event": "act_update",
-                            "data": json.dumps(
-                                {
-                                    "act_id": current_act.id,
-                                    "act_name": current_act.name,
-                                    "act_index": scenario.progression.current_act_index,
-                                }
+                        act_event = SSEEvent(
+                            event=SSEEventType.ACT_UPDATE,
+                            data=ActUpdateData(
+                                act_id=current_act.id,
+                                act_name=current_act.name,
+                                act_index=scenario.progression.current_act_index,
                             ),
-                        }
+                        )
+                        yield act_event.to_sse_format()
 
             async for event_data in broadcast_service.subscribe(game_id):
-                # Format the event for SSE - only log non-narrative events
+                # event_data is already in SSE format from broadcast_service
                 if event_data["event"] != "narrative":
                     logger.debug(f"Sending SSE event '{event_data['event']}' to game {game_id}")
-                yield {"event": event_data["event"], "data": json.dumps(event_data["data"])}
+                yield event_data
 
         return EventSourceResponse(event_generator())
 
@@ -316,8 +331,8 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
         raise HTTPException(status_code=500, detail=f"Failed to establish SSE connection: {str(e)}") from e
 
 
-@router.get("/scenarios")
-async def list_available_scenarios() -> list[dict[str, str]]:
+@router.get("/scenarios", response_model=list[ScenarioSummaryResponse])
+async def list_available_scenarios() -> list[ScenarioSummaryResponse]:
     """
     List all available scenarios.
 
@@ -331,13 +346,13 @@ async def list_available_scenarios() -> list[dict[str, str]]:
 
     try:
         scenarios = scenario_service.list_scenarios()
-        return scenarios
+        return scenarios  # Already returns list[ScenarioSummaryResponse]
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to load scenarios: {str(e)}") from e
 
 
-@router.get("/scenarios/{scenario_id}")
-async def get_scenario(scenario_id: str) -> dict[str, Any]:
+@router.get("/scenarios/{scenario_id}", response_model=ScenarioDetailResponse)
+async def get_scenario(scenario_id: str) -> ScenarioDetailResponse:
     """
     Get a specific scenario by ID.
 
@@ -357,12 +372,12 @@ async def get_scenario(scenario_id: str) -> dict[str, Any]:
         if not scenario:
             raise HTTPException(status_code=404, detail=f"Scenario with ID '{scenario_id}' not found")
 
-        return {
-            "id": scenario.id,
-            "title": scenario.title,
-            "description": scenario.description,
-            "starting_location": scenario.starting_location,
-        }
+        return ScenarioDetailResponse(
+            id=scenario.id,
+            title=scenario.title,
+            description=scenario.description,
+            starting_location=scenario.starting_location,
+        )
 
     except HTTPException:
         raise
@@ -392,8 +407,8 @@ async def list_available_characters() -> list[CharacterSheet]:
         raise HTTPException(status_code=500, detail=f"Failed to load characters: {str(e)}") from e
 
 
-@router.get("/items/{item_name}")
-async def get_item_details(item_name: str) -> dict[str, Any]:
+@router.get("/items/{item_name}", response_model=ItemDetailResponse)
+async def get_item_details(item_name: str) -> ItemDetailResponse:
     """
     Get detailed information about an item.
 
@@ -413,18 +428,18 @@ async def get_item_details(item_name: str) -> dict[str, Any]:
         if not item:
             raise HTTPException(status_code=404, detail=f"Item '{item_name}' not found")
 
-        return {
-            "name": item.name,
-            "type": item.type.value,
-            "rarity": item.rarity.value,
-            "weight": item.weight,
-            "value": item.value,
-            "description": item.description,
-            "damage": item.damage,
-            "damage_type": item.damage_type,
-            "properties": item.properties,
-            "armor_class": item.armor_class,
-        }
+        return ItemDetailResponse(
+            name=item.name,
+            type=item.type.value,
+            rarity=item.rarity.value,
+            weight=item.weight,
+            value=item.value,
+            description=item.description,
+            damage=item.damage,
+            damage_type=item.damage_type,
+            properties=item.properties,
+            armor_class=item.armor_class,
+        )
 
     except HTTPException:
         raise
@@ -432,8 +447,8 @@ async def get_item_details(item_name: str) -> dict[str, Any]:
         raise HTTPException(status_code=500, detail=f"Failed to get item details: {str(e)}") from e
 
 
-@router.get("/spells/{spell_name}")
-async def get_spell_details(spell_name: str) -> dict[str, Any]:
+@router.get("/spells/{spell_name}", response_model=SpellDetailResponse)
+async def get_spell_details(spell_name: str) -> SpellDetailResponse:
     """
     Get detailed information about a spell.
 
@@ -453,20 +468,20 @@ async def get_spell_details(spell_name: str) -> dict[str, Any]:
         if not spell:
             raise HTTPException(status_code=404, detail=f"Spell '{spell_name}' not found")
 
-        return {
-            "name": spell.name,
-            "level": spell.level,
-            "school": spell.school.value,
-            "casting_time": spell.casting_time,
-            "range": spell.range,
-            "components": spell.components,
-            "duration": spell.duration,
-            "description": spell.description,
-            "higher_levels": spell.higher_levels,
-            "classes": spell.classes,
-            "ritual": spell.ritual,
-            "concentration": spell.concentration,
-        }
+        return SpellDetailResponse(
+            name=spell.name,
+            level=spell.level,
+            school=spell.school.value,
+            casting_time=spell.casting_time,
+            range=spell.range,
+            components=spell.components,
+            duration=spell.duration,
+            description=spell.description,
+            higher_levels=spell.higher_levels,
+            classes=spell.classes,
+            ritual=spell.ritual,
+            concentration=spell.concentration,
+        )
 
     except HTTPException:
         raise

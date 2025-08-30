@@ -225,13 +225,14 @@ class GameService(IGameService):
                         "game_id": data["game_id"],
                         "character_name": data["character"]["name"],
                         "location": data["location"],
-                        "last_modified": datetime.fromtimestamp(save_file.stat().st_mtime).isoformat(),
+                        "last_played": datetime.fromtimestamp(save_file.stat().st_mtime).isoformat(),
+                        "scenario_title": data.get("scenario_title"),
                     }
                 )
             except (json.JSONDecodeError, KeyError):
                 continue
 
-        return sorted(games, key=lambda x: x["last_modified"], reverse=True)
+        return sorted(games, key=lambda x: x["last_played"], reverse=True)
 
     def add_game_event(
         self,

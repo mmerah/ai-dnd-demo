@@ -4,7 +4,7 @@ Full D&D 5e functionality with scenario management, character management, functi
 
 ## Ideas
 
-1. Type Safety is very poor: Backend operates with manually declared .json a little bit everywhere (e.g. message_service, broadcast_service, routes). Most of everything should be a BaseModel and only at the very tip of the code should it be decoded into a json.
+1. Type Safety is very poor: Backend operates with manually declared json a little bit everywhere. Some dict[str, str] or dict[str, Any] stuff. Most of everything should be a BaseModel and only at the very tip of the code (aka API and loading data from a json) should it be decoded into/from a json. Should reduce the amount of types as well. Be leaner, no need for summaries, no need to duplicate a model even though we could send it directly through the API. Just keep the essential types and remove any duplicate, adapting the code.
 2. Frontend should use typescript with ban of 'any'.
 3. data/ and saves/ need better organization to avoid thousand lines files. Scenarios should be put in data/scenarios/. Then a folder with the name of the scenario. Same for characters instead of having all characters in 1 json file. For items, spells, monsters it is fine. saves/ also need somehow to be cut correctly. A save has a name which is a folder. Then it should be separated into the character of the save, then separation into things that make sense ? (think about it, if we want a memory system in the future that might make sense)
 4. Complete the D&D foundation: Subraces, Subclasses are missing. Ideally look in something like https://github.com/5e-bits/5e-database for reference. That means all 27 type of stuff need to be in with correct format. Conditions, attack types, ability-scores, alignments, backgrounds, ... all become database content. DataService would become much bigger as well.
@@ -12,6 +12,7 @@ Full D&D 5e functionality with scenario management, character management, functi
 6. Handle all the TODO comments in the code
 7. Cleanup logger calls to minimum
 8. Review manually the code
+9. Re-organize the code ? (cut routes, review models, services all dependency inversion, ...)
 
 # MVP 2
 

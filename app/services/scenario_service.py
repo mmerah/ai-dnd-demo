@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from app.interfaces.services import IDataService, IScenarioService
+from app.models.api_responses import ScenarioSummaryResponse
 from app.models.scenario import Scenario
 
 
@@ -110,7 +111,7 @@ class ScenarioService(IScenarioService):
 
         return None
 
-    def list_scenarios(self) -> list[dict[str, str]]:
+    def list_scenarios(self) -> list[ScenarioSummaryResponse]:
         """
         List all available scenarios.
 
@@ -119,7 +120,9 @@ class ScenarioService(IScenarioService):
         """
         scenarios = []
         for scenario_id, scenario in self._scenarios.items():
-            scenarios.append({"id": scenario_id, "title": scenario.title, "description": scenario.description})
+            scenarios.append(
+                ScenarioSummaryResponse(id=scenario_id, title=scenario.title, description=scenario.description)
+            )
         return scenarios
 
     def get_scenario_context_for_ai(self, scenario: Scenario, current_location_id: str) -> str:

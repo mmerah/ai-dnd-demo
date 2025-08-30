@@ -6,20 +6,10 @@ import asyncio
 import logging
 from collections import defaultdict
 from collections.abc import AsyncGenerator
-from datetime import UTC, datetime
-from typing import TypedDict
 
-from app.models.game_state import JSONSerializable
+from app.models.sse_events import SSEData, SSEEvent, SSEEventType
 
 logger = logging.getLogger(__name__)
-
-
-class SSEEvent(TypedDict):
-    """Structure of an SSE event."""
-
-    event: str
-    data: JSONSerializable  # Can be various types depending on the event
-    timestamp: str
 
 
 class BroadcastService:
@@ -28,27 +18,34 @@ class BroadcastService:
     def __init__(self) -> None:
         """Initialize the broadcast service with empty queues."""
         # Dictionary of game_id -> list of subscriber queues
-        self.subscribers: dict[str, list[asyncio.Queue[SSEEvent]]] = defaultdict(list)
+        self.subscribers: dict[str, list[asyncio.Queue[dict[str, str]]]] = defaultdict(list)
 
-    async def publish(self, game_id: str, event: str, data: JSONSerializable) -> None:
+    async def publish(self, game_id: str, event: str | SSEEventType, data: SSEData) -> None:
         """
         Publish an event to all subscribers for a specific game.
 
         Args:
             game_id: The game identifier
             event: The event type (e.g., 'narrative', 'tool_result')
-            data: The event data (will be JSON-serialized)
+            data: The event data (Pydantic model)
         """
         # Get all subscriber queues for this game
         queues = self.subscribers.get(game_id, [])
+
+        # Convert string event to SSEEventType if needed
+        if isinstance(event, str):
+            event = SSEEventType(event)
+
+        # Create the SSE event
+        sse_event = SSEEvent(event=event, data=data)
+        sse_format = sse_event.to_sse_format()
 
         # Remove dead queues (full or closed)
         active_queues = []
         for queue in queues:
             try:
                 # Try to put the event in the queue (non-blocking check first)
-                sse_event: SSEEvent = {"event": event, "data": data, "timestamp": datetime.now(UTC).isoformat()}
-                queue.put_nowait(sse_event)
+                queue.put_nowait(sse_format)
                 active_queues.append(queue)
             except (asyncio.QueueFull, Exception):
                 # Queue is full or closed, skip it
@@ -61,7 +58,7 @@ class BroadcastService:
             # No active subscribers, remove the game entry
             self.subscribers.pop(game_id, None)
 
-    async def subscribe(self, game_id: str) -> AsyncGenerator[SSEEvent, None]:
+    async def subscribe(self, game_id: str) -> AsyncGenerator[dict[str, str], None]:
         """
         Subscribe to events for a specific game.
 
@@ -72,18 +69,15 @@ class BroadcastService:
             Event dictionaries with 'event' and 'data' fields
         """
         # Create a new queue for this subscriber
-        queue: asyncio.Queue[SSEEvent] = asyncio.Queue(maxsize=100)  # Limit queue size to prevent memory issues
+        queue: asyncio.Queue[dict[str, str]] = asyncio.Queue(maxsize=100)  # Limit queue size to prevent memory issues
 
         # Add to subscribers list
         self.subscribers[game_id].append(queue)
 
         try:
             # Initial connection event
-            yield {
-                "event": "connected",
-                "data": {"game_id": game_id, "status": "connected"},
-                "timestamp": datetime.now(UTC).isoformat(),
-            }
+            connected_event = SSEEvent.create_connected(game_id)
+            yield connected_event.to_sse_format()
 
             # Continuously yield events from the queue
             while True:
@@ -93,7 +87,8 @@ class BroadcastService:
                     yield event_data
                 except TimeoutError:
                     # Send heartbeat if no events for 30 seconds
-                    yield {"event": "heartbeat", "data": {}, "timestamp": datetime.now(UTC).isoformat()}
+                    heartbeat_event = SSEEvent.create_heartbeat()
+                    yield heartbeat_event.to_sse_format()
         finally:
             # Clean up: remove this queue from subscribers
             if game_id in self.subscribers and queue in self.subscribers[game_id]:

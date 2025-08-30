@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator, AsyncIterator
 
 from app.models.ai_response import AIResponse
+from app.models.api_responses import ScenarioSummaryResponse
 from app.models.character import CharacterSheet
 from app.models.game_state import GameState, JSONSerializable, MessageRole
 from app.models.item import ItemDefinition
@@ -79,7 +80,7 @@ class IGameService(ABC):
         pass
 
     @abstractmethod
-    def list_saved_games(self) -> list[dict[str, str]]:
+    def list_saved_games(self) -> list[dict[str, str | None]]:
         pass
 
 
@@ -101,7 +102,7 @@ class IScenarioService(ABC):
         pass
 
     @abstractmethod
-    def list_scenarios(self) -> list[dict[str, str]]:
+    def list_scenarios(self) -> list[ScenarioSummaryResponse]:
         pass
 
     @abstractmethod

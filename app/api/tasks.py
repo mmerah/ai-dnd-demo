@@ -3,6 +3,7 @@
 import logging
 
 from app.container import container
+from app.models.sse_events import CompleteData, ConnectionInfo, ErrorData, SSEEventType
 from app.services.broadcast_service import broadcast_service
 from app.services.message_service import message_service
 
@@ -26,7 +27,8 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
         game_state = game_service.load_game(game_id)
         if not game_state:
             logger.error(f"Game {game_id} not found")
-            await broadcast_service.publish(game_id, "error", {"error": f"Game with ID '{game_id}' not found"})
+            error_data = ErrorData(error=f"Game with ID '{game_id}' not found")
+            await broadcast_service.publish(game_id, SSEEventType.ERROR, error_data)
             return
 
         logger.info(f"Requesting AI response for game {game_id}")
@@ -43,12 +45,14 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
             elif chunk["type"] == "error":
                 error_msg: str = chunk.get("message", "Unknown error")  # type: ignore[assignment]
                 logger.error(f"AI error for game {game_id}: {error_msg}")
-                await broadcast_service.publish(game_id, "error", {"error": error_msg})
+                error_data = ErrorData(error=error_msg)
+                await broadcast_service.publish(game_id, SSEEventType.ERROR, error_data)
                 return
 
         if not narrative:
             logger.error(f"Failed to get AI response for game {game_id} - narrative is empty")
-            await broadcast_service.publish(game_id, "error", {"error": "AI failed to generate a response"})
+            error_data = ErrorData(error="AI failed to generate a response")
+            await broadcast_service.publish(game_id, SSEEventType.ERROR, error_data)
             return
 
         logger.info(f"AI response received for game {game_id}")
@@ -63,11 +67,7 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
 
             # Send character and game updates
             await message_service.send_character_update(game_id, updated_game_state.character.model_dump())
-
-            import json
-
-            game_state_dict = json.loads(updated_game_state.model_dump_json())
-            await message_service.send_game_update(game_id, game_state_dict)
+            await message_service.send_game_update(game_id, updated_game_state.model_dump())
 
             # Send detailed location update if we have scenario data
             scenario_service = container.get_scenario_service()
@@ -80,17 +80,16 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
                         location_state = updated_game_state.get_location_state(updated_game_state.current_location_id)
 
                         # Format connections for frontend
-                        connections = []
-                        for conn in location.connections:
-                            connections.append(
-                                {
-                                    "to_location_id": conn.to_location_id,
-                                    "description": conn.description,
-                                    "direction": conn.direction,
-                                    "is_accessible": conn.can_traverse(),
-                                    "is_visible": conn.is_visible,
-                                }
+                        connections = [
+                            ConnectionInfo(
+                                to_location_id=conn.to_location_id,
+                                description=conn.description,
+                                direction=conn.direction,
+                                is_accessible=conn.can_traverse(),
+                                is_visible=conn.is_visible,
                             )
+                            for conn in location.connections
+                        ]
 
                         await message_service.send_location_update(
                             game_id,
@@ -114,9 +113,11 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
                         game_id, current_act.id, current_act.name, scenario.progression.current_act_index
                     )
 
-        await broadcast_service.publish(game_id, "complete", {"status": "success"})
+        complete_data = CompleteData(status="success")
+        await broadcast_service.publish(game_id, SSEEventType.COMPLETE, complete_data)
         logger.info(f"AI processing completed successfully for game {game_id}")
 
     except Exception as e:
         logger.exception(f"Error in AI processing for game {game_id}: {e}")
-        await broadcast_service.publish(game_id, "error", {"error": str(e), "type": type(e).__name__})
+        error_data = ErrorData(error=str(e), type=type(e).__name__)
+        await broadcast_service.publish(game_id, SSEEventType.ERROR, error_data)
