@@ -1,0 +1,44 @@
+{
+  "acts": [
+    {
+      "id": "act1",
+      "name": "The Investigation",
+      "description": "Learn about the goblin threat and gather information",
+      "locations": ["tavern", "forest-path"],
+      "objectives": [
+        "Talk to Tom about the goblin raids",
+        "Learn about the missing merchant",
+        "Investigate the forest path"
+      ],
+      "quests": ["find-the-artifact"],
+      "completion_requirements": ["Discover the location of the goblin cave"]
+    },
+    {
+      "id": "act2",
+      "name": "Into the Lair",
+      "description": "Enter the goblin cave and face its dangers",
+      "locations": ["goblin-cave-entrance", "goblin-cave-depths"],
+      "objectives": [
+        "Infiltrate the goblin cave",
+        "Fight or sneak past the guards",
+        "Explore the cave depths"
+      ],
+      "quests": ["rescue-the-merchant"],
+      "completion_requirements": ["Reach the inner sanctum of the cave"]
+    },
+    {
+      "id": "act3",
+      "name": "The Final Confrontation",
+      "description": "Defeat the goblin boss and claim victory",
+      "locations": ["treasure-room"],
+      "objectives": [
+        "Confront the goblin boss",
+        "Defeat the boss in combat",
+        "Retrieve the artifact and treasure"
+      ],
+      "quests": ["defeat-the-goblin-boss"],
+      "completion_requirements": ["Defeat the goblin boss", "Retrieve the artifact"]
+    }
+  ],
+  "current_act_index": 0
+}

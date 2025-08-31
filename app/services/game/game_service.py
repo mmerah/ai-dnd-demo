@@ -1,12 +1,18 @@
 """Game state management service for D&D 5e game sessions."""
 
-import json
 import uuid
 from datetime import datetime
 
 from app.common.types import JSONSerializable
-from app.config import get_settings
-from app.interfaces.services import IGameService
+from app.interfaces.services import (
+    IEventManager,
+    IGameService,
+    IGameStateManager,
+    IMessageManager,
+    IMetadataService,
+    ISaveManager,
+    IScenarioService,
+)
 from app.models.character import CharacterSheet
 from app.models.game_state import (
     GameState,
@@ -15,21 +21,41 @@ from app.models.game_state import (
     MessageRole,
 )
 from app.models.quest import QuestStatus
-from app.services.scenario_service import ScenarioService
 
 
 class GameService(IGameService):
-    """Service for managing game state, saves, and updates."""
+    """Service for managing game state, saves, and updates.
 
-    def __init__(self) -> None:
+    Refactored to follow SOLID principles by delegating responsibilities
+    to specialized managers.
+    """
+
+    def __init__(
+        self,
+        scenario_service: IScenarioService,
+        save_manager: ISaveManager,
+        game_state_manager: IGameStateManager,
+        message_manager: IMessageManager,
+        event_manager: IEventManager,
+        metadata_service: IMetadataService,
+    ) -> None:
         """
-        Initialize the game service with configuration from settings.
+        Initialize the game service.
+
+        Args:
+            scenario_service: Service for managing scenarios
+            save_manager: Service for managing saves
+            game_state_manager: Manager for active game states
+            message_manager: Manager for conversation history
+            event_manager: Manager for game events
+            metadata_service: Service for extracting metadata
         """
-        settings = get_settings()
-        self.save_directory = settings.save_directory
-        # Directory already created in Settings __init__
-        self._active_games: dict[str, GameState] = {}
-        self.scenario_service = ScenarioService()
+        self.scenario_service = scenario_service
+        self.save_manager = save_manager
+        self.game_state_manager = game_state_manager
+        self.message_manager = message_manager
+        self.event_manager = event_manager
+        self.metadata_service = metadata_service
 
     def generate_game_id(self, character_name: str) -> str:
         """
@@ -130,38 +156,34 @@ class GameService(IGameService):
                         quest.status = QuestStatus.ACTIVE
                         game_state.add_quest(quest)
 
-        self._active_games[game_id] = game_state
+        # Store in memory and save to disk
+        self.game_state_manager.store_game(game_state)
         self.save_game(game_state)
 
         return game_state
 
     def save_game(self, game_state: GameState) -> str:
         """
-        Save game state to JSON file.
+        Save game state using modular save system.
 
         Args:
             game_state: Current game state to save
 
         Returns:
-            Path to saved file
+            Path to saved directory
 
         Raises:
             IOError: If save fails
         """
-        save_path = self.save_directory / f"{game_state.game_id}.json"
-
         try:
-            with open(save_path, "w", encoding="utf-8") as f:
-                # Use model_dump_json for proper datetime serialization
-                json_data = game_state.model_dump_json(indent=2)
-                f.write(json_data)
-            return str(save_path)
+            save_dir = self.save_manager.save_game(game_state)
+            return str(save_dir)
         except Exception as e:
             raise OSError(f"Failed to save game {game_state.game_id}: {e}") from e
 
     def load_game(self, game_id: str) -> GameState:
         """
-        Load game state from JSON file.
+        Load game state from modular save structure.
 
         Args:
             game_id: ID of the game to load
@@ -173,21 +195,23 @@ class GameService(IGameService):
             FileNotFoundError: If save file doesn't exist
             ValueError: If save file is corrupted
         """
-        save_path = self.save_directory / f"{game_id}.json"
+        # First, try to find the game by searching through saved games
+        saved_games = self.save_manager.list_saved_games()
 
-        if not save_path.exists():
+        scenario_id = None
+        for saved_scenario_id, saved_game_id, _ in saved_games:
+            if saved_game_id == game_id:
+                scenario_id = saved_scenario_id
+                break
+
+        if scenario_id is None:
             raise FileNotFoundError(f"No save file found for game {game_id}")
 
         try:
-            with open(save_path, encoding="utf-8") as f:
-                data = json.load(f)
-
-            game_state = GameState.model_validate(data)
-            self._active_games[game_id] = game_state
+            game_state = self.save_manager.load_game(scenario_id, game_id)
+            # Store in memory after loading
+            self.game_state_manager.store_game(game_state)
             return game_state
-
-        except json.JSONDecodeError as e:
-            raise ValueError(f"Corrupted save file for game {game_id}: {e}") from e
         except Exception as e:
             raise ValueError(f"Failed to load game {game_id}: {e}") from e
 
@@ -201,9 +225,12 @@ class GameService(IGameService):
         Returns:
             GameState or None if not found
         """
-        if game_id in self._active_games:
-            return self._active_games[game_id]
+        # Check in-memory storage first
+        game_state = self.game_state_manager.get_game(game_id)
+        if game_state:
+            return game_state
 
+        # Try loading from disk
         try:
             return self.load_game(game_id)
         except (FileNotFoundError, ValueError):
@@ -217,21 +244,18 @@ class GameService(IGameService):
             List of GameState objects for all saved games
         """
         games = []
+        saved_games = self.save_manager.list_saved_games()
 
-        for save_file in self.save_directory.glob("*.json"):
+        for scenario_id, game_id, _ in saved_games:
             try:
-                with open(save_file, encoding="utf-8") as f:
-                    data = json.load(f)
-
-                # Create GameState from saved data
-                game_state = GameState.from_save_dict(data)
+                game_state = self.save_manager.load_game(scenario_id, game_id)
                 games.append(game_state)
-            except (json.JSONDecodeError, KeyError, ValueError):
+            except Exception:
                 # Skip corrupted save files
                 continue
 
-        # Sort by last_saved timestamp
-        return sorted(games, key=lambda x: x.last_saved, reverse=True)
+        # Already sorted by last_saved from save_manager
+        return games
 
     def add_game_event(
         self,
@@ -260,11 +284,10 @@ class GameService(IGameService):
         if not game_state:
             raise ValueError(f"Game {game_id} not found")
 
-        # Import here to avoid circular dependency
-        from app.models.game_state import GameEventType
-
-        game_state.add_game_event(
-            event_type=GameEventType(event_type),
+        # Delegate to event manager
+        self.event_manager.add_event(
+            game_state=game_state,
+            event_type=event_type,
             tool_name=tool_name,
             parameters=parameters,
             result=result,
@@ -305,17 +328,27 @@ class GameService(IGameService):
         if not game_state:
             raise ValueError(f"Game {game_id} not found")
 
-        message = Message(
+        # Extract metadata if not provided
+        if npcs_mentioned is None:
+            known_npcs = [npc.name for npc in game_state.npcs]
+            npcs_mentioned = self.metadata_service.extract_npcs_mentioned(content, known_npcs)
+
+        if location is None:
+            location = self.metadata_service.extract_location(content, game_state.location)
+
+        if combat_round is None and game_state.combat:
+            combat_round = self.metadata_service.extract_combat_round(content, True)
+
+        # Delegate to message manager
+        self.message_manager.add_message(
+            game_state=game_state,
             role=role,
             content=content,
-            timestamp=datetime.now(),
             agent_type=agent_type,
             location=location,
-            npcs_mentioned=npcs_mentioned if npcs_mentioned is not None else [],
+            npcs_mentioned=npcs_mentioned,
             combat_round=combat_round,
         )
-
-        game_state.conversation_history.append(message)
         self.save_game(game_state)
         return game_state
 

@@ -14,7 +14,13 @@ from app.agents.event_handlers.base import EventContext
 from app.agents.event_handlers.thinking_handler import ThinkingHandler
 from app.events.commands.broadcast_commands import BroadcastNarrativeCommand
 from app.interfaces.events import IEventBus
-from app.interfaces.services import IDataService, IGameService, IScenarioService
+from app.interfaces.services import (
+    IGameService,
+    IItemRepository,
+    IMonsterRepository,
+    IScenarioService,
+    ISpellRepository,
+)
 from app.models.ai_response import (
     NarrativeResponse,
     StreamEvent,
@@ -22,10 +28,11 @@ from app.models.ai_response import (
     ToolCallEvent,
 )
 from app.models.game_state import GameState, MessageRole
-from app.services.context_service import ContextService
-from app.services.event_logger_service import EventLoggerService
-from app.services.message_converter_service import MessageConverterService
-from app.services.message_metadata_service import MessageMetadataService
+from app.models.npc import NPCSheet
+from app.services.ai.context_service import ContextService
+from app.services.ai.event_logger_service import EventLoggerService
+from app.services.ai.message_converter_service import MessageConverterService
+from app.services.ai.message_metadata_service import MessageMetadataService
 from app.tools import (
     character_tools,
     combat_tools,
@@ -50,7 +57,9 @@ class NarrativeAgent(BaseAgent):
     metadata_service: MessageMetadataService
     event_bus: IEventBus
     scenario_service: IScenarioService
-    data_service: IDataService
+    item_repository: IItemRepository
+    monster_repository: IMonsterRepository
+    spell_repository: ISpellRepository
     event_processor: EventStreamProcessor | None = None
 
     def get_required_tools(self) -> list[ToolFunction]:
@@ -108,13 +117,24 @@ class NarrativeAgent(BaseAgent):
     ) -> None:
         """Handle streaming events"""
         logger.debug("Event stream handler started")
-        processor = self._get_event_processor()
 
-        # Update context with current game ID
-        processor.context.game_id = ctx.deps.game_state.game_id
+        # Ensure processor exists and use the same instance
+        if self.event_processor is None:
+            self._get_event_processor()
 
-        # Process the stream
+        processor = self.event_processor
+        if processor is None:
+            raise RuntimeError("Event processor not initialized")
+
+        # Only update game_id if not set - DON'T clear context here
+        # This allows events to accumulate across multiple handler calls
+        if not processor.context.game_id:
+            processor.context.game_id = ctx.deps.game_state.game_id
+
+        # Process the stream - events will be captured in processor.context
         await processor.process_stream(event_stream, ctx)
+
+        logger.debug(f"Captured {len(processor.context.captured_tool_events)} tool events in stream handler")
 
     # TODO: Refactor process to be simpler to understand and follow. SOLID.
     async def process(
@@ -125,6 +145,12 @@ class NarrativeAgent(BaseAgent):
         stream: bool = True,
     ) -> AsyncIterator[StreamEvent]:
         """Process a prompt and yield stream events."""
+        # Clear event processor context for new request
+        # This ensures we start fresh and don't mix events from previous requests
+        if self.event_processor:
+            self.event_processor.context.clear()
+            self.event_processor.context.game_id = game_state.game_id
+
         # Update event logger with game ID
         self.event_logger.game_id = game_state.game_id
 
@@ -134,7 +160,9 @@ class NarrativeAgent(BaseAgent):
             game_service=game_service,
             event_bus=self.event_bus,
             scenario_service=self.scenario_service,
-            data_service=self.data_service,
+            item_repository=self.item_repository,
+            monster_repository=self.monster_repository,
+            spell_repository=self.spell_repository,
         )
 
         # Build context
@@ -152,10 +180,9 @@ class NarrativeAgent(BaseAgent):
         logger.debug(f"Processing prompt: {prompt[:100]}... (stream={stream})")
 
         try:
-            # Get or create event processor
-            processor = self._get_event_processor()
-            processor.context.game_id = game_state.game_id
-            processor.context.clear()
+            # Ensure event processor exists (will be used by event_stream_handler)
+            if self.event_processor is None:
+                self._get_event_processor()
 
             # For MVP, we'll use non-streaming but still capture tool events
             logger.debug(f"Starting response generation (stream={stream})")
@@ -172,8 +199,8 @@ class NarrativeAgent(BaseAgent):
 
             all_commands = []
 
-            # Extract commands from tool results
-            captured_events = processor.context.captured_tool_events
+            # Extract commands from tool results (captured by event_stream_handler)
+            captured_events = self.event_processor.context.captured_tool_events if self.event_processor else []
             for event in captured_events:
                 if event.result and hasattr(event.result, "model_dump"):
                     result_data = event.result.model_dump(mode="json")
@@ -209,8 +236,29 @@ class NarrativeAgent(BaseAgent):
 
             # Extract metadata for messages
             player_location = self.metadata_service.get_current_location(game_state)
-            player_npcs = self.metadata_service.extract_npc_mentions(prompt, game_state.npcs)
-            dm_npcs = self.metadata_service.extract_npc_mentions(result.output, game_state.npcs)
+
+            # Get all known NPCs - combine game state NPCs and scenario NPCs
+            # Pass NPCSheet objects from game state, and string names from scenario
+            all_known_npcs: list[NPCSheet | str] = list(game_state.npcs)
+            known_names = {npc.name for npc in game_state.npcs}
+
+            # Add scenario NPCs from current location if available
+            if game_state.scenario_id and game_state.current_location_id:
+                try:
+                    scenario = self.scenario_service.get_scenario(game_state.scenario_id)
+                    if scenario:
+                        current_location = scenario.get_location(game_state.current_location_id)
+                        if current_location and current_location.npcs:
+                            # Add scenario NPC names as strings
+                            for scenario_npc in current_location.npcs:
+                                if scenario_npc.name not in known_names:
+                                    all_known_npcs.append(scenario_npc.name)
+                                    known_names.add(scenario_npc.name)
+                except Exception as e:
+                    logger.error(f"Failed to get scenario NPCs: {e}")
+
+            player_npcs = self.metadata_service.extract_npc_mentions(prompt, all_known_npcs)
+            dm_npcs = self.metadata_service.extract_npc_mentions(result.output, all_known_npcs)
             combat_round = self.metadata_service.get_combat_round(game_state)
 
             # Save conversation with metadata
@@ -233,8 +281,8 @@ class NarrativeAgent(BaseAgent):
                 combat_round=combat_round,
             )
 
-            # Save captured game events
-            captured_events = processor.context.captured_tool_events
+            # Save captured game events (captured by event_stream_handler)
+            captured_events = self.event_processor.context.captured_tool_events if self.event_processor else []
             logger.debug(f"Saving {len(captured_events)} captured events to game state")
             for event in captured_events:
                 logger.debug(

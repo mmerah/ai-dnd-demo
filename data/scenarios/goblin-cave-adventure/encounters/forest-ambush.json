@@ -1,0 +1,36 @@
+{
+  "id": "forest-ambush",
+  "type": "Combat",
+  "description": "A group of goblins ambushes travelers on the forest path",
+  "difficulty": "Medium",
+  "trigger": {
+    "type": "location_entry",
+    "location_id": "forest-path",
+    "probability": 0.5,
+    "conditions": ["first_visit"]
+  },
+  "monster_spawns": [
+    {
+      "monster_name": "Goblin",
+      "quantity_min": 2,
+      "quantity_max": 3,
+      "probability": 1.0
+    },
+    {
+      "monster_name": "Wolf",
+      "quantity_min": 1,
+      "quantity_max": 1,
+      "probability": 0.5
+    }
+  ],
+  "rewards": [
+    "10-20 gold pieces",
+    "Crude goblin weapons",
+    "A torn map showing the way to the goblin cave"
+  ],
+  "narrative": {
+    "start": "Suddenly, goblins leap from the underbrush with savage war cries!",
+    "victory": "The goblins lie defeated. Searching their bodies, you find a torn piece of parchment that appears to be part of a map.",
+    "defeat": "The goblins overwhelm you, but leave you unconscious rather than dead, perhaps saving you for ransom."
+  }
+}

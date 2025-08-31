@@ -1,0 +1,76 @@
+{
+  "id": "goblin-cave-entrance",
+  "name": "Goblin Cave Entrance",
+  "description": "A dark cave mouth yawns before you, crude totems flanking the entrance.",
+  "descriptions": {
+    "first_visit": "The cave entrance looms before you, a dark maw in the hillside. Crude totems made of bones and sticks flank the entrance, warning away intruders. The stench of goblin filth wafts from within. You can hear faint sounds echoing from the darkness - guttural voices and the clatter of weapons.",
+    "return_visit": "The goblin cave entrance remains as forbidding as before. The guards may have changed, but the danger remains.",
+    "cleared": "The cave entrance stands empty now, the totems knocked down. Without the goblins, it's just another cave."
+  },
+  "npcs": [],
+  "encounters": [
+    {
+      "id": "cave-entrance-guards",
+      "type": "Combat",
+      "description": "Goblin sentries guard the cave entrance",
+      "difficulty": "Medium",
+      "monster_spawns": [
+        {
+          "monster_name": "Goblin",
+          "quantity_min": 2,
+          "quantity_max": 2,
+          "probability": 1.0
+        },
+        {
+          "monster_name": "Wolf",
+          "quantity_min": 1,
+          "quantity_max": 1,
+          "probability": 0.5
+        }
+      ],
+      "rewards": ["Passage into the cave"]
+    }
+  ],
+  "connections": [
+    {
+      "to_location_id": "forest-path",
+      "description": "The trail leads back through the forest",
+      "direction": "south",
+      "requirements": [],
+      "is_visible": true,
+      "is_accessible": true
+    },
+    {
+      "to_location_id": "goblin-cave-depths",
+      "description": "A tunnel descends deeper into the cave",
+      "direction": "down",
+      "requirements": [
+        {
+          "type": "combat",
+          "description": "Defeat the entrance guards",
+          "requirement_id": "cave-entrance-guards",
+          "is_met": false
+        }
+      ],
+      "is_visible": true,
+      "is_accessible": false
+    }
+  ],
+  "environmental_features": [
+    "Bone totems warning intruders",
+    "Rocky terrain providing cover",
+    "Darkness requiring light sources"
+  ],
+  "secrets": [],
+  "loot_table": [
+    {
+      "item_name": "Torch",
+      "quantity_min": 1,
+      "quantity_max": 3,
+      "probability": 0.7,
+      "found": false,
+      "hidden": false
+    }
+  ],
+  "danger_level": "high"
+}

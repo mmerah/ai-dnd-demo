@@ -11,7 +11,7 @@ from app.events.commands.combat_commands import (
     TriggerScenarioEncounterCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services import IDataService, IGameService, IScenarioService
+from app.interfaces.services import IGameService, IMonsterRepository, IScenarioService
 from app.models.combat import CombatParticipant
 from app.models.game_state import GameState
 from app.models.tool_results import (
@@ -26,10 +26,15 @@ logger = logging.getLogger(__name__)
 class CombatHandler(BaseHandler):
     """Handler for combat commands."""
 
-    def __init__(self, game_service: IGameService, scenario_service: IScenarioService, data_service: IDataService):
+    def __init__(
+        self,
+        game_service: IGameService,
+        scenario_service: IScenarioService,
+        monster_repository: IMonsterRepository,
+    ):
         super().__init__(game_service)
         self.scenario_service = scenario_service
-        self.data_service = data_service
+        self.monster_repository = monster_repository
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle combat commands."""
@@ -109,7 +114,7 @@ class CombatHandler(BaseHandler):
                 # Spawn each monster
                 for i in range(quantity):
                     try:
-                        monster_data = self.data_service.get_monster(spawn.monster_name)
+                        monster_data = self.monster_repository.get(spawn.monster_name)
                         if monster_data:
                             # Add number suffix if multiple
                             name = monster_data.name
@@ -157,7 +162,7 @@ class CombatHandler(BaseHandler):
 
                 for i in range(quantity):
                     try:
-                        monster_data = self.data_service.get_monster(monster_name)
+                        monster_data = self.monster_repository.get(monster_name)
                         if monster_data:
                             # Add number suffix if multiple
                             name = monster_data.name

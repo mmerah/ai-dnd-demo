@@ -10,7 +10,7 @@ from app.interfaces.services import IGameService
 from app.models.dice import RollType
 from app.models.game_state import GameState
 from app.models.tool_results import RollDiceResult
-from app.services.dice_service import DiceService
+from app.services.common.dice_service import DiceService
 
 logger = logging.getLogger(__name__)
 

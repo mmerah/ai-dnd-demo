@@ -1,0 +1,37 @@
+{
+  "id": "goblin-cave-adventure",
+  "title": "The Goblin Cave Adventure",
+  "description": "A band of goblins has been terrorizing travelers on the road between villages. Track them to their lair and put an end to their raids.",
+  "starting_location": "tavern",
+  "locations": [
+    "tavern",
+    "forest-path",
+    "goblin-cave-entrance",
+    "goblin-cave-depths",
+    "treasure-room"
+  ],
+  "npcs": [
+    "barkeep-tom",
+    "merchant-elena",
+    "goblin-warrior",
+    "goblin-archer",
+    "goblin-boss"
+  ],
+  "quests": [
+    "find-the-artifact",
+    "rescue-the-merchant",
+    "defeat-the-goblin-boss"
+  ],
+  "encounters": [
+    "forest-ambush",
+    "cave-entrance-guards",
+    "boss-fight"
+  ],
+  "progression": "acts",
+  "treasure_guidelines": {
+    "total_gold": "200-300gp total across all locations",
+    "magic_items": "1-2 minor items (potions, scrolls)",
+    "consumables": "3-5 healing potions, 1-2 antidotes",
+    "mundane_items": "Basic adventuring gear, goblin weapons"
+  }
+}

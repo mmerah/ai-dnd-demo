@@ -327,10 +327,10 @@ async def get_item_details(item_name: str) -> ItemDefinition:
     Raises:
         HTTPException: If item not found
     """
-    data_service = container.get_data_service()
+    item_repository = container.get_item_repository()
 
     try:
-        item = data_service.get_item(item_name, allow_missing=True)
+        item = item_repository.get(item_name)
         if not item:
             raise HTTPException(status_code=404, detail=f"Item '{item_name}' not found")
 
@@ -356,10 +356,10 @@ async def get_spell_details(spell_name: str) -> SpellDefinition:
     Raises:
         HTTPException: If spell not found
     """
-    data_service = container.get_data_service()
+    spell_repository = container.get_spell_repository()
 
     try:
-        spell = data_service.get_spell(spell_name, allow_missing=True)
+        spell = spell_repository.get(spell_name)
         if not spell:
             raise HTTPException(status_code=404, detail=f"Spell '{spell_name}' not found")
 

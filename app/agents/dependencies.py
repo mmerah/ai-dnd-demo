@@ -3,7 +3,13 @@
 from dataclasses import dataclass
 
 from app.interfaces.events import IEventBus
-from app.interfaces.services import IDataService, IGameService, IScenarioService
+from app.interfaces.services import (
+    IGameService,
+    IItemRepository,
+    IMonsterRepository,
+    IScenarioService,
+    ISpellRepository,
+)
 from app.models.game_state import GameState
 
 
@@ -15,4 +21,6 @@ class AgentDependencies:
     game_service: IGameService
     event_bus: IEventBus
     scenario_service: IScenarioService
-    data_service: IDataService
+    item_repository: IItemRepository
+    monster_repository: IMonsterRepository
+    spell_repository: ISpellRepository

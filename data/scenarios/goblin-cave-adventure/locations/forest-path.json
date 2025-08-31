@@ -1,0 +1,62 @@
+{
+  "id": "forest-path",
+  "name": "The Darkwood Path",
+  "description": "A winding path through dense forest, shadows dancing between ancient trees.",
+  "descriptions": {
+    "first_visit": "The forest path stretches before you, winding between towering oaks and ancient pines. Dappled sunlight filters through the canopy, creating shifting patterns on the undergrowth. The air is thick with the scent of moss and damp earth. Something feels wrong here - broken branches and disturbed undergrowth suggest recent passage.",
+    "return_visit": "The familiar forest path seems quieter now. You notice details you missed before - scratches on tree bark, small footprints in the mud.",
+    "cleared": "The forest path feels safer now that the goblin threat has been dealt with. Birds sing in the branches above."
+  },
+  "npcs": [],
+  "encounters": [
+    {
+      "id": "forest-ambush",
+      "type": "Combat",
+      "description": "Goblins leap from the underbrush to ambush travelers!",
+      "difficulty": "Easy",
+      "monster_spawns": [
+        {
+          "monster_name": "Goblin",
+          "quantity_min": 2,
+          "quantity_max": 3,
+          "probability": 0.8
+        }
+      ],
+      "rewards": ["20-30 gold pieces", "Crude goblin weapons"]
+    }
+  ],
+  "connections": [
+    {
+      "to_location_id": "tavern",
+      "description": "The path leads back south to the tavern",
+      "direction": "south",
+      "requirements": [],
+      "is_visible": true,
+      "is_accessible": true
+    },
+    {
+      "to_location_id": "goblin-cave-entrance",
+      "description": "A hidden trail leads deeper into the forest",
+      "direction": "north",
+      "requirements": [],
+      "is_visible": false,
+      "is_accessible": true
+    }
+  ],
+  "environmental_features": [
+    "Dense undergrowth providing cover",
+    "Ancient trees with gnarled roots",
+    "A small stream crossing the path"
+  ],
+  "secrets": [
+    {
+      "id": "goblin-trail",
+      "description": "Faint goblin tracks lead off the main path toward a hidden cave",
+      "discovery_method": "search",
+      "dc": 12,
+      "reward": "Reveals the entrance to the goblin cave"
+    }
+  ],
+  "loot_table": [],
+  "danger_level": "moderate"
+}

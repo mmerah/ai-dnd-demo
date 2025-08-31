@@ -1,0 +1,36 @@
+{
+  "id": "defeat-the-goblin-boss",
+  "name": "Defeat the Goblin Boss",
+  "description": "Put an end to the goblin raids by defeating their leader.",
+  "objectives": [
+    {
+      "id": "reach-boss-chamber",
+      "description": "Reach the goblin boss's treasure room",
+      "status": "pending",
+      "required": true,
+      "metadata": {
+        "location": "treasure-room"
+      }
+    },
+    {
+      "id": "defeat-boss",
+      "description": "Defeat the goblin boss in combat",
+      "status": "pending",
+      "required": true,
+      "metadata": {
+        "enemy": "Goblin Boss"
+      }
+    },
+    {
+      "id": "claim-treasure",
+      "description": "Claim the goblin's ill-gotten treasure",
+      "status": "pending",
+      "required": false,
+      "metadata": {}
+    }
+  ],
+  "status": "not_started",
+  "rewards_description": "200 gold pieces, the artifact, and the gratitude of the local villages",
+  "prerequisites": ["rescue-the-merchant"],
+  "act": "act3"
+}

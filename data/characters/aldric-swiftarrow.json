@@ -1,0 +1,228 @@
+{
+  "id": "aldric-swiftarrow",
+  "name": "Aldric Swiftarrow",
+  "race": "Wood Elf",
+  "class_name": "Ranger",
+  "level": 3,
+  "background": "Outlander",
+  "alignment": "Neutral Good",
+  "experience_points": 900,
+  "hit_points": {
+    "current": 28,
+    "maximum": 28,
+    "temporary": 0
+  },
+  "hit_dice": {
+    "total": 3,
+    "current": 3,
+    "type": "d10"
+  },
+  "armor_class": 14,
+  "initiative": 3,
+  "speed": 35,
+  "proficiency_bonus": 2,
+  "abilities": {
+    "STR": 13,
+    "DEX": 16,
+    "CON": 14,
+    "INT": 12,
+    "WIS": 15,
+    "CHA": 10
+  },
+  "ability_modifiers": {
+    "STR": 1,
+    "DEX": 3,
+    "CON": 2,
+    "INT": 1,
+    "WIS": 2,
+    "CHA": 0
+  },
+  "saving_throws": {
+    "STR": 3,
+    "DEX": 5,
+    "CON": 2,
+    "INT": 1,
+    "WIS": 2,
+    "CHA": 0
+  },
+  "skills": {
+    "Athletics": 3,
+    "Perception": 4,
+    "Stealth": 5,
+    "Survival": 4,
+    "Nature": 3,
+    "Investigation": 3,
+    "Animal Handling": 4
+  },
+  "features_and_traits": [
+    {"name": "Darkvision", "description": "You can see in dim light within 60 feet as if it were bright light, and in darkness as if it were dim light."},
+    {"name": "Keen Senses", "description": "You have proficiency in the Perception skill."},
+    {"name": "Fey Ancestry", "description": "You have advantage on saving throws against being charmed, and magic can't put you to sleep."},
+    {"name": "Trance", "description": "Elves don't need to sleep. Instead, they meditate deeply for 4 hours a day."},
+    {"name": "Favored Enemy: Goblinoids", "description": "You have advantage on Wisdom (Survival) checks to track goblinoids and Intelligence checks to recall information about them."},
+    {"name": "Natural Explorer: Forest", "description": "You are particularly familiar with forests and are adept at traveling and surviving in such regions."},
+    {"name": "Fighting Style: Archery", "description": "You gain a +2 bonus to attack rolls you make with ranged weapons."},
+    {"name": "Spellcasting", "description": "You have learned to use the magical essence of nature to cast spells."},
+    {"name": "Ranger Archetype: Hunter", "description": "You accept your place as a bulwark between the civilized world and the terrors of the wilderness."},
+    {"name": "Primeval Awareness", "description": "You can use your action to focus your awareness on the region around you for 1 minute per spell slot expended."},
+    {"name": "Hunter's Prey: Colossus Slayer", "description": "Your tenacity can wear down the most potent foes. Once per turn, when you hit a creature with a weapon attack, the creature takes an extra 1d8 damage if it's below its hit point maximum."}
+  ],
+  "attacks": [
+    {
+      "name": "Longbow",
+      "to_hit": 7,
+      "damage": "1d8+3",
+      "damage_type": "piercing",
+      "range": "150/600 ft",
+      "properties": ["Ammunition", "Heavy", "Two-Handed"]
+    },
+    {
+      "name": "Shortsword",
+      "to_hit": 5,
+      "damage": "1d6+3",
+      "damage_type": "piercing",
+      "range": "Melee",
+      "properties": ["Finesse", "Light"]
+    }
+  ],
+  "spellcasting": {
+    "ability": "Wisdom",
+    "spell_save_dc": 12,
+    "spell_attack_bonus": 4,
+    "spells_known": [
+      "Cure Wounds",
+      "Hunter's Mark",
+      "Entangle"
+    ],
+    "spell_slots": {
+      "1": {
+        "level": 1,
+        "total": 3,
+        "current": 3
+      }
+    }
+  },
+  "inventory": [
+    {
+      "name": "Healing Potion",
+      "quantity": 2,
+      "equipped": false,
+      "weight": 0.5,
+      "value": 50,
+      "description": "You regain 2d4 + 2 hit points when you drink this potion.",
+      "item_type": "Potion"
+    },
+    {
+      "name": "Rope, Hempen (50 feet)",
+      "quantity": 1,
+      "equipped": false,
+      "weight": 10,
+      "value": 1,
+      "description": "Rope has 2 hit points and can be burst with a DC 17 Strength check.",
+      "item_type": "Adventuring Gear"
+    },
+    {
+      "name": "Torch",
+      "quantity": 5,
+      "equipped": false,
+      "weight": 1,
+      "value": 0.01,
+      "description": "A torch burns for 1 hour, providing bright light in a 20-foot radius.",
+      "item_type": "Adventuring Gear"
+    },
+    {
+      "name": "Rations (1 day)",
+      "quantity": 10,
+      "equipped": false,
+      "weight": 2,
+      "value": 0.5,
+      "description": "Rations consist of dry foods suitable for extended travel.",
+      "item_type": "Adventuring Gear"
+    },
+    {
+      "name": "Longbow",
+      "quantity": 1,
+      "equipped": true,
+      "weight": 2,
+      "value": 50,
+      "description": "A tall bow for shooting arrows at long range.",
+      "item_type": "Weapon"
+    },
+    {
+      "name": "Arrows",
+      "quantity": 40,
+      "equipped": true,
+      "weight": 0.05,
+      "value": 0.05,
+      "description": "Standard arrows for use with a bow.",
+      "item_type": "Ammunition"
+    },
+    {
+      "name": "Shortsword",
+      "quantity": 1,
+      "equipped": true,
+      "weight": 2,
+      "value": 10,
+      "description": "A short, lightweight sword ideal for quick strikes.",
+      "item_type": "Weapon"
+    },
+    {
+      "name": "Leather Armor",
+      "quantity": 1,
+      "equipped": true,
+      "weight": 10,
+      "value": 10,
+      "description": "Light armor made of stiffened leather.",
+      "item_type": "Armor"
+    },
+    {
+      "name": "Explorer's Pack",
+      "quantity": 1,
+      "equipped": false,
+      "weight": 59,
+      "value": 10,
+      "description": "Includes a backpack, bedroll, mess kit, tinderbox, torches, rations, waterskin, and rope.",
+      "item_type": "Equipment Pack"
+    },
+    {
+      "name": "Component Pouch",
+      "quantity": 1,
+      "equipped": true,
+      "weight": 2,
+      "value": 25,
+      "description": "A small, watertight leather belt pouch containing material components for spells.",
+      "item_type": "Adventuring Gear"
+    }
+  ],
+  "currency": {
+    "copper": 0,
+    "silver": 0,
+    "electrum": 0,
+    "gold": 50,
+    "platinum": 0
+  },
+  "personality": {
+    "traits": [
+      "I place no stock in wealthy or well-mannered folk. Money and manners won't save you from a hungry owlbear.",
+      "I'm always picking things up, absently fiddling with them, and sometimes accidentally breaking them."
+    ],
+    "ideals": [
+      "Nature. The natural world is more important than all the constructs of civilization."
+    ],
+    "bonds": [
+      "I will bring terrible wrath down on the evildoers who destroyed my homeland."
+    ],
+    "flaws": [
+      "I am too enamored of ale, wine, and other intoxicants."
+    ]
+  },
+  "backstory": "Aldric Swiftarrow grew up in the forests of the Wood Elf homeland, learning the ways of nature and the bow. When goblinoid raiders destroyed his village, he took up the mantle of a ranger to protect others from the same fate. He now wanders the borderlands, keeping watch for evil and helping those in need.",
+  "languages": [
+    "Common",
+    "Elvish",
+    "Goblin"
+  ],
+  "conditions": [],
+  "exhaustion_level": 0,
+  "inspiration": false
+}

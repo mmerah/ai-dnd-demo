@@ -1,6 +1,11 @@
 """Service for building AI context following Single Responsibility."""
 
-from app.interfaces.services import IDataService, IScenarioService
+from app.interfaces.services import (
+    IItemRepository,
+    IMonsterRepository,
+    IScenarioService,
+    ISpellRepository,
+)
 from app.models.game_state import GameState
 from app.models.quest import ObjectiveStatus
 from app.models.scenario import Scenario
@@ -9,9 +14,17 @@ from app.models.scenario import Scenario
 class ContextService:
     """Service for building AI context following Single Responsibility."""
 
-    def __init__(self, scenario_service: IScenarioService, data_service: IDataService | None = None):
+    def __init__(
+        self,
+        scenario_service: IScenarioService,
+        item_repository: IItemRepository | None = None,
+        monster_repository: IMonsterRepository | None = None,
+        spell_repository: ISpellRepository | None = None,
+    ):
         self.scenario_service = scenario_service
-        self.data_service = data_service
+        self.item_repository = item_repository
+        self.monster_repository = monster_repository
+        self.spell_repository = spell_repository
 
     def build_context(self, game_state: GameState) -> str:
         """Build enhanced context string from game state."""
@@ -201,13 +214,13 @@ class ContextService:
 
     def _build_spell_context(self, spells: list[str]) -> str | None:
         """Build spell context with descriptions if data service available."""
-        if not self.data_service or not spells:
+        if not self.spell_repository or not spells:
             return None
 
         context_parts = ["Known Spells:"]
 
         for spell_name in spells[:5]:  # Limit to 5 spells to avoid context overflow
-            spell_def = self.data_service.get_spell(spell_name, allow_missing=True)
+            spell_def = self.spell_repository.get(spell_name)
             if spell_def:
                 context_parts.append(f"  • {spell_name} (Level {spell_def.level}): {spell_def.description[:100]}...")
             else:

@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from enum import Enum
-from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -263,15 +262,6 @@ class GameState(BaseModel):
     def update_save_time(self) -> None:
         """Update the last saved timestamp."""
         self.last_saved = datetime.now()
-
-    def to_save_dict(self) -> dict[str, Any]:
-        """Convert game state to dictionary for saving."""
-        return self.model_dump(mode="json")
-
-    @classmethod
-    def from_save_dict(cls, data: dict[str, Any]) -> "GameState":
-        """Create game state from saved dictionary."""
-        return cls(**data)
 
     def get_location_state(self, location_id: str) -> LocationState:
         """Get or create location state."""

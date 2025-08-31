@@ -15,7 +15,7 @@ from pydantic_ai.messages import (
 from app.agents.event_handlers.base import EventContext, EventHandler
 from app.common.types import JSONSerializable
 from app.models.ai_response import CapturedToolEvent
-from app.services.event_logger_service import EventLoggerService
+from app.services.ai.event_logger_service import EventLoggerService
 
 logger = logging.getLogger(__name__)
 

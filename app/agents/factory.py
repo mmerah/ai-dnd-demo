@@ -14,13 +14,13 @@ from app.agents.narrative_agent import NarrativeAgent
 from app.agents.types import AgentType
 from app.config import get_settings
 from app.interfaces.events import IEventBus
-from app.interfaces.services import IDataService, IScenarioService
-from app.services.context_service import ContextService
-from app.services.data_service import DataService
-from app.services.event_logger_service import EventLoggerService
-from app.services.message_converter_service import MessageConverterService
-from app.services.message_metadata_service import MessageMetadataService
-from app.services.scenario_service import ScenarioService
+from app.interfaces.services import (
+    IItemRepository,
+    IMonsterRepository,
+    IScenarioService,
+    ISpellRepository,
+)
+from app.services.ai import ContextService, EventLoggerService, MessageConverterService, MessageMetadataService
 
 logger = logging.getLogger(__name__)
 
@@ -137,7 +137,9 @@ The current game state and character information will be provided with each inte
         agent_type: AgentType,
         event_bus: IEventBus | None = None,
         scenario_service: IScenarioService | None = None,
-        data_service: IDataService | None = None,
+        item_repository: IItemRepository | None = None,
+        monster_repository: IMonsterRepository | None = None,
+        spell_repository: ISpellRepository | None = None,
         debug: bool = False,
     ) -> BaseAgent:
         """Create a specialized agent based on type."""
@@ -159,19 +161,21 @@ The current game state and character information will be provided with each inte
             if not event_bus:
                 raise ValueError("Event bus is required for narrative agent")
             if not scenario_service:
-                scenario_service = ScenarioService()
-            if not data_service:
-                data_service = DataService()
+                raise ValueError("ScenarioService is required for NarrativeAgent")
+            if not item_repository or not monster_repository or not spell_repository:
+                raise ValueError("Repositories are required for NarrativeAgent")
 
             narrative_agent = NarrativeAgent(
                 agent=agent,
-                context_service=ContextService(scenario_service, data_service),
+                context_service=ContextService(scenario_service, item_repository, monster_repository, spell_repository),
                 message_converter=MessageConverterService(),
                 event_logger=EventLoggerService(game_id="", debug=debug),
                 metadata_service=MessageMetadataService(),
                 event_bus=event_bus,
                 scenario_service=scenario_service,
-                data_service=data_service,
+                item_repository=item_repository,
+                monster_repository=monster_repository,
+                spell_repository=spell_repository,
             )
 
             # Register its required tools

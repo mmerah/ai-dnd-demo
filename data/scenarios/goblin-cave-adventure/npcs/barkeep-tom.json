@@ -1,0 +1,57 @@
+{
+  "id": "barkeep-tom",
+  "name": "Tom the Barkeep",
+  "type": "humanoid (human)",
+  "alignment": "neutral good",
+  "armor_class": 10,
+  "hit_points": {
+    "current": 4,
+    "maximum": 4,
+    "temporary": 0
+  },
+  "speed": 30,
+  "abilities": {
+    "strength": 10,
+    "dexterity": 10,
+    "constitution": 10,
+    "intelligence": 12,
+    "wisdom": 14,
+    "charisma": 13
+  },
+  "skills": {
+    "insight": 4,
+    "persuasion": 3
+  },
+  "senses": "passive Perception 12",
+  "languages": ["Common"],
+  "challenge_rating": 0,
+  "attacks": [],
+  "traits": [
+    {
+      "name": "Local Knowledge",
+      "description": "Tom knows the local area well and can provide information about recent events, the goblin raids, and the missing merchant."
+    }
+  ],
+  "actions": [
+    {
+      "name": "Provide Information",
+      "description": "Tom can share what he knows about the goblin attacks and point adventurers toward the forest path where attacks have occurred."
+    }
+  ],
+  "inventory": [
+    {
+      "name": "Healing Potion",
+      "quantity": 3
+    },
+    {
+      "name": "Ale",
+      "quantity": 20
+    }
+  ],
+  "personality": {
+    "traits": ["Friendly", "Knowledgeable", "Cautious"],
+    "ideal": "Community - The tavern is a gathering place that brings people together",
+    "bond": "This tavern has been in my family for three generations",
+    "flaw": "I'm a bit too trusting of strangers with coin"
+  }
+}
