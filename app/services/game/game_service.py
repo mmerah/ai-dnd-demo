@@ -15,12 +15,14 @@ from app.interfaces.services import (
 )
 from app.models.character import CharacterSheet
 from app.models.game_state import (
+    GameEventType,
     GameState,
     GameTime,
     Message,
     MessageRole,
 )
 from app.models.quest import QuestStatus
+from app.models.scenario import ScenarioLocation
 
 
 class GameService(IGameService):
@@ -156,6 +158,14 @@ class GameService(IGameService):
                         quest.status = QuestStatus.ACTIVE
                         game_state.add_quest(quest)
 
+        # Initialize starting location
+        if scenario and initial_location_id:
+            location = scenario.get_location(initial_location_id)
+            if location:
+                # Player starts here, so initialize and mark as visited
+                self.initialize_location_from_scenario(game_state, location)
+                game_state.get_location_state(initial_location_id).mark_visited()
+
         # Store in memory and save to disk
         self.game_state_manager.store_game(game_state)
         self.save_game(game_state)
@@ -257,10 +267,27 @@ class GameService(IGameService):
         # Already sorted by last_saved from save_manager
         return games
 
+    def initialize_location_from_scenario(self, game_state: GameState, scenario_location: ScenarioLocation) -> None:
+        """
+        Initialize a location's state from scenario data on first visit.
+
+        This method copies static scenario data to the dynamic LocationState.
+        Should only be called when a location is first encountered.
+
+        Args:
+            game_state: The game state containing location states
+            scenario_location: The scenario location definition to copy from
+        """
+        location_state = game_state.get_location_state(scenario_location.id)
+        if not location_state.visited:
+            location_state.danger_level = scenario_location.danger_level
+            for npc in scenario_location.npcs:
+                location_state.add_npc(npc.name)
+
     def add_game_event(
         self,
         game_id: str,
-        event_type: str,
+        event_type: GameEventType,
         tool_name: str | None = None,
         parameters: dict[str, JSONSerializable] | None = None,
         result: dict[str, JSONSerializable] | None = None,
@@ -271,7 +298,7 @@ class GameService(IGameService):
 
         Args:
             game_id: Game ID
-            event_type: Type of event (tool_call, tool_result, etc.)
+            event_type: Type of event (GameEventType enum)
             tool_name: Name of the tool
             parameters: Tool parameters
             result: Tool result

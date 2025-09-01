@@ -1,7 +1,11 @@
 """Service for managing scenarios."""
 
+import logging
+
 from app.interfaces.services import ILoader, IMonsterRepository, IPathResolver, IScenarioService
 from app.models.scenario import Scenario
+
+logger = logging.getLogger(__name__)
 
 
 class ScenarioService(IScenarioService):
@@ -41,7 +45,7 @@ class ScenarioService(IScenarioService):
                         try:
                             scenario = self.scenario_loader.load(scenario_file)
                         except Exception as e:
-                            print(f"Failed to load scenario {scenario_id}: {e}")
+                            logger.error(f"Failed to load scenario {scenario_id}: {e}")
                             scenario = None
                     else:
                         scenario = None
@@ -56,7 +60,7 @@ class ScenarioService(IScenarioService):
                 if scenario:
                     self._scenarios[scenario.id] = scenario
             except Exception as e:
-                print(f"Failed to load legacy scenario: {e}")
+                logger.error(f"Failed to load legacy scenario: {e}")
 
     def get_scenario(self, scenario_id: str) -> Scenario | None:
         """

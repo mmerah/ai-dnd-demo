@@ -14,7 +14,7 @@ class EventManager(IEventManager):
     def add_event(
         self,
         game_state: GameState,
-        event_type: str,
+        event_type: GameEventType,
         tool_name: str | None = None,
         parameters: dict[str, JSONSerializable] | None = None,
         result: dict[str, JSONSerializable] | None = None,
@@ -24,14 +24,14 @@ class EventManager(IEventManager):
 
         Args:
             game_state: Game state to update
-            event_type: Type of event (tool_call, tool_result, etc.)
+            event_type: Type of event (GameEventType enum)
             tool_name: Name of the tool that generated the event
             parameters: Tool parameters
             result: Tool result
             metadata: Additional metadata
         """
         game_state.add_game_event(
-            event_type=GameEventType(event_type),
+            event_type=event_type,
             tool_name=tool_name,
             parameters=parameters,
             result=result,
@@ -53,15 +53,14 @@ class EventManager(IEventManager):
 
         return game_state.game_events[-limit:]
 
-    def get_events_by_type(self, game_state: GameState, event_type: str) -> list[GameEvent]:
+    def get_events_by_type(self, game_state: GameState, event_type: GameEventType) -> list[GameEvent]:
         """Get events of a specific type.
 
         Args:
             game_state: Game state to read from
-            event_type: Type of events to retrieve
+            event_type: Type of events to retrieve (GameEventType enum)
 
         Returns:
             List of matching events
         """
-        target_type = GameEventType(event_type)
-        return [event for event in game_state.game_events if event.event_type == target_type]
+        return [event for event in game_state.game_events if event.event_type == event_type]

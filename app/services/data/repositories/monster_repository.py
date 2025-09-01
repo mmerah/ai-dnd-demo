@@ -1,10 +1,13 @@
 """Repository for managing monster definitions."""
 
+import logging
 from typing import Any
 
 from app.interfaces.services import IMonsterRepository, IPathResolver
 from app.models.npc import NPCSheet
 from app.services.data.repositories.base_repository import BaseRepository
+
+logger = logging.getLogger(__name__)
 
 
 class MonsterRepository(BaseRepository[NPCSheet], IMonsterRepository):
@@ -42,7 +45,7 @@ class MonsterRepository(BaseRepository[NPCSheet], IMonsterRepository):
                 self._cache[monster.name] = monster
             except Exception as e:
                 # Log error but continue loading other monsters
-                print(f"Warning: Failed to load monster {monster_data.get('name', 'unknown')}: {e}")
+                logger.warning(f"Failed to load monster {monster_data.get('name', 'unknown')}: {e}")
 
     def _load_item(self, key: str) -> NPCSheet | None:
         """Load a single monster by name.

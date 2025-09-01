@@ -222,6 +222,7 @@ class Container:
             item_repository = self.get_item_repository()
             monster_repository = self.get_monster_repository()
             spell_repository = self.get_spell_repository()
+            metadata_service = self.get_metadata_service()
 
             ai_service = AIService(game_service)
             ai_service.narrative_agent = AgentFactory.create_agent(
@@ -231,6 +232,7 @@ class Container:
                 item_repository=item_repository,
                 monster_repository=monster_repository,
                 spell_repository=spell_repository,
+                metadata_service=metadata_service,
                 debug=settings.debug_ai,
             )
             self._ai_service = ai_service

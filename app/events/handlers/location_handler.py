@@ -54,6 +54,15 @@ class LocationHandler(BaseHandler):
                 description=command.description,
             )
 
+            # Initialize location state with NPCs from scenario if available
+            if game_state.scenario_id:
+                scenario = self.scenario_service.get_scenario(game_state.scenario_id)
+                if scenario:
+                    location = scenario.get_location(command.location_id)
+                    if location:
+                        # Initialize from scenario only if not yet visited
+                        self.game_service.initialize_location_from_scenario(game_state, location)
+
             # Save game state
             self.game_service.save_game(game_state)
 

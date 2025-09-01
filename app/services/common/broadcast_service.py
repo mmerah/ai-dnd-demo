@@ -91,10 +91,14 @@ class BroadcastService(IBroadcastService):
                     # Wait for events with a timeout for heartbeat
                     event_data = await asyncio.wait_for(queue.get(), timeout=30.0)
                     yield event_data
-                except TimeoutError:
+                except asyncio.exceptions.TimeoutError:
                     # Send heartbeat if no events for 30 seconds
                     heartbeat_event = SSEEvent.create_heartbeat()
                     yield heartbeat_event.to_sse_format()
+                except Exception as e:
+                    # Log unexpected errors and exit cleanly
+                    logger.error(f"Error in SSE subscription for {game_id}: {e}")
+                    break
         finally:
             # Clean up: remove this queue from subscribers
             if game_id in self.subscribers and queue in self.subscribers[game_id]:

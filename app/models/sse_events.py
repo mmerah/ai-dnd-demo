@@ -1,6 +1,6 @@
 """SSE event models for type-safe event broadcasting."""
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Literal
 
@@ -36,7 +36,7 @@ class SSEEventType(str, Enum):
 class BaseSSEData(BaseModel):
     """Base class for SSE event data."""
 
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class ConnectedData(BaseSSEData):

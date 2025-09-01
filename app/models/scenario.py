@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, Field
 
-from app.models.location import LocationConnection, LootEntry, MonsterSpawn
+from app.models.location import DangerLevel, LocationConnection, LootEntry, MonsterSpawn
 from app.models.quest import Quest
 
 
@@ -62,7 +62,7 @@ class ScenarioLocation(BaseModel):
     secrets: list[Secret] = Field(default_factory=list)  # Enhanced secrets
     loot_table: list[LootEntry] = Field(default_factory=list)  # Structured loot
     victory_conditions: list[str] = Field(default_factory=list)
-    danger_level: str = "moderate"  # Default danger level
+    danger_level: DangerLevel = DangerLevel.MODERATE
 
     def get_description(self, variant: str = "default") -> str:
         """Get appropriate description based on state."""

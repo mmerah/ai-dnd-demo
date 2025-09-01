@@ -1,5 +1,6 @@
 """Service for managing character data."""
 
+import logging
 from pathlib import Path
 
 from app.interfaces.services import (
@@ -10,6 +11,8 @@ from app.interfaces.services import (
     ISpellRepository,
 )
 from app.models.character import CharacterSheet
+
+logger = logging.getLogger(__name__)
 
 
 class CharacterService(ICharacterService):
@@ -76,7 +79,7 @@ class CharacterService(ICharacterService):
             raise ValueError(f"Failed to load character from {file_path}: {e}") from e
         except Exception as e:
             # Only catch truly unexpected errors (file IO, JSON parsing)
-            print(f"Failed to load character from {file_path}: {e}")
+            logger.error(f"Failed to load character from {file_path}: {e}")
 
     def get_character(self, character_id: str) -> CharacterSheet | None:
         """

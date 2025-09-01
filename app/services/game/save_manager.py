@@ -53,7 +53,7 @@ class SaveManager(ISaveManager):
         """
         # Get save directory
         scenario_id = game_state.scenario_id or "unknown"
-        save_dir = self.path_resolver.get_save_dir(scenario_id, game_state.game_id)
+        save_dir = self.path_resolver.get_save_dir(scenario_id, game_state.game_id, create=True)
 
         # Update save timestamp
         game_state.update_save_time()
@@ -87,7 +87,7 @@ class SaveManager(ISaveManager):
             FileNotFoundError: If save doesn't exist
             RuntimeError: If loading fails
         """
-        save_dir = self.path_resolver.get_save_dir(scenario_id, game_id)
+        save_dir = self.path_resolver.get_save_dir(scenario_id, game_id, create=False)
 
         if not (save_dir / "metadata.json").exists():
             raise FileNotFoundError(f"No save found for {scenario_id}/{game_id}")
@@ -203,7 +203,7 @@ class SaveManager(ISaveManager):
         Returns:
             True if save exists
         """
-        save_dir = self.path_resolver.get_save_dir(scenario_id, game_id)
+        save_dir = self.path_resolver.get_save_dir(scenario_id, game_id, create=False)
         return (save_dir / "metadata.json").exists()
 
     # Component save methods

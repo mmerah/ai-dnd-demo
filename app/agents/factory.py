@@ -16,11 +16,12 @@ from app.config import get_settings
 from app.interfaces.events import IEventBus
 from app.interfaces.services import (
     IItemRepository,
+    IMetadataService,
     IMonsterRepository,
     IScenarioService,
     ISpellRepository,
 )
-from app.services.ai import ContextService, EventLoggerService, MessageConverterService, MessageMetadataService
+from app.services.ai import ContextService, EventLoggerService, MessageConverterService
 
 logger = logging.getLogger(__name__)
 
@@ -140,6 +141,7 @@ The current game state and character information will be provided with each inte
         item_repository: IItemRepository | None = None,
         monster_repository: IMonsterRepository | None = None,
         spell_repository: ISpellRepository | None = None,
+        metadata_service: IMetadataService | None = None,
         debug: bool = False,
     ) -> BaseAgent:
         """Create a specialized agent based on type."""
@@ -164,13 +166,15 @@ The current game state and character information will be provided with each inte
                 raise ValueError("ScenarioService is required for NarrativeAgent")
             if not item_repository or not monster_repository or not spell_repository:
                 raise ValueError("Repositories are required for NarrativeAgent")
+            if not metadata_service:
+                raise ValueError("MetadataService is required for NarrativeAgent")
 
             narrative_agent = NarrativeAgent(
                 agent=agent,
                 context_service=ContextService(scenario_service, item_repository, monster_repository, spell_repository),
                 message_converter=MessageConverterService(),
                 event_logger=EventLoggerService(game_id="", debug=debug),
-                metadata_service=MessageMetadataService(),
+                metadata_service=metadata_service,
                 event_bus=event_bus,
                 scenario_service=scenario_service,
                 item_repository=item_repository,

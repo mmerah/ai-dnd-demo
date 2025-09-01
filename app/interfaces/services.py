@@ -1,7 +1,7 @@
 """Service interfaces for dependency inversion."""
 
 from abc import ABC, abstractmethod
-from collections.abc import AsyncGenerator, AsyncIterator
+from collections.abc import AsyncGenerator, AsyncIterator, Sequence
 from datetime import datetime
 from pathlib import Path
 from typing import Generic, TypeVar
@@ -11,10 +11,10 @@ from pydantic import BaseModel
 from app.common.types import JSONSerializable
 from app.models.ai_response import AIResponse
 from app.models.character import CharacterSheet
-from app.models.game_state import GameEvent, GameState, Message, MessageRole
+from app.models.game_state import GameEvent, GameEventType, GameState, Message, MessageRole
 from app.models.item import ItemDefinition, ItemRarity, ItemType
 from app.models.npc import NPCSheet
-from app.models.scenario import Scenario
+from app.models.scenario import Scenario, ScenarioLocation
 from app.models.spell import SpellDefinition, SpellSchool
 from app.models.tool_results import ToolResult
 
@@ -80,7 +80,7 @@ class IGameService(ABC):
     def add_game_event(
         self,
         game_id: str,
-        event_type: str,
+        event_type: GameEventType,
         tool_name: str | None = None,
         parameters: dict[str, JSONSerializable] | None = None,
         result: dict[str, JSONSerializable] | None = None,
@@ -90,6 +90,14 @@ class IGameService(ABC):
 
     @abstractmethod
     def list_saved_games(self) -> list[GameState]:
+        pass
+
+    @abstractmethod
+    def initialize_location_from_scenario(
+        self,
+        game_state: GameState,
+        scenario_location: ScenarioLocation,
+    ) -> None:
         pass
 
 
@@ -221,8 +229,14 @@ class IPathResolver(ABC):
         pass
 
     @abstractmethod
-    def get_save_dir(self, scenario_id: str, game_id: str) -> Path:
-        """Get directory for a saved game."""
+    def get_save_dir(self, scenario_id: str, game_id: str, create: bool = False) -> Path:
+        """Get directory for a saved game.
+
+        Args:
+            scenario_id: ID of the scenario
+            game_id: ID of the game
+            create: If True, create the directory if it doesn't exist
+        """
         pass
 
     @abstractmethod
@@ -474,7 +488,7 @@ class IEventManager(ABC):
     def add_event(
         self,
         game_state: GameState,
-        event_type: str,
+        event_type: GameEventType,
         tool_name: str | None = None,
         parameters: dict[str, JSONSerializable] | None = None,
         result: dict[str, JSONSerializable] | None = None,
@@ -484,7 +498,7 @@ class IEventManager(ABC):
 
         Args:
             game_state: Game state to update
-            event_type: Type of event
+            event_type: Type of event (GameEventType enum)
             tool_name: Tool that generated the event
             parameters: Event parameters
             result: Event result
@@ -506,12 +520,12 @@ class IEventManager(ABC):
         pass
 
     @abstractmethod
-    def get_events_by_type(self, game_state: GameState, event_type: str) -> list[GameEvent]:
+    def get_events_by_type(self, game_state: GameState, event_type: GameEventType) -> list[GameEvent]:
         """Get events of a specific type.
 
         Args:
             game_state: Game state to read from
-            event_type: Type of events to retrieve
+            event_type: Type of events to retrieve (GameEventType enum)
 
         Returns:
             List of matching events
@@ -558,5 +572,42 @@ class IMetadataService(ABC):
 
         Returns:
             Combat round number or None
+        """
+        pass
+
+    @abstractmethod
+    def extract_npc_mentions(self, content: str, npcs: Sequence[NPCSheet | str]) -> list[str]:
+        """Extract NPC mentions from content with flexible NPC types.
+
+        Args:
+            content: Message content to analyze
+            npcs: List of NPCs (either NPCSheet objects or string names)
+
+        Returns:
+            List of NPC names found in the content
+        """
+        pass
+
+    @abstractmethod
+    def get_current_location(self, game_state: GameState) -> str:
+        """Get the current location from game state.
+
+        Args:
+            game_state: Current game state
+
+        Returns:
+            Current location name
+        """
+        pass
+
+    @abstractmethod
+    def get_combat_round(self, game_state: GameState) -> int | None:
+        """Get the current combat round if in combat.
+
+        Args:
+            game_state: Current game state
+
+        Returns:
+            Current combat round number or None if not in combat
         """
         pass

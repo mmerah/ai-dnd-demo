@@ -1,10 +1,13 @@
 """Repository for managing spell definitions."""
 
+import logging
 from typing import Any
 
 from app.interfaces.services import IPathResolver, ISpellRepository
 from app.models.spell import SpellDefinition, SpellSchool
 from app.services.data.repositories.base_repository import BaseRepository
+
+logger = logging.getLogger(__name__)
 
 
 class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
@@ -42,7 +45,7 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
                 self._cache[spell.name] = spell
             except Exception as e:
                 # Log error but continue loading other spells
-                print(f"Warning: Failed to load spell {spell_data.get('name', 'unknown')}: {e}")
+                logger.warning(f"Failed to load spell {spell_data.get('name', 'unknown')}: {e}")
 
     def _load_item(self, key: str) -> SpellDefinition | None:
         """Load a single spell by name.

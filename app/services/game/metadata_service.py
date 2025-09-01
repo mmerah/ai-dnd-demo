@@ -1,14 +1,19 @@
 """Metadata service for extracting information from messages."""
 
+import logging
 import re
+from collections.abc import Sequence
 
 from app.interfaces.services import IMetadataService
+from app.models.game_state import GameState
+from app.models.npc import NPCSheet
+
+logger = logging.getLogger(__name__)
 
 
 class MetadataService(IMetadataService):
-    """Extracts metadata from message content following Single Responsibility Principle.
-
-    Only handles metadata extraction from text content.
+    """
+    Handles all metadata extraction from messages and game state.
     """
 
     def extract_npcs_mentioned(self, content: str, known_npcs: list[str]) -> list[str]:
@@ -89,4 +94,53 @@ class MetadataService(IMetadataService):
                 except ValueError:
                     continue
 
+        return None
+
+    def extract_npc_mentions(self, content: str, npcs: Sequence[NPCSheet | str]) -> list[str]:
+        """Extract NPC mentions from content with flexible NPC types.
+
+        Args:
+            content: Message content to analyze
+            npcs: List of NPCs (either NPCSheet objects or string names)
+
+        Returns:
+            List of NPC names found in the content
+        """
+        # Convert NPCSheets to names
+        npc_names = []
+        for npc in npcs:
+            if isinstance(npc, str):
+                npc_names.append(npc)
+            elif hasattr(npc, "name"):
+                npc_names.append(npc.name)
+            else:
+                # Log error but continue
+                logger.error(f"Invalid NPC type in extract_npc_mentions: {type(npc)}")
+                continue
+
+        # Use existing method
+        return self.extract_npcs_mentioned(content, npc_names)
+
+    def get_current_location(self, game_state: GameState) -> str:
+        """Get the current location from game state.
+
+        Args:
+            game_state: Current game state
+
+        Returns:
+            Current location name
+        """
+        return game_state.location
+
+    def get_combat_round(self, game_state: GameState) -> int | None:
+        """Get the current combat round if in combat.
+
+        Args:
+            game_state: Current game state
+
+        Returns:
+            Current combat round number or None if not in combat
+        """
+        if game_state.combat and game_state.combat.is_active:
+            return game_state.combat.round_number
         return None

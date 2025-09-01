@@ -17,6 +17,7 @@ from app.interfaces.events import IEventBus
 from app.interfaces.services import (
     IGameService,
     IItemRepository,
+    IMetadataService,
     IMonsterRepository,
     IScenarioService,
     ISpellRepository,
@@ -27,12 +28,11 @@ from app.models.ai_response import (
     StreamEventType,
     ToolCallEvent,
 )
-from app.models.game_state import GameState, MessageRole
+from app.models.game_state import GameEventType, GameState, MessageRole
 from app.models.npc import NPCSheet
 from app.services.ai.context_service import ContextService
 from app.services.ai.event_logger_service import EventLoggerService
 from app.services.ai.message_converter_service import MessageConverterService
-from app.services.ai.message_metadata_service import MessageMetadataService
 from app.tools import (
     character_tools,
     combat_tools,
@@ -54,7 +54,7 @@ class NarrativeAgent(BaseAgent):
     context_service: ContextService
     message_converter: MessageConverterService
     event_logger: EventLoggerService
-    metadata_service: MessageMetadataService
+    metadata_service: IMetadataService
     event_bus: IEventBus
     scenario_service: IScenarioService
     item_repository: IItemRepository
@@ -292,7 +292,7 @@ class NarrativeAgent(BaseAgent):
                     logger.debug(f"Adding tool_call event for {event.tool_name}")
                     game_service.add_game_event(
                         game_state.game_id,
-                        event_type="tool_call",
+                        event_type=GameEventType.TOOL_CALL,
                         tool_name=event.tool_name,
                         parameters=event.parameters,
                     )
@@ -302,7 +302,7 @@ class NarrativeAgent(BaseAgent):
                     result_data = event.result.model_dump(mode="json")
                     game_service.add_game_event(
                         game_state.game_id,
-                        event_type="tool_result",
+                        event_type=GameEventType.TOOL_RESULT,
                         tool_name=event.tool_name,
                         result=result_data,
                     )

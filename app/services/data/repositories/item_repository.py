@@ -1,10 +1,13 @@
 """Repository for managing item definitions."""
 
+import logging
 from typing import Any
 
 from app.interfaces.services import IItemRepository, IPathResolver
 from app.models.item import ItemDefinition, ItemRarity, ItemSubtype, ItemType
 from app.services.data.repositories.base_repository import BaseRepository
+
+logger = logging.getLogger(__name__)
 
 
 class ItemRepository(BaseRepository[ItemDefinition], IItemRepository):
@@ -42,7 +45,7 @@ class ItemRepository(BaseRepository[ItemDefinition], IItemRepository):
                 self._cache[item.name] = item
             except Exception as e:
                 # Log error but continue loading other items
-                print(f"Warning: Failed to load item {item_data.get('name', 'unknown')}: {e}")
+                logger.warning(f"Failed to load item {item_data.get('name', 'unknown')}: {e}")
 
     def _load_item(self, key: str) -> ItemDefinition | None:
         """Load a single item by name.

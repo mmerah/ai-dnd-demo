@@ -107,14 +107,14 @@ async def get_game_state(game_id: str) -> GameState:
     game_service = container.get_game_service()
 
     try:
+        # load_game raises FileNotFoundError or ValueError on failure
         game_state = game_service.load_game(game_id)
-        if not game_state:
-            raise HTTPException(status_code=404, detail=f"Game with ID '{game_id}' not found")
-
         return game_state
 
-    except HTTPException:
-        raise
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Game with ID '{game_id}' not found") from None
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid game data: {e!s}") from e
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to load game: {e!s}") from e
 

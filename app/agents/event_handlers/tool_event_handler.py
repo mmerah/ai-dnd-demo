@@ -49,16 +49,17 @@ class ToolCallHandler(EventHandler):
             logger.debug(f"Skipping duplicate tool call {tool_call_id} for {tool_name}")
             return
 
-        # Track the tool call
-        if tool_call_id:
-            context.processed_tool_calls.add(tool_call_id)
-            context.tool_calls_by_id[tool_call_id] = tool_name
-
-        # Process arguments
+        # Process arguments first to check if they're empty
         processed_args = self._process_arguments(args)
         if processed_args is None:
             logger.debug(f"Skipping empty tool call for {tool_name}")
+            # Don't mark as processed if arguments are empty
             return
+
+        # Track the tool call only after confirming it has valid arguments
+        if tool_call_id:
+            context.processed_tool_calls.add(tool_call_id)
+            context.tool_calls_by_id[tool_call_id] = tool_name
 
         # Log and capture the event
         if self.event_logger:

@@ -1,6 +1,7 @@
 """Loader for scenario data with modular components."""
 
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +20,8 @@ from app.models.scenario import (
     TreasureGuidelines,
 )
 from app.services.data.loaders.base_loader import BaseLoader
+
+logger = logging.getLogger(__name__)
 
 
 class ScenarioLoader(BaseLoader[Scenario]):
@@ -112,7 +115,7 @@ class ScenarioLoader(BaseLoader[Scenario]):
                     location = self._load_location_file(location_file)
                     locations.append(location)
                 except Exception as e:
-                    print(f"Warning: Failed to load location {location_id}: {e}")
+                    logger.warning(f"Failed to load location {location_id}: {e}")
 
         return locations
 
@@ -217,7 +220,7 @@ class ScenarioLoader(BaseLoader[Scenario]):
                     quest = self._load_quest_file(quest_file)
                     quests.append(quest)
                 except Exception as e:
-                    print(f"Warning: Failed to load quest {quest_id}: {e}")
+                    logger.warning(f"Failed to load quest {quest_id}: {e}")
 
         return quests
 
@@ -299,7 +302,7 @@ class ScenarioLoader(BaseLoader[Scenario]):
             )
 
         except Exception as e:
-            print(f"Warning: Failed to load progression: {e}")
+            logger.warning(f"Failed to load progression: {e}")
             return None
 
     def _parse_treasure_guidelines(self, data: dict[str, Any]) -> TreasureGuidelines:
@@ -351,5 +354,5 @@ class ScenarioLoader(BaseLoader[Scenario]):
         try:
             return self.load(scenario_file)
         except Exception as e:
-            print(f"Failed to load scenario {scenario_id}: {e}")
+            logger.error(f"Failed to load scenario {scenario_id}: {e}")
             return None
