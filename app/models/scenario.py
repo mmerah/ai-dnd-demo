@@ -155,9 +155,12 @@ class Scenario(BaseModel):
                 return loc
         return None
 
-    def get_starting_location(self) -> ScenarioLocation | None:
+    def get_starting_location(self) -> ScenarioLocation:
         """Get the starting location."""
-        return self.get_location(self.starting_location)
+        location = self.get_location(self.starting_location)
+        if not location:
+            raise ValueError(f"Starting location '{self.starting_location}' not found in scenario '{self.id}'")
+        return location
 
     def get_quest(self, quest_id: str) -> Quest | None:
         """Get a quest by ID."""
@@ -188,8 +191,6 @@ class Scenario(BaseModel):
         """Generate initial narrative for scenario start."""
         # TODO: Don't make it too formatted, otherwise the AI use it as inspiration for the rest of the messages
         start_loc = self.get_starting_location()
-        if not start_loc:
-            return f"Your adventure '{self.title}' begins..."
 
         narrative = f"## {self.title}\n\n{self.description}\n\n"
         narrative += f"### {start_loc.name}\n\n"

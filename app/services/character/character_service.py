@@ -79,7 +79,7 @@ class CharacterService(ICharacterService):
             raise ValueError(f"Failed to load character from {file_path}: {e}") from e
         except Exception as e:
             # Only catch truly unexpected errors (file IO, JSON parsing)
-            logger.error(f"Failed to load character from {file_path}: {e}")
+            raise RuntimeError(f"Failed to load character from {file_path}: {e}") from e
 
     def get_character(self, character_id: str) -> CharacterSheet | None:
         """

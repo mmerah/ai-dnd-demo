@@ -254,8 +254,10 @@ class NarrativeAgent(BaseAgent):
                                 if scenario_npc.name not in known_names:
                                     all_known_npcs.append(scenario_npc.name)
                                     known_names.add(scenario_npc.name)
-                except Exception as e:
-                    logger.error(f"Failed to get scenario NPCs: {e}")
+                except (AttributeError, KeyError, ValueError) as e:
+                    logger.error(f"Failed to get scenario NPCs - data structure error: {e}")
+                    # Re-raise as this indicates corrupted data or schema mismatch
+                    raise RuntimeError(f"Scenario NPC data structure error: {e}") from e
 
             player_npcs = self.metadata_service.extract_npc_mentions(prompt, all_known_npcs)
             dm_npcs = self.metadata_service.extract_npc_mentions(result.output, all_known_npcs)

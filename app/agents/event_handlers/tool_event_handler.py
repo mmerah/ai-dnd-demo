@@ -122,10 +122,16 @@ class ToolResultHandler(EventHandler):
         """Process tool result event."""
         if not isinstance(event, FunctionToolResultEvent):
             return
-        # Get tool name from tracking
-        tool_name = "unknown"
-        if hasattr(event, "tool_call_id") and event.tool_call_id in context.tool_calls_by_id:
-            tool_name = context.tool_calls_by_id[event.tool_call_id]
+        # Get tool name from tracking - fail fast if missing
+        if not hasattr(event, "tool_call_id"):
+            logger.error("Tool result event missing tool_call_id attribute")
+            return
+
+        if event.tool_call_id not in context.tool_calls_by_id:
+            logger.error(f"Tool result event has unmapped tool_call_id: {event.tool_call_id}")
+            return
+
+        tool_name = context.tool_calls_by_id[event.tool_call_id]
 
         if not hasattr(event, "result"):
             return

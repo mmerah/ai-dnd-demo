@@ -107,20 +107,15 @@ class GameService(IGameService):
             scenario = self.scenario_service.get_default_scenario()
 
         # Set initial location and message based on scenario
-        if scenario:
-            starting_loc = scenario.get_starting_location()
-            initial_location = starting_loc.name if starting_loc else "The Wandering Griffin Tavern"
-            initial_location_id = scenario.starting_location
-            initial_narrative = scenario.get_initial_narrative()
-            scenario_title = scenario.title
-            scenario_id = scenario.id
-        else:
-            # TODO: Raise error, there should be a scenario ?
-            initial_location = "The Prancing Pony Tavern"
-            initial_location_id = None
-            initial_narrative = premise or "Your adventure begins in the bustling tavern 'The Prancing Pony'..."
-            scenario_title = None
-            scenario_id = None
+        if not scenario:
+            raise RuntimeError("No scenario available for game initialization. At least one scenario must be available.")
+
+        starting_loc = scenario.get_starting_location()
+        initial_location = starting_loc.name
+        initial_location_id = scenario.starting_location
+        initial_narrative = scenario.get_initial_narrative()
+        scenario_title = scenario.title
+        scenario_id = scenario.id
 
         initial_message = Message(
             role=MessageRole.DM,

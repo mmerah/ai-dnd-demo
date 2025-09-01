@@ -52,8 +52,12 @@ class BroadcastService(IBroadcastService):
                 # Try to put the event in the queue (non-blocking check first)
                 queue.put_nowait(sse_format)
                 active_queues.append(queue)
-            except (asyncio.QueueFull, Exception):
-                # Queue is full or closed, skip it
+            except asyncio.QueueFull:
+                # Queue is full, skip it (acceptable in pub/sub pattern)
+                logger.warning(f"Dropping message for game {game_id} - queue full")
+            except asyncio.InvalidStateError:
+                # Queue is closed, expected behavior when client disconnects
+                logger.warning(f"Dropping message for game {game_id} - client disconnected")
                 pass
 
         # Update the subscriber list with only active queues
