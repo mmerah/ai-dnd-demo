@@ -18,6 +18,8 @@ Full D&D 5e functionality with scenario management, character management, functi
 12. Re-organize the code ? (cut routes, review models, services all dependency inversion, ...), interfaces for services structured the same as app/services/...
 13. Update CLAUDE.md
 14. Content pack management ? data/ contain scenarios, characters, SRD monsters/items/spells/classes/conditions/backgrounds/... But users can create new content packs ? Sandbox content pack gives AI ability to create on-the-fly, users can create custom packs, scenario are by default SRD. You can create sandbox, with SRD+custom_pack+sandbox, ... ?
+15. Add pre-commit
+16. Add unit-tests ? Or rather in MVP2 for faster iteration for now ?
 
 # MVP 2
 

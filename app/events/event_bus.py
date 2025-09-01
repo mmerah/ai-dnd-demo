@@ -63,12 +63,8 @@ class EventBus(IEventBus):
         if not handler.can_handle(command):
             raise ValueError(f"Handler {handler_name} cannot handle {type(command).__name__}")
 
-        # Execute command
+        # Execute command with handlers raising exceptions for errors
         result = await handler.handle(command, game_state)
-
-        if not result.success:
-            logger.error(f"Command failed: {result.error}")
-            raise RuntimeError(f"Command execution failed: {result.error}")
 
         # Process follow-up commands asynchronously (don't wait)
         if result.follow_up_commands:
@@ -120,12 +116,8 @@ class EventBus(IEventBus):
         if not handler.can_handle(command):
             raise ValueError(f"Handler {handler_name} cannot handle {type(command).__name__}")
 
-        # Execute command
+        # Execute command with handlers raising exceptions for errors
         result = await handler.handle(command, game_state)
-
-        if not result.success:
-            logger.error(f"Command failed: {result.error}")
-            raise RuntimeError(f"Command execution failed: {result.error}")
 
         # Process follow-up commands
         if result.follow_up_commands:

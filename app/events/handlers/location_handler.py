@@ -44,7 +44,7 @@ class LocationHandler(BaseHandler):
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle location commands."""
-        result = CommandResult(success=True)
+        result = CommandResult()
 
         if isinstance(command, ChangeLocationCommand):
             # Update game state location
@@ -98,14 +98,11 @@ class LocationHandler(BaseHandler):
 
                 logger.info(f"Secret discovered: {command.secret_id}")
             else:
-                result.success = False
-                result.error = "No current location to discover secrets in"
+                raise ValueError("No current location to discover secrets in")
 
         elif isinstance(command, UpdateLocationStateCommand):
             if not game_state.current_location_id:
-                result.success = False
-                result.error = "No current location to update"
-                return result
+                raise ValueError("No current location to update")
 
             location_state = game_state.get_location_state(command.location_id or game_state.current_location_id)
             updates = []
@@ -115,10 +112,8 @@ class LocationHandler(BaseHandler):
                 try:
                     location_state.danger_level = DangerLevel(command.danger_level)
                     updates.append(f"Danger level: {command.danger_level}")
-                except ValueError:
-                    result.success = False
-                    result.error = f"Invalid danger level: {command.danger_level}"
-                    return result
+                except ValueError as e:
+                    raise ValueError(f"Invalid danger level: {command.danger_level}") from e
 
             # Add NPC
             if command.add_npc:

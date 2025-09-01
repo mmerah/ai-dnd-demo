@@ -22,12 +22,12 @@ logger = logging.getLogger(__name__)
 class AIService(IAIService):
     """Main AI Service that coordinates specialized agents."""
 
-    def __init__(self, game_service: IGameService) -> None:
+    def __init__(self, game_service: IGameService, narrative_agent: BaseAgent) -> None:
         """Initialize AI Service."""
         settings = get_settings()
         self.debug_mode = settings.debug_ai
         self.game_service = game_service
-        self.narrative_agent: BaseAgent | None = None  # Will be set by dependency provider
+        self.narrative_agent = narrative_agent
 
     async def generate_response(
         self,
@@ -52,8 +52,6 @@ class AIService(IAIService):
         try:
             # Process through the narrative agent with event bus
             event_count = 0
-            if not self.narrative_agent:
-                raise RuntimeError("Narrative agent not initialized")
             async for event in self.narrative_agent.process(user_message, game_state, game_service, stream):
                 event_count += 1
                 logger.debug(f"AIService received event {event_count}: type={event.type}")

@@ -15,9 +15,9 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
         game_id: Unique game identifier
         message: Player's message/action
     """
-    game_service = container.get_game_service()
-    ai_service = container.get_ai_service()
-    message_service = container.get_message_service()
+    game_service = container.game_service
+    ai_service = container.ai_service
+    message_service = container.message_service
 
     logger.info(f"Starting AI processing for game {game_id}")
     try:

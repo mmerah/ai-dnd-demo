@@ -27,7 +27,7 @@ class CharacterHandler(BaseHandler):
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle character commands."""
-        result = CommandResult(success=True)
+        result = CommandResult()
 
         if isinstance(command, UpdateHPCommand):
             old_hp = 0
@@ -50,9 +50,7 @@ class CharacterHandler(BaseHandler):
                     )
                     npc.hit_points.current = new_hp
                 else:
-                    result.success = False
-                    result.error = f"Target {command.target} not found"
-                    return result
+                    raise ValueError(f"Target {command.target} not found")
 
             # Save game state
             self.game_service.save_game(game_state)
@@ -132,16 +130,12 @@ class CharacterHandler(BaseHandler):
             character = game_state.character
 
             if not character.spellcasting:
-                result.success = False
-                result.error = "Character has no spellcasting ability"
-                return result
+                raise ValueError("Character has no spellcasting ability")
 
             spell_slots = character.spellcasting.spell_slots
 
             if command.level not in spell_slots:
-                result.success = False
-                result.error = f"No spell slots for level {command.level}"
-                return result
+                raise ValueError(f"No spell slots for level {command.level}")
 
             slot = spell_slots[command.level]
             old_slots = slot.current

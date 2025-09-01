@@ -26,7 +26,7 @@ class InventoryHandler(BaseHandler):
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle inventory commands."""
-        result = CommandResult(success=True)
+        result = CommandResult()
         character = game_state.character
 
         if isinstance(command, ModifyCurrencyCommand):
@@ -96,16 +96,12 @@ class InventoryHandler(BaseHandler):
             existing_item = next((item for item in character.inventory if item.name == command.item_name), None)
 
             if not existing_item:
-                result.success = False
-                result.error = f"Item {command.item_name} not found in inventory"
-                return result
+                raise ValueError(f"Item {command.item_name} not found in inventory")
 
             if existing_item.quantity < command.quantity:
-                result.success = False
-                result.error = (
+                raise ValueError(
                     f"Not enough {command.item_name} (have {existing_item.quantity}, need {command.quantity})"
                 )
-                return result
 
             existing_item.quantity -= command.quantity
 

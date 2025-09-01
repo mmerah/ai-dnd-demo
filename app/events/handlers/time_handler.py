@@ -28,7 +28,7 @@ class TimeHandler(BaseHandler):
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle time commands."""
-        result = CommandResult(success=True)
+        result = CommandResult()
         character = game_state.character
 
         if isinstance(command, ShortRestCommand):

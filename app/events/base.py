@@ -45,12 +45,10 @@ class BaseEvent(ABC):
 
 
 class CommandResult:
-    """Result of command execution."""
+    """Result of command execution. Errors are handled via exceptions."""
 
-    def __init__(self, success: bool, data: BaseModel | None = None, error: str | None = None):
-        self.success = success
+    def __init__(self, data: BaseModel | None = None):
         self.data = data
-        self.error = error
         self.follow_up_commands: list[BaseCommand] = []
 
     def add_command(self, command: BaseCommand) -> None:

@@ -38,7 +38,7 @@ class CombatHandler(BaseHandler):
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle combat commands."""
-        result = CommandResult(success=True)
+        result = CommandResult()
 
         if isinstance(command, StartCombatCommand):
             # Initialize combat if not already active
@@ -85,16 +85,12 @@ class CombatHandler(BaseHandler):
             # Get scenario
             scenario = self.scenario_service.get_scenario(game_state.scenario_id) if game_state.scenario_id else None
             if not scenario:
-                result.success = False
-                result.error = "No scenario loaded"
-                return result
+                raise ValueError("No scenario loaded")
 
             # Find encounter
             encounter = scenario.get_encounter_by_id(command.encounter_id)
             if not encounter:
-                result.success = False
-                result.error = f"Encounter '{command.encounter_id}' not found"
-                return result
+                raise ValueError(f"Encounter '{command.encounter_id}' not found")
 
             # Initialize combat
             if not game_state.combat:
@@ -185,9 +181,7 @@ class CombatHandler(BaseHandler):
                             )
                     except KeyError as e:
                         logger.error(f"Failed to spawn monster '{monster_name}': {e}")
-                        result.success = False
-                        result.error = f"Monster '{monster_name}' not found in database"
-                        return result
+                        raise ValueError(f"Monster '{monster_name}' not found in database") from e
 
             # Save game state
             self.game_service.save_game(game_state)

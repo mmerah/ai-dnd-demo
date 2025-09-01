@@ -108,7 +108,9 @@ class GameService(IGameService):
 
         # Set initial location and message based on scenario
         if not scenario:
-            raise RuntimeError("No scenario available for game initialization. At least one scenario must be available.")
+            raise RuntimeError(
+                "No scenario available for game initialization. At least one scenario must be available."
+            )
 
         starting_loc = scenario.get_starting_location()
         initial_location = starting_loc.name

@@ -46,27 +46,35 @@ Tracking progress on fixing the 4 categories of issues identified in REVIEW-CLAU
 
 ### Issue 2.1: Lazy Initialization in Container
 - **File**: `app/container.py` (lines 61-79)
-- **Status**: ⏳ Pending
-- **Validation**: Not yet validated
-- **Fix Applied**: Not yet applied
+- **Status**: ✅ Fixed
+- **Validation**: Validated - all service attributes were | None 
+- **Fix Applied**: Refactored to use @cached_property decorator, removed all get_* methods
 
 ### Issue 2.2: Optional Dependencies in Services
 - **Files**: Multiple service files
-- **Status**: ⏳ Pending
-- **Validation**: Not yet validated
-- **Fix Applied**: Not yet applied
+- **Status**: ✅ Partially Fixed
+- **Validation**: Mixed - some are valid optional dependencies
+- **Fix Applied**: 
+  - CharacterService: Kept optional repositories (valid design)
+  - ContextService: Kept optional repositories (valid design for graceful degradation)
+  - AIService: Fixed - narrative_agent now required in constructor
 
 ### Issue 2.3: Agent with Optional Event Processor
 - **File**: `app/agents/narrative_agent.py` (line 63)
-- **Status**: ⏳ Pending
-- **Validation**: Not yet validated
-- **Fix Applied**: Not yet applied
+- **Status**: ✅ Fixed
+- **Validation**: Validated - was lazy initialized
+- **Fix Applied**: Converted to @property with lazy initialization (cleaner pattern)
 
 ### Issue 2.4: CommandResult with Disjoint Optional Fields
 - **File**: `app/events/base.py` (line 50)
-- **Status**: ⏳ Pending
-- **Validation**: Not yet validated
-- **Fix Applied**: Not yet applied
+- **Status**: ✅ Fixed
+- **Validation**: Validated - had unused error field
+- **Fix Applied**: Refactored all handlers to raise exceptions instead of returning errors
+- **Additional Changes**: 
+  - Updated all event handlers to raise ValueError/RuntimeError for failures
+  - Removed success/error fields from CommandResult 
+  - Fixed event_bus to handle exceptions from handlers
+  - Fixed all mypy and ruff errors
 
 ## 3. hasattr/getattr Usage
 
@@ -122,9 +130,9 @@ Tracking progress on fixing the 4 categories of issues identified in REVIEW-CLAU
 
 ## Summary
 - **Total Issues**: 18
-- **Fixed**: 0
-- **Validated**: 0
-- **Pending**: 18
+- **Fixed**: 10
+- **Validated**: 10
+- **Pending**: 8
 
 ## Legend
 - ✅ Fixed and tested

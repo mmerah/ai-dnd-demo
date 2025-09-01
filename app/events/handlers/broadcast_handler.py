@@ -27,7 +27,7 @@ class BroadcastHandler(BaseHandler):
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle broadcast commands."""
-        result = CommandResult(success=True)
+        result = CommandResult()
 
         if isinstance(command, BroadcastNarrativeCommand):
             await self.message_service.send_narrative(

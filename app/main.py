@@ -43,8 +43,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     try:
         settings = get_settings()
         # Trigger creation of all services on startup
-        container.get_game_service()
-        container.get_ai_service()
+        _ = container.game_service
+        _ = container.ai_service
         print(f"Save directory: {settings.save_directory}")
         print(f"Using model: {settings.openrouter_model}")
     except Exception as e:

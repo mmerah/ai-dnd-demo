@@ -60,7 +60,25 @@ class NarrativeAgent(BaseAgent):
     item_repository: IItemRepository
     monster_repository: IMonsterRepository
     spell_repository: ISpellRepository
-    event_processor: EventStreamProcessor | None = None
+    _event_processor: EventStreamProcessor | None = None
+
+    @property
+    def event_processor(self) -> EventStreamProcessor:
+        """Get or create the event processor lazily."""
+        if self._event_processor is None:
+            # Create a new context and processor
+            context = EventContext(game_id="")
+            self._event_processor = EventStreamProcessor(context)
+
+            # Register handlers
+            tool_handler = ToolEventHandler(self.event_logger)
+            for handler in tool_handler.get_handlers():
+                self._event_processor.register_handler(handler)
+
+            thinking_handler = ThinkingHandler(self.event_logger)
+            self._event_processor.register_handler(thinking_handler)
+
+        return self._event_processor
 
     def get_required_tools(self) -> list[ToolFunction]:
         """Return list of tools this agent requires."""
@@ -93,23 +111,6 @@ class NarrativeAgent(BaseAgent):
             quest_tools.progress_act,
         ]
 
-    def _get_event_processor(self) -> EventStreamProcessor:
-        """Get or create the event processor."""
-        if self.event_processor is None:
-            # Create a new context and processor
-            context = EventContext(game_id="")
-            self.event_processor = EventStreamProcessor(context)
-
-            # Register handlers
-            tool_handler = ToolEventHandler(self.event_logger)
-            for handler in tool_handler.get_handlers():
-                self.event_processor.register_handler(handler)
-
-            thinking_handler = ThinkingHandler(self.event_logger)
-            self.event_processor.register_handler(thinking_handler)
-
-        return self.event_processor
-
     async def event_stream_handler(
         self,
         ctx: RunContext[AgentDependencies],
@@ -118,13 +119,8 @@ class NarrativeAgent(BaseAgent):
         """Handle streaming events"""
         logger.debug("Event stream handler started")
 
-        # Ensure processor exists and use the same instance
-        if self.event_processor is None:
-            self._get_event_processor()
-
+        # Get the processor (will be created if needed)
         processor = self.event_processor
-        if processor is None:
-            raise RuntimeError("Event processor not initialized")
 
         # Only update game_id if not set - DON'T clear context here
         # This allows events to accumulate across multiple handler calls
@@ -181,8 +177,8 @@ class NarrativeAgent(BaseAgent):
 
         try:
             # Ensure event processor exists (will be used by event_stream_handler)
-            if self.event_processor is None:
-                self._get_event_processor()
+            # The property accessor will create it if needed
+            _ = self.event_processor
 
             # For MVP, we'll use non-streaming but still capture tool events
             logger.debug(f"Starting response generation (stream={stream})")

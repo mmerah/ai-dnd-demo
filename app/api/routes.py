@@ -39,8 +39,8 @@ async def create_new_game(request: NewGameRequest) -> NewGameResponse:
     Raises:
         HTTPException: If character not found or game creation fails
     """
-    game_service = container.get_game_service()
-    character_service = container.get_character_service()
+    game_service = container.game_service
+    character_service = container.character_service
 
     try:
         # Get the selected character
@@ -81,7 +81,7 @@ async def list_saved_games() -> list[GameState]:
     Raises:
         HTTPException: If unable to list games
     """
-    game_service = container.get_game_service()
+    game_service = container.game_service
 
     try:
         # Service will return list of GameState objects
@@ -104,7 +104,7 @@ async def get_game_state(game_id: str) -> GameState:
     Raises:
         HTTPException: If game not found
     """
-    game_service = container.get_game_service()
+    game_service = container.game_service
 
     try:
         # load_game raises FileNotFoundError or ValueError on failure
@@ -133,7 +133,7 @@ async def resume_game(game_id: str) -> dict[str, str]:
     Raises:
         HTTPException: If game not found
     """
-    game_service = container.get_game_service()
+    game_service = container.game_service
 
     try:
         game_state = game_service.load_game(game_id)
@@ -169,7 +169,7 @@ async def process_player_action(
     Raises:
         HTTPException: If game not found
     """
-    game_service = container.get_game_service()
+    game_service = container.game_service
 
     try:
         # Verify game exists
@@ -207,7 +207,7 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
     Raises:
         HTTPException: If game not found
     """
-    game_service = container.get_game_service()
+    game_service = container.game_service
 
     try:
         # Verify game exists
@@ -216,8 +216,8 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
             raise HTTPException(status_code=404, detail=f"Game with ID '{game_id}' not found")
 
         # Get services
-        message_service = container.get_message_service()
-        scenario_service = container.get_scenario_service()
+        message_service = container.message_service
+        scenario_service = container.scenario_service
 
         # Get scenario info if available
         scenario = None
@@ -253,7 +253,7 @@ async def list_available_scenarios() -> list[Scenario]:
     Raises:
         HTTPException: If scenarios cannot be loaded
     """
-    scenario_service = container.get_scenario_service()
+    scenario_service = container.scenario_service
 
     try:
         # Return full scenario objects, not summaries
@@ -276,7 +276,7 @@ async def get_scenario(scenario_id: str) -> Scenario:
     Raises:
         HTTPException: If scenario not found
     """
-    scenario_service = container.get_scenario_service()
+    scenario_service = container.scenario_service
 
     try:
         scenario = scenario_service.get_scenario(scenario_id)
@@ -302,7 +302,7 @@ async def list_available_characters() -> list[CharacterSheet]:
     Raises:
         HTTPException: If characters data cannot be loaded
     """
-    character_service = container.get_character_service()
+    character_service = container.character_service
 
     try:
         # Get all characters from the service
@@ -327,7 +327,7 @@ async def get_item_details(item_name: str) -> ItemDefinition:
     Raises:
         HTTPException: If item not found
     """
-    item_repository = container.get_item_repository()
+    item_repository = container.item_repository
 
     try:
         item = item_repository.get(item_name)
@@ -356,7 +356,7 @@ async def get_spell_details(spell_name: str) -> SpellDefinition:
     Raises:
         HTTPException: If spell not found
     """
-    spell_repository = container.get_spell_repository()
+    spell_repository = container.spell_repository
 
     try:
         spell = spell_repository.get(spell_name)

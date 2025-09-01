@@ -16,6 +16,7 @@ from app.models.quest import Quest
 
 logger = logging.getLogger(__name__)
 
+
 class SaveManager(ISaveManager):
     """Manages save/load operations with modular file structure.
 
@@ -174,7 +175,9 @@ class SaveManager(ISaveManager):
                                 last_saved = datetime.fromisoformat(metadata["last_saved"])
                                 games.append((scenario_id, game_dir.name, last_saved))
                             except (json.JSONDecodeError, KeyError, ValueError) as e:
-                                logger.warning(f"Failed to parse metadata for {game_dir.name}: {e.__class__.__name__}: {e}")
+                                logger.warning(
+                                    f"Failed to parse metadata for {game_dir.name}: {e.__class__.__name__}: {e}"
+                                )
                                 continue
         else:
             # Check all scenarios
@@ -190,7 +193,9 @@ class SaveManager(ISaveManager):
                                     last_saved = datetime.fromisoformat(metadata["last_saved"])
                                     games.append((scenario_dir.name, game_dir.name, last_saved))
                                 except (json.JSONDecodeError, KeyError, ValueError) as e:
-                                    logger.warning(f"Failed to parse metadata for {game_dir.name}: {e.__class__.__name__}: {e}")
+                                    logger.warning(
+                                        f"Failed to parse metadata for {game_dir.name}: {e.__class__.__name__}: {e}"
+                                    )
                                     continue
 
         # Sort by last_saved descending

@@ -24,7 +24,7 @@ class DiceHandler(BaseHandler):
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle dice commands."""
-        result = CommandResult(success=True)
+        result = CommandResult()
 
         if isinstance(command, RollDiceCommand):
             # Parse special dice notations for advantage/disadvantage
