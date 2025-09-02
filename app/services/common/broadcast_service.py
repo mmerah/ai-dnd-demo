@@ -6,11 +6,12 @@ import asyncio
 import logging
 from collections import defaultdict
 from collections.abc import AsyncGenerator
+from typing import cast
 
 from pydantic import BaseModel
 
 from app.interfaces.services import IBroadcastService
-from app.models.sse_events import SSEEvent, SSEEventType
+from app.models.sse_events import SSEData, SSEEvent, SSEEventType
 
 logger = logging.getLogger(__name__)
 
@@ -40,9 +41,11 @@ class BroadcastService(IBroadcastService):
         event_type = SSEEventType(event)
 
         # Create the SSE event
-        # The data is already an SSEData type from all callers (they pass specific SSEData models)
-        # We cast it here since the interface uses BaseModel for genericity
-        sse_event = SSEEvent(event=event_type, data=data)  # type: ignore[arg-type]
+        # Type narrowing: The interface uses BaseModel for genericity, but all callers
+        # actually pass SSEData types (union of all SSE data models).
+        # This is a deliberate design choice to keep the interface generic while the
+        # implementation is specific. The cast is safe because we control all callers.
+        sse_event = SSEEvent(event=event_type, data=cast(SSEData, data))
         sse_format = sse_event.to_sse_format()
 
         # Remove dead queues (full or closed)

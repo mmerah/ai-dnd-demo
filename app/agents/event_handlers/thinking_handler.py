@@ -33,7 +33,8 @@ class ThinkingHandler(EventHandler):
     def _extract_thinking_content(self, event: object) -> str | None:
         """Extract thinking content from the event."""
         if isinstance(event, PartStartEvent) and isinstance(event.part, ThinkingPart):
-            return getattr(event.part, "content", None)
+            # ThinkingPart always has content: str
+            return event.part.content
         elif isinstance(event, PartDeltaEvent) and isinstance(event.delta, ThinkingPartDelta):
             return event.delta.content_delta if event.delta.content_delta else None
         return None

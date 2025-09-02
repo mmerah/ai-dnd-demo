@@ -4,6 +4,7 @@ import logging
 from collections.abc import AsyncIterable, AsyncIterator
 from dataclasses import dataclass
 
+from pydantic import BaseModel
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.messages import ModelResponse, ToolCallPart
 
@@ -198,7 +199,7 @@ class NarrativeAgent(BaseAgent):
             # Extract commands from tool results (captured by event_stream_handler)
             captured_events = self.event_processor.context.captured_tool_events if self.event_processor else []
             for event in captured_events:
-                if event.result and hasattr(event.result, "model_dump"):
+                if event.result and isinstance(event.result, BaseModel):
                     result_data = event.result.model_dump(mode="json")
                     if isinstance(result_data, dict) and "commands" in result_data:
                         commands = result_data.get("commands", [])

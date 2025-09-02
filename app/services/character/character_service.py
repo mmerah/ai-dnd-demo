@@ -59,8 +59,9 @@ class CharacterService(ICharacterService):
         try:
             character = self.character_loader.load(file_path)
 
-            # Ensure character has an ID
-            if not hasattr(character, "id") or not character.id:
+            # Ensure character has a non-empty ID
+            # CharacterSheet model always has an id field
+            if not character.id:
                 character.id = file_path.stem
 
             # Validate references if repositories are available

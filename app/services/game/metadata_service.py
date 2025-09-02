@@ -111,12 +111,9 @@ class MetadataService(IMetadataService):
         for npc in npcs:
             if isinstance(npc, str):
                 npc_names.append(npc)
-            elif hasattr(npc, "name"):
+            elif isinstance(npc, NPCSheet):
+                # NPCSheet always has name: str field
                 npc_names.append(npc.name)
-            else:
-                # Log error but continue
-                logger.error(f"Invalid NPC type in extract_npc_mentions: {type(npc)}")
-                continue
 
         # Use existing method
         return self.extract_npcs_mentioned(content, npc_names)

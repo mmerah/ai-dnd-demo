@@ -4,22 +4,18 @@ Full D&D 5e functionality with scenario management, character management, functi
 
 ## Ideas
 
-1. Review all fail fast (no fallback !)
-2. Constructors should not have | None stuff.
-3. Analyze all hasattr and similar pattern
-4. Review all # type: ignore and replace them with best possible fix
-5. Complete the D&D foundation: Subraces, Subclasses are missing. Ideally look in something like https://github.com/5e-bits/5e-database for reference. That means all 27 type of stuff need to be in with correct format. Conditions, attack types, ability-scores, alignments, backgrounds, ... all become database content. DataService would become much bigger as well.
-6. Review scenarios, acts, quests, location, npcs (game state does seem to properly populate the npcs of the area for example), and how game state and tools handle every possible case. Review the models to ensure no duplicates and clean/clear models. Avoid having optional stuff
-7. Handle all the TODO comments in the code
-8. ContextService should just be the GameState + current Scenario ? Maybe a curated version but that would make ContextService MUCH easier to handle and scale
-9.  Vulture, verify no TYPE_CHECKING, verify unused (including methods)
-10. Cleanup logger calls to minimum
-11. Review manually the code
-12. Re-organize the code ? (cut routes, review models, services all dependency inversion, ...), interfaces for services structured the same as app/services/...
-13. Update CLAUDE.md
-14. Content pack management ? data/ contain scenarios, characters, SRD monsters/items/spells/classes/conditions/backgrounds/... But users can create new content packs ? Sandbox content pack gives AI ability to create on-the-fly, users can create custom packs, scenario are by default SRD. You can create sandbox, with SRD+custom_pack+sandbox, ... ?
-15. Add pre-commit
-16. Add unit-tests ? Or rather in MVP2 for faster iteration for now ?
+1. Complete the D&D foundation: Subraces, Subclasses are missing. Ideally look in something like https://github.com/5e-bits/5e-database for reference. That means all 27 type of stuff need to be in with correct format. Conditions, attack types, ability-scores, alignments, backgrounds, ... all become database content. More data repositories are needed.
+2. Review scenarios, acts, quests, location, npcs (game state does seem to properly populate the npcs of the area for example), and how game state and tools handle every possible case. Review the models to ensure no duplicates and clean/clear models. Avoid having optional stuff
+3. Handle all the TODO comments in the code
+4. ContextService should just be the GameState + current Scenario ? Maybe a curated version but that would make ContextService MUCH easier to handle and scale
+5.  Vulture, verify no TYPE_CHECKING, verify unused (including methods)
+6. Cleanup logger calls to minimum
+7. Review manually the code
+8. Re-organize the code ? (cut routes, review models, services all dependency inversion, ...), interfaces for services structured the same as app/services/...
+9. Update CLAUDE.md
+10. Content pack management ? data/ contain scenarios, characters, SRD monsters/items/spells/classes/conditions/backgrounds/... But users can create new content packs ? Sandbox content pack gives AI ability to create on-the-fly, users can create custom packs, scenario are by default SRD. You can create sandbox, with SRD+custom_pack+sandbox, ... ?
+11. Add pre-commit
+12. Add unit-tests ? Or rather in MVP2 for faster iteration for now ?
 
 # MVP 2
 

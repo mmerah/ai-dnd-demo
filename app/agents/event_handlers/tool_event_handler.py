@@ -10,15 +10,20 @@ from pydantic_ai.messages import (
     FunctionToolResultEvent,
     PartStartEvent,
     ToolCallPart,
+    ToolReturnPart,
 )
 
 from app.agents.event_handlers.base import EventContext, EventHandler
 from app.common.types import JSONSerializable
 from app.models.ai_response import CapturedToolEvent
+from app.models.tool_results import ToolResult
 from app.services.ai.event_logger_service import EventLoggerService
 
 logger = logging.getLogger(__name__)
 
+# TODO: Better refactor of the whole event_handlers. Maybe we do isinstance() for each type and
+# then reroute type-safe to a handler for each type of event + raise error or just log warning
+# for unsupported event ?
 
 class ToolCallHandler(EventHandler):
     """Handles tool call events from the stream."""
@@ -30,9 +35,8 @@ class ToolCallHandler(EventHandler):
         """Check if this is a tool call event."""
         if isinstance(event, PartStartEvent):
             return isinstance(event.part, ToolCallPart)
-        if isinstance(event, FunctionToolCallEvent):
-            return hasattr(event, "part") and hasattr(event.part, "tool_name")
-        return False
+        # FunctionToolCallEvent always has part: ToolCallPart
+        return isinstance(event, FunctionToolCallEvent)
 
     async def handle(self, event: object, context: EventContext) -> None:
         """Process tool call event."""
@@ -70,17 +74,19 @@ class ToolCallHandler(EventHandler):
 
     def _extract_tool_info(self, event: object) -> tuple[str | None, str | None, Any]:
         """Extract tool information from various event types."""
-        if (
-            isinstance(event, PartStartEvent)
-            and isinstance(event.part, ToolCallPart)
-            or isinstance(event, FunctionToolCallEvent)
-            and hasattr(event, "part")
-            and hasattr(event.part, "tool_name")
-        ):
+        if isinstance(event, PartStartEvent) and isinstance(event.part, ToolCallPart):
+            # ToolCallPart always has tool_name, tool_call_id, and args
             return (
                 event.part.tool_name,
-                getattr(event.part, "tool_call_id", None),
-                getattr(event.part, "args", {}),
+                event.part.tool_call_id,
+                event.part.args if event.part.args is not None else {},
+            )
+        elif isinstance(event, FunctionToolCallEvent):
+            # FunctionToolCallEvent always has part: ToolCallPart
+            return (
+                event.part.tool_name,
+                event.part.tool_call_id,
+                event.part.args if event.part.args is not None else {},
             )
         return None, None, None
 
@@ -122,21 +128,22 @@ class ToolResultHandler(EventHandler):
         """Process tool result event."""
         if not isinstance(event, FunctionToolResultEvent):
             return
-        # Get tool name from tracking - fail fast if missing
-        if not hasattr(event, "tool_call_id"):
-            logger.error("Tool result event missing tool_call_id attribute")
-            return
 
-        if event.tool_call_id not in context.tool_calls_by_id:
-            logger.error(f"Tool result event has unmapped tool_call_id: {event.tool_call_id}")
-            return
-
-        tool_name = context.tool_calls_by_id[event.tool_call_id]
-
-        if not hasattr(event, "result"):
-            return
-
+        # FunctionToolResultEvent.result can be ToolReturnPart or RetryPromptPart
+        # Only ToolReturnPart has tool_call_id and is relevant for our processing
         result = event.result
+
+        # Check if result is ToolReturnPart which has tool_call_id
+        if not isinstance(result, ToolReturnPart):
+            logger.debug("Tool result is not ToolReturnPart, skipping")
+            return
+
+        # Get tool name from tracking - fail fast if missing
+        if result.tool_call_id not in context.tool_calls_by_id:
+            logger.error(f"Tool result event has unmapped tool_call_id: {result.tool_call_id}")
+            return
+
+        tool_name = context.tool_calls_by_id[result.tool_call_id]
 
         # Log the result
         result_str = self._get_result_string(result)
@@ -150,7 +157,8 @@ class ToolResultHandler(EventHandler):
 
     def _get_result_string(self, result: Any) -> str:
         """Get string representation of result."""
-        if hasattr(result, "content"):
+        if isinstance(result, ToolReturnPart):
+            # ToolReturnPart always has content
             return str(result.content)
         return str(result)
 
@@ -159,10 +167,14 @@ class ToolResultHandler(EventHandler):
         for event in reversed(context.captured_tool_events):
             if event.tool_name == tool_name and event.result is None:
                 # Try to extract the actual result model
-                if hasattr(result, "content") and isinstance(result.content, BaseModel):
-                    # This might be a ToolResult subtype
+                if isinstance(result, ToolReturnPart) and isinstance(result.content, BaseModel):
+                    # Type narrowing: The content from ToolReturnPart can be Any, but our
+                    # tools return ToolResult types. We verify this with a runtime check
+                    # and cast to maintain type safety.
                     try:
-                        event.result = result.content  # type: ignore[assignment]
+                        # Use cast since we control all tool implementations and know
+                        # they return ToolResult types
+                        event.result = cast(ToolResult, result.content)
                     except Exception:
                         logger.warning(f"Could not assign result for tool {tool_name}")
                 else:

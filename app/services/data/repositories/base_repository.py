@@ -140,7 +140,9 @@ class BaseRepository(IRepository[T], ABC, Generic[T]):
 
         try:
             with open(path, encoding="utf-8") as f:
-                # json.load returns Any, which is what we need for arbitrary JSON data
+                # JSON.load inherently returns Any as JSON can contain arbitrary data structures.
+                # This is a legitimate use of Any - we validate the data when creating model
+                # instances in subclasses. The type: ignore is necessary and correct here.
                 result = json.load(f)
                 return result  # type: ignore[no-any-return]
         except json.JSONDecodeError as e:
