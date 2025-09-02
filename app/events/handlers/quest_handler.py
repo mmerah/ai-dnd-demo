@@ -37,6 +37,13 @@ class QuestHandler(BaseHandler):
         self.scenario_service = scenario_service
         self.item_repository = item_repository
 
+    supported_commands = (
+        StartQuestCommand,
+        CompleteObjectiveCommand,
+        CompleteQuestCommand,
+        ProgressActCommand,
+    )
+
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle quest commands."""
         result = CommandResult()
@@ -194,7 +201,4 @@ class QuestHandler(BaseHandler):
 
     def can_handle(self, command: BaseCommand) -> bool:
         """Check if this handler can process the given command."""
-        return isinstance(
-            command,
-            StartQuestCommand | CompleteObjectiveCommand | CompleteQuestCommand | ProgressActCommand,
-        )
+        return isinstance(command, self.supported_commands)

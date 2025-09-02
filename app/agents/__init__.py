@@ -1,9 +1,9 @@
 """Agent module for D&D AI Dungeon Master."""
 
-from app.agents.base import BaseAgent
+from app.agents.core.base import BaseAgent
+from app.agents.core.types import AgentType
 from app.agents.factory import AgentFactory
-from app.agents.narrative_agent import NarrativeAgent
-from app.agents.types import AgentType
+from app.agents.narrative.agent import NarrativeAgent
 
 __all__ = [
     "AgentFactory",

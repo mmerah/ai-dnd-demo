@@ -2,11 +2,9 @@
 
 import logging
 import re
-from collections.abc import Sequence
 
 from app.interfaces.services import IMetadataService
 from app.models.game_state import GameState
-from app.models.npc import NPCSheet
 
 logger = logging.getLogger(__name__)
 
@@ -95,39 +93,6 @@ class MetadataService(IMetadataService):
                     continue
 
         return None
-
-    def extract_npc_mentions(self, content: str, npcs: Sequence[NPCSheet | str]) -> list[str]:
-        """Extract NPC mentions from content with flexible NPC types.
-
-        Args:
-            content: Message content to analyze
-            npcs: List of NPCs (either NPCSheet objects or string names)
-
-        Returns:
-            List of NPC names found in the content
-        """
-        # Convert NPCSheets to names
-        npc_names = []
-        for npc in npcs:
-            if isinstance(npc, str):
-                npc_names.append(npc)
-            elif isinstance(npc, NPCSheet):
-                # NPCSheet always has name: str field
-                npc_names.append(npc.name)
-
-        # Use existing method
-        return self.extract_npcs_mentioned(content, npc_names)
-
-    def get_current_location(self, game_state: GameState) -> str:
-        """Get the current location from game state.
-
-        Args:
-            game_state: Current game state
-
-        Returns:
-            Current location name
-        """
-        return game_state.location
 
     def get_combat_round(self, game_state: GameState) -> int | None:
         """Get the current combat round if in combat.

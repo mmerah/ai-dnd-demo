@@ -18,23 +18,13 @@ class UpdateHPCommand(BaseCommand):
 
 
 @dataclass
-class AddConditionCommand(BaseCommand):
-    """Command to add a status condition."""
+class UpdateConditionCommand(BaseCommand):
+    """Command to add or remove a condition from a target."""
 
-    target: str = "player"
+    target: str = "player"  # 'player' or NPC name
     condition: str = ""
+    action: str = "add"  # 'add' or 'remove'
     duration: int = 0
-
-    def get_handler_name(self) -> str:
-        return "character"
-
-
-@dataclass
-class RemoveConditionCommand(BaseCommand):
-    """Command to remove a status condition."""
-
-    target: str = "player"
-    condition: str = ""
 
     def get_handler_name(self) -> str:
         return "character"

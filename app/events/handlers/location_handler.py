@@ -42,6 +42,12 @@ class LocationHandler(BaseHandler):
         self.monster_repository = monster_repository
         self.item_repository = item_repository
 
+    supported_commands = (
+        ChangeLocationCommand,
+        DiscoverSecretCommand,
+        UpdateLocationStateCommand,
+    )
+
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle location commands."""
         result = CommandResult()
@@ -153,4 +159,4 @@ class LocationHandler(BaseHandler):
 
     def can_handle(self, command: BaseCommand) -> bool:
         """Check if this handler can process the given command."""
-        return isinstance(command, ChangeLocationCommand | DiscoverSecretCommand | UpdateLocationStateCommand)
+        return isinstance(command, self.supported_commands)

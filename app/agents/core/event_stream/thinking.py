@@ -4,7 +4,7 @@ import logging
 
 from pydantic_ai.messages import PartDeltaEvent, PartStartEvent, ThinkingPart, ThinkingPartDelta
 
-from app.agents.event_handlers.base import EventContext, EventHandler
+from app.agents.core.event_stream.base import EventContext, EventHandler
 from app.services.ai.event_logger_service import EventLoggerService
 
 logger = logging.getLogger(__name__)

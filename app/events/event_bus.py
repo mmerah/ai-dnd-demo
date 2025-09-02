@@ -1,6 +1,8 @@
 """Central event bus for processing commands sequentially using a handler registration pattern."""
 
 import asyncio
+import importlib
+import inspect
 import logging
 from datetime import datetime
 
@@ -128,3 +130,81 @@ class EventBus(IEventBus):
         """Wait for all queued commands to complete."""
         if self.processing_task:
             await self.processing_task
+
+    async def submit_and_wait(self, commands: list[BaseCommand]) -> None:
+        """Submit a batch of commands and wait until processed.
+
+        Convenience to avoid manual submit + wait at call sites.
+        """
+        await self.submit_commands(commands)
+        await self.wait_for_completion()
+
+    # Verification utilities
+    def verify_handlers(self) -> None:
+        """Verify that all commands have a registered handler that can handle them.
+
+        This introspects known command modules and ensures that for each
+        BaseCommand subclass:
+        - A handler is registered for its domain (get_handler_name).
+        - The handler's can_handle(command) returns True.
+        """
+        # List of command modules to introspect
+        modules = [
+            "app.events.commands.character_commands",
+            "app.events.commands.dice_commands",
+            "app.events.commands.inventory_commands",
+            "app.events.commands.time_commands",
+            "app.events.commands.location_commands",
+            "app.events.commands.combat_commands",
+            "app.events.commands.quest_commands",
+            "app.events.commands.broadcast_commands",
+        ]
+
+        errors: list[str] = []
+
+        for mod_name in modules:
+            try:
+                mod = importlib.import_module(mod_name)
+            except Exception as e:
+                errors.append(f"Failed to import {mod_name}: {e}")
+                continue
+
+            for _name, obj in inspect.getmembers(mod, inspect.isclass):
+                if not issubclass(obj, BaseCommand) or obj is BaseCommand:
+                    continue
+                # Instantiate with defaults; BaseCommand provides game_id default
+                try:
+                    cmd = obj()
+                except Exception as e:
+                    errors.append(f"Cannot instantiate command {obj.__name__}: {e}")
+                    continue
+
+                handler_name = cmd.get_handler_name()
+                handler = self._handlers.get(handler_name)
+                if not handler:
+                    errors.append(
+                        f"No handler registered for domain '{handler_name}' to handle {obj.__name__}",
+                    )
+                    continue
+                try:
+                    # Prefer declarative supported_commands if present
+                    supported = getattr(handler, "supported_commands", None)
+                    if supported is not None:
+                        if not isinstance(cmd, supported):
+                            errors.append(
+                                f"Handler '{handler_name}' supported_commands missing {obj.__name__}",
+                            )
+                    else:
+                        if not handler.can_handle(cmd):
+                            errors.append(
+                                f"Handler '{handler_name}' cannot handle command {obj.__name__}",
+                            )
+                except Exception as e:
+                    errors.append(
+                        f"Error checking handler '{handler_name}' for {obj.__name__}: {e}",
+                    )
+
+        if errors:
+            raise ValueError(
+                "Handler verification failed:\n" + "\n".join(f"- {msg}" for msg in errors),
+            )

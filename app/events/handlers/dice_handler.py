@@ -3,7 +3,6 @@
 import logging
 
 from app.events.base import BaseCommand, CommandResult
-from app.events.commands.broadcast_commands import BroadcastToolResultCommand
 from app.events.commands.dice_commands import RollDiceCommand
 from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.services import IGameService
@@ -21,6 +20,8 @@ class DiceHandler(BaseHandler):
     def __init__(self, game_service: IGameService, dice_service: DiceService) -> None:
         super().__init__(game_service)
         self.dice_service = dice_service
+
+    supported_commands = (RollDiceCommand,)
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle dice commands."""
@@ -64,15 +65,6 @@ class DiceHandler(BaseHandler):
             )
             result.data = dice_result
 
-            # Create broadcast command for the result
-            result.add_command(
-                BroadcastToolResultCommand(
-                    game_id=command.game_id,
-                    tool_name=f"roll_{command.roll_type}",
-                    result=dice_result,
-                ),
-            )
-
             logger.info(
                 f"Dice Roll: {command.roll_type} - {formula} = {roll_result.total} (rolls: {roll_result.rolls})",
             )
@@ -81,4 +73,4 @@ class DiceHandler(BaseHandler):
 
     def can_handle(self, command: BaseCommand) -> bool:
         """Check if this handler can process the given command."""
-        return isinstance(command, RollDiceCommand)
+        return isinstance(command, self.supported_commands)

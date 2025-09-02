@@ -5,8 +5,7 @@ import logging
 from app.events.base import BaseCommand, CommandResult
 from app.events.commands.broadcast_commands import BroadcastCharacterUpdateCommand
 from app.events.commands.character_commands import (
-    AddConditionCommand,
-    RemoveConditionCommand,
+    UpdateConditionCommand,
     UpdateHPCommand,
     UpdateSpellSlotsCommand,
 )
@@ -24,6 +23,13 @@ logger = logging.getLogger(__name__)
 
 class CharacterHandler(BaseHandler):
     """Handler for character-related commands."""
+
+    # Declarative list of supported commands for verification
+    supported_commands = (
+        UpdateHPCommand,
+        UpdateConditionCommand,
+        UpdateSpellSlotsCommand,
+    )
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle character commands."""
@@ -74,7 +80,7 @@ class CharacterHandler(BaseHandler):
                 f"{abs(command.amount)} {command.damage_type} - HP: {old_hp} → {new_hp}/{max_hp}",
             )
 
-        elif isinstance(command, AddConditionCommand):
+        elif isinstance(command, UpdateConditionCommand) and command.action == "add":
             if command.target == "player":
                 character = game_state.character
                 if command.condition not in character.conditions:
@@ -98,7 +104,7 @@ class CharacterHandler(BaseHandler):
 
             logger.info(f"Condition Added: {command.target} is now {command.condition}")
 
-        elif isinstance(command, RemoveConditionCommand):
+        elif isinstance(command, UpdateConditionCommand) and command.action == "remove":
             removed = False
 
             if command.target == "player":
@@ -161,7 +167,4 @@ class CharacterHandler(BaseHandler):
 
     def can_handle(self, command: BaseCommand) -> bool:
         """Check if this handler can process the given command."""
-        return isinstance(
-            command,
-            UpdateHPCommand | AddConditionCommand | RemoveConditionCommand | UpdateSpellSlotsCommand,
-        )
+        return isinstance(command, self.supported_commands)

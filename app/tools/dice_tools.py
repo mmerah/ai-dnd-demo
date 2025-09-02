@@ -2,18 +2,58 @@
 
 import logging
 import re
-from typing import Literal
+from typing import Any, Literal, cast
 
 from pydantic import BaseModel
 from pydantic_ai import RunContext
 
-from app.agents.dependencies import AgentDependencies
-from app.events.commands.broadcast_commands import BroadcastToolCallCommand
+from app.agents.core.dependencies import AgentDependencies
+from app.common.types import JSONSerializable
 from app.events.commands.dice_commands import RollDiceCommand
+from app.tools.decorators import tool_handler
 
 logger = logging.getLogger(__name__)
 
 
+def _prepare_roll_command_kwargs(
+    kwargs: dict[str, Any],
+) -> tuple[dict[str, Any], dict[str, JSONSerializable]]:
+    """Transform dice tool kwargs into command kwargs and broadcast kwargs.
+
+    - Extract numeric modifier from the dice formula (e.g., "1d20+5" → modifier=+5, dice="1d20").
+    - Remove non-command fields like "purpose" from command kwargs.
+    - Keep original kwargs for broadcasting to frontend.
+    """
+    original: dict[str, JSONSerializable] = cast(dict[str, JSONSerializable], dict(kwargs))
+
+    dice_str = str(kwargs.get("dice", "")).strip()
+    modifier = 0
+    dice_pattern = dice_str
+
+    # Extract trailing +N / -N modifier if present
+    match = re.match(r"^([^+-]+)([+-]\d+)$", dice_str)
+    if match:
+        dice_pattern = match.group(1)
+        try:
+            modifier = int(match.group(2))
+        except ValueError:
+            modifier = 0
+
+    command_kwargs: dict[str, Any] = {
+        "roll_type": kwargs.get("roll_type"),
+        "dice": dice_pattern,
+        "modifier": modifier,
+    }
+    if kwargs.get("target") is not None:
+        command_kwargs["target"] = kwargs.get("target")
+
+    # Broadcast original inputs including purpose for UX clarity
+    broadcast_kwargs: dict[str, JSONSerializable] = original
+
+    return command_kwargs, broadcast_kwargs
+
+
+@tool_handler(RollDiceCommand, prepare=_prepare_roll_command_kwargs)
 async def roll_dice(
     ctx: RunContext[AgentDependencies],
     dice: str,
@@ -40,42 +80,4 @@ async def roll_dice(
         - Initiative: dice="1d20+3", roll_type="initiative", purpose="Combat Initiative"
         - Advantage roll: dice="2d20kh+5", roll_type="ability_check", purpose="Perception with Advantage"
     """
-    game_state = ctx.deps.game_state
-    event_bus = ctx.deps.event_bus
-
-    # Extract modifier from dice string if present
-    modifier = 0
-    dice_pattern = dice
-    match = re.match(r"([^+-]+)([+-]\d+)", dice)
-    if match:
-        dice_pattern = match.group(1)
-        modifier = int(match.group(2))
-
-    # Broadcast the tool call
-    await event_bus.submit_command(
-        BroadcastToolCallCommand(
-            game_id=game_state.game_id,
-            tool_name="roll_dice",
-            parameters={"dice": dice, "roll_type": roll_type, "purpose": purpose, "target": target},
-        ),
-    )
-
-    # Execute the roll command and get the result
-    result = await event_bus.execute_command(
-        RollDiceCommand(
-            game_id=game_state.game_id,
-            roll_type=roll_type,
-            dice=dice_pattern,
-            modifier=modifier,
-            target=target,
-        ),
-    )
-
-    # Return the actual result
-    if not result:
-        raise RuntimeError("Failed to execute dice roll command")
-
-    if not isinstance(result, BaseModel):
-        raise TypeError(f"Expected BaseModel from command, got {type(result)}")
-
-    return result
+    raise NotImplementedError("This is handled by the @tool_handler decorator")

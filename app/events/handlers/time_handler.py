@@ -26,6 +26,12 @@ logger = logging.getLogger(__name__)
 class TimeHandler(BaseHandler):
     """Handler for time-related commands."""
 
+    supported_commands = (
+        ShortRestCommand,
+        LongRestCommand,
+        AdvanceTimeCommand,
+    )
+
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle time commands."""
         result = CommandResult()
@@ -135,4 +141,4 @@ class TimeHandler(BaseHandler):
 
     def can_handle(self, command: BaseCommand) -> bool:
         """Check if this handler can process the given command."""
-        return isinstance(command, ShortRestCommand | LongRestCommand | AdvanceTimeCommand)
+        return isinstance(command, self.supported_commands)

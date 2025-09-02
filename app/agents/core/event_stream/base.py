@@ -6,8 +6,7 @@ from dataclasses import dataclass, field
 
 from pydantic_ai import RunContext
 
-from app.agents.dependencies import AgentDependencies
-from app.models.ai_response import CapturedToolEvent
+from app.agents.core.dependencies import AgentDependencies
 
 # We use object for event types because PydanticAI's event stream includes
 # many internal event types that aren't exposed in their public API.
@@ -31,13 +30,11 @@ class EventContext:
     """Context shared across event handlers."""
 
     game_id: str
-    captured_tool_events: list[CapturedToolEvent] = field(default_factory=list)
     tool_calls_by_id: dict[str, str] = field(default_factory=dict)
     processed_tool_calls: set[str] = field(default_factory=set)
 
     def clear(self) -> None:
         """Clear the context for a new processing session."""
-        self.captured_tool_events.clear()
         self.tool_calls_by_id.clear()
         self.processed_tool_calls.clear()
 

@@ -5,9 +5,8 @@ import logging
 from app.events.base import BaseCommand, CommandResult
 from app.events.commands.broadcast_commands import BroadcastCharacterUpdateCommand
 from app.events.commands.inventory_commands import (
-    AddItemCommand,
     ModifyCurrencyCommand,
-    RemoveItemCommand,
+    ModifyInventoryCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
 from app.models.game_state import GameState
@@ -23,6 +22,11 @@ logger = logging.getLogger(__name__)
 
 class InventoryHandler(BaseHandler):
     """Handler for inventory-related commands."""
+
+    supported_commands = (
+        ModifyCurrencyCommand,
+        ModifyInventoryCommand,
+    )
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle inventory commands."""
@@ -65,7 +69,7 @@ class InventoryHandler(BaseHandler):
                 f"Copper {old_copper}→{character.currency.copper}",
             )
 
-        elif isinstance(command, AddItemCommand):
+        elif isinstance(command, ModifyInventoryCommand) and command.quantity > 0:
             # Check if item already exists in inventory
             existing_item = next((item for item in character.inventory if item.name == command.item_name), None)
 
@@ -92,18 +96,18 @@ class InventoryHandler(BaseHandler):
 
             logger.info(f"Item Added: {command.item_name} x{command.quantity}")
 
-        elif isinstance(command, RemoveItemCommand):
+        elif isinstance(command, ModifyInventoryCommand) and command.quantity <= 0:
             existing_item = next((item for item in character.inventory if item.name == command.item_name), None)
 
             if not existing_item:
                 raise ValueError(f"Item {command.item_name} not found in inventory")
 
-            if existing_item.quantity < command.quantity:
+            if existing_item.quantity < abs(command.quantity):
                 raise ValueError(
-                    f"Not enough {command.item_name} (have {existing_item.quantity}, need {command.quantity})"
+                    f"Not enough {command.item_name} (have {existing_item.quantity}, need {abs(command.quantity)})"
                 )
 
-            existing_item.quantity -= command.quantity
+            existing_item.quantity -= abs(command.quantity)
 
             # Remove item completely if quantity reaches 0
             if existing_item.quantity == 0:
@@ -125,4 +129,4 @@ class InventoryHandler(BaseHandler):
 
     def can_handle(self, command: BaseCommand) -> bool:
         """Check if this handler can process the given command."""
-        return isinstance(command, ModifyCurrencyCommand | AddItemCommand | RemoveItemCommand)
+        return isinstance(command, self.supported_commands)

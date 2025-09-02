@@ -1,10 +1,9 @@
-"""Handler for tool-related events from PydanticAI."""
+"""Handlers for tool-related events from PydanticAI (logging/capture only)."""
 
 import json
 import logging
 from typing import Any, cast
 
-from pydantic import BaseModel
 from pydantic_ai.messages import (
     FunctionToolCallEvent,
     FunctionToolResultEvent,
@@ -13,91 +12,76 @@ from pydantic_ai.messages import (
     ToolReturnPart,
 )
 
-from app.agents.event_handlers.base import EventContext, EventHandler
+from app.agents.core.event_stream.base import EventContext, EventHandler
 from app.common.types import JSONSerializable
-from app.models.ai_response import CapturedToolEvent
-from app.models.tool_results import ToolResult
 from app.services.ai.event_logger_service import EventLoggerService
 
 logger = logging.getLogger(__name__)
 
-# TODO: Better refactor of the whole event_handlers. Maybe we do isinstance() for each type and
-# then reroute type-safe to a handler for each type of event + raise error or just log warning
-# for unsupported event ?
 
 class ToolCallHandler(EventHandler):
-    """Handles tool call events from the stream."""
+    """Handles tool call events from the stream (capture + log only)."""
 
     def __init__(self, event_logger: EventLoggerService | None = None):
         self.event_logger = event_logger
 
     async def can_handle(self, event: object) -> bool:
-        """Check if this is a tool call event."""
         if isinstance(event, PartStartEvent):
             return isinstance(event.part, ToolCallPart)
-        # FunctionToolCallEvent always has part: ToolCallPart
         return isinstance(event, FunctionToolCallEvent)
 
     async def handle(self, event: object, context: EventContext) -> None:
-        """Process tool call event."""
-        # Type narrowing happens in can_handle, but we check again for safety
         if not isinstance(event, PartStartEvent | FunctionToolCallEvent):
             return
         tool_name, tool_call_id, args = self._extract_tool_info(event)
-
         if not tool_name:
             return
 
-        # Check for duplicate processing
         if tool_call_id and tool_call_id in context.processed_tool_calls:
             logger.debug(f"Skipping duplicate tool call {tool_call_id} for {tool_name}")
             return
 
-        # Process arguments first to check if they're empty
         processed_args = self._process_arguments(args)
         if processed_args is None:
             logger.debug(f"Skipping empty tool call for {tool_name}")
-            # Don't mark as processed if arguments are empty
             return
 
-        # Track the tool call only after confirming it has valid arguments
         if tool_call_id:
             context.processed_tool_calls.add(tool_call_id)
             context.tool_calls_by_id[tool_call_id] = tool_name
 
-        # Log and capture the event
         if self.event_logger:
             self.event_logger.log_tool_call(tool_name, processed_args)
 
-        context.captured_tool_events.append(CapturedToolEvent(tool_name=tool_name, parameters=processed_args))
-        logger.debug(f"Tool call captured: {tool_name} with args: {processed_args}")
+        logger.debug(f"Tool call captured (log only): {tool_name} with args: {processed_args}")
 
     def _extract_tool_info(self, event: object) -> tuple[str | None, str | None, Any]:
-        """Extract tool information from various event types."""
-        if isinstance(event, PartStartEvent) and isinstance(event.part, ToolCallPart):
-            # ToolCallPart always has tool_name, tool_call_id, and args
-            return (
-                event.part.tool_name,
-                event.part.tool_call_id,
-                event.part.args if event.part.args is not None else {},
-            )
-        elif isinstance(event, FunctionToolCallEvent):
-            # FunctionToolCallEvent always has part: ToolCallPart
-            return (
-                event.part.tool_name,
-                event.part.tool_call_id,
-                event.part.args if event.part.args is not None else {},
-            )
+        """Extract tool info from supported event types with proper type narrowing."""
+        if isinstance(event, PartStartEvent):
+            part = event.part
+            if isinstance(part, ToolCallPart):
+                return (
+                    part.tool_name,
+                    part.tool_call_id,
+                    part.args if part.args is not None else {},
+                )
+            # Not a tool call part
+        if isinstance(event, FunctionToolCallEvent):
+            part = event.part
+            if isinstance(part, ToolCallPart):
+                return (
+                    part.tool_name,
+                    part.tool_call_id,
+                    part.args if part.args is not None else {},
+                )
+            # Not a tool call part
         return None, None, None
 
     def _process_arguments(self, args: Any) -> dict[str, JSONSerializable] | None:
-        """Process and validate tool arguments."""
         if not args or args == "" or args == {}:
             return None
-
         if isinstance(args, dict):
             return cast(dict[str, JSONSerializable], args)
-
         if isinstance(args, str):
             args_str = args.strip()
             if not args_str:
@@ -109,86 +93,47 @@ class ToolCallHandler(EventHandler):
             except (json.JSONDecodeError, ValueError):
                 pass
             return {"raw_args": args_str}
-
-        # Fallback for other types
         return {"raw_args": str(args)}
 
 
 class ToolResultHandler(EventHandler):
-    """Handles tool result events from the stream."""
+    """Handles tool result events from the stream (capture + log only)."""
 
     def __init__(self, event_logger: EventLoggerService | None = None):
         self.event_logger = event_logger
 
     async def can_handle(self, event: object) -> bool:
-        """Check if this is a tool result event."""
         return isinstance(event, FunctionToolResultEvent)
 
     async def handle(self, event: object, context: EventContext) -> None:
-        """Process tool result event."""
         if not isinstance(event, FunctionToolResultEvent):
             return
-
-        # FunctionToolResultEvent.result can be ToolReturnPart or RetryPromptPart
-        # Only ToolReturnPart has tool_call_id and is relevant for our processing
         result = event.result
-
-        # Check if result is ToolReturnPart which has tool_call_id
         if not isinstance(result, ToolReturnPart):
             logger.debug("Tool result is not ToolReturnPart, skipping")
             return
-
-        # Get tool name from tracking - fail fast if missing
         if result.tool_call_id not in context.tool_calls_by_id:
             logger.error(f"Tool result event has unmapped tool_call_id: {result.tool_call_id}")
             return
 
         tool_name = context.tool_calls_by_id[result.tool_call_id]
-
-        # Log the result
         result_str = self._get_result_string(result)
         if self.event_logger:
             self.event_logger.log_tool_result(tool_name, result_str)
-
-        # Update the corresponding tool call event
-        self._update_tool_event_with_result(tool_name, result, context)
-
         logger.debug(f"Tool result processed: {tool_name} -> {result_str[:100]}")
 
     def _get_result_string(self, result: Any) -> str:
-        """Get string representation of result."""
         if isinstance(result, ToolReturnPart):
-            # ToolReturnPart always has content
             return str(result.content)
         return str(result)
 
-    def _update_tool_event_with_result(self, tool_name: str, result: Any, context: EventContext) -> None:
-        """Update the captured tool event with its result."""
-        for event in reversed(context.captured_tool_events):
-            if event.tool_name == tool_name and event.result is None:
-                # Try to extract the actual result model
-                if isinstance(result, ToolReturnPart) and isinstance(result.content, BaseModel):
-                    # Type narrowing: The content from ToolReturnPart can be Any, but our
-                    # tools return ToolResult types. We verify this with a runtime check
-                    # and cast to maintain type safety.
-                    try:
-                        # Use cast since we control all tool implementations and know
-                        # they return ToolResult types
-                        event.result = cast(ToolResult, result.content)
-                    except Exception:
-                        logger.warning(f"Could not assign result for tool {tool_name}")
-                else:
-                    logger.debug(f"Result for {tool_name} is not a recognized type")
-                break
-
 
 class ToolEventHandler:
-    """Composite handler for all tool-related events."""
+    """Composite for tool call and result handlers (capture + log only)."""
 
     def __init__(self, event_logger: EventLoggerService | None = None):
         self.tool_call_handler = ToolCallHandler(event_logger)
         self.tool_result_handler = ToolResultHandler(event_logger)
 
     def get_handlers(self) -> list[EventHandler]:
-        """Get all tool event handlers."""
         return [self.tool_call_handler, self.tool_result_handler]

@@ -32,3 +32,4 @@ Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic 
 7.  Scenario: If wandering outside of the defined scenario, should enter some sandbox mode. Means ability to create quests, NPCs, ... on-the-fly. Sandbox about items, spells, monsters/NPCs ? Could scenario be customized by AI during play ? Any data that does not exists could be created by an agent and linked with the save ?
 8.  Ability to play with a party of NPCs
 9.  Custom save names
+10. Agent Registry for multi-agent: Introduce a lightweight `AgentRegistry` to manage available agents (Narrative, Combat, Summarizer, Creator...). The orchestrator queries the registry to select an agent, enabling runtime toggles, environment-specific agent sets, and plug-in style extension without changing orchestrator code. Useful once we add Combat/Summarizer and want clean, declarative wiring.

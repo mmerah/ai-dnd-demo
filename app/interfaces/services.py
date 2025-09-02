@@ -1,7 +1,7 @@
 """Service interfaces for dependency inversion."""
 
 from abc import ABC, abstractmethod
-from collections.abc import AsyncGenerator, AsyncIterator, Sequence
+from collections.abc import AsyncGenerator, AsyncIterator
 from datetime import datetime
 from pathlib import Path
 from typing import Generic, TypeVar
@@ -572,31 +572,6 @@ class IMetadataService(ABC):
 
         Returns:
             Combat round number or None
-        """
-        pass
-
-    @abstractmethod
-    def extract_npc_mentions(self, content: str, npcs: Sequence[NPCSheet | str]) -> list[str]:
-        """Extract NPC mentions from content with flexible NPC types.
-
-        Args:
-            content: Message content to analyze
-            npcs: List of NPCs (either NPCSheet objects or string names)
-
-        Returns:
-            List of NPC names found in the content
-        """
-        pass
-
-    @abstractmethod
-    def get_current_location(self, game_state: GameState) -> str:
-        """Get the current location from game state.
-
-        Args:
-            game_state: Current game state
-
-        Returns:
-            Current location name
         """
         pass
 

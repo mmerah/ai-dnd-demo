@@ -36,6 +36,12 @@ class CombatHandler(BaseHandler):
         self.scenario_service = scenario_service
         self.monster_repository = monster_repository
 
+    supported_commands = (
+        StartCombatCommand,
+        TriggerScenarioEncounterCommand,
+        SpawnMonstersCommand,
+    )
+
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle combat commands."""
         result = CommandResult()
@@ -201,4 +207,4 @@ class CombatHandler(BaseHandler):
 
     def can_handle(self, command: BaseCommand) -> bool:
         """Check if this handler can process the given command."""
-        return isinstance(command, StartCombatCommand | TriggerScenarioEncounterCommand | SpawnMonstersCommand)
+        return isinstance(command, self.supported_commands)

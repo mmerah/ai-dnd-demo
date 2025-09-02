@@ -3,18 +3,17 @@
 import logging
 from collections.abc import AsyncIterator
 
-from app.agents.base import BaseAgent
 from app.config import get_settings
 from app.interfaces.services import IAIService, IGameService
 from app.models.ai_response import (
     AIResponse,
     CompleteResponse,
     ErrorResponse,
-    NarrativeChunkResponse,
     NarrativeResponse,
     StreamEventType,
 )
 from app.models.game_state import GameState
+from app.services.ai.orchestrator_service import AgentOrchestrator
 
 logger = logging.getLogger(__name__)
 
@@ -22,12 +21,12 @@ logger = logging.getLogger(__name__)
 class AIService(IAIService):
     """Main AI Service that coordinates specialized agents."""
 
-    def __init__(self, game_service: IGameService, narrative_agent: BaseAgent) -> None:
-        """Initialize AI Service."""
+    def __init__(self, game_service: IGameService, orchestrator: AgentOrchestrator) -> None:
+        """Initialize AI Service with agent orchestrator."""
         settings = get_settings()
         self.debug_mode = settings.debug_ai
         self.game_service = game_service
-        self.narrative_agent = narrative_agent
+        self.orchestrator = orchestrator
 
     async def generate_response(
         self,
@@ -50,9 +49,9 @@ class AIService(IAIService):
         """
         logger.info(f"AIService.generate_response called with stream={stream}")
         try:
-            # Process through the narrative agent with event bus
+            # Route through the orchestrator (e.g., narrative vs combat)
             event_count = 0
-            async for event in self.narrative_agent.process(user_message, game_state, game_service, stream):
+            async for event in self.orchestrator.process(user_message, game_state, game_service, stream):
                 event_count += 1
                 logger.debug(f"AIService received event {event_count}: type={event.type}")
 
@@ -60,7 +59,9 @@ class AIService(IAIService):
                 if event.type == StreamEventType.NARRATIVE_CHUNK:
                     if isinstance(event.content, str):
                         logger.debug(f"Yielding narrative_chunk: '{event.content[:30]}...'")
-                        yield NarrativeChunkResponse(content=event.content)
+                        # Currently we don't forward chunks; SSE is the source of truth
+                        # Keep interface compatibility without emitting chunks
+                        pass
                 elif event.type == StreamEventType.COMPLETE:
                     if isinstance(event.content, NarrativeResponse):
                         response = event.content

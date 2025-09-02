@@ -8,16 +8,14 @@ from app.events.commands.broadcast_commands import (
     BroadcastToolResultCommand,
 )
 from app.events.commands.character_commands import (
-    AddConditionCommand,
-    RemoveConditionCommand,
+    UpdateConditionCommand,
     UpdateHPCommand,
     UpdateSpellSlotsCommand,
 )
 from app.events.commands.dice_commands import RollDiceCommand
 from app.events.commands.inventory_commands import (
-    AddItemCommand,
     ModifyCurrencyCommand,
-    RemoveItemCommand,
+    ModifyInventoryCommand,
 )
 from app.events.commands.time_commands import (
     AdvanceTimeCommand,
@@ -28,15 +26,13 @@ from app.events.commands.time_commands import (
 __all__ = [
     # Character commands
     "UpdateHPCommand",
-    "AddConditionCommand",
-    "RemoveConditionCommand",
+    "UpdateConditionCommand",
     "UpdateSpellSlotsCommand",
     # Dice commands
     "RollDiceCommand",
     # Inventory commands
     "ModifyCurrencyCommand",
-    "AddItemCommand",
-    "RemoveItemCommand",
+    "ModifyInventoryCommand",
     # Time commands
     "ShortRestCommand",
     "LongRestCommand",

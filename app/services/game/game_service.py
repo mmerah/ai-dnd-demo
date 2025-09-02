@@ -355,6 +355,20 @@ class GameService(IGameService):
         # Extract metadata if not provided
         if npcs_mentioned is None:
             known_npcs = [npc.name for npc in game_state.npcs]
+            # Include scenario location NPCs as known names for mention detection
+            try:
+                if game_state.scenario_id and game_state.current_location_id:
+                    scenario = self.scenario_service.get_scenario(game_state.scenario_id)
+                    if scenario:
+                        scenario_location = scenario.get_location(game_state.current_location_id)
+                        if scenario_location and scenario_location.npcs:
+                            for scenario_npc in scenario_location.npcs:
+                                if scenario_npc.name not in known_npcs:
+                                    known_npcs.append(scenario_npc.name)
+            except Exception:
+                # Don't block message creation if scenario lookup fails
+                pass
+
             npcs_mentioned = self.metadata_service.extract_npcs_mentioned(content, known_npcs)
 
         if location is None:

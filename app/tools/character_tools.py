@@ -1,21 +1,17 @@
 """Character management tools for D&D 5e AI Dungeon Master."""
 
 import logging
-from typing import Literal, cast
+from typing import Literal
 
 from pydantic import BaseModel
 from pydantic_ai import RunContext
 
-from app.agents.dependencies import AgentDependencies
-from app.events.base import BaseCommand
-from app.events.commands.broadcast_commands import BroadcastToolCallCommand, BroadcastToolResultCommand
+from app.agents.core.dependencies import AgentDependencies
 from app.events.commands.character_commands import (
-    AddConditionCommand,
-    RemoveConditionCommand,
+    UpdateConditionCommand,
     UpdateHPCommand,
     UpdateSpellSlotsCommand,
 )
-from app.models.tool_results import ToolResult
 from app.tools.decorators import tool_handler
 
 logger = logging.getLogger(__name__)
@@ -46,6 +42,7 @@ async def update_hp(
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 
+@tool_handler(UpdateConditionCommand)
 async def update_condition(
     ctx: RunContext[AgentDependencies],
     target: str,
@@ -69,49 +66,7 @@ async def update_condition(
         - Stand up: target="player", condition="prone", action="remove"
         - Fear spell: target="Orc", condition="frightened", action="add", duration=2
     """
-    game_state = ctx.deps.game_state
-    event_bus = ctx.deps.event_bus
-
-    # Broadcast the tool call
-    await event_bus.submit_command(
-        BroadcastToolCallCommand(
-            game_id=game_state.game_id,
-            tool_name="update_condition",
-            parameters={"target": target, "condition": condition, "action": action, "duration": duration},
-        ),
-    )
-
-    # Execute the appropriate command based on action
-    command: BaseCommand
-    if action == "add":
-        command = AddConditionCommand(
-            game_id=game_state.game_id,
-            target=target,
-            condition=condition,
-            duration=duration,
-        )
-    else:  # action == "remove"
-        command = RemoveConditionCommand(
-            game_id=game_state.game_id,
-            target=target,
-            condition=condition,
-        )
-
-    result = await event_bus.execute_command(command)
-
-    if not result:
-        raise RuntimeError(f"Failed to {action} condition {condition} for {target}")
-
-    if not isinstance(result, BaseModel):
-        raise TypeError(f"Expected BaseModel from command, got {type(result)}")
-
-    # Broadcast the result
-    tool_result = cast(ToolResult, result)
-    await event_bus.submit_command(
-        BroadcastToolResultCommand(game_id=game_state.game_id, tool_name="update_condition", result=tool_result),
-    )
-
-    return result
+    raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 
 @tool_handler(UpdateSpellSlotsCommand)

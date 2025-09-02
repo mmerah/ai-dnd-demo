@@ -24,6 +24,13 @@ class BroadcastHandler(BaseHandler):
         """Initialize with game service and message service dependencies."""
         super().__init__(game_service)
         self.message_service = message_service
+        self.supported_commands = (
+            BroadcastNarrativeCommand,
+            BroadcastToolCallCommand,
+            BroadcastToolResultCommand,
+            BroadcastGameUpdateCommand,
+            BroadcastCharacterUpdateCommand,
+        )
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle broadcast commands."""
@@ -75,11 +82,4 @@ class BroadcastHandler(BaseHandler):
 
     def can_handle(self, command: BaseCommand) -> bool:
         """Check if this handler can process the given command."""
-        return isinstance(
-            command,
-            BroadcastNarrativeCommand
-            | BroadcastToolCallCommand
-            | BroadcastToolResultCommand
-            | BroadcastGameUpdateCommand
-            | BroadcastCharacterUpdateCommand,
-        )
+        return isinstance(command, self.supported_commands)

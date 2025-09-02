@@ -18,22 +18,11 @@ class ModifyCurrencyCommand(BaseCommand):
 
 
 @dataclass
-class AddItemCommand(BaseCommand):
-    """Command to add item to inventory."""
+class ModifyInventoryCommand(BaseCommand):
+    """Command to modify an inventory item quantity (positive=add, negative=remove)."""
 
     item_name: str = ""
-    quantity: int = 1
-
-    def get_handler_name(self) -> str:
-        return "inventory"
-
-
-@dataclass
-class RemoveItemCommand(BaseCommand):
-    """Command to remove item from inventory."""
-
-    item_name: str = ""
-    quantity: int = 1
+    quantity: int = 0
 
     def get_handler_name(self) -> str:
         return "inventory"

@@ -5,8 +5,7 @@ from typing import TypeVar
 
 from pydantic import BaseModel
 
-from app.events.base import BaseCommand, CommandResult
-from app.models.game_state import GameState
+from app.events.base import BaseCommand
 
 T = TypeVar("T")
 
@@ -30,14 +29,7 @@ class IEventBus(ABC):
     async def wait_for_completion(self) -> None:
         pass
 
-
-class IHandler(ABC):
-    """Interface for a command handler."""
-
     @abstractmethod
-    async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
-        pass
-
-    @abstractmethod
-    def can_handle(self, command: BaseCommand) -> bool:
+    async def submit_and_wait(self, commands: list[BaseCommand]) -> None:
+        """Submit multiple commands then wait for completion."""
         pass

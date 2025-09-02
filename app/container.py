@@ -2,8 +2,8 @@
 
 from functools import cached_property
 
+from app.agents.core.types import AgentType
 from app.agents.factory import AgentFactory
-from app.agents.types import AgentType
 from app.config import get_settings
 from app.events.event_bus import EventBus
 from app.events.handlers.broadcast_handler import BroadcastHandler
@@ -36,6 +36,7 @@ from app.interfaces.services import (
 from app.models.character import CharacterSheet
 from app.models.scenario import Scenario
 from app.services.ai import AIService, MessageService
+from app.services.ai.orchestrator_service import AgentOrchestrator
 from app.services.character import CharacterService
 from app.services.common import BroadcastService, DiceService
 from app.services.common.path_resolver import PathResolver
@@ -157,6 +158,9 @@ class Container:
             "quest", QuestHandler(self.game_service, self.scenario_service, self.item_repository)
         )
 
+        # Verify handlers can handle all commands
+        event_bus.verify_handlers()
+
         return event_bus
 
     @cached_property
@@ -172,7 +176,8 @@ class Container:
             metadata_service=self.metadata_service,
             debug=settings.debug_ai,
         )
-        return AIService(self.game_service, narrative_agent)
+        orchestrator = AgentOrchestrator(narrative_agent)
+        return AIService(self.game_service, orchestrator)
 
     @cached_property
     def message_service(self) -> IMessageService:

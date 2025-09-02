@@ -5,7 +5,7 @@ import logging
 from pydantic import BaseModel
 from pydantic_ai import RunContext
 
-from app.agents.dependencies import AgentDependencies
+from app.agents.core.dependencies import AgentDependencies
 from app.events.commands.location_commands import (
     ChangeLocationCommand,
     DiscoverSecretCommand,
