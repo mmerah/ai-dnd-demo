@@ -1,6 +1,7 @@
 """Spell models for D&D 5e spellcasting system."""
 
 from enum import Enum
+from typing import Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -18,21 +19,51 @@ class SpellSchool(str, Enum):
     TRANSMUTATION = "Transmutation"
 
 
-class SpellDefinition(BaseModel):
-    """Definition of a spell from data files."""
+class SpellAreaOfEffect(BaseModel):
+    size: int
+    type: str
 
+
+class SpellDC(BaseModel):
+    dc_type: str  # index for ability score (e.g., "wis", "dex")
+    dc_success: str | None = None  # e.g., "half"
+
+
+class SpellDefinition(BaseModel):
+    """Definition of a spell from data files (SRD-aligned)."""
+
+    # Identity
+    index: str
     name: str
+
+    # Core
     level: int = Field(ge=0, le=9)  # 0 = cantrip, 1-9 = spell levels
-    school: SpellSchool
+    school: str  # magic school index (e.g., "evocation")
     casting_time: str  # e.g., "1 action", "1 bonus action", "1 minute"
     range: str  # e.g., "Touch", "30 feet", "Self"
-    components: str  # e.g., "V, S, M (a pinch of sand)"
     duration: str  # e.g., "Instantaneous", "Concentration, up to 1 minute"
     description: str
-    higher_levels: str | None = None  # Description of effects at higher levels
-    classes: list[str]  # List of classes that can cast this spell
-    ritual: bool = False  # Whether the spell can be cast as a ritual
-    concentration: bool = False  # Whether the spell requires concentration
+    higher_levels: Optional[str] = None  # Description of effects at higher levels
+
+    # Components
+    components_list: list[str] = Field(default_factory=list)
+    material: Optional[str] = None
+
+    # Flags
+    ritual: bool = False
+    concentration: bool = False
+
+    # References
+    classes: list[str] = Field(default_factory=list)  # class indexes
+    subclasses: list[str] = Field(default_factory=list)  # subclass indexes
+
+    # Optional mechanics
+    area_of_effect: Optional[SpellAreaOfEffect] = None
+    attack_type: Optional[str] = None
+    dc: Optional[SpellDC] = None
+    damage_at_slot_level: Optional[dict[int, Union[str, int]]] = None
+    heal_at_slot_level: Optional[dict[int, Union[str, int]]] = None
+    damage_at_character_level: Optional[dict[int, Union[str, int]]] = None
 
     @property
     def is_cantrip(self) -> bool:

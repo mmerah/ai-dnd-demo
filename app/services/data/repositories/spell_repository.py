@@ -42,7 +42,8 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
         for spell_data in data.get("spells", []):
             try:
                 spell = self._parse_spell_data(spell_data)
-                self._cache[spell.name] = spell
+                # Key by stable index
+                self._cache[spell.index] = spell
             except Exception as e:
                 # Log error but continue loading other spells
                 logger.warning(f"Failed to load spell {spell_data.get('name', 'unknown')}: {e}")
@@ -60,17 +61,18 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
         if not data or not isinstance(data, dict):
             return None
 
-        # Try exact match first
+        # Prefer index match
         for spell_data in data.get("spells", []):
-            if spell_data.get("name") == key:
+            if spell_data.get("index") == key:
                 try:
                     return self._parse_spell_data(spell_data)
                 except Exception:
                     return None
 
-        # Try case-insensitive match
+        # Fallback: match by name (exact or case-insensitive)
         for spell_data in data.get("spells", []):
-            if spell_data.get("name", "").lower() == key.lower():
+            nm = spell_data.get("name", "")
+            if nm == key or nm.lower() == key.lower():
                 try:
                     return self._parse_spell_data(spell_data)
                 except Exception:
@@ -84,7 +86,8 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
         if not data or not isinstance(data, dict):
             return []
 
-        return sorted([spell.get("name", "") for spell in data.get("spells", []) if spell.get("name")])
+        # Return indexes as keys
+        return sorted([spell.get("index", "") for spell in data.get("spells", []) if spell.get("index")])
 
     def _check_key_exists(self, key: str) -> bool:
         """Check if a spell exists without using cache."""
@@ -92,10 +95,12 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
         if not data or not isinstance(data, dict):
             return False
 
-        # Check both exact and case-insensitive match
+        # Check by index or by name
         for spell_data in data.get("spells", []):
-            spell_name = spell_data.get("name", "")
-            if spell_name == key or spell_name.lower() == key.lower():
+            if spell_data.get("index") == key:
+                return True
+            nm = spell_data.get("name", "")
+            if nm == key or nm.lower() == key.lower():
                 return True
 
         return False
@@ -114,26 +119,30 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
             ValueError: If parsing fails
         """
         try:
-            # Map string school to enum
-            school = SpellSchool(data["school"])
-
-            # Check if spell requires concentration
+            # New SRD-aligned structure
             duration = data.get("duration", "")
-            concentration = "concentration" in duration.lower()
-
             return SpellDefinition(
+                index=data["index"],
                 name=data["name"],
-                level=data["level"],
-                school=school,
-                casting_time=data["casting_time"],
-                range=data["range"],
-                components=data["components"],
+                level=int(data["level"]),
+                school=str(data.get("school", "")).lower(),
+                casting_time=data.get("casting_time", ""),
+                range=data.get("range", ""),
                 duration=duration,
-                description=data["description"],
+                description=data.get("description", ""),
                 higher_levels=data.get("higher_levels"),
+                components_list=data.get("components_list", []),
+                material=data.get("material"),
+                ritual=bool(data.get("ritual", False)),
+                concentration=bool(data.get("concentration", False)),
                 classes=data.get("classes", []),
-                ritual=data.get("ritual", False),
-                concentration=concentration,
+                subclasses=data.get("subclasses", []),
+                area_of_effect=data.get("area_of_effect"),
+                attack_type=data.get("attack_type"),
+                dc=data.get("dc"),
+                damage_at_slot_level=data.get("damage_at_slot_level"),
+                heal_at_slot_level=data.get("heal_at_slot_level"),
+                damage_at_character_level=data.get("damage_at_character_level"),
             )
         except Exception as e:
             raise ValueError(f"Failed to parse spell data: {e}") from e
@@ -207,7 +216,8 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
             self._initialize()
 
         if self.cache_enabled:
-            return [spell for spell in self._cache.values() if spell.school == school]
+            school_index = school.value.lower()
+            return [spell for spell in self._cache.values() if spell.school == school_index]
 
         # Without cache, load all and filter
         all_spells = []
@@ -216,7 +226,7 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
             for spell_data in data.get("spells", []):
                 try:
                     spell = self._parse_spell_data(spell_data)
-                    if spell.school == school:
+                    if spell.school == school.value.lower():
                         all_spells.append(spell)
                 except Exception:
                     continue
@@ -247,7 +257,7 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
             for spell_data in data.get("spells", []):
                 try:
                     classes = spell_data.get("classes", [])
-                    if any(cls.lower() == class_lower for cls in classes):
+                    if any((cls or "").lower() == class_lower for cls in classes):
                         spell = self._parse_spell_data(spell_data)
                         all_spells.append(spell)
                 except Exception:
