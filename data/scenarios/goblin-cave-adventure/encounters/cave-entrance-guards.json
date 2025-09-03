@@ -1,0 +1,21 @@
+{
+  "id": "cave-entrance-guards",
+  "type": "Combat",
+  "description": "Goblin sentries guard the cave entrance",
+  "difficulty": "Medium",
+  "monster_spawns": [
+    {
+      "monster_name": "Goblin",
+      "quantity_min": 2,
+      "quantity_max": 2,
+      "probability": 1.0
+    },
+    {
+      "monster_name": "Wolf",
+      "quantity_min": 1,
+      "quantity_max": 1,
+      "probability": 0.5
+    }
+  ],
+  "rewards": ["Passage into the cave"]
+}

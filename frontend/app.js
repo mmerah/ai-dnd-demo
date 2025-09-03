@@ -8,6 +8,106 @@ let sseSource = null;
 // DOM elements - cached for performance
 const elements = {};
 
+// Catalog caches (index -> display name)
+const catalogs = {
+    classes: {},
+    subclasses: {},
+    alignments: {},
+    magic_schools: {},
+    races: {},
+    race_subraces: {},
+    languages: {},
+    backgrounds: {},
+    features: {},
+    feats: {},
+    skills: {},
+    weapon_properties: {},
+    damage_types: {},
+    conditions: {},
+};
+
+async function loadCatalogs() {
+    try {
+        const [classesRes, subclassesRes, alignsRes, schoolsRes, racesRes, languagesRes, backgroundsRes, featuresRes, featsRes, skillsRes, wpropsRes, dtypesRes, subracesRes, conditionsRes, traitsRes] = await Promise.all([
+            fetch('/api/catalogs/classes'),
+            fetch('/api/catalogs/subclasses'),
+            fetch('/api/catalogs/alignments'),
+            fetch('/api/catalogs/magic_schools'),
+            fetch('/api/catalogs/races'),
+            fetch('/api/catalogs/languages'),
+            fetch('/api/catalogs/backgrounds'),
+            fetch('/api/catalogs/features'),
+            fetch('/api/catalogs/feats'),
+            fetch('/api/catalogs/skills'),
+            fetch('/api/catalogs/weapon_properties').catch(() => ({ ok: false })),
+            fetch('/api/catalogs/damage_types').catch(() => ({ ok: false })),
+            fetch('/api/catalogs/race_subraces'),
+            fetch('/api/catalogs/conditions'),
+            fetch('/api/catalogs/traits').catch(() => ({ ok: false })),
+        ]);
+
+        const [classes, subclasses, alignments, schools, races, languages, backgrounds, features, feats, skills, wprops, dtypes, subraces, conditions, traits] = await Promise.all([
+            classesRes.ok ? classesRes.json() : [],
+            subclassesRes.ok ? subclassesRes.json() : [],
+            alignsRes.ok ? alignsRes.json() : [],
+            schoolsRes.ok ? schoolsRes.json() : [],
+            racesRes.ok ? racesRes.json() : [],
+            languagesRes.ok ? languagesRes.json() : [],
+            backgroundsRes.ok ? backgroundsRes.json() : [],
+            featuresRes.ok ? featuresRes.json() : [],
+            featsRes.ok ? featsRes.json() : [],
+            skillsRes.ok ? skillsRes.json() : [],
+            wpropsRes.ok ? wpropsRes.json() : [],
+            dtypesRes.ok ? dtypesRes.json() : [],
+            subracesRes.ok ? subracesRes.json() : [],
+            conditionsRes.ok ? conditionsRes.json() : [],
+            traitsRes.ok ? traitsRes.json() : [],
+        ]);
+
+        catalogs.classes = Object.fromEntries(classes.map(c => [c.index, c.name]));
+        catalogs.subclasses = Object.fromEntries(subclasses.map(sc => [sc.index, sc.name]));
+        catalogs.alignments = Object.fromEntries(alignments.map(a => [a.index, a.name]));
+        catalogs.magic_schools = Object.fromEntries(schools.map(s => [s.index, s.name]));
+        catalogs.races = Object.fromEntries(races.map(r => [r.index, r.name]));
+        catalogs.languages = Object.fromEntries(languages.map(l => [l.index, l.name]));
+        catalogs.backgrounds = Object.fromEntries(backgrounds.map(b => [b.index, b.name]));
+        catalogs.features = Object.fromEntries((features || []).map(f => [f.index, f.name]));
+        catalogs.feats = Object.fromEntries((feats || []).map(f => [f.index, f.name]));
+        catalogs.skills = Object.fromEntries((skills || []).map(s => [s.index, s.name]));
+        catalogs.weapon_properties = Object.fromEntries((wprops || []).map(w => [w.index, w.name]));
+        catalogs.damage_types = Object.fromEntries((dtypes || []).map(d => [d.index, d.name]));
+        catalogs.race_subraces = Object.fromEntries((subraces || []).map(sr => [sr.index, sr.name]));
+        catalogs.conditions = Object.fromEntries((conditions || []).map(c => [c.index, c.name]));
+        catalogs.traits = Object.fromEntries((traits || []).map(t => [t.index, t.name]));
+
+        // expose globally
+        window.catalogs = catalogs;
+        window.catalogData = {
+            classes, subclasses, alignments, schools, races, languages, backgrounds, features, feats, skills, wprops, dtypes, subraces, conditions, traits
+        };
+
+        console.log('[CATALOGS] Loaded', { 
+            classes: Object.keys(catalogs.classes).length,
+            subclasses: Object.keys(catalogs.subclasses).length,
+            alignments: Object.keys(catalogs.alignments).length,
+            magic_schools: Object.keys(catalogs.magic_schools).length,
+            races: Object.keys(catalogs.races).length,
+            languages: Object.keys(catalogs.languages || {}).length,
+            backgrounds: Object.keys(catalogs.backgrounds || {}).length,
+            features: Object.keys(catalogs.features || {}).length,
+            feats: Object.keys(catalogs.feats || {}).length,
+            skills: Object.keys(catalogs.skills || {}).length,
+            weapon_properties: Object.keys(catalogs.weapon_properties || {}).length,
+            damage_types: Object.keys(catalogs.damage_types || {}).length,
+            conditions: Object.keys(catalogs.conditions || {}).length,
+            subraces: Object.keys(catalogs.race_subraces || {}).length,
+            traits: Object.keys(catalogs.traits || {}).length,
+        });
+    } catch (e) {
+        console.warn('[CATALOGS] Failed to load one or more catalogs', e);
+    }
+}
+
 // Initialize DOM element cache
 function initializeElements() {
     console.log('[INIT] Caching DOM elements...');
@@ -32,15 +132,28 @@ function initializeElements() {
 }
 
 // Initialize application
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     console.log('[APP] Starting D&D 5e AI Dungeon Master frontend...');
     
     initializeElements();
-    loadSavedGames();
-    loadCharacters();
-    loadScenarios();
+    await loadCatalogs();
+    await Promise.all([loadSavedGames(), loadCharacters(), loadScenarios()]);
     setupEventListeners();
+    // Home button to open full Catalogs screen
+    const openCatalogsHomeBtn = document.getElementById('openCatalogsHome');
+    if (openCatalogsHomeBtn) {
+        openCatalogsHomeBtn.addEventListener('click', () => {
+            window.catalogBackTarget = 'home';
+            showCatalogsScreen('monsters');
+        });
+    }
     
+    // If hash requests catalogs, open the catalogs screen
+    if (window.location.hash === '#catalogs') {
+        window.catalogBackTarget = 'home';
+        showCatalogsScreen('monsters');
+    }
+
     console.log('[APP] Frontend initialization complete');
 });
 
@@ -127,6 +240,20 @@ async function loadSavedGames() {
 }
 
 // Create saved game card element
+function displayClassName(classIndex) {
+    return catalogs.classes[classIndex] || (classIndex ? (classIndex.charAt(0).toUpperCase() + classIndex.slice(1)) : '');
+}
+
+function displayRaceName(raceIndex) {
+    if (!raceIndex) return '';
+    return catalogs.races[raceIndex] || raceIndex.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+}
+
+function displayBackgroundName(bgIndex) {
+    if (!bgIndex) return '';
+    return catalogs.backgrounds[bgIndex] || bgIndex.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+}
+
 function createSavedGameCard(game) {
     const card = document.createElement('div');
     card.className = 'saved-game-card';
@@ -149,11 +276,12 @@ function createSavedGameCard(game) {
     
     // Get the title to display - prefer scenario_title, fallback to character name
     const title = game.scenario_title || `${game.character.name}'s Adventure`;
+    const classDisplay = displayClassName(game.character.class_index || game.character.class_name);
     
     card.innerHTML = `
         <div class="saved-game-info">
             <h3>${title}</h3>
-            <p class="character">🧝 ${game.character.name} - Level ${game.character.level} ${game.character.class_name}</p>
+            <p class="character">🧝 ${game.character.name} - Level ${game.character.level} ${classDisplay}</p>
             <p class="location">📍 ${game.location}</p>
             <p class="time-ago">⏰ ${timeText}</p>
         </div>
@@ -312,10 +440,10 @@ function createCharacterCard(character) {
     card.className = 'character-card';
     card.innerHTML = `
         <h3>${character.name}</h3>
-        <p><strong>Class:</strong> ${character.class_name}</p>
-        <p><strong>Race:</strong> ${character.race}</p>
+        <p><strong>Class:</strong> ${displayClassName(character.class_index || character.class_name)}</p>
+        <p><strong>Race:</strong> ${displayRaceName(character.race)}</p>
         <p><strong>Level:</strong> ${character.level}</p>
-        <p><strong>Background:</strong> ${character.background}</p>
+        <p><strong>Background:</strong> ${displayBackgroundName(character.background)}</p>
     `;
     
     card.addEventListener('click', () => {
@@ -754,8 +882,31 @@ function updateCharacterSheet() {
     
     // Basic info
     document.getElementById('charName').textContent = char.name;
-    document.getElementById('charRace').textContent = char.race;
-    document.getElementById('charClass').textContent = `${char.class_name} ${char.level}`;
+    document.getElementById('charRace').textContent = displayRaceName(char.race);
+    document.getElementById('charClass').textContent = `${displayClassName(char.class_index || char.class_name)} ${char.level}`;
+    // Optional subrace/subclass
+    const subraceEl = document.getElementById('charSubrace');
+    const subraceRow = subraceEl?.parentElement;
+    if (subraceEl && subraceRow) {
+        if (char.subrace) {
+            subraceEl.textContent = (window.catalogs?.race_subraces?.[char.subrace] || char.subrace);
+            subraceRow.style.display = '';
+        } else {
+            subraceEl.textContent = '';
+            subraceRow.style.display = 'none';
+        }
+    }
+    const subclassEl = document.getElementById('charSubclass');
+    const subclassRow = subclassEl?.parentElement;
+    if (subclassEl && subclassRow) {
+        if (char.subclass) {
+            subclassEl.textContent = (window.catalogs?.subclasses?.[char.subclass] || char.subclass);
+            subclassRow.style.display = '';
+        } else {
+            subclassEl.textContent = '';
+            subclassRow.style.display = 'none';
+        }
+    }
     document.getElementById('charLevel').textContent = char.level;
     
     // HP
@@ -775,6 +926,12 @@ function updateCharacterSheet() {
     
     // Skills
     updateSkills(char.skills);
+
+    // Features & Traits (indexes + text)
+    updateFeaturesAndTraits(char);
+
+    // Feats (indexes)
+    updateFeats(char.feat_indexes);
     
     // Spellcasting
     if (char.spellcasting) {
@@ -818,18 +975,222 @@ function updateAbilities(abilities) {
 // Update skills
 function updateSkills(skills) {
     const skillsList = document.getElementById('skillsList');
+    if (!skillsList) return;
     skillsList.innerHTML = '';
-    
+
     if (!skills) return;
-    
-    for (const [skill, proficient] of Object.entries(skills)) {
+
+    Object.entries(skills).forEach(([index, bonus]) => {
         const item = document.createElement('div');
-        item.className = `skill-item ${proficient ? 'proficient' : ''}`;
-        item.innerHTML = `
-            <span>${skill}</span>
-            <span>${proficient ? '✓' : ''}</span>
-        `;
+        item.className = 'skill-item';
+        const display = (window.catalogs?.skills && window.catalogs.skills[index])
+            ? window.catalogs.skills[index]
+            : index.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+        item.innerHTML = `<span>${display}</span><span>${bonus >= 0 ? '+' + bonus : bonus}</span>`;
         skillsList.appendChild(item);
+    });
+}
+
+// Catalog full-screen (pagination)
+let catState = { type: 'monsters', page: 1, pageSize: 50, monsters: null, items: null };
+
+function renderCatalogsNav(activeType) {
+    const nav = document.getElementById('catalogsNav');
+    if (!nav) return;
+    const cats = [
+        ['monsters', 'Monsters'],
+        ['items', 'Items'],
+        ['races', 'Races'],
+        ['race_subraces', 'Subraces'],
+        ['classes', 'Classes'],
+        ['subclasses', 'Subclasses'],
+        ['backgrounds', 'Backgrounds'],
+        ['alignments', 'Alignments'],
+        ['languages', 'Languages'],
+        ['magic_schools', 'Magic Schools'],
+        ['skills', 'Skills'],
+        ['features', 'Features'],
+        ['feats', 'Feats'],
+        ['traits', 'Traits'],
+        ['weapon_properties', 'Weapon Properties'],
+        ['damage_types', 'Damage Types'],
+        ['conditions', 'Conditions'],
+    ];
+    nav.innerHTML = '';
+    cats.forEach(([key, label]) => {
+        const b = document.createElement('button');
+        b.className = 'btn-small';
+        b.textContent = `${label}`;
+        b.dataset.type = key;
+        if (key === activeType) b.classList.add('active');
+        b.addEventListener('click', () => {
+            catState.page = 1;
+            showCatalogsScreen(key);
+        });
+        nav.appendChild(b);
+    });
+}
+
+function showCatalogsScreen(type = 'monsters') {
+    catState.type = type;
+    const home = document.getElementById('characterSelection');
+    const game = document.getElementById('gameInterface');
+    const screen = document.getElementById('catalogsScreen');
+    if (home) home.classList.add('hidden');
+    if (game) game.classList.add('hidden');
+    if (screen) screen.classList.remove('hidden');
+    renderCatalogsNav(type);
+    renderCatalogsPage();
+}
+
+function hideCatalogsScreen() {
+    const screen = document.getElementById('catalogsScreen');
+    if (screen) screen.classList.add('hidden');
+    // Navigate back depending on where we came from
+    if (window.catalogBackTarget === 'home') {
+        const home = document.getElementById('characterSelection');
+        if (home) home.classList.remove('hidden');
+    } else {
+        const game = document.getElementById('gameInterface');
+        if (game) game.classList.remove('hidden');
+    }
+}
+
+async function renderCatalogsPage() {
+    const list = document.getElementById('catalogsContentList');
+    const pageInfo = document.getElementById('catPageInfo');
+    const pager = document.querySelector('#catalogsScreen .pagination');
+    const { type, page, pageSize } = catState;
+    if (!list || !pageInfo) return;
+    list.innerHTML = '';
+    if (type === 'monsters') {
+        if (pager) pager.style.display = 'flex';
+        if (!catState.monsters) {
+            const res = await fetch('/api/catalogs/monsters?keys_only=true');
+            catState.monsters = res.ok ? await res.json() : [];
+        }
+        const total = (catState.monsters || []).length;
+        const start = (page - 1) * pageSize;
+        const slice = (catState.monsters || []).slice(start, start + pageSize);
+        slice.forEach(name => {
+            const row = document.createElement('div');
+            row.className = 'catalog-row';
+            row.textContent = name;
+            list.appendChild(row);
+        });
+        pageInfo.textContent = `Page ${page} / ${Math.max(1, Math.ceil(total / pageSize))}`;
+    } else if (type === 'items') {
+        if (pager) pager.style.display = 'flex';
+        if (!catState.items) {
+            const res = await fetch('/api/catalogs/items');
+            catState.items = res.ok ? await res.json() : [];
+        }
+        const total = (catState.items || []).length;
+        const start = (page - 1) * pageSize;
+        const slice = (catState.items || []).slice(start, start + pageSize);
+        slice.forEach(it => {
+            const row = document.createElement('div');
+            row.className = 'catalog-row';
+            row.textContent = `${it.name} — ${it.type}${it.rarity ? ' • ' + it.rarity : ''}`;
+            list.appendChild(row);
+        });
+        pageInfo.textContent = `Page ${page} / ${Math.max(1, Math.ceil(total / pageSize))}`;
+    } else {
+        // Non-paginated catalogs rendered from window.catalogs
+        if (pager) pager.style.display = 'none';
+        const entries = window.catalogs?.[type] || {};
+        Object.entries(entries).forEach(([idx, name]) => {
+            const row = document.createElement('div');
+            row.className = 'catalog-row';
+            row.textContent = `${name} (${idx})`;
+            list.appendChild(row);
+        });
+    }
+}
+
+// Catalog screen event listeners
+document.addEventListener('click', (e) => {
+    if (e.target && e.target.id === 'openCatalogs') {
+        showCatalogsScreen('monsters');
+    } else if (e.target && e.target.id === 'catBackBtn') {
+        hideCatalogsScreen();
+    } else if (e.target && e.target.id === 'catMonstersBtn') {
+        catState.page = 1; showCatalogsScreen('monsters');
+    } else if (e.target && e.target.id === 'catItemsBtn') {
+        catState.page = 1; showCatalogsScreen('items');
+    } else if (e.target && e.target.id === 'catPrevBtn') {
+        if (catState.page > 1) { catState.page--; renderCatalogsPage(); }
+    } else if (e.target && e.target.id === 'catNextBtn') {
+        catState.page++; renderCatalogsPage();
+    }
+});
+
+function updateFeaturesAndTraits(char) {
+    const featureIndexList = document.getElementById('featureIndexList');
+    const traitIndexList = document.getElementById('traitIndexList');
+    const featureTextList = document.getElementById('featureTextList');
+    if (featureIndexList) featureIndexList.innerHTML = '';
+    if (traitIndexList) traitIndexList.innerHTML = '';
+    if (featureTextList) featureTextList.innerHTML = '';
+
+    // Index-based features (from SRD catalog)
+    if (featureIndexList && Array.isArray(char.feature_indexes)) {
+        if (char.feature_indexes.length > 0) {
+            char.feature_indexes.forEach(idx => {
+                const tag = document.createElement('span');
+                tag.className = 'tag';
+                tag.textContent = (window.catalogs?.features?.[idx] || idx);
+                featureIndexList.appendChild(tag);
+            });
+        } else {
+            featureIndexList.innerHTML = '<span style="color: var(--text-secondary); font-size: 0.9rem;">No class features loaded</span>';
+        }
+    }
+
+    // Index-based traits (from SRD catalog)
+    if (traitIndexList && Array.isArray(char.trait_indexes)) {
+        if (char.trait_indexes.length > 0) {
+            char.trait_indexes.forEach(idx => {
+                const tag = document.createElement('span');
+                tag.className = 'tag';
+                tag.textContent = (window.catalogs?.traits?.[idx] || idx);
+                traitIndexList.appendChild(tag);
+            });
+        } else {
+            traitIndexList.innerHTML = '<span style="color: var(--text-secondary); font-size: 0.9rem;">No racial traits loaded</span>';
+        }
+    }
+
+    // Custom features (character-specific choices)
+    const customFeatures = char.custom_features;
+    if (featureTextList && Array.isArray(customFeatures)) {
+        if (customFeatures.length > 0) {
+            customFeatures.forEach(ft => {
+                const row = document.createElement('div');
+                row.className = 'feature-row';
+                row.innerHTML = `
+                    <strong>${ft.name}</strong>
+                    <div style="color: var(--text-secondary); margin-top: 0.25rem;">${ft.description || ''}</div>
+                `;
+                featureTextList.appendChild(row);
+            });
+        } else {
+            featureTextList.innerHTML = '<span style="color: var(--text-secondary); font-size: 0.9rem;">No custom features</span>';
+        }
+    }
+}
+
+function updateFeats(featIndexes) {
+    const featList = document.getElementById('featIndexList');
+    if (!featList) return;
+    featList.innerHTML = '';
+    if (Array.isArray(featIndexes)) {
+        featIndexes.forEach(idx => {
+            const tag = document.createElement('span');
+            tag.className = 'tag';
+            tag.textContent = (window.catalogs?.feats?.[idx] || idx);
+            featList.appendChild(tag);
+        });
     }
 }
 
@@ -838,25 +1199,43 @@ function updateSpellSlots(spellSlots) {
     const slotsContainer = document.getElementById('spellSlots');
     slotsContainer.innerHTML = '';
     
-    if (!spellSlots) return;
+    if (!spellSlots) {
+        slotsContainer.innerHTML = '<span style="color: var(--text-secondary); font-size: 0.9rem;">No spell slots available</span>';
+        return;
+    }
+    
+    // Add the slots-grid container
+    const slotsGrid = document.createElement('div');
+    slotsGrid.className = 'slots-grid';
     
     for (const [level, slots] of Object.entries(spellSlots)) {
+        // Handle different slot structures (total/current vs max/current)
+        const maxSlots = slots.max || slots.total || 0;
+        const currentSlots = slots.current !== undefined ? slots.current : maxSlots;
+        
         const levelDiv = document.createElement('div');
         levelDiv.className = 'spell-slot-level';
-        levelDiv.innerHTML = `<div>Level ${level}</div>`;
+        levelDiv.innerHTML = `
+            <div>Level ${level}</div>
+            <div style="color: var(--accent-color); font-size: 0.9rem; margin: 0.25rem 0;">
+                ${currentSlots} / ${maxSlots}
+            </div>
+        `;
         
         const circles = document.createElement('div');
         circles.className = 'slot-circles';
         
-        for (let i = 0; i < slots.max; i++) {
+        for (let i = 0; i < maxSlots; i++) {
             const circle = document.createElement('div');
-            circle.className = `slot-circle ${i < slots.current ? 'filled' : ''}`;
+            circle.className = `slot-circle ${i < currentSlots ? 'filled' : ''}`;
             circles.appendChild(circle);
         }
         
         levelDiv.appendChild(circles);
-        slotsContainer.appendChild(levelDiv);
+        slotsGrid.appendChild(levelDiv);
     }
+    
+    slotsContainer.appendChild(slotsGrid);
 }
 
 // Update spell list
@@ -864,33 +1243,15 @@ function updateSpellList(spells) {
     const spellList = document.getElementById('spellList');
     spellList.innerHTML = '';
     
-    if (!spells || spells.length === 0) return;
+    if (!spells || spells.length === 0) {
+        spellList.innerHTML = '<span style="color: var(--text-secondary); font-size: 0.9rem;">No spells known</span>';
+        return;
+    }
     
     spells.forEach(spell => {
         const spellDiv = document.createElement('div');
         spellDiv.className = 'spell-item';
         spellDiv.textContent = spell;
-        spellDiv.style.position = 'relative';
-        spellDiv.style.cursor = 'pointer';
-        
-        // Add hover event for tooltip
-        let tooltipTimeout;
-        spellDiv.addEventListener('mouseenter', () => {
-            tooltipTimeout = setTimeout(() => {
-                if (!spellDiv.querySelector('.spell-tooltip')) {
-                    showSpellTooltip(spell, spellDiv);
-                }
-            }, 500); // Delay to avoid too many requests
-        });
-        
-        spellDiv.addEventListener('mouseleave', () => {
-            clearTimeout(tooltipTimeout);
-            const tooltip = spellDiv.querySelector('.spell-tooltip');
-            if (tooltip) {
-                tooltip.remove();
-            }
-        });
-        
         spellList.appendChild(spellDiv);
     });
 }
@@ -917,25 +1278,6 @@ function updateInventory(inventory) {
                 <span>${item.name}${equipped}</span>
                 <span>×${item.quantity || 1}</span>
             `;
-            
-            // Add hover event for tooltip
-            let tooltipTimeout;
-            itemDiv.addEventListener('mouseenter', () => {
-                tooltipTimeout = setTimeout(() => {
-                    if (!itemDiv.querySelector('.item-tooltip')) {
-                        showItemTooltip(item.name, itemDiv);
-                    }
-                }, 500); // Delay to avoid too many requests
-            });
-            
-            itemDiv.addEventListener('mouseleave', () => {
-                clearTimeout(tooltipTimeout);
-                const tooltip = itemDiv.querySelector('.item-tooltip');
-                if (tooltip) {
-                    tooltip.remove();
-                }
-            });
-            
             inventoryList.appendChild(itemDiv);
         });
     }
@@ -1356,72 +1698,4 @@ function updateActInfo(actData) {
 }
 
 
-// Fetch and display item tooltip
-async function showItemTooltip(itemName, element) {
-    try {
-        const response = await fetch(`/api/items/${encodeURIComponent(itemName)}`);
-        if (!response.ok) return;
-        
-        const itemData = await response.json();
-        
-        // Create tooltip
-        const tooltip = document.createElement('div');
-        tooltip.className = 'item-tooltip';
-        
-        const rarityClass = `rarity-${itemData.rarity.toLowerCase().replace(' ', '-')}`;
-        
-        tooltip.innerHTML = `
-            <div class="tooltip-header">
-                <span class="tooltip-name">${itemData.name}</span>
-                <span class="tooltip-rarity ${rarityClass}">${itemData.rarity}</span>
-            </div>
-            <div class="tooltip-type">${itemData.type}</div>
-            <div class="tooltip-description">${itemData.description}</div>
-            <div class="tooltip-stats">
-                ${itemData.damage ? `<div class="tooltip-stat"><span>Damage:</span><span>${itemData.damage} ${itemData.damage_type || ''}</span></div>` : ''}
-                ${itemData.armor_class ? `<div class="tooltip-stat"><span>AC:</span><span>${itemData.armor_class}</span></div>` : ''}
-                ${itemData.weight ? `<div class="tooltip-stat"><span>Weight:</span><span>${itemData.weight} lbs</span></div>` : ''}
-                ${itemData.value ? `<div class="tooltip-stat"><span>Value:</span><span>${itemData.value} gp</span></div>` : ''}
-            </div>
-        `;
-        
-        element.appendChild(tooltip);
-    } catch (error) {
-        console.error('[ERROR] Failed to fetch item tooltip:', error);
-    }
-}
-
-// Fetch and display spell tooltip
-async function showSpellTooltip(spellName, element) {
-    try {
-        const response = await fetch(`/api/spells/${encodeURIComponent(spellName)}`);
-        if (!response.ok) return;
-        
-        const spellData = await response.json();
-        
-        // Create tooltip
-        const tooltip = document.createElement('div');
-        tooltip.className = 'spell-tooltip';
-        
-        const levelText = spellData.level === 0 ? 'Cantrip' : `Level ${spellData.level}`;
-        
-        tooltip.innerHTML = `
-            <div class="tooltip-header">
-                <span class="tooltip-name">${spellData.name}</span>
-                <span class="tooltip-type">${levelText} - ${spellData.school}</span>
-            </div>
-            <div class="tooltip-description">${spellData.description}</div>
-            <div class="tooltip-stats">
-                <div class="tooltip-stat"><span>Casting Time:</span><span>${spellData.casting_time}</span></div>
-                <div class="tooltip-stat"><span>Range:</span><span>${spellData.range}</span></div>
-                <div class="tooltip-stat"><span>Duration:</span><span>${spellData.duration}</span></div>
-                <div class="tooltip-stat"><span>Components:</span><span>${spellData.components}</span></div>
-                ${spellData.concentration ? '<div class="tooltip-stat"><span>Concentration:</span><span>Yes</span></div>' : ''}
-            </div>
-        `;
-        
-        element.appendChild(tooltip);
-    } catch (error) {
-        console.error('[ERROR] Failed to fetch spell tooltip:', error);
-    }
-}
+// Removed tooltip functions - no longer needed

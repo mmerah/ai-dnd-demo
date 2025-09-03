@@ -50,10 +50,10 @@ async def modify_inventory(ctx: RunContext[AgentDependencies], item_name: str, q
         quantity: The number of items to add (positive) or remove (negative)
 
     Examples:
-        - Find potion: item_name="Healing Potion", quantity=1
-        - Use potion: item_name="Healing Potion", quantity=-1
-        - Buy rope: item_name="Rope (50 ft)", quantity=1
-        - Give rope away: item_name="Rope (50 ft)", quantity=-1
+        - Find potion: item_name="Potion of Healing", quantity=1
+        - Use potion: item_name="Potion of Healing", quantity=-1
+        - Buy rope: item_name="Rope, hempen (50 feet)", quantity=1
+        - Give rope away: item_name="Rope, hempen (50 feet)", quantity=-1
         - Loot arrows: item_name="Arrows", quantity=20
         - Shoot arrows: item_name="Arrows", quantity=-2
     """

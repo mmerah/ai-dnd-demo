@@ -58,7 +58,8 @@ class LootEntry(BaseModel):
 class MonsterSpawn(BaseModel):
     """Monster spawn definition for encounters."""
 
-    monster_name: str  # Must match monsters.json
+    monster_name: str | None = None  # Repository monster name (optional)
+    scenario_monster_id: str | None = None  # Scenario-defined notable monster id (optional)
     quantity_min: int = 1
     quantity_max: int = 1
     probability: float = 1.0  # Chance to appear
@@ -71,7 +72,7 @@ class LocationState(BaseModel):
     visited: bool = False
     times_visited: int = 0
     danger_level: DangerLevel = DangerLevel.MODERATE
-    npcs_present: list[str] = Field(default_factory=list)  # NPC names currently here
+    npcs_present: list[str] = Field(default_factory=list)  # NPC IDs currently here
     completed_encounters: list[str] = Field(default_factory=list)  # Encounter IDs completed
     discovered_secrets: list[str] = Field(default_factory=list)  # Secret IDs found
     looted_items: list[str] = Field(default_factory=list)  # Track which loot was taken
@@ -93,15 +94,15 @@ class LocationState(BaseModel):
         if secret_id not in self.discovered_secrets:
             self.discovered_secrets.append(secret_id)
 
-    def add_npc(self, npc_name: str) -> None:
-        """Add an NPC to this location."""
-        if npc_name not in self.npcs_present:
-            self.npcs_present.append(npc_name)
+    def add_npc_id(self, npc_id: str) -> None:
+        """Add an NPC id to this location."""
+        if npc_id not in self.npcs_present:
+            self.npcs_present.append(npc_id)
 
-    def remove_npc(self, npc_name: str) -> None:
-        """Remove an NPC from this location."""
-        if npc_name in self.npcs_present:
-            self.npcs_present.remove(npc_name)
+    def remove_npc_id(self, npc_id: str) -> None:
+        """Remove an NPC id from this location."""
+        if npc_id in self.npcs_present:
+            self.npcs_present.remove(npc_id)
 
     def get_description_variant(self) -> str:
         """Get description variant based on state."""

@@ -9,6 +9,7 @@ from app.events.commands.inventory_commands import (
     ModifyInventoryCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
+from app.interfaces.services import IGameService, IItemRepository
 from app.models.game_state import GameState
 from app.models.item import InventoryItem
 from app.models.tool_results import (
@@ -22,6 +23,10 @@ logger = logging.getLogger(__name__)
 
 class InventoryHandler(BaseHandler):
     """Handler for inventory-related commands."""
+
+    def __init__(self, game_service: IGameService, item_repository: IItemRepository):
+        super().__init__(game_service)
+        self.item_repository = item_repository
 
     supported_commands = (
         ModifyCurrencyCommand,
@@ -76,12 +81,16 @@ class InventoryHandler(BaseHandler):
             if existing_item:
                 existing_item.quantity += command.quantity
             else:
-                new_item = InventoryItem(
-                    name=command.item_name,
-                    quantity=command.quantity,
-                    weight=0.0,  # Would need item database for accurate weight
-                    value=0.0,  # Would need item database for accurate value
-                )
+                # Validate item exists in repository (fail-fast)
+                if not self.item_repository.validate_reference(command.item_name):
+                    raise ValueError(f"Unknown item: {command.item_name}")
+
+                # Get item definition and create properly
+                item_def = self.item_repository.get(command.item_name)
+                if not item_def:
+                    raise ValueError(f"Failed to load item definition: {command.item_name}")
+
+                new_item = InventoryItem.from_definition(item_def, quantity=command.quantity)
                 character.inventory.append(new_item)
 
             self.game_service.save_game(game_state)

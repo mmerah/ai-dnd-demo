@@ -7,6 +7,7 @@ from typing import Any
 
 from app.interfaces.services import IPathResolver
 from app.models.location import LocationConnection, LootEntry, MonsterSpawn
+from app.models.npc import NPCSheet
 from app.models.quest import ObjectiveStatus, Quest, QuestObjective, QuestStatus
 from app.models.scenario import (
     Encounter,
@@ -14,7 +15,7 @@ from app.models.scenario import (
     Scenario,
     ScenarioAct,
     ScenarioLocation,
-    ScenarioNPC,
+    ScenarioMonster,
     ScenarioProgression,
     Secret,
     TreasureGuidelines,
@@ -66,7 +67,10 @@ class ScenarioLoader(BaseLoader[Scenario]):
             scenario_dir = source_path.parent
 
             # Load all components
-            locations = self._load_locations(scenario_dir, data.get("locations", []))
+            npc_map = self._load_scenario_npcs(scenario_dir)
+            monster_map = self._load_scenario_monsters(scenario_dir)
+            encounter_map = self._load_scenario_encounters(scenario_dir)
+            locations = self._load_locations(scenario_dir, data.get("locations", []), npc_map, monster_map)
             quests = self._load_quests(scenario_dir, data.get("quests", []))
             progression = self._load_progression(scenario_dir, data.get("progression", "acts"))
             treasure_guidelines = self._parse_treasure_guidelines(data.get("treasure_guidelines", {}))
@@ -78,6 +82,7 @@ class ScenarioLoader(BaseLoader[Scenario]):
                 description=data.get("description", ""),
                 starting_location=data.get("starting_location", ""),
                 locations=locations,
+                encounters=encounter_map,
                 quests=quests,
                 progression=progression if progression else ScenarioProgression(acts=[]),
                 random_encounters=[],  # TODO: Load random encounters if needed
@@ -92,7 +97,13 @@ class ScenarioLoader(BaseLoader[Scenario]):
         except Exception as e:
             raise RuntimeError(f"Failed to parse scenario from {source_path}: {e}") from e
 
-    def _load_locations(self, scenario_dir: Path, location_ids: list[str]) -> list[ScenarioLocation]:
+    def _load_locations(
+        self,
+        scenario_dir: Path,
+        location_ids: list[str],
+        npc_map: dict[str, NPCSheet],
+        monster_map: dict[str, Any],
+    ) -> list[ScenarioLocation]:
         """Load all location files for the scenario.
 
         Args:
@@ -112,14 +123,16 @@ class ScenarioLoader(BaseLoader[Scenario]):
             location_file = locations_dir / f"{location_id}.json"
             if location_file.exists():
                 try:
-                    location = self._load_location_file(location_file)
+                    location = self._load_location_file(location_file, npc_map, monster_map)
                     locations.append(location)
                 except Exception as e:
                     logger.warning(f"Failed to load location {location_id}: {e}")
 
         return locations
 
-    def _load_location_file(self, file_path: Path) -> ScenarioLocation:
+    def _load_location_file(
+        self, file_path: Path, npc_map: dict[str, NPCSheet], monster_map: dict[str, Any]
+    ) -> ScenarioLocation:
         """Load a single location from file.
 
         Args:
@@ -131,29 +144,39 @@ class ScenarioLoader(BaseLoader[Scenario]):
         with open(file_path, encoding="utf-8") as f:
             data = json.load(f)
 
-        # Parse NPCs
-        npcs = []
-        for npc_data in data.get("npcs", []):
-            npcs.append(ScenarioNPC(**npc_data))
+        # Parse npc_ids only (normalized approach)
+        npc_ids: list[str] = []
+        raw_npc_ids = data.get("npc_ids")
+        if isinstance(raw_npc_ids, list):
+            for nid in raw_npc_ids:
+                if isinstance(nid, str):
+                    npc_ids.append(nid)
 
-        # Parse encounters
-        encounters = []
-        for enc_data in data.get("encounters", []):
-            monster_spawns = []
-            for spawn_data in enc_data.get("monster_spawns", []):
-                monster_spawns.append(MonsterSpawn(**spawn_data))
+        # Parse notable monsters by ids (optional per-location)
+        notable_monsters = []
+        monster_ids = data.get("monster_ids")
+        if isinstance(monster_ids, list) and monster_ids:
+            for mid in monster_ids:
+                sm = monster_map.get(str(mid))
+                if sm:
+                    notable_monsters.append(sm)
 
-            encounters.append(
-                Encounter(
-                    id=enc_data.get("id"),
-                    type=enc_data.get("type"),
-                    description=enc_data.get("description"),
-                    difficulty=enc_data.get("difficulty"),
-                    monster_spawns=monster_spawns,
-                    dc=enc_data.get("dc"),
-                    rewards=enc_data.get("rewards", []),
-                )
-            )
+        # Parse encounter_ids (normalized approach)
+        encounter_ids: list[str] = []
+        raw_encounter_ids = data.get("encounter_ids")
+        if isinstance(raw_encounter_ids, list):
+            for eid in raw_encounter_ids:
+                if isinstance(eid, str):
+                    encounter_ids.append(eid)
+
+        # Parse monster_ids as list of strings for the model
+        # (different from the notable_monsters loaded above)
+        location_monster_ids: list[str] = []
+        raw_monster_ids = data.get("monster_ids")
+        if isinstance(raw_monster_ids, list):
+            for mid in raw_monster_ids:
+                if isinstance(mid, str):
+                    location_monster_ids.append(mid)
 
         # Parse connections
         connections = []
@@ -186,8 +209,10 @@ class ScenarioLoader(BaseLoader[Scenario]):
             name=data["name"],
             description=data.get("description", ""),
             descriptions=descriptions,
-            npcs=npcs,
-            encounters=encounters,
+            npc_ids=npc_ids,
+            notable_monsters=notable_monsters,
+            encounter_ids=encounter_ids,
+            monster_ids=location_monster_ids,
             connections=connections,
             events=data.get("events", []),
             environmental_features=data.get("environmental_features", []),
@@ -196,6 +221,70 @@ class ScenarioLoader(BaseLoader[Scenario]):
             victory_conditions=data.get("victory_conditions", []),
             danger_level=data.get("danger_level", "moderate"),
         )
+
+    def _load_scenario_npcs(self, scenario_dir: Path) -> dict[str, NPCSheet]:
+        """Load all scenario NPC files into a map by id."""
+        npcs_dir = scenario_dir / "npcs"
+        npc_map: dict[str, NPCSheet] = {}
+        if not npcs_dir.exists():
+            return npc_map
+        for file_path in npcs_dir.glob("*.json"):
+            try:
+                with open(file_path, encoding="utf-8") as f:
+                    raw = json.load(f)
+                npc = NPCSheet(**raw)
+                npc_map[npc.id] = npc
+            except Exception as e:
+                logger.warning(f"Failed to load scenario NPC from {file_path}: {e}")
+        return npc_map
+
+    def _load_scenario_monsters(self, scenario_dir: Path) -> dict[str, Any]:
+        """Load all scenario notable monsters into a map by id."""
+        monsters_dir = scenario_dir / "monsters"
+        m_map: dict[str, ScenarioMonster] = {}
+        if not monsters_dir.exists():
+            return m_map
+        for file_path in monsters_dir.glob("*.json"):
+            try:
+                with open(file_path, encoding="utf-8") as f:
+                    raw = json.load(f)
+                sm = ScenarioMonster(**raw)
+                m_map[sm.id] = sm
+            except Exception as e:
+                logger.warning(f"Failed to load scenario monster from {file_path}: {e}")
+        return m_map
+
+    def _load_scenario_encounters(self, scenario_dir: Path) -> dict[str, Encounter]:
+        """Load all scenario encounters into a map by id."""
+        encounters_dir = scenario_dir / "encounters"
+        encounter_map: dict[str, Encounter] = {}
+        if not encounters_dir.exists():
+            return encounter_map
+
+        for file_path in encounters_dir.glob("*.json"):
+            try:
+                with open(file_path, encoding="utf-8") as f:
+                    data = json.load(f)
+
+                # Parse monster spawns
+                monster_spawns = []
+                for spawn_data in data.get("monster_spawns", []):
+                    monster_spawns.append(MonsterSpawn(**spawn_data))
+
+                encounter = Encounter(
+                    id=data["id"],
+                    type=data.get("type", "combat"),
+                    description=data.get("description", ""),
+                    difficulty=data.get("difficulty"),
+                    monster_spawns=monster_spawns,
+                    dc=data.get("dc"),
+                    rewards=data.get("rewards", []),
+                )
+                encounter_map[encounter.id] = encounter
+            except Exception as e:
+                logger.warning(f"Failed to load encounter from {file_path}: {e}")
+
+        return encounter_map
 
     def _load_quests(self, scenario_dir: Path, quest_ids: list[str]) -> list[Quest]:
         """Load all quest files for the scenario.

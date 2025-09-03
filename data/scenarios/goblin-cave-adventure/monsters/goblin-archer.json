@@ -1,0 +1,30 @@
+{
+  "id": "goblin-archer",
+  "display_name": "Goblin Archer",
+  "description": "A sneaky goblin archer lurking in the shadows.",
+  "monster": {
+    "name": "Goblin Archer",
+    "type": "humanoid (goblinoid)",
+    "size": "Small",
+    "alignment": "neutral-evil",
+    "index": "goblin-archer",
+    "armor_class": 14,
+    "hit_points": {"current": 7, "maximum": 7, "temporary": 0},
+    "hit_dice": "2d6",
+    "speed": "walk 30 ft",
+    "challenge_rating": 0.25,
+    "abilities": {"STR": 8, "DEX": 14, "CON": 10, "INT": 10, "WIS": 8, "CHA": 8},
+    "skills": [{"name": "Stealth", "modifier": 6}],
+    "senses": "darkvision 60 ft., passive Perception 9",
+    "languages": ["common", "goblin"],
+    "attacks": [
+      {"name": "Shortbow", "type": "Ranged", "to_hit": 4, "reach": null, "range": "80/320 ft.", "damage": "1d6+2", "damage_type": "piercing", "special": null}
+    ],
+    "special_abilities": [],
+    "damage_vulnerabilities": [],
+    "damage_resistances": [],
+    "damage_immunities": [],
+    "condition_immunities": [],
+    "conditions": []
+  }
+}

@@ -13,6 +13,7 @@ from app.models.ai_response import AIResponse
 from app.models.character import CharacterSheet
 from app.models.game_state import GameEvent, GameEventType, GameState, Message, MessageRole
 from app.models.item import ItemDefinition, ItemRarity, ItemType
+from app.models.monster import Monster
 from app.models.npc import NPCSheet
 from app.models.scenario import Scenario, ScenarioLocation
 from app.models.spell import SpellDefinition, SpellSchool
@@ -132,6 +133,21 @@ class IScenarioService(ABC):
 
     @abstractmethod
     def get_scenario_context_for_ai(self, scenario: Scenario, current_location_id: str) -> str:
+        pass
+
+    @abstractmethod
+    def get_scenario_npc(self, scenario_id: str, npc_id: str) -> NPCSheet | None:
+        """Resolve a scenario NPC by id to an NPCSheet."""
+        pass
+
+    @abstractmethod
+    def get_location_npcs(self, scenario_id: str, location_id: str) -> list[NPCSheet]:
+        """List NPCSheets present at a location via npc_ids."""
+        pass
+
+    @abstractmethod
+    def get_scenario_monster(self, scenario_id: str, monster_id: str) -> Monster | None:
+        """Resolve a scenario-defined monster by id to a Monster."""
         pass
 
 
@@ -283,16 +299,16 @@ class IItemRepository(IRepository[ItemDefinition]):
         pass
 
 
-class IMonsterRepository(IRepository[NPCSheet]):
+class IMonsterRepository(IRepository[Monster]):
     """Repository interface for monster data."""
 
     @abstractmethod
-    def get_by_challenge_rating(self, min_cr: float, max_cr: float) -> list[NPCSheet]:
+    def get_by_challenge_rating(self, min_cr: float, max_cr: float) -> list[Monster]:
         """Get all monsters within a challenge rating range."""
         pass
 
     @abstractmethod
-    def get_by_type(self, creature_type: str) -> list[NPCSheet]:
+    def get_by_type(self, creature_type: str) -> list[Monster]:
         """Get all monsters of a specific type."""
         pass
 

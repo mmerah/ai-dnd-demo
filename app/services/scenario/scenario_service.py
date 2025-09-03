@@ -1,9 +1,12 @@
 """Service for managing scenarios."""
 
+import json
 import logging
 
-from app.interfaces.services import ILoader, IMonsterRepository, IPathResolver, IScenarioService
-from app.models.scenario import Scenario
+from app.interfaces.services import ICharacterService, ILoader, IMonsterRepository, IPathResolver, IScenarioService
+from app.models.monster import Monster
+from app.models.npc import NPCSheet
+from app.models.scenario import Scenario, ScenarioMonster
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +19,7 @@ class ScenarioService(IScenarioService):
         path_resolver: IPathResolver,
         scenario_loader: ILoader[Scenario],
         monster_repository: IMonsterRepository,
+        character_service: ICharacterService,
     ):
         """
         Initialize scenario service.
@@ -28,6 +32,7 @@ class ScenarioService(IScenarioService):
         self.path_resolver = path_resolver
         self.scenario_loader = scenario_loader
         self.monster_repository = monster_repository
+        self.character_service = character_service
         self._scenarios: dict[str, Scenario] = {}
         self._load_all_scenarios()
 
@@ -83,6 +88,31 @@ class ScenarioService(IScenarioService):
         """
         return list(self._scenarios.values())
 
+    def get_scenario_npc(self, scenario_id: str, npc_id: str) -> NPCSheet | None:
+        """Load a specific scenario NPC by id from disk.
+
+        This avoids duplicating data in memory and keeps scenario NPCs normalized.
+        """
+        try:
+            npc_path = self.path_resolver.get_scenario_dir(scenario_id) / "npcs" / f"{npc_id}.json"
+            if not npc_path.exists():
+                return None
+            import json
+
+            with open(npc_path, encoding="utf-8") as f:
+                data = json.load(f)
+            npc = NPCSheet(**data)
+
+            # Validate NPC character sheet if character service available (fail-fast)
+            errors = self.character_service.validate_character_references(npc.character)
+            if errors:
+                raise ValueError(f"NPC {npc.id} has invalid references: {', '.join(errors)}")
+
+            return npc
+        except Exception as e:
+            logger.error(f"Failed to load NPC {npc_id} from scenario {scenario_id}: {e}")
+            raise
+
     def get_default_scenario(self) -> Scenario | None:
         """
         Get the default scenario (first available).
@@ -97,6 +127,37 @@ class ScenarioService(IScenarioService):
             # Otherwise return the first scenario
             return next(iter(self._scenarios.values()))
         return None
+
+    def get_scenario_monster(self, scenario_id: str, monster_id: str) -> Monster | None:
+        """Load a scenario-defined monster by id and return its Monster model.
+
+        Returns None if not found or invalid.
+        """
+        try:
+            m_path = self.path_resolver.get_scenario_dir(scenario_id) / "monsters" / f"{monster_id}.json"
+            if not m_path.exists():
+                return None
+            with open(m_path, encoding="utf-8") as f:
+                data = json.load(f)
+            sm = ScenarioMonster(**data)
+            return sm.monster
+        except Exception:
+            return None
+
+    def get_location_npcs(self, scenario_id: str, location_id: str) -> list[NPCSheet]:
+        """Resolve and return NPCSheets for a location's npc_ids."""
+        scenario = self.get_scenario(scenario_id)
+        if not scenario:
+            return []
+        loc = scenario.get_location(location_id)
+        if not loc or not loc.npc_ids:
+            return []
+        npcs: list[NPCSheet] = []
+        for nid in loc.npc_ids:
+            npc = self.get_scenario_npc(scenario_id, nid)
+            if npc:
+                npcs.append(npc)
+        return npcs
 
     def get_scenario_context_for_ai(self, scenario: Scenario, current_location_id: str) -> str:
         """
@@ -116,13 +177,15 @@ class ScenarioService(IScenarioService):
         if location:
             context += f"## Current Location: {location.name}\n{location.description}\n\n"
 
-            if location.npcs:
+            if location.npc_ids:
                 context += "NPCs present:\n"
-                for npc in location.npcs:
-                    context += f"- {npc.name} ({npc.role}): {npc.description}\n"
+                for nid in location.npc_ids:
+                    npc = self.get_scenario_npc(scenario.id, nid)
+                    if npc:
+                        context += f"- {npc.display_name} ({npc.role}): {npc.description}\n"
                 context += "\n"
 
-            if location.encounters:
-                context += f"Potential encounters: {len(location.encounters)} available\n\n"
+            if location.encounter_ids:
+                context += f"Potential encounters: {len(location.encounter_ids)} available\n\n"
 
         return context

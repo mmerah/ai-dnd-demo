@@ -258,16 +258,34 @@ body {
 }
 
 /* Character Info */
+.basic-info {
+    background: var(--background-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.75rem;
+}
+
 .info-row {
     display: flex;
     justify-content: space-between;
-    padding: 0.25rem 0;
-    color: var(--text-secondary);
+    padding: 0.4rem 0.5rem;
+    border-radius: 4px;
+    transition: background 0.2s ease;
+}
+
+.info-row:hover {
+    background: rgba(212, 175, 55, 0.05);
 }
 
 .label {
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--accent-color);
+    font-size: 0.9rem;
+}
+
+.info-row span:last-child {
+    color: var(--text-primary);
+    font-weight: 500;
 }
 
 /* HP Bar */
@@ -355,47 +373,142 @@ body {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
+    background: var(--background-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.75rem;
 }
 
 .skill-item {
     display: flex;
     justify-content: space-between;
-    padding: 0.25rem;
+    align-items: center;
+    padding: 0.4rem 0.5rem;
+    background: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.skill-item:hover {
+    border-color: var(--accent-color);
+    background: rgba(212, 175, 55, 0.1);
+}
+
+.skill-item span:first-child {
     color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.skill-item span:last-child {
+    color: var(--accent-color);
+    font-weight: 600;
+    font-size: 0.95rem;
 }
 
 .skill-item.proficient {
+    border-color: var(--accent-color);
+    background: rgba(212, 175, 55, 0.05);
+}
+
+.skill-item.proficient span:first-child {
     color: var(--text-primary);
-    font-weight: 600;
 }
 
 /* Spell Slots */
+.spell-slots {
+    background: var(--background-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.spell-slots h4 {
+    color: var(--accent-color);
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
 .slots-grid {
     display: flex;
     gap: 1rem;
-    margin-bottom: 1rem;
+    flex-wrap: wrap;
 }
 
 .spell-slot-level {
     text-align: center;
+    background: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.5rem;
+    min-width: 80px;
+}
+
+.spell-slot-level > div:first-child {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
 }
 
 .slot-circles {
     display: flex;
     gap: 0.25rem;
-    margin-top: 0.25rem;
+    justify-content: center;
 }
 
 .slot-circle {
-    width: 20px;
-    height: 20px;
+    width: 22px;
+    height: 22px;
     border-radius: 50%;
     border: 2px solid var(--accent-color);
     background: var(--background-dark);
+    transition: all 0.2s ease;
 }
 
 .slot-circle.filled {
     background: var(--accent-color);
+    box-shadow: 0 0 5px rgba(212, 175, 55, 0.5);
+}
+
+/* Spell List */
+.spell-list {
+    background: var(--background-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.75rem;
+}
+
+.spell-list h4 {
+    color: var(--accent-color);
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.spells {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 0.5rem;
+}
+
+.spell-item {
+    background: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.5rem;
+    text-align: center;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.spell-item:hover {
+    border-color: var(--accent-color);
+    background: rgba(212, 175, 55, 0.1);
+    transform: translateY(-1px);
 }
 
 /* Inventory */
@@ -1126,104 +1239,73 @@ body {
     font-size: 0.9rem;
 }
 
-/* Enhanced Inventory Tooltips */
-.inventory-item {
-    position: relative;
-    cursor: pointer;
+/* Features and Traits Styles */
+.features-traits-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
 }
 
-.item-tooltip,
-.spell-tooltip {
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--background-light);
-    border: 2px solid var(--accent-color);
+.feature-trait-section {
+    background: var(--background-dark);
+    border: 1px solid var(--border-color);
     border-radius: 4px;
     padding: 0.75rem;
-    min-width: 250px;
-    max-width: 350px;
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    pointer-events: none;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-.inventory-item:hover .item-tooltip,
-.spell-item:hover .spell-tooltip {
-    opacity: 1;
-    visibility: visible;
-    bottom: calc(100% + 5px);
-}
-
-.tooltip-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-    padding-bottom: 0.25rem;
-    border-bottom: 1px solid var(--border-color);
-}
-
-.tooltip-name {
+.feature-trait-section h4 {
     color: var(--accent-color);
-    font-weight: bold;
-}
-
-.tooltip-type {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-}
-
-.tooltip-rarity {
-    font-size: 0.8rem;
-    padding: 0.1rem 0.3rem;
-    border-radius: 3px;
-}
-
-.rarity-common {
-    background: #616161;
-    color: white;
-}
-
-.rarity-uncommon {
-    background: #4caf50;
-    color: white;
-}
-
-.rarity-rare {
-    background: #2196f3;
-    color: white;
-}
-
-.rarity-very-rare {
-    background: #9c27b0;
-    color: white;
-}
-
-.rarity-legendary {
-    background: #ff9800;
-    color: white;
-}
-
-.tooltip-description {
-    color: var(--text-primary);
-    font-size: 0.85rem;
-    line-height: 1.4;
+    font-size: 0.95rem;
     margin-bottom: 0.5rem;
+    font-weight: 600;
 }
 
-.tooltip-stats {
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-}
-
-.tooltip-stat {
+.tag-list {
     display: flex;
-    justify-content: space-between;
-    padding: 0.1rem 0;
+    flex-wrap: wrap;
+    gap: 0.5rem;
 }
 
+.tag {
+    background: var(--background-light);
+    border: 1px solid var(--accent-color);
+    color: var(--text-primary);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.feature-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.feature-row {
+    background: var(--background-dark);
+    padding: 0.5rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.feature-row strong {
+    color: var(--accent-color);
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.feature-row:hover {
+    background: var(--background-light);
+    border-color: var(--accent-color);
+}
+
+/* Simplified catalog styles - no tooltips */
+.catalog-row {
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.catalog-row:hover {
+    background: var(--background-light);
+}

@@ -53,6 +53,14 @@ class LocationHandler(BaseHandler):
         result = CommandResult()
 
         if isinstance(command, ChangeLocationCommand):
+            # Fail-fast validation
+            if not command.location_id:
+                raise ValueError("location_id cannot be empty")
+            if not command.location_name:
+                raise ValueError("location_name cannot be empty")
+            if not command.description:
+                raise ValueError("description cannot be empty")
+
             # Update game state location
             game_state.change_location(
                 new_location_id=command.location_id,
@@ -121,14 +129,14 @@ class LocationHandler(BaseHandler):
                 except ValueError as e:
                     raise ValueError(f"Invalid danger level: {command.danger_level}") from e
 
-            # Add NPC
+            # Add NPC id
             if command.add_npc:
-                location_state.add_npc(command.add_npc)
+                location_state.add_npc_id(command.add_npc)
                 updates.append(f"Added NPC: {command.add_npc}")
 
-            # Remove NPC
+            # Remove NPC id
             if command.remove_npc:
-                location_state.remove_npc(command.remove_npc)
+                location_state.remove_npc_id(command.remove_npc)
                 updates.append(f"Removed NPC: {command.remove_npc}")
 
             # Complete encounter

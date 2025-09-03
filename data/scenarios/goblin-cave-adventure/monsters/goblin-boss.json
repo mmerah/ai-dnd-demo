@@ -1,0 +1,33 @@
+{
+  "id": "goblin-boss",
+  "display_name": "Goblin Boss",
+  "description": "The cunning leader of the goblin raiders.",
+  "monster": {
+    "name": "Goblin Boss",
+    "type": "humanoid (goblinoid)",
+    "size": "Small",
+    "alignment": "neutral-evil",
+    "index": "goblin-boss",
+    "armor_class": 17,
+    "hit_points": {"current": 21, "maximum": 21, "temporary": 0},
+    "hit_dice": "6d6",
+    "speed": "walk 30 ft",
+    "challenge_rating": 1.0,
+    "abilities": {"STR": 10, "DEX": 14, "CON": 12, "INT": 10, "WIS": 10, "CHA": 10},
+    "skills": [{"name": "Stealth", "modifier": 6}],
+    "senses": "darkvision 60 ft., passive Perception 10",
+    "languages": ["common", "goblin"],
+    "attacks": [
+      {"name": "Scimitar", "type": "Melee", "to_hit": 4, "reach": "5 ft.", "range": null, "damage": "1d6+2", "damage_type": "slashing", "special": null},
+      {"name": "Javelin", "type": "Ranged", "to_hit": 4, "reach": null, "range": "30/120 ft.", "damage": "1d6+2", "damage_type": "piercing", "special": null}
+    ],
+    "special_abilities": [
+      {"name": "Redirect Attack", "description": "When a creature the boss can see targets it with an attack, the boss chooses one of its allies within 5 feet of it. The two creatures swap places, and the chosen ally becomes the target instead."}
+    ],
+    "damage_vulnerabilities": [],
+    "damage_resistances": [],
+    "damage_immunities": [],
+    "condition_immunities": [],
+    "conditions": []
+  }
+}

@@ -11,6 +11,9 @@
     <div id="characterSelection" class="screen">
         <div class="selection-container">
             <h1>D&D 5e AI Dungeon Master</h1>
+            <div style="margin-bottom: 1rem;">
+                <button id="openCatalogsHome" class="btn-small">📚 Browse Catalogs</button>
+            </div>
             
             <!-- Saved Games Section -->
             <div id="savedGamesSection" class="saved-games-section">
@@ -49,15 +52,17 @@
     <!-- Main Game Interface -->
     <div id="gameInterface" class="screen hidden">
         <!-- Header Bar -->
-        <div class="header-bar">
+            <div class="header-bar">
             <div class="location-time">
                 <span class="location">📍 <span id="currentLocation">Unknown</span> <span id="dangerLevel" class="danger-indicator"></span></span>
                 <span class="time">🕐 <span id="gameTime">Day 1, 12:00</span></span>
                 <span class="act-chapter">📖 <span id="currentAct">Act I</span></span>
                 <span id="combatIndicator" class="combat-indicator hidden">⚔️ COMBAT</span>
             </div>
-            <button id="saveGame" class="btn-small">💾 Save</button>
-        </div>
+            <div>
+                <button id="saveGame" class="btn-small">💾 Save</button>
+            </div>
+            </div>
 
         <!-- Split Screen Container -->
         <div class="game-container">
@@ -110,8 +115,16 @@
                             <span id="charRace">-</span>
                         </div>
                         <div class="info-row">
+                            <span class="label">Subrace:</span>
+                            <span id="charSubrace">-</span>
+                        </div>
+                        <div class="info-row">
                             <span class="label">Class:</span>
                             <span id="charClass">-</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label">Subclass:</span>
+                            <span id="charSubclass">-</span>
                         </div>
                         <div class="info-row">
                             <span class="label">Level:</span>
@@ -197,6 +210,44 @@
                     </div>
                 </div>
 
+                <!-- Features -->
+                <div class="sheet-section collapsible">
+                    <h3 class="collapsible-header">Features <span class="toggle">▼</span></h3>
+                    <div class="collapsible-content">
+                        <div class="features-traits-container">
+                            <div class="feature-trait-section">
+                                <h4>Class Features</h4>
+                                <div id="featureIndexList" class="tag-list"></div>
+                            </div>
+                            <div class="feature-trait-section">
+                                <h4>Custom Features</h4>
+                                <div id="featureTextList" class="feature-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Traits -->
+                <div class="sheet-section collapsible">
+                    <h3 class="collapsible-header">Racial Traits <span class="toggle">▼</span></h3>
+                    <div class="collapsible-content">
+                        <div class="features-traits-container">
+                            <div class="feature-trait-section">
+                                <h4>Racial Traits</h4>
+                                <div id="traitIndexList" class="tag-list"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feats -->
+                <div class="sheet-section collapsible">
+                    <h3 class="collapsible-header">Feats <span class="toggle">▼</span></h3>
+                    <div class="collapsible-content">
+                        <div id="featIndexList" class="tag-list"></div>
+                    </div>
+                </div>
+
                 <!-- Spellcasting -->
                 <div class="sheet-section collapsible">
                     <h3 class="collapsible-header">Spellcasting <span class="toggle">▼</span></h3>
@@ -253,6 +304,23 @@
                     <textarea id="messageInput" placeholder="What do you do?" rows="3"></textarea>
                     <button id="sendMessage" class="btn-primary">Send</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Catalogs Screen -->
+    <div id="catalogsScreen" class="screen hidden">
+        <div class="selection-container">
+            <h2>Catalogs</h2>
+            <div id="catalogsNav" class="catalogs-nav"></div>
+            <div style="margin-top:6px;">
+                <button id="catBackBtn" class="btn-small">⬅ Back</button>
+            </div>
+            <div id="catalogsContentList" class="catalogs-list" style="margin-top:8px;"></div>
+            <div class="pagination" style="margin-top:8px; display:flex; gap:8px; align-items:center;">
+                <button id="catPrevBtn" class="btn-small">Prev</button>
+                <span id="catPageInfo"></span>
+                <button id="catNextBtn" class="btn-small">Next</button>
             </div>
         </div>
     </div>

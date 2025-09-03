@@ -11,6 +11,7 @@ from app.models.character import CharacterSheet
 from app.models.combat import CombatState
 from app.models.game_state import GameEvent, GameState, GameTime, Message
 from app.models.location import LocationState
+from app.models.monster import Monster
 from app.models.npc import NPCSheet
 from app.models.quest import Quest
 
@@ -44,7 +45,9 @@ class SaveManager(ISaveManager):
             ├── location_states/
             │   └── [location-id].json
             ├── npcs/
-            │   └── [npc-name].json
+            │   └── [npc-id].json
+            ├── monsters/
+            │   └── [monster-name].json
             └── quests/
                 └── [quest-id].json
 
@@ -68,6 +71,7 @@ class SaveManager(ISaveManager):
         self._save_game_events(save_dir, game_state.game_events)
         self._save_location_states(save_dir, game_state.location_states)
         self._save_npcs(save_dir, game_state.npcs)
+        self._save_monsters(save_dir, game_state.monsters)
         self._save_quests(save_dir, game_state.active_quests)
 
         # Save combat state if active
@@ -138,6 +142,7 @@ class SaveManager(ISaveManager):
             game_state.game_events = self._load_game_events(save_dir)
             game_state.location_states = self._load_location_states(save_dir)
             game_state.npcs = self._load_npcs(save_dir)
+            game_state.monsters = self._load_monsters(save_dir)
             game_state.active_quests = self._load_quests(save_dir)
 
             # Load combat if exists
@@ -273,12 +278,22 @@ class SaveManager(ISaveManager):
         npcs_dir = save_dir / "npcs"
         npcs_dir.mkdir(exist_ok=True)
 
-        for i, npc in enumerate(npcs):
-            # Use index-name combination to handle duplicates
-            safe_name = npc.name.replace(" ", "-").replace("/", "-").lower()
-            file_path = npcs_dir / f"{i:03d}-{safe_name}.json"
+        for npc in npcs:
+            safe_id = npc.id.replace("/", "-")
+            file_path = npcs_dir / f"{safe_id}.json"
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(npc.model_dump_json(indent=2))
+
+    def _save_monsters(self, save_dir: Path, monsters: list[Monster]) -> None:
+        """Save Monsters."""
+        monsters_dir = save_dir / "monsters"
+        monsters_dir.mkdir(exist_ok=True)
+
+        for i, monster in enumerate(monsters):
+            safe_name = monster.name.replace(" ", "-").replace("/", "-").lower()
+            file_path = monsters_dir / f"{i:03d}-{safe_name}.json"
+            with open(file_path, "w", encoding="utf-8") as f:
+                f.write(monster.model_dump_json(indent=2))
 
     def _save_quests(self, save_dir: Path, quests: list[Quest]) -> None:
         """Save active quests."""
@@ -357,13 +372,25 @@ class SaveManager(ISaveManager):
             return []
 
         npcs = []
-        # Load in sorted order to preserve original ordering
         for file_path in sorted(npcs_dir.glob("*.json")):
             with open(file_path, encoding="utf-8") as f:
                 data = json.load(f)
             npcs.append(NPCSheet(**data))
 
         return npcs
+
+    def _load_monsters(self, save_dir: Path) -> list[Monster]:
+        """Load Monsters."""
+        monsters_dir = save_dir / "monsters"
+        if not monsters_dir.exists():
+            return []
+
+        monsters: list[Monster] = []
+        for file_path in sorted(monsters_dir.glob("*.json")):
+            with open(file_path, encoding="utf-8") as f:
+                data = json.load(f)
+            monsters.append(Monster(**data))
+        return monsters
 
     def _load_quests(self, save_dir: Path) -> list[Quest]:
         """Load active quests."""

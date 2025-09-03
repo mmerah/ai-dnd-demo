@@ -1,0 +1,24 @@
+{
+  "id": "treasure-room",
+  "name": "Goblin Treasure Room",
+  "description": "A cramped chamber piled with stolen goods. A makeshift throne sits against the far wall.",
+  "descriptions": {
+    "first_visit": "Torches flicker over heaps of stolen trinkets and sacks of coins. A crude throne fashioned from scavenged wood dominates the room.",
+    "return_visit": "The treasure lies scattered where you left it. The throne stands empty.",
+    "cleared": "Only dust and a few broken crates remain of the goblins' hoard."
+  },
+  "npc_ids": [],
+  "monster_ids": ["goblin-boss"],
+  "encounter_ids": ["boss-fight"],
+  "connections": [
+    {"to_location_id": "goblin-cave-depths", "description": "Back to the cave tunnels", "direction": "west", "requirements": [], "is_visible": true, "is_accessible": true}
+  ],
+  "environmental_features": ["Crate piles", "Makeshift throne", "Spilled coins"],
+  "secrets": [
+    {"id": "hidden-cache", "description": "A loose stone hides a small stash.", "discovery_method": "search", "dc": 13, "reward": "25 gold pieces"}
+  ],
+  "loot_table": [
+    {"item_name": "Potion of Healing", "quantity_min": 1, "quantity_max": 2, "probability": 0.8, "found": false, "hidden": false}
+  ],
+  "danger_level": "high"
+}

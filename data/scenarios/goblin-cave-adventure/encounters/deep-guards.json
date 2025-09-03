@@ -1,0 +1,15 @@
+{
+  "id": "deep-guards",
+  "type": "Combat",
+  "description": "Goblin warriors defend the deeper tunnels.",
+  "difficulty": "Medium",
+  "monster_spawns": [
+    {
+      "monster_name": "Goblin",
+      "quantity_min": 2,
+      "quantity_max": 3,
+      "probability": 1.0
+    }
+  ],
+  "rewards": ["Access to treasure room"]
+}

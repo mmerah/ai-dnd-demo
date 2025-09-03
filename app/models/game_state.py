@@ -10,6 +10,7 @@ from app.common.types import JSONSerializable
 from .character import CharacterSheet
 from .combat import CombatState
 from .location import LocationState
+from .monster import Monster
 from .npc import NPCSheet
 from .quest import Quest
 
@@ -102,6 +103,7 @@ class GameState(BaseModel):
     # Core game data
     character: CharacterSheet
     npcs: list[NPCSheet] = Field(default_factory=list)
+    monsters: list[Monster] = Field(default_factory=list)
 
     # Scenario information
     scenario_id: str | None = None
@@ -180,28 +182,58 @@ class GameState(BaseModel):
     def add_npc(self, npc: NPCSheet) -> None:
         """Add an NPC to the game."""
         # Check for duplicate names and rename if necessary
-        existing_names = [n.name for n in self.npcs]
-        if npc.name in existing_names:
+        existing_names = [n.character.name for n in self.npcs]
+        if npc.character.name in existing_names:
             counter = 2
-            base_name = npc.name
+            base_name = npc.character.name
             while f"{base_name} {counter}" in existing_names:
                 counter += 1
-            npc.name = f"{base_name} {counter}"
+            npc.character.name = f"{base_name} {counter}"
 
         self.npcs.append(npc)
 
     def remove_npc(self, name: str) -> bool:
         """Remove an NPC by name. Returns True if found and removed."""
         for i, npc in enumerate(self.npcs):
-            if npc.name == name:
+            if npc.character.name == name:
                 del self.npcs[i]
                 return True
         return False
 
+    def add_monster(self, monster: Monster) -> str:
+        """Add a monster to the game and return its final name (with suffix if deduped)."""
+        existing_names = [m.name for m in self.monsters]
+        final_name = monster.name
+        if final_name in existing_names:
+            counter = 2
+            base_name = final_name
+            while f"{base_name} {counter}" in existing_names:
+                counter += 1
+            final_name = f"{base_name} {counter}"
+            monster.name = final_name
+        self.monsters.append(monster)
+        return final_name
+
+    def remove_monster(self, name: str) -> bool:
+        for i, m in enumerate(self.monsters):
+            if m.name == name:
+                del self.monsters[i]
+                return True
+        return False
+
+    def get_monster(self, name: str) -> Monster | None:
+        for m in self.monsters:
+            if m.name == name:
+                return m
+        return None
+
+    def get_active_monsters(self) -> list[Monster]:
+        return [m for m in self.monsters if m.is_alive()]
+
     def get_npc(self, name: str) -> NPCSheet | None:
         """Get an NPC by name."""
         for npc in self.npcs:
-            if npc.name == name:
+            if npc.character.name == name:
                 return npc
         return None
 
@@ -218,8 +250,8 @@ class GameState(BaseModel):
         """End current combat encounter."""
         if self.combat:
             self.combat.end_combat()
-            # Remove dead NPCs
-            self.npcs = [npc for npc in self.npcs if npc.is_alive()]
+            # Remove dead monsters
+            self.monsters = [m for m in self.monsters if m.is_alive()]
             self.combat = None
 
     def set_quest_flag(self, flag_name: str, value: JSONSerializable = True) -> None:

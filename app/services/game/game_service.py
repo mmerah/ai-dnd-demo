@@ -22,7 +22,7 @@ from app.models.game_state import (
     MessageRole,
 )
 from app.models.quest import QuestStatus
-from app.models.scenario import ScenarioLocation
+from app.models.scenario import ScenarioLocation, ScenarioMonster
 
 
 class GameService(IGameService):
@@ -278,8 +278,21 @@ class GameService(IGameService):
         location_state = game_state.get_location_state(scenario_location.id)
         if not location_state.visited:
             location_state.danger_level = scenario_location.danger_level
-            for npc in scenario_location.npcs:
-                location_state.add_npc(npc.name)
+            # Resolve npc_ids to display names for location state
+            try:
+                if scenario_location.npc_ids and self.scenario_service:
+                    for nid in scenario_location.npc_ids:
+                        # Store ids; names are resolved for display when needed
+                        location_state.add_npc_id(nid)
+            except Exception:
+                pass
+
+            # Materialize notable monsters present at this location
+            if scenario_location.notable_monsters:
+                for sm in scenario_location.notable_monsters:
+                    if isinstance(sm, ScenarioMonster):
+                        # Add a deep copy so multiple visits don't share state
+                        game_state.add_monster(sm.monster.model_copy(deep=True))
 
     def add_game_event(
         self,
@@ -354,17 +367,18 @@ class GameService(IGameService):
 
         # Extract metadata if not provided
         if npcs_mentioned is None:
-            known_npcs = [npc.name for npc in game_state.npcs]
+            known_npcs = [npc.character.name for npc in game_state.npcs]
             # Include scenario location NPCs as known names for mention detection
             try:
                 if game_state.scenario_id and game_state.current_location_id:
                     scenario = self.scenario_service.get_scenario(game_state.scenario_id)
                     if scenario:
                         scenario_location = scenario.get_location(game_state.current_location_id)
-                        if scenario_location and scenario_location.npcs:
-                            for scenario_npc in scenario_location.npcs:
-                                if scenario_npc.name not in known_npcs:
-                                    known_npcs.append(scenario_npc.name)
+                        if scenario_location and scenario_location.npc_ids:
+                            for nid in scenario_location.npc_ids:
+                                npc = self.scenario_service.get_scenario_npc(game_state.scenario_id, nid)
+                                if npc and npc.display_name not in known_npcs:
+                                    known_npcs.append(npc.display_name)
             except Exception:
                 # Don't block message creation if scenario lookup fails
                 pass

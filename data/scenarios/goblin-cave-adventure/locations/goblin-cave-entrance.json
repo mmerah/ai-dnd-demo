@@ -7,30 +7,9 @@
     "return_visit": "The goblin cave entrance remains as forbidding as before. The guards may have changed, but the danger remains.",
     "cleared": "The cave entrance stands empty now, the totems knocked down. Without the goblins, it's just another cave."
   },
-  "npcs": [],
-  "encounters": [
-    {
-      "id": "cave-entrance-guards",
-      "type": "Combat",
-      "description": "Goblin sentries guard the cave entrance",
-      "difficulty": "Medium",
-      "monster_spawns": [
-        {
-          "monster_name": "Goblin",
-          "quantity_min": 2,
-          "quantity_max": 2,
-          "probability": 1.0
-        },
-        {
-          "monster_name": "Wolf",
-          "quantity_min": 1,
-          "quantity_max": 1,
-          "probability": 0.5
-        }
-      ],
-      "rewards": ["Passage into the cave"]
-    }
-  ],
+  "npc_ids": [],
+  "monster_ids": ["goblin-warrior", "goblin-archer"],
+  "encounter_ids": ["cave-entrance-guards"],
   "connections": [
     {
       "to_location_id": "forest-path",

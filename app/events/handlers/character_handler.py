@@ -47,14 +47,14 @@ class CharacterHandler(BaseHandler):
                 new_hp = min(old_hp + command.amount, max_hp) if command.amount > 0 else max(0, old_hp + command.amount)
                 character.hit_points.current = new_hp
             else:
-                npc = next((n for n in game_state.npcs if n.name.lower() == command.target.lower()), None)
+                npc = next((n for n in game_state.npcs if n.character.name.lower() == command.target.lower()), None)
                 if npc:
-                    old_hp = npc.hit_points.current
-                    max_hp = npc.hit_points.maximum
+                    old_hp = npc.character.hit_points.current
+                    max_hp = npc.character.hit_points.maximum
                     new_hp = (
                         min(old_hp + command.amount, max_hp) if command.amount > 0 else max(0, old_hp + command.amount)
                     )
-                    npc.hit_points.current = new_hp
+                    npc.character.hit_points.current = new_hp
                 else:
                     raise ValueError(f"Target {command.target} not found")
 

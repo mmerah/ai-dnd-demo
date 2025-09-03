@@ -1,0 +1,21 @@
+{
+  "id": "goblin-cave-depths",
+  "name": "Goblin Cave Depths",
+  "description": "Narrow tunnels open into a larger chamber riddled with crude barricades.",
+  "descriptions": {
+    "first_visit": "The air grows stale as you descend. Crude barricades and ratty bedrolls suggest a larger goblin force once camped here.",
+    "return_visit": "You recognize the chamber. The goblins seem fewer now, but danger still lurks.",
+    "cleared": "The once-busy goblin den lies empty. Only the stench remains."
+  },
+  "npc_ids": [],
+  "monster_ids": ["goblin-warrior"],
+  "encounter_ids": ["deep-guards"],
+  "connections": [
+    {"to_location_id": "goblin-cave-entrance", "description": "Back toward the entrance", "direction": "up", "requirements": [], "is_visible": true, "is_accessible": true},
+    {"to_location_id": "treasure-room", "description": "A guarded passage leads to a small vault", "direction": "east", "requirements": [], "is_visible": true, "is_accessible": true}
+  ],
+  "environmental_features": ["Crude barricades", "Goblin graffiti", "Stale, damp air"],
+  "secrets": [],
+  "loot_table": [],
+  "danger_level": "high"
+}

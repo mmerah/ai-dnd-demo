@@ -3,17 +3,17 @@
 from pydantic import BaseModel, Field
 
 from app.models.location import DangerLevel, LocationConnection, LootEntry, MonsterSpawn
+from app.models.monster import Monster
 from app.models.quest import Quest
 
 
-class ScenarioNPC(BaseModel):
-    """NPC definition within a scenario location."""
+class ScenarioMonster(BaseModel):
+    """Notable monster defined by the scenario with embedded stat block."""
 
-    name: str
-    role: str
-    description: str
-    dialogue_hints: list[str] = Field(default_factory=list)
-    valuable_item: str | None = None  # Special item this NPC has that could be looted/traded
+    id: str
+    display_name: str
+    description: str | None = None
+    monster: Monster
 
 
 class Encounter(BaseModel):
@@ -54,8 +54,10 @@ class ScenarioLocation(BaseModel):
     name: str
     description: str  # Default description
     descriptions: LocationDescriptions | None = None  # Multiple variants
-    npcs: list[ScenarioNPC] = Field(default_factory=list)
-    encounters: list[Encounter] = Field(default_factory=list)
+    npc_ids: list[str] = Field(default_factory=list)
+    notable_monsters: list[ScenarioMonster] = Field(default_factory=list)
+    encounter_ids: list[str] = Field(default_factory=list)  # References to encounter definitions
+    monster_ids: list[str] = Field(default_factory=list)  # References to monster definitions
     connections: list[LocationConnection] = Field(default_factory=list)  # Enhanced connections
     events: list[str] = Field(default_factory=list)
     environmental_features: list[str] = Field(default_factory=list)
@@ -143,6 +145,7 @@ class Scenario(BaseModel):
     description: str
     starting_location: str  # Location ID
     locations: list[ScenarioLocation]
+    encounters: dict[str, Encounter] = Field(default_factory=dict)  # All encounters by ID
     quests: list[Quest] = Field(default_factory=list)  # All quests in scenario
     progression: ScenarioProgression
     random_encounters: list[Encounter] = Field(default_factory=list)  # Random encounter table
@@ -174,11 +177,10 @@ class Scenario(BaseModel):
         return [q for q in self.quests if q.act == act_id]
 
     def get_encounter_by_id(self, encounter_id: str) -> Encounter | None:
-        """Find an encounter by ID across all locations."""
-        for location in self.locations:
-            for encounter in location.encounters:
-                if encounter.id == encounter_id:
-                    return encounter
+        """Find an encounter by ID."""
+        # Check the encounters dictionary
+        if encounter_id in self.encounters:
+            return self.encounters[encounter_id]
 
         # Also check random encounters
         for encounter in self.random_encounters:
@@ -196,9 +198,7 @@ class Scenario(BaseModel):
         narrative += f"### {start_loc.name}\n\n"
         narrative += start_loc.get_description("first_visit")
 
-        if start_loc.npcs:
-            narrative += "\n\nYou notice several people here:"
-            for npc in start_loc.npcs:
-                narrative += f"\n- {npc.description}"
+        if start_loc.npc_ids:
+            narrative += "\n\nYou notice several people here."
 
         return narrative

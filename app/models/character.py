@@ -2,30 +2,9 @@
 
 from pydantic import BaseModel, Field, ValidationInfo, field_validator
 
+from app.models.ability import Abilities, AbilityModifiers
 from app.models.item import InventoryItem
 from app.models.spell import Spellcasting
-
-
-class Abilities(BaseModel):
-    """Character ability scores."""
-
-    STR: int = Field(ge=1, le=30)
-    DEX: int = Field(ge=1, le=30)
-    CON: int = Field(ge=1, le=30)
-    INT: int = Field(ge=1, le=30)
-    WIS: int = Field(ge=1, le=30)
-    CHA: int = Field(ge=1, le=30)
-
-
-class AbilityModifiers(BaseModel):
-    """Calculated ability modifiers."""
-
-    STR: int
-    DEX: int
-    CON: int
-    INT: int
-    WIS: int
-    CHA: int
 
 
 class HitPoints(BaseModel):
@@ -104,7 +83,9 @@ class CharacterSheet(BaseModel):
     id: str
     name: str
     race: str
-    class_name: str
+    class_index: str
+    subclass: str | None = None
+    subrace: str | None = None
     level: int = Field(ge=1, le=20)
     background: str
     alignment: str
@@ -129,8 +110,13 @@ class CharacterSheet(BaseModel):
     # Attacks
     attacks: list[Attack]
 
-    # Features & Traits
-    features_and_traits: list[Feature]
+    # Custom features (character-specific choices/customizations)
+    custom_features: list[Feature] = Field(default_factory=list)
+
+    # SRD catalog references
+    feature_indexes: list[str] = Field(default_factory=list)
+    trait_indexes: list[str] = Field(default_factory=list)
+    feat_indexes: list[str] = Field(default_factory=list)
 
     # Spellcasting (optional)
     spellcasting: Spellcasting | None = None
@@ -153,6 +139,17 @@ class CharacterSheet(BaseModel):
         """Pydantic configuration."""
 
         populate_by_name = True
+
+    @property
+    def class_display(self) -> str:
+        """Human-readable class name derived from `class_index`.
+
+        Falls back to formatting the index (e.g., "circle-of-the-moon" -> "Circle Of The Moon").
+        """
+        if not self.class_index:
+            return ""
+        # Replace dashes with spaces and title-case for display
+        return self.class_index.replace("-", " ").title()
 
     def calculate_modifier(self, ability_score: int) -> int:
         """Calculate ability modifier from score."""

@@ -114,17 +114,22 @@ class CombatHandler(BaseHandler):
                     continue
 
                 # Spawn each monster
-                for i in range(quantity):
+                for _ in range(quantity):
                     try:
-                        monster_data = self.monster_repository.get(spawn.monster_name)
+                        monster_data = None
+                        # Prefer scenario-defined monster if provided
+                        monster_id = spawn.scenario_monster_id
+                        if monster_id and game_state.scenario_id:
+                            monster_data = self.scenario_service.get_scenario_monster(
+                                game_state.scenario_id, monster_id
+                            )
+                        # Fallback to repository by name
+                        repo_name = spawn.monster_name
+                        if not monster_data and repo_name:
+                            monster_data = self.monster_repository.get(repo_name)
                         if monster_data:
-                            # Add number suffix if multiple
-                            name = monster_data.name
-                            if quantity > 1:
-                                name = f"{name} {i + 1}"
-
-                            # Add to game state
-                            game_state.add_npc(monster_data)
+                            # Add to game state (handles duplicate name suffixing)
+                            name = game_state.add_monster(monster_data)
 
                             # Roll initiative
                             dex_mod = (monster_data.abilities.DEX - 10) // 2
@@ -138,7 +143,9 @@ class CombatHandler(BaseHandler):
                                 CombatParticipant(name=name, initiative=initiative, is_player=False)
                             )
                     except KeyError as e:
-                        logger.error(f"Failed to spawn monster '{spawn.monster_name}': {e}")
+                        logger.error(
+                            f"Failed to spawn monster '{getattr(spawn, 'monster_name', '') or getattr(spawn, 'scenario_monster_id', '')}': {e}"
+                        )
 
             # Save game state
             self.game_service.save_game(game_state)
@@ -162,17 +169,12 @@ class CombatHandler(BaseHandler):
                 monster_name = monster_spec.monster_name
                 quantity = monster_spec.quantity
 
-                for i in range(quantity):
+                for _ in range(quantity):
                     try:
                         monster_data = self.monster_repository.get(monster_name)
                         if monster_data:
-                            # Add number suffix if multiple
-                            name = monster_data.name
-                            if quantity > 1:
-                                name = f"{name} {i + 1}"
-
-                            # Add to game state
-                            game_state.add_npc(monster_data)
+                            # Add to game state (handles duplicate name suffixing)
+                            name = game_state.add_monster(monster_data)
 
                             # Roll initiative for the monster
                             dex_mod = (monster_data.abilities.DEX - 10) // 2

@@ -12,7 +12,9 @@
   ],
   "npcs": [
     "barkeep-tom",
-    "merchant-elena",
+    "merchant-elena"
+  ],
+  "monsters": [
     "goblin-warrior",
     "goblin-archer",
     "goblin-boss"

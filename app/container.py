@@ -42,9 +42,23 @@ from app.services.common import BroadcastService, DiceService
 from app.services.common.path_resolver import PathResolver
 from app.services.data.loaders.character_loader import CharacterLoader
 from app.services.data.loaders.scenario_loader import ScenarioLoader
+from app.services.data.repositories.alignment_repository import AlignmentRepository
+from app.services.data.repositories.background_repository import BackgroundRepository
+from app.services.data.repositories.class_repository import ClassRepository, SubclassRepository
+from app.services.data.repositories.condition_repository import ConditionRepository
+from app.services.data.repositories.damage_type_repository import DamageTypeRepository
+from app.services.data.repositories.feat_repository import FeatRepository
+from app.services.data.repositories.feature_repository import FeatureRepository
 from app.services.data.repositories.item_repository import ItemRepository
+from app.services.data.repositories.language_repository import LanguageRepository
+from app.services.data.repositories.magic_school_repository import MagicSchoolRepository
 from app.services.data.repositories.monster_repository import MonsterRepository
+from app.services.data.repositories.race_repository import RaceRepository
+from app.services.data.repositories.race_repository import SubraceRepository as RaceSubraceRepository
+from app.services.data.repositories.skill_repository import SkillRepository
 from app.services.data.repositories.spell_repository import SpellRepository
+from app.services.data.repositories.trait_repository import TraitRepository
+from app.services.data.repositories.weapon_property_repository import WeaponPropertyRepository
 from app.services.game import GameService
 from app.services.game.event_manager import EventManager
 from app.services.game.game_state_manager import GameStateManager
@@ -79,6 +93,20 @@ class Container:
             character_loader=self.character_loader,
             item_repository=self.item_repository,
             spell_repository=self.spell_repository,
+            alignment_repository=self.alignment_repository,
+            class_repository=self.class_repository,
+            subclass_repository=self.subclass_repository,
+            language_repository=self.language_repository,
+            condition_repository=self.condition_repository,
+            race_repository=self.race_repository,
+            race_subrace_repository=self.race_subrace_repository,
+            background_repository=self.background_repository,
+            skill_repository=self.skill_repository,
+            trait_repository=self.trait_repository,
+            feature_repository=self.feature_repository,
+            feat_repository=self.feat_repository,
+            damage_type_repository=self.damage_type_repository,
+            weapon_property_repository=self.weapon_property_repository,
         )
 
     @cached_property
@@ -87,6 +115,7 @@ class Container:
             path_resolver=self.path_resolver,
             scenario_loader=self.scenario_loader,
             monster_repository=self.monster_repository,
+            character_service=self.character_service,
         )
 
     @cached_property
@@ -103,11 +132,76 @@ class Container:
 
     @cached_property
     def monster_repository(self) -> IMonsterRepository:
-        return MonsterRepository(self.path_resolver)
+        return MonsterRepository(
+            self.path_resolver,
+            language_repository=self.language_repository,
+            condition_repository=self.condition_repository,
+            alignment_repository=self.alignment_repository,
+        )
 
     @cached_property
     def spell_repository(self) -> ISpellRepository:
-        return SpellRepository(self.path_resolver)
+        return SpellRepository(self.path_resolver, magic_school_repository=self.magic_school_repository)
+
+    @cached_property
+    def magic_school_repository(self) -> MagicSchoolRepository:
+        return MagicSchoolRepository(self.path_resolver)
+
+    @cached_property
+    def alignment_repository(self) -> AlignmentRepository:
+        return AlignmentRepository(self.path_resolver)
+
+    @cached_property
+    def class_repository(self) -> ClassRepository:
+        return ClassRepository(self.path_resolver)
+
+    @cached_property
+    def subclass_repository(self) -> SubclassRepository:
+        return SubclassRepository(self.path_resolver)
+
+    @cached_property
+    def language_repository(self) -> LanguageRepository:
+        return LanguageRepository(self.path_resolver)
+
+    @cached_property
+    def condition_repository(self) -> ConditionRepository:
+        return ConditionRepository(self.path_resolver)
+
+    @cached_property
+    def race_repository(self) -> RaceRepository:
+        return RaceRepository(self.path_resolver)
+
+    @cached_property
+    def race_subrace_repository(self) -> RaceSubraceRepository:
+        return RaceSubraceRepository(self.path_resolver)
+
+    @cached_property
+    def background_repository(self) -> BackgroundRepository:
+        return BackgroundRepository(self.path_resolver)
+
+    @cached_property
+    def trait_repository(self) -> TraitRepository:
+        return TraitRepository(self.path_resolver)
+
+    @cached_property
+    def feature_repository(self) -> FeatureRepository:
+        return FeatureRepository(self.path_resolver)
+
+    @cached_property
+    def feat_repository(self) -> FeatRepository:
+        return FeatRepository(self.path_resolver)
+
+    @cached_property
+    def skill_repository(self) -> SkillRepository:
+        return SkillRepository(self.path_resolver)
+
+    @cached_property
+    def weapon_property_repository(self) -> WeaponPropertyRepository:
+        return WeaponPropertyRepository(self.path_resolver)
+
+    @cached_property
+    def damage_type_repository(self) -> DamageTypeRepository:
+        return DamageTypeRepository(self.path_resolver)
 
     @cached_property
     def character_loader(self) -> ILoader[CharacterSheet]:
@@ -144,7 +238,7 @@ class Container:
         # Register all handlers
         event_bus.register_handler("character", CharacterHandler(self.game_service))
         event_bus.register_handler("dice", DiceHandler(self.game_service, self.dice_service))
-        event_bus.register_handler("inventory", InventoryHandler(self.game_service))
+        event_bus.register_handler("inventory", InventoryHandler(self.game_service, self.item_repository))
         event_bus.register_handler("time", TimeHandler(self.game_service))
         event_bus.register_handler("broadcast", BroadcastHandler(self.game_service, self.message_service))
         event_bus.register_handler(

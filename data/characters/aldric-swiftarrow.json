@@ -1,11 +1,13 @@
 {
   "id": "aldric-swiftarrow",
   "name": "Aldric Swiftarrow",
-  "race": "Wood Elf",
-  "class_name": "Ranger",
+  "race": "elf",
+  "class_index": "ranger",
+  "subclass": "hunter",
+  "subrace": "high-elf",
   "level": 3,
-  "background": "Outlander",
-  "alignment": "Neutral Good",
+  "background": "acolyte",
+  "alignment": "neutral-good",
   "experience_points": 900,
   "hit_points": {
     "current": 28,
@@ -46,27 +48,38 @@
     "CHA": 0
   },
   "skills": {
-    "Athletics": 3,
-    "Perception": 4,
-    "Stealth": 5,
-    "Survival": 4,
-    "Nature": 3,
-    "Investigation": 3,
-    "Animal Handling": 4
+    "athletics": 3,
+    "perception": 4,
+    "stealth": 5,
+    "survival": 4,
+    "nature": 3,
+    "investigation": 3,
+    "animal-handling": 4
   },
-  "features_and_traits": [
-    {"name": "Darkvision", "description": "You can see in dim light within 60 feet as if it were bright light, and in darkness as if it were dim light."},
-    {"name": "Keen Senses", "description": "You have proficiency in the Perception skill."},
-    {"name": "Fey Ancestry", "description": "You have advantage on saving throws against being charmed, and magic can't put you to sleep."},
-    {"name": "Trance", "description": "Elves don't need to sleep. Instead, they meditate deeply for 4 hours a day."},
-    {"name": "Favored Enemy: Goblinoids", "description": "You have advantage on Wisdom (Survival) checks to track goblinoids and Intelligence checks to recall information about them."},
-    {"name": "Natural Explorer: Forest", "description": "You are particularly familiar with forests and are adept at traveling and surviving in such regions."},
-    {"name": "Fighting Style: Archery", "description": "You gain a +2 bonus to attack rolls you make with ranged weapons."},
-    {"name": "Spellcasting", "description": "You have learned to use the magical essence of nature to cast spells."},
-    {"name": "Ranger Archetype: Hunter", "description": "You accept your place as a bulwark between the civilized world and the terrors of the wilderness."},
-    {"name": "Primeval Awareness", "description": "You can use your action to focus your awareness on the region around you for 1 minute per spell slot expended."},
-    {"name": "Hunter's Prey: Colossus Slayer", "description": "Your tenacity can wear down the most potent foes. Once per turn, when you hit a creature with a weapon attack, the creature takes an extra 1d8 damage if it's below its hit point maximum."}
+  "custom_features": [
+    {"name": "Favored Enemy: Goblinoids", "description": "You have chosen goblinoids (goblins, hobgoblins, and bugbears) as your favored enemy type."},
+    {"name": "Natural Explorer: Forest", "description": "You have chosen forest as your favored terrain type."},
+    {"name": "Fighting Style: Archery", "description": "You have chosen Archery as your ranger fighting style."},
+    {"name": "Hunter's Prey: Colossus Slayer", "description": "You have chosen Colossus Slayer as your Hunter's Prey feature."}
   ],
+  "feature_indexes": [
+    "favored-enemy-1-type",
+    "natural-explorer-1-terrain-type",
+    "ranger-fighting-style-archery",
+    "spellcasting-ranger",
+    "ranger-archetype",
+    "hunters-prey-colossus-slayer",
+    "primeval-awareness"
+  ],
+  "trait_indexes": [
+    "darkvision",
+    "keen-senses",
+    "fey-ancestry",
+    "trance",
+    "elf-weapon-training",
+    "high-elf-cantrip"
+  ],
+  "feat_indexes": [],
   "attacks": [
     {
       "name": "Longbow",
@@ -74,7 +87,7 @@
       "damage": "1d8+3",
       "damage_type": "piercing",
       "range": "150/600 ft",
-      "properties": ["Ammunition", "Heavy", "Two-Handed"]
+      "properties": ["ammunition", "heavy", "two-handed"]
     },
     {
       "name": "Shortsword",
@@ -82,7 +95,7 @@
       "damage": "1d6+3",
       "damage_type": "piercing",
       "range": "Melee",
-      "properties": ["Finesse", "Light"]
+      "properties": ["finesse", "light"]
     }
   ],
   "spellcasting": {
@@ -104,7 +117,7 @@
   },
   "inventory": [
     {
-      "name": "Healing Potion",
+      "name": "Potion of Healing",
       "quantity": 2,
       "equipped": false,
       "weight": 0.5,
@@ -113,7 +126,7 @@
       "item_type": "Potion"
     },
     {
-      "name": "Rope, Hempen (50 feet)",
+      "name": "Rope, hempen (50 feet)",
       "quantity": 1,
       "equipped": false,
       "weight": 10,
@@ -149,7 +162,7 @@
       "item_type": "Weapon"
     },
     {
-      "name": "Arrows",
+      "name": "Arrow",
       "quantity": 40,
       "equipped": true,
       "weight": 0.05,
@@ -185,7 +198,7 @@
       "item_type": "Equipment Pack"
     },
     {
-      "name": "Component Pouch",
+      "name": "Component pouch",
       "quantity": 1,
       "equipped": true,
       "weight": 2,
@@ -218,9 +231,9 @@
   },
   "backstory": "Aldric Swiftarrow grew up in the forests of the Wood Elf homeland, learning the ways of nature and the bow. When goblinoid raiders destroyed his village, he took up the mantle of a ranger to protect others from the same fate. He now wanders the borderlands, keeping watch for evil and helping those in need.",
   "languages": [
-    "Common",
-    "Elvish",
-    "Goblin"
+    "common",
+    "elvish",
+    "goblin"
   ],
   "conditions": [],
   "exhaustion_level": 0,

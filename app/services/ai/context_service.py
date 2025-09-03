@@ -10,6 +10,8 @@ from app.models.game_state import GameState
 from app.models.quest import ObjectiveStatus
 from app.models.scenario import Scenario
 
+# TODO: Could just deep-load GameState and Scenario no ? Does it need to be that complicated ?
+
 
 class ContextService:
     """Service for building AI context following Single Responsibility."""
@@ -53,9 +55,10 @@ class ContextService:
 
         # Add current game state
         char = game_state.character
+        class_display = char.class_display
         context_parts.append(
             f"""Current State:
-- Character: {char.name} ({char.race} {char.class_name} Level {char.level})
+- Character: {char.name} ({char.race} {class_display} Level {char.level})
 - HP: {char.hit_points.current}/{char.hit_points.maximum}, AC: {char.armor_class}
 - Location: {game_state.location}
 - Time: Day {game_state.game_time.day}, {game_state.game_time.hour:02d}:{game_state.game_time.minute:02d}""",
@@ -76,6 +79,17 @@ class ContextService:
             spell_context = self._build_spell_context(char.spellcasting.spells_known)
             if spell_context:
                 context_parts.append(spell_context)
+
+        # Add player's inventory with exact item names to guide tools
+        inventory_context = self._build_inventory_context(game_state)
+        if inventory_context:
+            context_parts.append(inventory_context)
+
+        # Add available items context for NPCs
+        if game_state.npcs:
+            item_context = self._build_npc_items_context(game_state)
+            if item_context:
+                context_parts.append(item_context)
 
         return "\n\n".join(context_parts)
 
@@ -109,14 +123,25 @@ class ContextService:
                             exit_desc += f" [{req_status}]"
                         context_parts.append(exit_desc)
 
+        # Notable monsters present
+        if location.notable_monsters:
+            context_parts.append("\nNotable Threats:")
+            for nm in location.notable_monsters:
+                try:
+                    context_parts.append(f"  - {nm.display_name}: {nm.description or ''}")
+                except Exception:
+                    continue
+
         # Potential encounters (not yet completed)
-        uncompleted_encounters = [
-            enc for enc in location.encounters if enc.id not in location_state.completed_encounters
+        uncompleted_encounter_ids = [
+            eid for eid in location.encounter_ids if eid not in location_state.completed_encounters
         ]
-        if uncompleted_encounters:
+        if uncompleted_encounter_ids:
             context_parts.append("\nPotential Encounters:")
-            for enc in uncompleted_encounters[:3]:  # Limit to avoid too much context
-                context_parts.append(f"  - {enc.type} [ID: {enc.id}]: {enc.description[:50]}...")
+            for eid in uncompleted_encounter_ids[:5]:  # Limit to avoid too much context
+                enc = scenario.get_encounter_by_id(eid)
+                if enc:
+                    context_parts.append(f"  - {enc.type} [ID: {enc.id}]: {enc.description[:50]}...")
 
         # Available loot (if any not taken)
         if location.loot_table:
@@ -125,11 +150,27 @@ class ContextService:
                 context_parts.append("\nPotential Items (not yet found):")
                 for loot in available_loot[:3]:
                     if not loot.hidden:
-                        context_parts.append(f"  - {loot.item_name}")
+                        if self.item_repository and self.item_repository.validate_reference(loot.item_name):
+                            context_parts.append(f"  - {loot.item_name} (use exact name: '{loot.item_name}')")
+                        else:
+                            context_parts.append(f"  - {loot.item_name}")
 
-        # NPCs in location
+        # NPCs in location (resolve ids to names via injected service)
         if location_state.npcs_present:
-            context_parts.append(f"\nNPCs Here: {', '.join(location_state.npcs_present)}")
+            names: list[str] = []
+            for nid in location_state.npcs_present:
+                try:
+                    npc = self.scenario_service.get_scenario_npc(scenario.id, nid)
+                    if npc:
+                        names.append(npc.display_name)
+                except Exception:
+                    # Best-effort resolution; ignore failures per-id
+                    continue
+            if names:
+                context_parts.append(f"\nNPCs Here: {', '.join(names)}")
+            else:
+                # Fallback to listing ids if none resolved
+                context_parts.append(f"\nNPCs Here: {', '.join(location_state.npcs_present)}")
 
         return "\n".join(context_parts)
 
@@ -172,20 +213,17 @@ class ContextService:
 
         for npc in game_state.npcs:
             # Basic info
-            npc_info = f"  • {npc.name}: HP {npc.hit_points.current}/{npc.hit_points.maximum}, AC {npc.armor_class}"
+            npc_info = f"  • {npc.character.name}: HP {npc.character.hit_points.current}/{npc.character.hit_points.maximum}, AC {npc.character.armor_class}"
 
             # Add conditions if any
-            if npc.conditions:
-                npc_info += f" [{', '.join(npc.conditions)}]"
+            if npc.character.conditions:
+                npc_info += f" [{', '.join(npc.character.conditions)}]"
 
             npc_lines.append(npc_info)
 
             # If NPC has notable abilities, mention them briefly
-            if npc.abilities:
-                ability_summary = (
-                    f"    Abilities - STR: {npc.abilities.STR}, DEX: {npc.abilities.DEX}, CON: {npc.abilities.CON}"
-                )
-                npc_lines.append(ability_summary)
+            ability_summary = f"    Abilities - STR: {npc.character.abilities.STR}, DEX: {npc.character.abilities.DEX}, CON: {npc.character.abilities.CON}"
+            npc_lines.append(ability_summary)
 
         return "\n".join(npc_lines)
 
@@ -227,3 +265,43 @@ class ContextService:
                 context_parts.append(f"  • {spell_name}")
 
         return "\n".join(context_parts)
+
+    def _build_inventory_context(self, game_state: GameState) -> str | None:
+        """List player's inventory with exact item names and quantities."""
+        inv = game_state.character.inventory
+        if not inv:
+            return None
+
+        lines = ["Your Inventory (use exact names shown):"]
+        # Show up to 20 entries to avoid too much context
+        for item in inv[:20]:
+            lines.append(f"  • {item.name} x{item.quantity}")
+        return "\n".join(lines)
+
+    def _build_npc_items_context(self, game_state: GameState) -> str | None:
+        """Build context about items NPCs have available for trade/giving."""
+        if not game_state.npcs:
+            return None
+
+        items_mentioned: set[str] = set()
+        context_parts: list[str] = []
+
+        for npc in game_state.npcs:
+            npc_items: list[str] = []
+            for item in npc.character.inventory:
+                if item.name not in items_mentioned:
+                    items_mentioned.add(item.name)
+                    # Show the exact name the AI should use
+                    if self.item_repository:
+                        # Check if this is a valid item and get its proper reference
+                        if self.item_repository.validate_reference(item.name):
+                            npc_items.append(f"{item.name} (use exact name: '{item.name}')")
+                    else:
+                        npc_items.append(item.name)
+
+            if npc_items:
+                if not context_parts:
+                    context_parts.append("NPC Available Items (use exact names shown):")
+                context_parts.append(f"  {npc.character.name} has: {', '.join(npc_items)}")
+
+        return "\n".join(context_parts) if context_parts else None
