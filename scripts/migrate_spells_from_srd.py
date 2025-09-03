@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 
 def join_paragraphs(parts: Any) -> str:
@@ -21,10 +21,10 @@ def normalize_components(components: Any, material: Any) -> tuple[list[str], str
     return comp_list, mat
 
 
-def to_int_keyed(d: Dict[str, Any] | None) -> Dict[int, Any] | None:
+def to_int_keyed(d: dict[str, Any] | None) -> dict[int, Any] | None:
     if not d:
         return None
-    out: Dict[int, Any] = {}
+    out: dict[int, Any] = {}
     for k, v in d.items():
         try:
             out[int(k)] = v
@@ -33,7 +33,7 @@ def to_int_keyed(d: Dict[str, Any] | None) -> Dict[int, Any] | None:
     return out or None
 
 
-def convert_spell(s: Dict[str, Any]) -> Dict[str, Any]:
+def convert_spell(s: dict[str, Any]) -> dict[str, Any]:
     components_list, material = normalize_components(s.get("components"), s.get("material"))
     area = s.get("area_of_effect")
     if area and not isinstance(area, dict):
@@ -94,4 +94,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

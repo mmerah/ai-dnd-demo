@@ -1,21 +1,20 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, Union
-
+from typing import Any
 
 # --- Streaming helpers -----------------------------------------------------
 
-def iter_array_items(path: Path, max_items: int = 5) -> List[Any]:
+
+def iter_array_items(path: Path, max_items: int = 5) -> list[Any]:
     """Stream-parse the first N items of a top-level JSON array without
     reading the full file. Returns up to max_items parsed Python objects.
 
     The files in docs/5e-database-snippets/src/2014 are arrays of objects.
     """
     dec = json.JSONDecoder()
-    items: List[Any] = []
+    items: list[Any] = []
     buf = ""
     with path.open("r", encoding="utf-8") as f:
         # Read until we see the opening '['
@@ -71,7 +70,7 @@ def iter_array_items(path: Path, max_items: int = 5) -> List[Any]:
 
 # --- Type inference --------------------------------------------------------
 
-Schema = Dict[str, Any]
+Schema = dict[str, Any]
 
 
 def schema_of(value: Any) -> Schema:
@@ -90,14 +89,14 @@ def schema_of(value: Any) -> Schema:
         if not value:
             return {"type": "array", "items": {"type": "unknown"}}
         # Merge item schemas
-        item_schema: Optional[Schema] = None
+        item_schema: Schema | None = None
         for v in value:
             s = schema_of(v)
             item_schema = merge_schema(item_schema, s)
         return {"type": "array", "items": item_schema or {"type": "unknown"}}
     if isinstance(value, dict):
-        props: Dict[str, Schema] = {}
-        required: Dict[str, int] = {}
+        props: dict[str, Schema] = {}
+        required: dict[str, int] = {}
         for k, v in value.items():
             props[k] = schema_of(v)
             required[k] = 1
@@ -105,24 +104,18 @@ def schema_of(value: Any) -> Schema:
     return {"type": "unknown"}
 
 
-def merge_schema(a: Optional[Schema], b: Optional[Schema]) -> Schema:
+def merge_schema(a: Schema | None, b: Schema | None) -> Schema:
     if a is None:
         return b or {"type": "unknown"}
     if b is None:
         return a
 
     # Handle unions
-    if a.get("anyOf"):
-        variants = a["anyOf"]
-    else:
-        variants = [a]
-    if b.get("anyOf"):
-        bvars = b["anyOf"]
-    else:
-        bvars = [b]
+    variants = a["anyOf"] if a.get("anyOf") else [a]
+    bvars = b["anyOf"] if b.get("anyOf") else [b]
 
     # If types match, merge recursively
-    merged_candidates: List[Schema] = []
+    merged_candidates: list[Schema] = []
     for va in variants:
         matched = False
         for vb in list(bvars):
@@ -157,7 +150,7 @@ def merge_schema(a: Optional[Schema], b: Optional[Schema]) -> Schema:
 
     merged_candidates.extend(bvars)
     # Deduplicate by type signature
-    dedup: List[Schema] = []
+    dedup: list[Schema] = []
     seen = set()
     for s in merged_candidates:
         key = json.dumps(signature_of(s), sort_keys=True)
@@ -171,8 +164,8 @@ def merge_schema(a: Optional[Schema], b: Optional[Schema]) -> Schema:
 
 
 def merge_object(a: Schema, b: Schema) -> Schema:
-    props: Dict[str, Schema] = {}
-    req_counts: Dict[str, int] = {}
+    props: dict[str, Schema] = {}
+    req_counts: dict[str, int] = {}
     for k in set(a.get("properties", {}).keys()) | set(b.get("properties", {}).keys()):
         props[k] = merge_schema(a.get("properties", {}).get(k), b.get("properties", {}).get(k))
         req_counts[k] = a.get("required_counts", {}).get(k, 0) + b.get("required_counts", {}).get(k, 0)
@@ -188,20 +181,19 @@ def signature_of(s: Schema) -> Any:
     if t == "array":
         return {"array": signature_of(s.get("items", {"type": "unknown"}))}
     if t == "object":
-        return {
-            "object": {k: signature_of(v) for k, v in sorted(s.get("properties", {}).items())}
-        }
+        return {"object": {k: signature_of(v) for k, v in sorted(s.get("properties", {}).items())}}
     return "unknown"
 
 
 # --- Rendering to TypeScript-ish types ------------------------------------
 
-def to_ts(name: str, schema: Schema, sample_count: int, indent: int = 0) -> List[str]:
+
+def to_ts(name: str, schema: Schema, sample_count: int, indent: int = 0) -> list[str]:
     sp = "  " * indent
-    lines: List[str] = []
+    lines: list[str] = []
 
     if schema.get("anyOf"):
-        parts: List[str] = []
+        parts: list[str] = []
         for variant in schema["anyOf"]:
             nested = to_ts_inline(variant, sample_count, indent)
             parts.append(nested)
@@ -211,8 +203,8 @@ def to_ts(name: str, schema: Schema, sample_count: int, indent: int = 0) -> List
     t = schema.get("type")
     if t == "object":
         lines.append(f"{sp}{name}: {{")
-        props: Dict[str, Schema] = schema.get("properties", {})
-        req_counts: Dict[str, int] = schema.get("required_counts", {})
+        props: dict[str, Schema] = schema.get("properties", {})
+        req_counts: dict[str, int] = schema.get("required_counts", {})
         for k in sorted(props.keys()):
             opt = "?" if req_counts.get(k, 0) < sample_count else ""
             sub = to_ts(f"{k}{opt}", props[k], sample_count, indent + 1)
@@ -235,9 +227,9 @@ def to_ts_inline(schema: Schema, sample_count: int, indent: int) -> str:
     t = schema.get("type")
     if t == "object":
         # Inline object
-        props: Dict[str, Schema] = schema.get("properties", {})
-        req_counts: Dict[str, int] = schema.get("required_counts", {})
-        inner: List[str] = []
+        props: dict[str, Schema] = schema.get("properties", {})
+        req_counts: dict[str, int] = schema.get("required_counts", {})
+        inner: list[str] = []
         for k in sorted(props.keys()):
             opt = "?" if req_counts.get(k, 0) < sample_count else ""
             sub_lines = to_ts(f"{k}{opt}", props[k], sample_count, indent + 1)
@@ -249,13 +241,13 @@ def to_ts_inline(schema: Schema, sample_count: int, indent: int) -> str:
             return "{" + compact + " }"
         else:
             # Multiline inline
-            return "{\n" + "\n".join(inner) + "\n}"  
+            return "{\n" + "\n".join(inner) + "\n}"
     if t == "array":
         return to_ts_inline(schema.get("items", {"type": "unknown"}), sample_count, indent) + "[]"
     return ts_primitive(t)
 
 
-def ts_primitive(t: Optional[str]) -> str:
+def ts_primitive(t: str | None) -> str:
     return {
         "string": "string",
         "number": "number",
@@ -269,7 +261,8 @@ def ts_primitive(t: Optional[str]) -> str:
 
 # --- Pydantic rendering ----------------------------------------------------
 
-def pyd_primitive(t: Optional[str]) -> str:
+
+def pyd_primitive(t: str | None) -> str:
     return {
         "string": "str",
         "integer": "int",
@@ -302,8 +295,8 @@ def pascal(name: str) -> str:
     return "".join(part.capitalize() for part in name.replace("-", "_").split("_"))
 
 
-def to_pydantic_models(root_name: str, schema: Schema, sample_count: int) -> List[str]:
-    lines: List[str] = []
+def to_pydantic_models(root_name: str, schema: Schema, sample_count: int) -> list[str]:
+    lines: list[str] = []
     lines.append("from __future__ import annotations")
     lines.append("from typing import Any, Optional, Union, Generic, TypeVar, List, Dict")
     lines.append("from pydantic import BaseModel")
@@ -315,9 +308,9 @@ def to_pydantic_models(root_name: str, schema: Schema, sample_count: int) -> Lis
     lines.append("    url: str")
     lines.append("")
 
-    nested_models: Dict[str, Schema] = {}
+    nested_models: dict[str, Schema] = {}
 
-    def is_numeric_map(s: Schema) -> tuple[bool, Optional[Schema]]:
+    def is_numeric_map(s: Schema) -> tuple[bool, Schema | None]:
         if s.get("type") != "object":
             return (False, None)
         props = s.get("properties", {})
@@ -384,10 +377,7 @@ def to_pydantic_models(root_name: str, schema: Schema, sample_count: int) -> Lis
         for k in sorted(props.keys()):
             fs = props[k]
             optional = req_counts.get(k, 0) < sample_count
-            if is_ref_like(fs):
-                typ = "ApiRef[Any]"
-            else:
-                typ = pyd_field_type(f"{name}_{k}", fs)
+            typ = "ApiRef[Any]" if is_ref_like(fs) else pyd_field_type(f"{name}_{k}", fs)
             if optional:
                 lines.append(f"    {k}: Optional[{typ}] = None")
             else:
@@ -395,7 +385,7 @@ def to_pydantic_models(root_name: str, schema: Schema, sample_count: int) -> Lis
         lines.append("")
 
     # Render helper models first (exclude root), sorted by depth then name
-    helpers = [n for n in nested_models.keys() if n != root_name]
+    helpers = [n for n in nested_models if n != root_name]
     for model_name in sorted(helpers, key=lambda n: (n.count("_"), n)):
         render_model(model_name, nested_models[model_name])
 
@@ -408,7 +398,8 @@ def to_pydantic_models(root_name: str, schema: Schema, sample_count: int) -> Lis
 
 # --- Generation ------------------------------------------------------------
 
-def file_slug(path: Path) -> Tuple[str, str]:
+
+def file_slug(path: Path) -> tuple[str, str]:
     # Examples: 5e-SRD-Spells.json -> ("2014", "spells")
     year = path.parts[-2]
     base = path.stem
@@ -416,7 +407,7 @@ def file_slug(path: Path) -> Tuple[str, str]:
     return year, name_part
 
 
-def generate_markdown(path: Path, out_dir: Path, max_items: int = 5) -> Optional[Path]:
+def generate_markdown(path: Path, out_dir: Path, max_items: int = 5) -> Path | None:
     try:
         samples = iter_array_items(path, max_items=max_items)
     except Exception as e:
@@ -426,7 +417,7 @@ def generate_markdown(path: Path, out_dir: Path, max_items: int = 5) -> Optional
         return None
 
     # Infer schema from samples
-    schema: Optional[Schema] = None
+    schema: Schema | None = None
     for obj in samples:
         s = schema_of(obj)
         schema = merge_schema(schema, s)
@@ -434,7 +425,7 @@ def generate_markdown(path: Path, out_dir: Path, max_items: int = 5) -> Optional
     year, name = file_slug(path)
     title = f"SRD {name.title()} ({year}) — Data Model"
 
-    lines: List[str] = []
+    lines: list[str] = []
     lines.append(f"**{title}**")
     lines.append("")
     lines.append(f"- Source: `{path}`")

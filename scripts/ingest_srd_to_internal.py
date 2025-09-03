@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 
-def gp_value(cost: Dict[str, Any]) -> float:
+def gp_value(cost: dict[str, Any]) -> float:
     qty = cost.get("quantity", 0)
     unit = (cost.get("unit") or "gp").lower()
     rate = {"gp": 1.0, "sp": 0.1, "cp": 0.01, "ep": 0.5}.get(unit, 1.0)
@@ -15,7 +15,7 @@ def gp_value(cost: Dict[str, Any]) -> float:
         return 0.0
 
 
-def convert_spell(s: Dict[str, Any]) -> Dict[str, Any]:
+def convert_spell(s: dict[str, Any]) -> dict[str, Any]:
     # Components: array + material -> single string like "V, S, M (material)"
     comps = s.get("components", []) or []
     if not isinstance(comps, list):
@@ -54,7 +54,7 @@ def convert_spell(s: Dict[str, Any]) -> Dict[str, Any]:
 
 def ingest_spells(srd_spells_path: Path, out_path: Path) -> None:
     data = json.load(srd_spells_path.open())
-    out: Dict[str, Any] = {"spells": []}
+    out: dict[str, Any] = {"spells": []}
     for s in data:
         try:
             out["spells"].append(convert_spell(s))
@@ -74,4 +74,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
