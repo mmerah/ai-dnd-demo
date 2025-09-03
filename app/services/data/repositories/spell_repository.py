@@ -3,8 +3,15 @@
 import logging
 from typing import Any
 
-from app.interfaces.services import IPathResolver, ISpellRepository
-from app.models.spell import SpellDefinition, SpellSchool
+from app.interfaces.services import IPathResolver, IRepository, ISpellRepository
+from app.models.magic_school import MagicSchool
+from app.models.spell import (
+    SpellDamageAtLevel,
+    SpellDamageAtSlot,
+    SpellDefinition,
+    SpellHealingAtSlot,
+    SpellSchool,
+)
 from app.services.data.repositories.base_repository import BaseRepository
 
 logger = logging.getLogger(__name__)
@@ -16,16 +23,23 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
     Follows Single Responsibility Principle: only manages spell data access.
     """
 
-    def __init__(self, path_resolver: IPathResolver, cache_enabled: bool = True):
+    def __init__(
+        self,
+        path_resolver: IPathResolver,
+        cache_enabled: bool = True,
+        magic_school_repository: IRepository[MagicSchool] | None = None,
+    ):
         """Initialize the spell repository.
 
         Args:
             path_resolver: Service for resolving file paths
             cache_enabled: Whether to cache spells in memory
+            magic_school_repository: Repository for validating magic school references
         """
         super().__init__(cache_enabled)
         self.path_resolver = path_resolver
         self.spells_file = self.path_resolver.get_shared_data_file("spells")
+        self.magic_school_repository = magic_school_repository
 
     def _initialize(self) -> None:
         """Initialize the repository by loading all spells if caching is enabled."""
@@ -37,7 +51,8 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
         """Load all spells from the spells.json file into cache."""
         data = self._load_json_file(self.spells_file)
         if not data or not isinstance(data, dict):
-            raise FileNotFoundError(f"Spells data file not found: {self.spells_file}")
+            logger.warning("Spells data file not found or invalid: %s", self.spells_file)
+            return
 
         for spell_data in data.get("spells", []):
             try:
@@ -105,6 +120,49 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
 
         return False
 
+    def _parse_damage_at_slot(self, data: dict[int | str, str] | None) -> SpellDamageAtSlot | None:
+        """Parse damage at slot level from JSON to model."""
+        if not data:
+            return None
+        return SpellDamageAtSlot(
+            slot_1=data.get(1) or data.get("1"),
+            slot_2=data.get(2) or data.get("2"),
+            slot_3=data.get(3) or data.get("3"),
+            slot_4=data.get(4) or data.get("4"),
+            slot_5=data.get(5) or data.get("5"),
+            slot_6=data.get(6) or data.get("6"),
+            slot_7=data.get(7) or data.get("7"),
+            slot_8=data.get(8) or data.get("8"),
+            slot_9=data.get(9) or data.get("9"),
+        )
+
+    def _parse_healing_at_slot(self, data: dict[int | str, str | int] | None) -> SpellHealingAtSlot | None:
+        """Parse healing at slot level from JSON to model."""
+        if not data:
+            return None
+        return SpellHealingAtSlot(
+            slot_1=data.get(1) or data.get("1"),
+            slot_2=data.get(2) or data.get("2"),
+            slot_3=data.get(3) or data.get("3"),
+            slot_4=data.get(4) or data.get("4"),
+            slot_5=data.get(5) or data.get("5"),
+            slot_6=data.get(6) or data.get("6"),
+            slot_7=data.get(7) or data.get("7"),
+            slot_8=data.get(8) or data.get("8"),
+            slot_9=data.get(9) or data.get("9"),
+        )
+
+    def _parse_damage_at_level(self, data: dict[int | str, str] | None) -> SpellDamageAtLevel | None:
+        """Parse damage at character level from JSON to model."""
+        if not data:
+            return None
+        return SpellDamageAtLevel(
+            level_1=data.get(1) or data.get("1"),
+            level_5=data.get(5) or data.get("5"),
+            level_11=data.get(11) or data.get("11"),
+            level_17=data.get(17) or data.get("17"),
+        )
+
     def _parse_spell_data(self, data: dict[str, Any]) -> SpellDefinition:
         # Any is necessary because spell data from JSON contains mixed types
         """Parse spell data from JSON into SpellDefinition model.
@@ -121,11 +179,17 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
         try:
             # New SRD-aligned structure
             duration = data.get("duration", "")
+
+            # Validate school if repository available (fail-fast)
+            school = str(data.get("school", "")).lower()
+            if self.magic_school_repository and school and not self.magic_school_repository.validate_reference(school):
+                raise ValueError(f"Unknown magic school: {school}")
+
             return SpellDefinition(
                 index=data["index"],
                 name=data["name"],
                 level=int(data["level"]),
-                school=str(data.get("school", "")).lower(),
+                school=school,
                 casting_time=data.get("casting_time", ""),
                 range=data.get("range", ""),
                 duration=duration,
@@ -140,9 +204,9 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
                 area_of_effect=data.get("area_of_effect"),
                 attack_type=data.get("attack_type"),
                 dc=data.get("dc"),
-                damage_at_slot_level=data.get("damage_at_slot_level"),
-                heal_at_slot_level=data.get("heal_at_slot_level"),
-                damage_at_character_level=data.get("damage_at_character_level"),
+                damage_at_slot_level=self._parse_damage_at_slot(data.get("damage_at_slot_level")),
+                heal_at_slot_level=self._parse_healing_at_slot(data.get("heal_at_slot_level")),
+                damage_at_character_level=self._parse_damage_at_level(data.get("damage_at_character_level")),
             )
         except Exception as e:
             raise ValueError(f"Failed to parse spell data: {e}") from e
@@ -189,13 +253,24 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
         if self.cache_enabled:
             return [spell for spell in self._cache.values() if spell.level == level]
 
-        # Without cache, load all and filter
+        # Without cache, load all and filter (coerce/parse level safely)
         all_spells = []
         data = self._load_json_file(self.spells_file)
         if data and isinstance(data, dict):
             for spell_data in data.get("spells", []):
                 try:
-                    if spell_data.get("level") == level:
+                    # Coerce level to int if possible; fallback to parsing full model
+                    raw_level = spell_data.get("level")
+                    lvl = None
+                    try:
+                        lvl = int(raw_level) if raw_level is not None else None
+                    except Exception:
+                        lvl = None
+                    if lvl is None:
+                        spell = self._parse_spell_data(spell_data)
+                        if spell.level == level:
+                            all_spells.append(spell)
+                    elif lvl == level:
                         spell = self._parse_spell_data(spell_data)
                         all_spells.append(spell)
                 except Exception:
@@ -264,3 +339,19 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
                     continue
 
         return all_spells
+
+    def validate_reference(self, key: str) -> bool:
+        """Validate by index or name (case-insensitive), even with cache enabled."""
+        if not self._initialized:
+            self._initialize()
+
+        if self.cache_enabled:
+            if key in self._cache:
+                return True
+            for k in self._cache:
+                if k.lower() == key.lower():
+                    return True
+            # Fallback to file check (name or index)
+            return self._check_key_exists(key)
+
+        return self._check_key_exists(key)

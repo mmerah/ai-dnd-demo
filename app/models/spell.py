@@ -1,7 +1,6 @@
 """Spell models for D&D 5e spellcasting system."""
 
 from enum import Enum
-from typing import Optional, Union
 
 from pydantic import BaseModel, Field
 
@@ -29,6 +28,43 @@ class SpellDC(BaseModel):
     dc_success: str | None = None  # e.g., "half"
 
 
+class SpellDamageAtSlot(BaseModel):
+    """Spell damage scaling by slot level."""
+
+    slot_1: str | None = None
+    slot_2: str | None = None
+    slot_3: str | None = None
+    slot_4: str | None = None
+    slot_5: str | None = None
+    slot_6: str | None = None
+    slot_7: str | None = None
+    slot_8: str | None = None
+    slot_9: str | None = None
+
+
+class SpellHealingAtSlot(BaseModel):
+    """Spell healing scaling by slot level."""
+
+    slot_1: str | int | None = None
+    slot_2: str | int | None = None
+    slot_3: str | int | None = None
+    slot_4: str | int | None = None
+    slot_5: str | int | None = None
+    slot_6: str | int | None = None
+    slot_7: str | int | None = None
+    slot_8: str | int | None = None
+    slot_9: str | int | None = None
+
+
+class SpellDamageAtLevel(BaseModel):
+    """Cantrip damage scaling by character level."""
+
+    level_1: str | None = None
+    level_5: str | None = None
+    level_11: str | None = None
+    level_17: str | None = None
+
+
 class SpellDefinition(BaseModel):
     """Definition of a spell from data files (SRD-aligned)."""
 
@@ -43,11 +79,11 @@ class SpellDefinition(BaseModel):
     range: str  # e.g., "Touch", "30 feet", "Self"
     duration: str  # e.g., "Instantaneous", "Concentration, up to 1 minute"
     description: str
-    higher_levels: Optional[str] = None  # Description of effects at higher levels
+    higher_levels: str | None = None  # Description of effects at higher levels
 
     # Components
     components_list: list[str] = Field(default_factory=list)
-    material: Optional[str] = None
+    material: str | None = None
 
     # Flags
     ritual: bool = False
@@ -58,12 +94,12 @@ class SpellDefinition(BaseModel):
     subclasses: list[str] = Field(default_factory=list)  # subclass indexes
 
     # Optional mechanics
-    area_of_effect: Optional[SpellAreaOfEffect] = None
-    attack_type: Optional[str] = None
-    dc: Optional[SpellDC] = None
-    damage_at_slot_level: Optional[dict[int, Union[str, int]]] = None
-    heal_at_slot_level: Optional[dict[int, Union[str, int]]] = None
-    damage_at_character_level: Optional[dict[int, Union[str, int]]] = None
+    area_of_effect: SpellAreaOfEffect | None = None
+    attack_type: str | None = None
+    dc: SpellDC | None = None
+    damage_at_slot_level: SpellDamageAtSlot | None = None
+    heal_at_slot_level: SpellHealingAtSlot | None = None
+    damage_at_character_level: SpellDamageAtLevel | None = None
 
     @property
     def is_cantrip(self) -> bool:

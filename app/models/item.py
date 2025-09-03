@@ -13,7 +13,6 @@ class ItemType(str, Enum):
     POTION = "Potion"
     AMMUNITION = "Ammunition"
     ADVENTURING_GEAR = "Adventuring Gear"
-    CONTAINER = "Container"
     EQUIPMENT_PACK = "Equipment Pack"
 
 
@@ -26,6 +25,7 @@ class ItemRarity(str, Enum):
     VERY_RARE = "Very Rare"
     LEGENDARY = "Legendary"
     ARTIFACT = "Artifact"
+    VARIES = "Varies"
 
 
 class ItemSubtype(str, Enum):
@@ -62,9 +62,6 @@ class ItemDefinition(BaseModel):
     # Armor properties
     armor_class: int | None = None
     dex_bonus: bool | None = None
-
-    # Container properties
-    capacity: float | None = None  # In pounds
 
     # Equipment pack contents
     contents: list[str] = Field(default_factory=list)

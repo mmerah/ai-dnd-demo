@@ -26,6 +26,7 @@ class ItemRepository(BaseRepository[ItemDefinition], IItemRepository):
         super().__init__(cache_enabled)
         self.path_resolver = path_resolver
         self.items_file = self.path_resolver.get_shared_data_file("items")
+        self.magic_items_file = self.path_resolver.get_shared_data_file("magic_items")
 
     def _initialize(self) -> None:
         """Initialize the repository by loading all items if caching is enabled."""
@@ -35,17 +36,21 @@ class ItemRepository(BaseRepository[ItemDefinition], IItemRepository):
 
     def _load_all_items(self) -> None:
         """Load all items from the items.json file into cache."""
-        data = self._load_json_file(self.items_file)
-        if not data or not isinstance(data, dict):
-            raise FileNotFoundError(f"Items data file not found: {self.items_file}")
-
-        for item_data in data.get("items", []):
-            try:
-                item = self._parse_item_data(item_data)
-                self._cache[item.name] = item
-            except Exception as e:
-                # Log error but continue loading other items
-                logger.warning(f"Failed to load item {item_data.get('name', 'unknown')}: {e}")
+        sources = [self.items_file, self.magic_items_file]
+        any_found = False
+        for src in sources:
+            data = self._load_json_file(src)
+            if data and isinstance(data, dict):
+                any_found = True
+                for item_data in data.get("items", []):
+                    try:
+                        item = self._parse_item_data(item_data)
+                        key = item_data.get("index") or item.name
+                        self._cache[str(key)] = item
+                    except Exception as e:
+                        logger.warning(f"Failed to load item {item_data.get('name', 'unknown')} from {src}: {e}")
+        if not any_found:
+            logger.warning("Items data files not found or invalid: %s", sources)
 
     def _load_item(self, key: str) -> ItemDefinition | None:
         """Load a single item by name.
@@ -56,34 +61,46 @@ class ItemRepository(BaseRepository[ItemDefinition], IItemRepository):
         Returns:
             ItemDefinition or None if not found
         """
-        data = self._load_json_file(self.items_file)
-        if not data or not isinstance(data, dict):
-            return None
-
-        for item_data in data.get("items", []):
-            if item_data.get("name") == key:
-                try:
-                    return self._parse_item_data(item_data)
-                except Exception:
-                    return None
+        for src in [self.items_file, self.magic_items_file]:
+            data = self._load_json_file(src)
+            if not data or not isinstance(data, dict):
+                continue
+            for item_data in data.get("items", []):
+                idx = str(item_data.get("index", ""))
+                nm = item_data.get("name", "")
+                if idx == key or (idx and idx.lower() == key.lower()) or nm == key or nm.lower() == key.lower():
+                    try:
+                        return self._parse_item_data(item_data)
+                    except Exception:
+                        return None
 
         return None
 
     def _get_all_keys(self) -> list[str]:
         """Get all item names without using cache."""
-        data = self._load_json_file(self.items_file)
-        if not data or not isinstance(data, dict):
-            return []
-
-        return sorted([item.get("name", "") for item in data.get("items", []) if item.get("name")])
+        names: set[str] = set()
+        for src in [self.items_file, self.magic_items_file]:
+            data = self._load_json_file(src)
+            if not data or not isinstance(data, dict):
+                continue
+            for item in data.get("items", []):
+                key = item.get("index") or item.get("name", "")
+                if key:
+                    names.add(str(key))
+        return sorted(names)
 
     def _check_key_exists(self, key: str) -> bool:
         """Check if an item exists without using cache."""
-        data = self._load_json_file(self.items_file)
-        if not data or not isinstance(data, dict):
-            return False
-
-        return any(item.get("name") == key for item in data.get("items", []))
+        for src in [self.items_file, self.magic_items_file]:
+            data = self._load_json_file(src)
+            if not data or not isinstance(data, dict):
+                continue
+            for item in data.get("items", []):
+                idx = str(item.get("index", ""))
+                nm = item.get("name", "")
+                if idx == key or (idx and idx.lower() == key.lower()) or nm == key or nm.lower() == key.lower():
+                    return True
+        return False
 
     def _parse_item_data(self, data: dict[str, Any]) -> ItemDefinition:
         # Any is necessary because item data from JSON contains mixed types
@@ -117,7 +134,6 @@ class ItemRepository(BaseRepository[ItemDefinition], IItemRepository):
                 properties=data.get("properties", []),
                 armor_class=data.get("armor_class"),
                 dex_bonus=data.get("dex_bonus"),
-                capacity=data.get("capacity"),
                 contents=data.get("contents", []),
                 quantity_available=data.get("quantity_available"),
             )
@@ -181,3 +197,19 @@ class ItemRepository(BaseRepository[ItemDefinition], IItemRepository):
                     continue
 
         return all_items
+
+    def validate_reference(self, key: str) -> bool:
+        """Validate item by index or name (case-insensitive), even with cache enabled."""
+        if not self._initialized:
+            self._initialize()
+
+        if self.cache_enabled:
+            if key in self._cache:
+                return True
+            lower = key.lower()
+            for k, v in self._cache.items():
+                if k.lower() == lower or v.name.lower() == lower:
+                    return True
+            return self._check_key_exists(key)
+
+        return self._check_key_exists(key)

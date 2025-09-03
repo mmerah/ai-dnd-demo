@@ -3,20 +3,32 @@
 import logging
 from typing import Any
 
-from app.interfaces.services import IMonsterRepository, IPathResolver
-from app.models.npc import NPCSheet
+from app.interfaces.services import IMonsterRepository, IPathResolver, IRepository
+from app.models.alignment import Alignment
+from app.models.condition import Condition
+from app.models.language import Language
+from app.models.monster import Monster, MonsterSkill
+from app.models.skill import Skill
 from app.services.data.repositories.base_repository import BaseRepository
 
 logger = logging.getLogger(__name__)
 
 
-class MonsterRepository(BaseRepository[NPCSheet], IMonsterRepository):
+class MonsterRepository(BaseRepository[Monster], IMonsterRepository):
     """Repository for loading and managing monster data.
 
     Follows Single Responsibility Principle: only manages monster data access.
     """
 
-    def __init__(self, path_resolver: IPathResolver, cache_enabled: bool = True):
+    def __init__(
+        self,
+        path_resolver: IPathResolver,
+        cache_enabled: bool = True,
+        language_repository: IRepository[Language] | None = None,
+        condition_repository: IRepository[Condition] | None = None,
+        alignment_repository: IRepository[Alignment] | None = None,
+        skill_repository: IRepository[Skill] | None = None,
+    ):
         """Initialize the monster repository.
 
         Args:
@@ -26,6 +38,10 @@ class MonsterRepository(BaseRepository[NPCSheet], IMonsterRepository):
         super().__init__(cache_enabled)
         self.path_resolver = path_resolver
         self.monsters_file = self.path_resolver.get_shared_data_file("monsters")
+        self.language_repository = language_repository
+        self.condition_repository = condition_repository
+        self.alignment_repository = alignment_repository
+        self.skill_repository = skill_repository
 
     def _initialize(self) -> None:
         """Initialize the repository by loading all monsters if caching is enabled."""
@@ -37,31 +53,39 @@ class MonsterRepository(BaseRepository[NPCSheet], IMonsterRepository):
         """Load all monsters from the monsters.json file into cache."""
         data = self._load_json_file(self.monsters_file)
         if not data or not isinstance(data, dict):
-            raise FileNotFoundError(f"Monsters data file not found: {self.monsters_file}")
+            logger.warning("Monsters data file not found or invalid: %s", self.monsters_file)
+            return
 
         for monster_data in data.get("monsters", []):
             try:
                 monster = self._parse_monster_data(monster_data)
-                self._cache[monster.name] = monster
+                key = str(monster_data.get("index") or monster.name)
+                self._cache[key] = monster
             except Exception as e:
                 # Log error but continue loading other monsters
                 logger.warning(f"Failed to load monster {monster_data.get('name', 'unknown')}: {e}")
 
-    def _load_item(self, key: str) -> NPCSheet | None:
+    def _load_item(self, key: str) -> Monster | None:
         """Load a single monster by name.
 
         Args:
             key: Monster name to load
 
         Returns:
-            NPCSheet or None if not found
+            Monster or None if not found
         """
         data = self._load_json_file(self.monsters_file)
         if not data or not isinstance(data, dict):
             return None
 
         for monster_data in data.get("monsters", []):
-            if monster_data.get("name") == key:
+            idx = str(monster_data.get("index", ""))
+            if (
+                idx == key
+                or (idx and idx.lower() == key.lower())
+                or monster_data.get("name") == key
+                or str(monster_data.get("name", "")).lower() == key.lower()
+            ):
                 try:
                     return self._parse_monster_data(monster_data)
                 except Exception:
@@ -75,7 +99,12 @@ class MonsterRepository(BaseRepository[NPCSheet], IMonsterRepository):
         if not data or not isinstance(data, dict):
             return []
 
-        return sorted([monster.get("name", "") for monster in data.get("monsters", []) if monster.get("name")])
+        keys: list[str] = []
+        for monster in data.get("monsters", []):
+            k = monster.get("index") or monster.get("name", "")
+            if k:
+                keys.append(str(k))
+        return sorted(keys)
 
     def _check_key_exists(self, key: str) -> bool:
         """Check if a monster exists without using cache."""
@@ -83,17 +112,46 @@ class MonsterRepository(BaseRepository[NPCSheet], IMonsterRepository):
         if not data or not isinstance(data, dict):
             return False
 
-        return any(monster.get("name") == key for monster in data.get("monsters", []))
+        for m in data.get("monsters", []):
+            idx = str(m.get("index", ""))
+            nm = str(m.get("name", ""))
+            if idx == key or (idx and idx.lower() == key.lower()) or nm == key or nm.lower() == key.lower():
+                return True
+        return False
 
-    def _parse_monster_data(self, data: dict[str, Any]) -> NPCSheet:
+    def _parse_skills(self, data: dict[str, int] | None) -> list[MonsterSkill]:
+        """Parse skills from JSON dict to list of MonsterSkill."""
+        if not data:
+            return []
+
+        skills = []
+        for skill_name, modifier in data.items():
+            # Validate skill if repository available
+            if self.skill_repository:
+                # Skills in JSON use capitalized names, need to check against catalog
+                # The skill repository checks by index or name (case-insensitive)
+                skill_name_lower = skill_name.replace(" ", "-").lower()
+                valid = self.skill_repository.validate_reference(skill_name_lower)
+                if not valid:
+                    # Try without modifications in case it matches exactly
+                    valid = self.skill_repository.validate_reference(skill_name)
+                if not valid:
+                    logger.warning(f"Unknown skill: {skill_name}")
+                    continue
+
+            skills.append(MonsterSkill(name=skill_name, modifier=modifier))
+
+        return skills
+
+    def _parse_monster_data(self, data: dict[str, Any]) -> Monster:
         # Any is necessary because monster data from JSON contains mixed types
-        """Parse monster data from JSON into NPCSheet model.
+        """Parse monster data from JSON into Monster model.
 
         Args:
             data: Raw monster data from JSON
 
         Returns:
-            Parsed NPCSheet
+            Parsed Monster
 
         Raises:
             ValueError: If parsing fails
@@ -107,12 +165,42 @@ class MonsterRepository(BaseRepository[NPCSheet], IMonsterRepository):
                     "temporary": 0,
                 }
 
-            # Create NPCSheet from data
-            return NPCSheet(**data)
+            # Normalize languages to list of indexes
+            langs = data.get("languages")
+            if isinstance(langs, str):
+                # Split by comma and normalize
+                parts = [p.strip() for p in langs.split(",") if p and p.strip().lower() != "none"]
+                data["languages"] = [p.lower().replace(" ", "-") for p in parts]
+            elif langs is None:
+                data["languages"] = []
+
+            # Parse skills to list of MonsterSkill
+            data["skills"] = self._parse_skills(data.get("skills"))
+
+            # Create Monster from data
+            monster = Monster(**data)
+
+            # Validate alignment (fail-fast)
+            if self.alignment_repository and not self.alignment_repository.validate_reference(monster.alignment):
+                raise ValueError(f"Monster {monster.name} has unknown alignment: {monster.alignment}")
+
+            # Validate languages (fail-fast)
+            if self.language_repository:
+                for lang in monster.languages:
+                    if not self.language_repository.validate_reference(lang):
+                        raise ValueError(f"Monster {monster.name} has unknown language: {lang}")
+
+            # Validate condition immunities (fail-fast)
+            if self.condition_repository:
+                for cond in monster.condition_immunities:
+                    if not self.condition_repository.validate_reference(cond):
+                        raise ValueError(f"Monster {monster.name} has unknown condition immunity: {cond}")
+
+            return monster
         except Exception as e:
             raise ValueError(f"Failed to parse monster data: {e}") from e
 
-    def get(self, key: str) -> NPCSheet | None:
+    def get(self, key: str) -> Monster | None:
         """Get a monster by name, returning a deep copy.
 
         Override base implementation to return deep copies to avoid
@@ -122,7 +210,7 @@ class MonsterRepository(BaseRepository[NPCSheet], IMonsterRepository):
             key: Monster name to get
 
         Returns:
-            Deep copy of NPCSheet or None if not found
+            Deep copy of Monster or None if not found
         """
         monster = super().get(key)
         if monster:
@@ -130,7 +218,7 @@ class MonsterRepository(BaseRepository[NPCSheet], IMonsterRepository):
             return monster.model_copy(deep=True)
         return None
 
-    def get_by_challenge_rating(self, min_cr: float, max_cr: float) -> list[NPCSheet]:
+    def get_by_challenge_rating(self, min_cr: float, max_cr: float) -> list[Monster]:
         """Get all monsters within a challenge rating range.
 
         Args:
@@ -151,7 +239,7 @@ class MonsterRepository(BaseRepository[NPCSheet], IMonsterRepository):
             ]
 
         # Without cache, load all and filter
-        all_monsters = []
+        all_monsters: list[Monster] = []
         data = self._load_json_file(self.monsters_file)
         if data and isinstance(data, dict):
             for monster_data in data.get("monsters", []):
@@ -164,7 +252,7 @@ class MonsterRepository(BaseRepository[NPCSheet], IMonsterRepository):
 
         return all_monsters
 
-    def get_by_type(self, creature_type: str) -> list[NPCSheet]:
+    def get_by_type(self, creature_type: str) -> list[Monster]:
         """Get all monsters of a specific type.
 
         Args:
@@ -186,7 +274,7 @@ class MonsterRepository(BaseRepository[NPCSheet], IMonsterRepository):
             ]
 
         # Without cache, load all and filter
-        all_monsters = []
+        all_monsters: list[Monster] = []
         data = self._load_json_file(self.monsters_file)
         if data and isinstance(data, dict):
             for monster_data in data.get("monsters", []):
