@@ -6,25 +6,22 @@ from app.models.character import CharacterSheet
 
 
 class NPCSheet(BaseModel):
-    """NPC wrapper embedding a full CharacterSheet plus scenario metadata."""
+    """NPC wrapper embedding a full CharacterSheet plus scenario metadata (template-only).
+
+    Initialization-only fields use `initial_*` prefix; NPCInstance holds runtime state.
+    """
 
     # Scenario identity (stable within scenario)
     id: str
     display_name: str
     role: str
     description: str
+    initial_location_id: str
 
-    # Scenario presentation
-    dialogue_hints: list[str] = Field(default_factory=list)
-    attitude: str | None = None  # friendly, hostile, neutral, etc.
-    notes: list[str] = Field(default_factory=list)
+    # Scenario presentation seeds (initial values)
+    initial_dialogue_hints: list[str] = Field(default_factory=list)
+    initial_attitude: str | None = None  # friendly, hostile, neutral, etc.
+    initial_notes: list[str] = Field(default_factory=list)
 
-    # Embedded character profile
+    # Embedded character template
     character: CharacterSheet
-
-    # Presence flags (optional runtime)
-    present: bool = True
-
-    def is_alive(self) -> bool:
-        """NPC considered alive if embedded character has HP > 0."""
-        return self.character.hit_points.current > 0

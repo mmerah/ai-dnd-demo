@@ -47,11 +47,3 @@ class BroadcastGameUpdateCommand(BaseCommand):
 
     def get_handler_name(self) -> str:
         return "broadcast"
-
-
-@dataclass
-class BroadcastCharacterUpdateCommand(BaseCommand):
-    """Command to broadcast character update."""
-
-    def get_handler_name(self) -> str:
-        return "broadcast"

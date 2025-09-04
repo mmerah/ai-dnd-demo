@@ -4,7 +4,8 @@ Full D&D 5e functionality with scenario management, character management, functi
 
 ## Current Issues [CRITICAL]
 
-1. We actually probably need a CharacterInstance (has a CharacterSheet embedded, which is the one that would get saved into saves/) and NPCInstance (which is similar to NPCSheet in that it has a CharacterInstance embeddeded). Thus saves/ have those dynamic instances which follow the idea presented in ISSUE-LOAD-LEVEL.md (core architectural issue !). We could apply the same principle to Scenarios. That would probably impact saves/ structure but conceptually that would mean that we could imagine dynamically changing our character (level-up !!!), the npcs (level-up if they join up with us, having a memory, evolve attitude toward the character, ...), and the scenario (would be able to support sandbox, quest can change, locations are dynamic, ...). Game state will need to be updated to use those. We need to think about how to structure the code for those guys (maybe we want a models folder for dynamic stuff ? We would put game_state.py there ?), also the impact on every single piece of code !
+1. Initially, no Location exits/connection shown in the frontend.
+2. AI seems to take all NPCs in the game state and consider them there. Need to adapt context_service
 
 ## Ideas
 
@@ -36,3 +37,4 @@ Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic 
 8.  Ability to play with a party of NPCs
 9.  Custom save names
 10. Agent Registry for multi-agent: Introduce a lightweight `AgentRegistry` to manage available agents (Narrative, Combat, Summarizer, Creator...). The orchestrator queries the registry to select an agent, enabling runtime toggles, environment-specific agent sets, and plug-in style extension without changing orchestrator code. Useful once we add Combat/Summarizer and want clean, declarative wiring.
+11. NPCs are not known at first

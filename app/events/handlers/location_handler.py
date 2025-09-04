@@ -94,31 +94,33 @@ class LocationHandler(BaseHandler):
 
         elif isinstance(command, DiscoverSecretCommand):
             # Update location state
-            if game_state.current_location_id:
-                location_state = game_state.get_location_state(game_state.current_location_id)
-                location_state.discover_secret(command.secret_id)
+            if not game_state.scenario_instance.is_in_known_location():
+                raise ValueError("Cannot discover secret: current location is unknown")
+            current_loc = game_state.scenario_instance.current_location_id
+            location_state = game_state.get_location_state(current_loc)
+            location_state.discover_secret(command.secret_id)
 
-                # Save game state
-                self.game_service.save_game(game_state)
+            # Save game state
+            self.game_service.save_game(game_state)
 
-                result.data = DiscoverSecretResult(
-                    secret_id=command.secret_id,
-                    description=command.secret_description,
-                    message=f"Discovered secret: {command.secret_description}",
-                )
+            result.data = DiscoverSecretResult(
+                secret_id=command.secret_id,
+                description=command.secret_description,
+                message=f"Discovered secret: {command.secret_description}",
+            )
 
-                # Broadcast update
-                result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
+            # Broadcast update
+            result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
-                logger.info(f"Secret discovered: {command.secret_id}")
-            else:
-                raise ValueError("No current location to discover secrets in")
+            logger.info(f"Secret discovered: {command.secret_id}")
 
+        # TODO: Need a way/tool to move NPCInstance to another location
         elif isinstance(command, UpdateLocationStateCommand):
-            if not game_state.current_location_id:
+            current_loc = game_state.scenario_instance.current_location_id
+            if not current_loc:
                 raise ValueError("No current location to update")
 
-            location_state = game_state.get_location_state(command.location_id or game_state.current_location_id)
+            location_state = game_state.get_location_state(command.location_id or current_loc)
             updates = []
 
             # Update danger level
@@ -128,16 +130,6 @@ class LocationHandler(BaseHandler):
                     updates.append(f"Danger level: {command.danger_level}")
                 except ValueError as e:
                     raise ValueError(f"Invalid danger level: {command.danger_level}") from e
-
-            # Add NPC id
-            if command.add_npc:
-                location_state.add_npc_id(command.add_npc)
-                updates.append(f"Added NPC: {command.add_npc}")
-
-            # Remove NPC id
-            if command.remove_npc:
-                location_state.remove_npc_id(command.remove_npc)
-                updates.append(f"Removed NPC: {command.remove_npc}")
 
             # Complete encounter
             if command.complete_encounter:
@@ -153,7 +145,7 @@ class LocationHandler(BaseHandler):
             self.game_service.save_game(game_state)
 
             result.data = UpdateLocationStateResult(
-                location_id=command.location_id or game_state.current_location_id,
+                location_id=command.location_id or current_loc,
                 updates=updates,
                 message=f"Location state updated: {', '.join(updates)}",
             )

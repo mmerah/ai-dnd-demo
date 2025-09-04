@@ -37,3 +37,14 @@ class AbilityBonuses(BaseModel):
     INT: int = Field(default=0)
     WIS: int = Field(default=0)
     CHA: int = Field(default=0)
+
+
+class SavingThrows(BaseModel):
+    """Saving throw modifiers by ability."""
+
+    STR: int = 0
+    DEX: int = 0
+    CON: int = 0
+    INT: int = 0
+    WIS: int = 0
+    CHA: int = 0

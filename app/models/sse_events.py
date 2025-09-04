@@ -7,10 +7,9 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from app.common.types import JSONSerializable
-from app.models.character import CharacterSheet
 from app.models.combat import CombatState
 from app.models.game_state import GameState
-from app.models.scenario import Scenario
+from app.models.scenario import ScenarioSheet
 from app.models.tool_results import ToolResult
 
 
@@ -24,7 +23,6 @@ class SSEEventType(str, Enum):
     TOOL_CALL = "tool_call"
     TOOL_RESULT = "tool_result"
     DICE_ROLL = "dice_roll"
-    CHARACTER_UPDATE = "character_update"
     COMBAT_UPDATE = "combat_update"
     SYSTEM = "system"
     ERROR = "error"
@@ -84,12 +82,6 @@ class ToolResultData(BaseSSEData):
     result: ToolResult
 
 
-class CharacterUpdateData(BaseSSEData):
-    """Data for character update events."""
-
-    character: CharacterSheet
-
-
 class CombatUpdateData(BaseSSEData):
     """Data for combat update events."""
 
@@ -119,8 +111,8 @@ class GameUpdateData(BaseSSEData):
 class ScenarioInfoData(BaseSSEData):
     """Data for scenario info events."""
 
-    current_scenario: Scenario
-    available_scenarios: list[Scenario]
+    current_scenario: ScenarioSheet
+    available_scenarios: list[ScenarioSheet]
 
 
 class CompleteData(BaseSSEData):
@@ -137,7 +129,6 @@ SSEData = (
     | InitialNarrativeData
     | ToolCallData
     | ToolResultData
-    | CharacterUpdateData
     | CombatUpdateData
     | SystemMessageData
     | ErrorData

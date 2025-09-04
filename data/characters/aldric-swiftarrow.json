@@ -5,25 +5,9 @@
   "class_index": "ranger",
   "subclass": "hunter",
   "subrace": "high-elf",
-  "level": 3,
   "background": "acolyte",
   "alignment": "neutral-good",
-  "experience_points": 900,
-  "hit_points": {
-    "current": 28,
-    "maximum": 28,
-    "temporary": 0
-  },
-  "hit_dice": {
-    "total": 3,
-    "current": 3,
-    "type": "d10"
-  },
-  "armor_class": 14,
-  "initiative": 3,
-  "speed": 35,
-  "proficiency_bonus": 2,
-  "abilities": {
+  "starting_abilities": {
     "STR": 13,
     "DEX": 16,
     "CON": 14,
@@ -31,36 +15,23 @@
     "WIS": 15,
     "CHA": 10
   },
-  "ability_modifiers": {
-    "STR": 1,
-    "DEX": 3,
-    "CON": 2,
-    "INT": 1,
-    "WIS": 2,
-    "CHA": 0
-  },
-  "saving_throws": {
-    "STR": 3,
-    "DEX": 5,
-    "CON": 2,
-    "INT": 1,
-    "WIS": 2,
-    "CHA": 0
-  },
-  "skills": {
-    "athletics": 3,
-    "perception": 4,
-    "stealth": 5,
-    "survival": 4,
-    "nature": 3,
-    "investigation": 3,
-    "animal-handling": 4
-  },
   "custom_features": [
-    {"name": "Favored Enemy: Goblinoids", "description": "You have chosen goblinoids (goblins, hobgoblins, and bugbears) as your favored enemy type."},
-    {"name": "Natural Explorer: Forest", "description": "You have chosen forest as your favored terrain type."},
-    {"name": "Fighting Style: Archery", "description": "You have chosen Archery as your ranger fighting style."},
-    {"name": "Hunter's Prey: Colossus Slayer", "description": "You have chosen Colossus Slayer as your Hunter's Prey feature."}
+    {
+      "name": "Favored Enemy: Goblinoids",
+      "description": "You have chosen goblinoids (goblins, hobgoblins, and bugbears) as your favored enemy type."
+    },
+    {
+      "name": "Natural Explorer: Forest",
+      "description": "You have chosen forest as your favored terrain type."
+    },
+    {
+      "name": "Fighting Style: Archery",
+      "description": "You have chosen Archery as your ranger fighting style."
+    },
+    {
+      "name": "Hunter's Prey: Colossus Slayer",
+      "description": "You have chosen Colossus Slayer as your Hunter's Prey feature."
+    }
   ],
   "feature_indexes": [
     "favored-enemy-1-type",
@@ -80,42 +51,28 @@
     "high-elf-cantrip"
   ],
   "feat_indexes": [],
-  "attacks": [
-    {
-      "name": "Longbow",
-      "to_hit": 7,
-      "damage": "1d8+3",
-      "damage_type": "piercing",
-      "range": "150/600 ft",
-      "properties": ["ammunition", "heavy", "two-handed"]
-    },
-    {
-      "name": "Shortsword",
-      "to_hit": 5,
-      "damage": "1d6+3",
-      "damage_type": "piercing",
-      "range": "Melee",
-      "properties": ["finesse", "light"]
-    }
-  ],
-  "spellcasting": {
-    "ability": "Wisdom",
-    "spell_save_dc": 12,
-    "spell_attack_bonus": 4,
-    "spells_known": [
-      "Cure Wounds",
-      "Hunter's Mark",
-      "Entangle"
+  "personality": {
+    "traits": [
+      "I place no stock in wealthy or well-mannered folk. Money and manners won't save you from a hungry owlbear.",
+      "I'm always picking things up, absently fiddling with them, and sometimes accidentally breaking them."
     ],
-    "spell_slots": {
-      "1": {
-        "level": 1,
-        "total": 3,
-        "current": 3
-      }
-    }
+    "ideals": [
+      "Nature. The natural world is more important than all the constructs of civilization."
+    ],
+    "bonds": [
+      "I will bring terrible wrath down on the evildoers who destroyed my homeland."
+    ],
+    "flaws": [
+      "I am too enamored of ale, wine, and other intoxicants."
+    ]
   },
-  "inventory": [
+  "backstory": "Aldric Swiftarrow grew up in the forests of the Wood Elf homeland, learning the ways of nature and the bow. When goblinoid raiders destroyed his village, he took up the mantle of a ranger to protect others from the same fate. He now wanders the borderlands, keeping watch for evil and helping those in need.",
+  "languages": [
+    "common",
+    "elvish",
+    "goblin"
+  ],
+  "starting_inventory": [
     {
       "name": "Potion of Healing",
       "quantity": 2,
@@ -207,35 +164,28 @@
       "item_type": "Adventuring Gear"
     }
   ],
-  "currency": {
+  "starting_currency": {
     "copper": 0,
     "silver": 0,
     "electrum": 0,
     "gold": 50,
     "platinum": 0
   },
-  "personality": {
-    "traits": [
-      "I place no stock in wealthy or well-mannered folk. Money and manners won't save you from a hungry owlbear.",
-      "I'm always picking things up, absently fiddling with them, and sometimes accidentally breaking them."
+  "starting_spellcasting": {
+    "ability": "Wisdom",
+    "spells_known": [
+      "Cure Wounds",
+      "Hunter's Mark",
+      "Entangle"
     ],
-    "ideals": [
-      "Nature. The natural world is more important than all the constructs of civilization."
-    ],
-    "bonds": [
-      "I will bring terrible wrath down on the evildoers who destroyed my homeland."
-    ],
-    "flaws": [
-      "I am too enamored of ale, wine, and other intoxicants."
-    ]
+    "spell_slots": {
+      "1": {
+        "level": 1,
+        "total": 3,
+        "current": 3
+      }
+    }
   },
-  "backstory": "Aldric Swiftarrow grew up in the forests of the Wood Elf homeland, learning the ways of nature and the bow. When goblinoid raiders destroyed his village, he took up the mantle of a ranger to protect others from the same fate. He now wanders the borderlands, keeping watch for evil and helping those in need.",
-  "languages": [
-    "common",
-    "elvish",
-    "goblin"
-  ],
-  "conditions": [],
-  "exhaustion_level": 0,
-  "inspiration": false
+  "starting_level": 3,
+  "starting_experience_points": 900
 }

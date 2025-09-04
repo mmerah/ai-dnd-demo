@@ -157,9 +157,11 @@ class Spellcasting(BaseModel):
     """Character spellcasting information."""
 
     ability: SpellcastingAbility
-    spell_save_dc: int = Field(ge=1)
-    spell_attack_bonus: int
-    spells_known: list[str]  # List of spell names
+
+    # Computed at runtime from level/abilities
+    spell_save_dc: int | None = Field(ge=1, default=None)
+    spell_attack_bonus: int | None = None
+    spells_known: list[str]
     spell_slots: dict[int, SpellSlot]  # Key is spell level (1-9)
 
     # Optional tracking

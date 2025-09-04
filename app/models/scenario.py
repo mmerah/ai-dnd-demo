@@ -54,7 +54,6 @@ class ScenarioLocation(BaseModel):
     name: str
     description: str  # Default description
     descriptions: LocationDescriptions | None = None  # Multiple variants
-    npc_ids: list[str] = Field(default_factory=list)
     notable_monsters: list[ScenarioMonster] = Field(default_factory=list)
     encounter_ids: list[str] = Field(default_factory=list)  # References to encounter definitions
     monster_ids: list[str] = Field(default_factory=list)  # References to monster definitions
@@ -137,7 +136,7 @@ class TreasureGuidelines(BaseModel):
     mundane_items: str
 
 
-class Scenario(BaseModel):
+class ScenarioSheet(BaseModel):
     """Complete enhanced scenario/adventure definition."""
 
     id: str = Field(default="default")
@@ -197,8 +196,5 @@ class Scenario(BaseModel):
         narrative = f"## {self.title}\n\n{self.description}\n\n"
         narrative += f"### {start_loc.name}\n\n"
         narrative += start_loc.get_description("first_visit")
-
-        if start_loc.npc_ids:
-            narrative += "\n\nYou notice several people here."
 
         return narrative

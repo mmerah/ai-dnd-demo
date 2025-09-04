@@ -3,7 +3,7 @@
 import logging
 
 from app.events.base import BaseCommand, CommandResult
-from app.events.commands.broadcast_commands import BroadcastCharacterUpdateCommand
+from app.events.commands.broadcast_commands import BroadcastGameUpdateCommand
 from app.events.commands.inventory_commands import (
     ModifyCurrencyCommand,
     ModifyInventoryCommand,
@@ -36,7 +36,7 @@ class InventoryHandler(BaseHandler):
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle inventory commands."""
         result = CommandResult()
-        character = game_state.character
+        character = game_state.character.state
 
         if isinstance(command, ModifyCurrencyCommand):
             old_gold = character.currency.gold
@@ -66,7 +66,7 @@ class InventoryHandler(BaseHandler):
                 change_copper=command.copper,
             )
 
-            result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
+            result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
             logger.info(
                 f"Currency Update: Gold {old_gold}→{character.currency.gold}, "
@@ -101,7 +101,7 @@ class InventoryHandler(BaseHandler):
                 total_quantity=existing_item.quantity if existing_item else command.quantity,
             )
 
-            result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
+            result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
             logger.info(f"Item Added: {command.item_name} x{command.quantity}")
 
@@ -130,7 +130,7 @@ class InventoryHandler(BaseHandler):
                 remaining_quantity=max(0, existing_item.quantity),
             )
 
-            result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
+            result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
             logger.info(f"Item Removed: {command.item_name} x{command.quantity}")
 

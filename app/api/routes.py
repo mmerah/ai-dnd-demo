@@ -27,7 +27,7 @@ from app.models.monster import Monster
 from app.models.race import RaceDefinition
 from app.models.race import SubraceDefinition as RaceSubraceDefinition
 from app.models.requests import NewGameRequest, NewGameResponse, PlayerActionRequest
-from app.models.scenario import Scenario
+from app.models.scenario import ScenarioSheet
 from app.models.skill import Skill
 from app.models.spell import SpellDefinition
 from app.models.trait import TraitDefinition as TraitDef
@@ -258,7 +258,7 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
 
 
 @router.get("/scenarios")
-async def list_available_scenarios() -> list[Scenario]:
+async def list_available_scenarios() -> list[ScenarioSheet]:
     """
     List all available scenarios.
 
@@ -278,7 +278,7 @@ async def list_available_scenarios() -> list[Scenario]:
 
 
 @router.get("/scenarios/{scenario_id}")
-async def get_scenario(scenario_id: str) -> Scenario:
+async def get_scenario(scenario_id: str) -> ScenarioSheet:
     """
     Get a specific scenario by ID.
 

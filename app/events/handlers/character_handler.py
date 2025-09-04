@@ -3,7 +3,7 @@
 import logging
 
 from app.events.base import BaseCommand, CommandResult
-from app.events.commands.broadcast_commands import BroadcastCharacterUpdateCommand
+from app.events.commands.broadcast_commands import BroadcastGameUpdateCommand
 from app.events.commands.character_commands import (
     UpdateConditionCommand,
     UpdateHPCommand,
@@ -41,20 +41,22 @@ class CharacterHandler(BaseHandler):
             max_hp = 0
 
             if command.target == "player":
-                character = game_state.character
+                character = game_state.character.state
                 old_hp = character.hit_points.current
                 max_hp = character.hit_points.maximum
                 new_hp = min(old_hp + command.amount, max_hp) if command.amount > 0 else max(0, old_hp + command.amount)
                 character.hit_points.current = new_hp
             else:
-                npc = next((n for n in game_state.npcs if n.character.name.lower() == command.target.lower()), None)
+                npc = next(
+                    (n for n in game_state.npcs if n.sheet.character.name.lower() == command.target.lower()), None
+                )
                 if npc:
-                    old_hp = npc.character.hit_points.current
-                    max_hp = npc.character.hit_points.maximum
+                    old_hp = npc.state.hit_points.current
+                    max_hp = npc.state.hit_points.maximum
                     new_hp = (
                         min(old_hp + command.amount, max_hp) if command.amount > 0 else max(0, old_hp + command.amount)
                     )
-                    npc.character.hit_points.current = new_hp
+                    npc.state.hit_points.current = new_hp
                 else:
                     raise ValueError(f"Target {command.target} not found")
 
@@ -72,8 +74,8 @@ class CharacterHandler(BaseHandler):
                 is_unconscious=new_hp == 0,
             )
 
-            # Add broadcast command
-            result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
+            # Add broadcast commands
+            result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
             logger.info(
                 f"HP Update: {command.target} {'healed' if command.amount > 0 else 'took'} "
@@ -82,7 +84,7 @@ class CharacterHandler(BaseHandler):
 
         elif isinstance(command, UpdateConditionCommand) and command.action == "add":
             if command.target == "player":
-                character = game_state.character
+                character = game_state.character.state
                 if command.condition not in character.conditions:
                     character.conditions.append(command.condition)
             elif game_state.combat:
@@ -100,7 +102,7 @@ class CharacterHandler(BaseHandler):
                 duration=command.duration,
             )
 
-            result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
+            result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
             logger.info(f"Condition Added: {command.target} is now {command.condition}")
 
@@ -108,7 +110,7 @@ class CharacterHandler(BaseHandler):
             removed = False
 
             if command.target == "player":
-                character = game_state.character
+                character = game_state.character.state
                 if command.condition in character.conditions:
                     character.conditions.remove(command.condition)
                     removed = True
@@ -128,12 +130,12 @@ class CharacterHandler(BaseHandler):
                 removed=removed,
             )
 
-            result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
+            result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
             logger.info(f"Condition Removed: {command.target} is no longer {command.condition}")
 
         elif isinstance(command, UpdateSpellSlotsCommand):
-            character = game_state.character
+            character = game_state.character.state
 
             if not character.spellcasting:
                 raise ValueError("Character has no spellcasting ability")
@@ -159,7 +161,7 @@ class CharacterHandler(BaseHandler):
                 change=command.amount,
             )
 
-            result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
+            result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
             logger.info(f"Spell Slots: Level {command.level} - {old_slots} → {new_slots}/{max_slots}")
 

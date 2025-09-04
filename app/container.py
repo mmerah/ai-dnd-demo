@@ -18,6 +18,7 @@ from app.interfaces.events import IEventBus
 from app.interfaces.services import (
     IAIService,
     IBroadcastService,
+    ICharacterComputeService,
     ICharacterService,
     IEventManager,
     IGameService,
@@ -34,10 +35,11 @@ from app.interfaces.services import (
     ISpellRepository,
 )
 from app.models.character import CharacterSheet
-from app.models.scenario import Scenario
+from app.models.scenario import ScenarioSheet
 from app.services.ai import AIService, MessageService
 from app.services.ai.orchestrator_service import AgentOrchestrator
 from app.services.character import CharacterService
+from app.services.character.compute_service import CharacterComputeService
 from app.services.common import BroadcastService, DiceService
 from app.services.common.path_resolver import PathResolver
 from app.services.data.loaders.character_loader import CharacterLoader
@@ -84,6 +86,7 @@ class Container:
             message_manager=self.game_message_manager,
             event_manager=self.event_manager,
             metadata_service=self.metadata_service,
+            compute_service=self.character_compute_service,
         )
 
     @cached_property
@@ -208,7 +211,7 @@ class Container:
         return CharacterLoader()
 
     @cached_property
-    def scenario_loader(self) -> ILoader[Scenario]:
+    def scenario_loader(self) -> ILoader[ScenarioSheet]:
         return ScenarioLoader(self.path_resolver)
 
     @cached_property
@@ -230,6 +233,15 @@ class Container:
     @cached_property
     def metadata_service(self) -> IMetadataService:
         return MetadataService()
+
+    @cached_property
+    def character_compute_service(self) -> ICharacterComputeService:
+        return CharacterComputeService(
+            class_repository=self.class_repository,
+            skill_repository=self.skill_repository,
+            item_repository=self.item_repository,
+            spell_repository=self.spell_repository,
+        )
 
     @cached_property
     def event_bus(self) -> IEventBus:

@@ -6,7 +6,7 @@ import logging
 from app.interfaces.services import ICharacterService, ILoader, IMonsterRepository, IPathResolver, IScenarioService
 from app.models.monster import Monster
 from app.models.npc import NPCSheet
-from app.models.scenario import Scenario, ScenarioMonster
+from app.models.scenario import ScenarioMonster, ScenarioSheet
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ class ScenarioService(IScenarioService):
     def __init__(
         self,
         path_resolver: IPathResolver,
-        scenario_loader: ILoader[Scenario],
+        scenario_loader: ILoader[ScenarioSheet],
         monster_repository: IMonsterRepository,
         character_service: ICharacterService,
     ):
@@ -33,7 +33,7 @@ class ScenarioService(IScenarioService):
         self.scenario_loader = scenario_loader
         self.monster_repository = monster_repository
         self.character_service = character_service
-        self._scenarios: dict[str, Scenario] = {}
+        self._scenarios: dict[str, ScenarioSheet] = {}
         self._load_all_scenarios()
 
     def _load_all_scenarios(self) -> None:
@@ -67,7 +67,7 @@ class ScenarioService(IScenarioService):
             except Exception as e:
                 logger.error(f"Failed to load legacy scenario: {e}")
 
-    def get_scenario(self, scenario_id: str) -> Scenario | None:
+    def get_scenario(self, scenario_id: str) -> ScenarioSheet | None:
         """
         Get a scenario by ID.
 
@@ -79,7 +79,7 @@ class ScenarioService(IScenarioService):
         """
         return self._scenarios.get(scenario_id)
 
-    def list_scenarios(self) -> list[Scenario]:
+    def list_scenarios(self) -> list[ScenarioSheet]:
         """
         List all available scenarios.
 
@@ -113,7 +113,7 @@ class ScenarioService(IScenarioService):
             logger.error(f"Failed to load NPC {npc_id} from scenario {scenario_id}: {e}")
             raise
 
-    def get_default_scenario(self) -> Scenario | None:
+    def get_default_scenario(self) -> ScenarioSheet | None:
         """
         Get the default scenario (first available).
 
@@ -144,22 +144,37 @@ class ScenarioService(IScenarioService):
         except Exception:
             return None
 
-    def get_location_npcs(self, scenario_id: str, location_id: str) -> list[NPCSheet]:
-        """Resolve and return NPCSheets for a location's npc_ids."""
-        scenario = self.get_scenario(scenario_id)
-        if not scenario:
-            return []
-        loc = scenario.get_location(location_id)
-        if not loc or not loc.npc_ids:
-            return []
+    def list_scenario_npcs(self, scenario_id: str) -> list[NPCSheet]:
+        """List all NPCSheets defined in a scenario."""
         npcs: list[NPCSheet] = []
-        for nid in loc.npc_ids:
-            npc = self.get_scenario_npc(scenario_id, nid)
-            if npc:
-                npcs.append(npc)
-        return npcs
+        try:
+            npcs_dir = self.path_resolver.get_scenario_dir(scenario_id) / "npcs"
+            if not npcs_dir.exists():
+                return npcs
 
-    def get_scenario_context_for_ai(self, scenario: Scenario, current_location_id: str) -> str:
+            for npc_file in npcs_dir.glob("*.json"):
+                try:
+                    with open(npc_file, encoding="utf-8") as f:
+                        data = json.load(f)
+                    npc = NPCSheet(**data)
+
+                    # Validate NPC character sheet if character service available (fail-fast)
+                    errors = self.character_service.validate_character_references(npc.character)
+                    if errors:
+                        logger.warning(f"NPC {npc.id} has invalid references: {', '.join(errors)}")
+                        continue
+
+                    npcs.append(npc)
+                except Exception as e:
+                    logger.warning(f"Failed to load NPC from {npc_file}: {e}")
+                    continue
+
+            return npcs
+        except Exception as e:
+            logger.error(f"Failed to list NPCs for scenario {scenario_id}: {e}")
+            return []
+
+    def get_scenario_context_for_ai(self, scenario: ScenarioSheet, current_location_id: str) -> str:
         """
         Get scenario context string for AI.
 
@@ -176,14 +191,6 @@ class ScenarioService(IScenarioService):
         location = scenario.get_location(current_location_id)
         if location:
             context += f"## Current Location: {location.name}\n{location.description}\n\n"
-
-            if location.npc_ids:
-                context += "NPCs present:\n"
-                for nid in location.npc_ids:
-                    npc = self.get_scenario_npc(scenario.id, nid)
-                    if npc:
-                        context += f"- {npc.display_name} ({npc.role}): {npc.description}\n"
-                context += "\n"
 
             if location.encounter_ids:
                 context += f"Potential encounters: {len(location.encounter_ids)} available\n\n"

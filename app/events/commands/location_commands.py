@@ -34,8 +34,6 @@ class UpdateLocationStateCommand(BaseCommand):
 
     location_id: str = ""
     danger_level: str | None = None
-    add_npc: str | None = None
-    remove_npc: str | None = None
     complete_encounter: str | None = None
     add_effect: str | None = None
 

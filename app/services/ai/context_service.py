@@ -8,7 +8,7 @@ from app.interfaces.services import (
 )
 from app.models.game_state import GameState
 from app.models.quest import ObjectiveStatus
-from app.models.scenario import Scenario
+from app.models.scenario import ScenarioSheet
 
 # TODO: Could just deep-load GameState and Scenario no ? Does it need to be that complicated ?
 
@@ -32,14 +32,14 @@ class ContextService:
         """Build enhanced context string from game state."""
         context_parts = []
 
-        # Add scenario context if available
-        if game_state.scenario_id and game_state.current_location_id:
+        # Add scenario context if available and in known location
+        if game_state.scenario_instance.is_in_known_location():
             scenario = self.scenario_service.get_scenario(game_state.scenario_id)
             if scenario:
                 # Get base scenario context
                 scenario_context = self.scenario_service.get_scenario_context_for_ai(
                     scenario,
-                    game_state.current_location_id,
+                    game_state.scenario_instance.current_location_id,
                 )
                 context_parts.append(scenario_context)
 
@@ -48,18 +48,24 @@ class ContextService:
                 if location_context:
                     context_parts.append(location_context)
 
+                # Add NPCs at current location
+                npcs_context = self._build_npcs_at_location_context(game_state)
+                if npcs_context:
+                    context_parts.append(npcs_context)
+
                 # Add quest context
                 quest_context = self._build_quest_context(game_state, scenario)
                 if quest_context:
                     context_parts.append(quest_context)
 
         # Add current game state
-        char = game_state.character
-        class_display = char.class_display
+        char_sheet = game_state.character.sheet
+        char_state = game_state.character.state
+        class_display = char_sheet.class_display
         context_parts.append(
             f"""Current State:
-- Character: {char.name} ({char.race} {class_display} Level {char.level})
-- HP: {char.hit_points.current}/{char.hit_points.maximum}, AC: {char.armor_class}
+- Character: {char_sheet.name} ({char_sheet.race} {class_display} Level {char_state.level})
+- HP: {char_state.hit_points.current}/{char_state.hit_points.maximum}, AC: {char_state.armor_class}
 - Location: {game_state.location}
 - Time: Day {game_state.game_time.day}, {game_state.game_time.hour:02d}:{game_state.game_time.minute:02d}""",
         )
@@ -75,8 +81,8 @@ class ContextService:
             context_parts.append(combat_context)
 
         # Add character spell context if relevant
-        if char.spellcasting and char.spellcasting.spells_known:
-            spell_context = self._build_spell_context(char.spellcasting.spells_known)
+        if char_state.spellcasting and char_state.spellcasting.spells_known:
+            spell_context = self._build_spell_context(char_state.spellcasting.spells_known)
             if spell_context:
                 context_parts.append(spell_context)
 
@@ -93,20 +99,21 @@ class ContextService:
 
         return "\n\n".join(context_parts)
 
-    def _build_location_context(self, game_state: GameState, scenario: Scenario) -> str | None:
+    def _build_location_context(self, game_state: GameState, scenario: ScenarioSheet) -> str | None:
         """Build enhanced location context with connections, encounters, and loot."""
-        if not game_state.current_location_id:
+        if not game_state.scenario_instance.is_in_known_location():
             return None
+        loc_id = game_state.scenario_instance.current_location_id
 
-        location = scenario.get_location(game_state.current_location_id)
+        location = scenario.get_location(loc_id)
         if not location:
             return None
 
-        location_state = game_state.get_location_state(game_state.current_location_id)
+        location_state = game_state.get_location_state(loc_id)
         context_parts = ["Enhanced Location Details:"]
 
         # Location state information
-        context_parts.append(f"- Current Location ID: {game_state.current_location_id}")
+        context_parts.append(f"- Current Location ID: {loc_id}")
         context_parts.append(f"- Danger Level: {location_state.danger_level.value}")
         context_parts.append(f"- Visited: {location_state.times_visited} time(s)")
 
@@ -155,33 +162,38 @@ class ContextService:
                         else:
                             context_parts.append(f"  - {loot.item_name}")
 
-        # NPCs in location (resolve ids to names via injected service)
-        if location_state.npcs_present:
-            names: list[str] = []
-            for nid in location_state.npcs_present:
-                try:
-                    npc = self.scenario_service.get_scenario_npc(scenario.id, nid)
-                    if npc:
-                        names.append(npc.display_name)
-                except Exception:
-                    # Best-effort resolution; ignore failures per-id
-                    continue
-            if names:
-                context_parts.append(f"\nNPCs Here: {', '.join(names)}")
-            else:
-                # Fallback to listing ids if none resolved
-                context_parts.append(f"\nNPCs Here: {', '.join(location_state.npcs_present)}")
+        return "\n".join(context_parts)
+
+    def _build_npcs_at_location_context(self, game_state: GameState) -> str | None:
+        """Build context for NPCs present at current location."""
+        if not game_state.scenario_instance.is_in_known_location():
+            return None
+
+        current_loc_id = game_state.scenario_instance.current_location_id
+
+        # Filter NPCs by current location
+        npcs_here = [npc for npc in game_state.npcs if npc.current_location_id == current_loc_id]
+
+        if not npcs_here:
+            return None
+
+        context_parts = ["NPCs at this location:"]
+        for npc in npcs_here:
+            npc_info = f"- {npc.sheet.display_name} ({npc.sheet.role}): {npc.sheet.description}"
+            if npc.attitude:
+                npc_info += f" [Attitude: {npc.attitude}]"
+            context_parts.append(npc_info)
 
         return "\n".join(context_parts)
 
-    def _build_quest_context(self, game_state: GameState, scenario: Scenario) -> str | None:
+    def _build_quest_context(self, game_state: GameState, scenario: ScenarioSheet) -> str | None:
         """Build quest context with active quests and objectives."""
-        if not game_state.active_quests:
+        if not game_state.scenario_instance.active_quests:
             return None
 
         context_parts = ["Active Quests:"]
 
-        for quest in game_state.active_quests:
+        for quest in game_state.scenario_instance.active_quests:
             context_parts.append(f"\n• {quest.name} [ID: {quest.id}] ({quest.get_progress_percentage():.0f}% complete)")
 
             # Show active objectives with their IDs
@@ -195,10 +207,12 @@ class ContextService:
         # Mention available quests based on prerequisites with their IDs
         available_quests = []
         for quest_def in scenario.quests:
+            active_ids = [q.id for q in game_state.scenario_instance.active_quests]
+            completed_ids = game_state.scenario_instance.completed_quest_ids
             if (
-                quest_def.id not in [q.id for q in game_state.active_quests]
-                and quest_def.id not in game_state.completed_quest_ids
-                and quest_def.is_available(game_state.completed_quest_ids)
+                quest_def.id not in active_ids
+                and quest_def.id not in completed_ids
+                and quest_def.is_available(completed_ids)
             ):
                 available_quests.append(f"{quest_def.name} [ID: {quest_def.id}]")
 
@@ -213,16 +227,21 @@ class ContextService:
 
         for npc in game_state.npcs:
             # Basic info
-            npc_info = f"  • {npc.character.name}: HP {npc.character.hit_points.current}/{npc.character.hit_points.maximum}, AC {npc.character.armor_class}"
+            npc_name = npc.sheet.character.name
+            npc_state = npc.state
+            npc_info = f"  • {npc_name}: HP {npc_state.hit_points.current}/{npc_state.hit_points.maximum}, AC {npc_state.armor_class}"
 
             # Add conditions if any
-            if npc.character.conditions:
-                npc_info += f" [{', '.join(npc.character.conditions)}]"
+            if npc_state.conditions:
+                npc_info += f" [{', '.join(npc_state.conditions)}]"
 
             npc_lines.append(npc_info)
 
             # If NPC has notable abilities, mention them briefly
-            ability_summary = f"    Abilities - STR: {npc.character.abilities.STR}, DEX: {npc.character.abilities.DEX}, CON: {npc.character.abilities.CON}"
+            ability_summary = (
+                f"    Abilities - STR: {npc_state.abilities.STR}, "
+                f"DEX: {npc_state.abilities.DEX}, CON: {npc_state.abilities.CON}"
+            )
             npc_lines.append(ability_summary)
 
         return "\n".join(npc_lines)
@@ -268,7 +287,7 @@ class ContextService:
 
     def _build_inventory_context(self, game_state: GameState) -> str | None:
         """List player's inventory with exact item names and quantities."""
-        inv = game_state.character.inventory
+        inv = game_state.character.state.inventory
         if not inv:
             return None
 
@@ -288,7 +307,7 @@ class ContextService:
 
         for npc in game_state.npcs:
             npc_items: list[str] = []
-            for item in npc.character.inventory:
+            for item in npc.state.inventory:
                 if item.name not in items_mentioned:
                     items_mentioned.add(item.name)
                     # Show the exact name the AI should use
@@ -302,6 +321,6 @@ class ContextService:
             if npc_items:
                 if not context_parts:
                     context_parts.append("NPC Available Items (use exact names shown):")
-                context_parts.append(f"  {npc.character.name} has: {', '.join(npc_items)}")
+                context_parts.append(f"  {npc.sheet.character.name} has: {', '.join(npc_items)}")
 
         return "\n".join(context_parts) if context_parts else None

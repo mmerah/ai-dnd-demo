@@ -5,11 +5,9 @@ from collections.abc import AsyncGenerator
 
 from app.common.types import JSONSerializable
 from app.interfaces.services import IBroadcastService, IMessageService
-from app.models.character import CharacterSheet
 from app.models.game_state import GameState
-from app.models.scenario import Scenario
+from app.models.scenario import ScenarioSheet
 from app.models.sse_events import (
-    CharacterUpdateData,
     CompleteData,
     ErrorData,
     GameUpdateData,
@@ -81,17 +79,6 @@ class MessageService(IMessageService):
         data = ToolResultData(tool_name=tool_name, result=result)
         await self.broadcast_service.publish(game_id, SSEEventType.TOOL_RESULT.value, data)
 
-    async def send_character_update(self, game_id: str, character: CharacterSheet) -> None:
-        """
-        Send character sheet update.
-
-        Args:
-            game_id: Game identifier
-            character: CharacterSheet instance
-        """
-        data = CharacterUpdateData(character=character)
-        await self.broadcast_service.publish(game_id, SSEEventType.CHARACTER_UPDATE.value, data)
-
     async def send_error(self, game_id: str, error: str, error_type: str | None = None) -> None:
         """
         Send error message to the chat.
@@ -129,8 +116,8 @@ class MessageService(IMessageService):
         self,
         game_id: str,
         game_state: GameState,
-        scenario: Scenario | None = None,
-        available_scenarios: list[Scenario] | None = None,
+        scenario: ScenarioSheet | None = None,
+        available_scenarios: list[ScenarioSheet] | None = None,
     ) -> AsyncGenerator[dict[str, str], None]:
         """
         Generate SSE events for a client connection.

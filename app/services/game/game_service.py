@@ -5,6 +5,7 @@ from datetime import datetime
 
 from app.common.types import JSONSerializable
 from app.interfaces.services import (
+    ICharacterComputeService,
     IEventManager,
     IGameService,
     IGameStateManager,
@@ -13,6 +14,7 @@ from app.interfaces.services import (
     ISaveManager,
     IScenarioService,
 )
+from app.models.ability import SavingThrows
 from app.models.character import CharacterSheet
 from app.models.game_state import (
     GameEventType,
@@ -21,6 +23,10 @@ from app.models.game_state import (
     Message,
     MessageRole,
 )
+from app.models.instances.character_instance import CharacterInstance
+from app.models.instances.entity_state import EntityState, HitDice, HitPoints
+from app.models.instances.npc_instance import NPCInstance
+from app.models.instances.scenario_instance import ScenarioInstance
 from app.models.quest import QuestStatus
 from app.models.scenario import ScenarioLocation, ScenarioMonster
 
@@ -40,6 +46,7 @@ class GameService(IGameService):
         message_manager: IMessageManager,
         event_manager: IEventManager,
         metadata_service: IMetadataService,
+        compute_service: ICharacterComputeService,
     ) -> None:
         """
         Initialize the game service.
@@ -51,6 +58,7 @@ class GameService(IGameService):
             message_manager: Manager for conversation history
             event_manager: Manager for game events
             metadata_service: Service for extracting metadata
+            compute_service: Service for computing derived character values
         """
         self.scenario_service = scenario_service
         self.save_manager = save_manager
@@ -58,6 +66,33 @@ class GameService(IGameService):
         self.message_manager = message_manager
         self.event_manager = event_manager
         self.metadata_service = metadata_service
+        self.compute_service = compute_service
+
+    def _build_entity_state_from_sheet(self, character: CharacterSheet) -> EntityState:
+        """Create an EntityState from a CharacterSheet's starting_* fields.
+
+        Uses sensible defaults for derived values until the compute layer is wired.
+        """
+        # TODO: Wire compute layer to get correct values instead of defaults
+        return EntityState(
+            abilities=character.starting_abilities,
+            level=character.starting_level,
+            experience_points=character.starting_experience_points,
+            hit_points=HitPoints(current=10, maximum=10, temporary=0),
+            hit_dice=HitDice(total=1, current=1, type="d8"),
+            armor_class=10,
+            initiative=0,
+            speed=30,
+            saving_throws=SavingThrows(),
+            skills=[],
+            attacks=[],
+            conditions=[],
+            exhaustion_level=0,
+            inspiration=False,
+            inventory=character.starting_inventory,
+            currency=character.starting_currency,
+            spellcasting=character.starting_spellcasting,
+        )
 
     def generate_game_id(self, character_name: str) -> str:
         """
@@ -129,18 +164,33 @@ class GameService(IGameService):
             combat_round=None,
         )
 
+        # Create instances
+        # Materialize character instance from template starting_* fields
+        char_inst = CharacterInstance(
+            instance_id=str(uuid.uuid4()),
+            template_id=character.id,
+            sheet=character,
+            state=self._build_entity_state_from_sheet(character),
+        )
+
+        scen_inst = ScenarioInstance(
+            instance_id=str(uuid.uuid4()),
+            template_id=scenario_id,
+            sheet=scenario,
+            current_location_id=initial_location_id,
+            current_act_id=scenario.progression.acts[0].id if scenario and scenario.progression.acts else None,
+        )
+
         game_state = GameState(
             game_id=game_id,
-            character=character,
+            character=char_inst,
             npcs=[],
             location=initial_location,
-            current_location_id=initial_location_id,
             scenario_id=scenario_id,
             scenario_title=scenario_title,
-            current_act_id=scenario.progression.acts[0].id if scenario and scenario.progression.acts else None,
+            scenario_instance=scen_inst,
             game_time=initial_time,
             combat=None,
-            quest_flags={},
             conversation_history=[initial_message],
         )
 
@@ -154,6 +204,9 @@ class GameService(IGameService):
                     if quest and quest.is_available([]):
                         quest.status = QuestStatus.ACTIVE
                         game_state.add_quest(quest)
+
+        # Initialize all NPCs from the scenario
+        self.initialize_all_npcs(game_state)
 
         # Initialize starting location
         if scenario and initial_location_id:
@@ -278,14 +331,6 @@ class GameService(IGameService):
         location_state = game_state.get_location_state(scenario_location.id)
         if not location_state.visited:
             location_state.danger_level = scenario_location.danger_level
-            # Resolve npc_ids to display names for location state
-            try:
-                if scenario_location.npc_ids and self.scenario_service:
-                    for nid in scenario_location.npc_ids:
-                        # Store ids; names are resolved for display when needed
-                        location_state.add_npc_id(nid)
-            except Exception:
-                pass
 
             # Materialize notable monsters present at this location
             if scenario_location.notable_monsters:
@@ -367,21 +412,10 @@ class GameService(IGameService):
 
         # Extract metadata if not provided
         if npcs_mentioned is None:
-            known_npcs = [npc.character.name for npc in game_state.npcs]
-            # Include scenario location NPCs as known names for mention detection
-            try:
-                if game_state.scenario_id and game_state.current_location_id:
-                    scenario = self.scenario_service.get_scenario(game_state.scenario_id)
-                    if scenario:
-                        scenario_location = scenario.get_location(game_state.current_location_id)
-                        if scenario_location and scenario_location.npc_ids:
-                            for nid in scenario_location.npc_ids:
-                                npc = self.scenario_service.get_scenario_npc(game_state.scenario_id, nid)
-                                if npc and npc.display_name not in known_npcs:
-                                    known_npcs.append(npc.display_name)
-            except Exception:
-                # Don't block message creation if scenario lookup fails
-                pass
+            # Get all NPC names from the game state (both sheet name and display name)
+            known_npcs = []
+            for npc in game_state.npcs:
+                known_npcs.append(npc.sheet.character.name)
 
             npcs_mentioned = self.metadata_service.extract_npcs_mentioned(content, known_npcs)
 
@@ -404,6 +438,7 @@ class GameService(IGameService):
         self.save_game(game_state)
         return game_state
 
+    # TODO: Look unused. GameState has a method with exact same name
     def set_quest_flag(self, game_id: str, flag_name: str, value: JSONSerializable) -> GameState:
         """
         Set a quest flag value.
@@ -423,6 +458,37 @@ class GameService(IGameService):
         if not game_state:
             raise ValueError(f"Game {game_id} not found")
 
-        game_state.quest_flags[flag_name] = value
+        game_state.set_quest_flag(flag_name, value)
         self.save_game(game_state)
         return game_state
+
+    def initialize_all_npcs(self, game_state: GameState) -> None:
+        """
+        Initialize all NPCInstances from the scenario at game start.
+
+        Creates NPCInstance objects for all NPCs defined in the scenario,
+        setting their initial locations.
+
+        Args:
+            game_state: The game state to update
+        """
+        if not game_state.scenario_id:
+            return
+
+        # Load all NPCs from the scenario directory
+        npc_sheets = self.scenario_service.list_scenario_npcs(game_state.scenario_id)
+
+        # Create an instance for each NPC in the scenario
+        for npc_sheet in npc_sheets:
+            # Create NPCInstance with initial location
+            npc_instance = NPCInstance(
+                instance_id=str(uuid.uuid4()),
+                scenario_npc_id=npc_sheet.id,
+                sheet=npc_sheet,
+                state=self._build_entity_state_from_sheet(npc_sheet.character),
+                current_location_id=npc_sheet.initial_location_id,
+                attitude=npc_sheet.initial_attitude,
+                notes=list(npc_sheet.initial_notes) if npc_sheet.initial_notes else [],
+            )
+
+            game_state.npcs.append(npc_instance)

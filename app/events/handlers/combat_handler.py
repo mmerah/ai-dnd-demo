@@ -66,11 +66,13 @@ class CombatHandler(BaseHandler):
             # Add player if not already in combat
             if game_state.combat and not any(p.is_player for p in game_state.combat.participants):
                 # Roll player initiative (d20 + dex modifier)
-                player_dex_mod = (game_state.character.abilities.DEX - 10) // 2
+                player_dex_mod = (game_state.character.state.abilities.DEX - 10) // 2
                 player_initiative = random.randint(1, 20) + player_dex_mod
-                game_state.combat.add_participant(game_state.character.name, player_initiative, is_player=True)
+                game_state.combat.add_participant(game_state.character.sheet.name, player_initiative, is_player=True)
                 participants_added.append(
-                    CombatParticipant(name=game_state.character.name, initiative=player_initiative, is_player=True)
+                    CombatParticipant(
+                        name=game_state.character.sheet.name, initiative=player_initiative, is_player=True
+                    )
                 )
 
             # Save game state

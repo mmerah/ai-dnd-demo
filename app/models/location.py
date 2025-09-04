@@ -72,7 +72,6 @@ class LocationState(BaseModel):
     visited: bool = False
     times_visited: int = 0
     danger_level: DangerLevel = DangerLevel.MODERATE
-    npcs_present: list[str] = Field(default_factory=list)  # NPC IDs currently here
     completed_encounters: list[str] = Field(default_factory=list)  # Encounter IDs completed
     discovered_secrets: list[str] = Field(default_factory=list)  # Secret IDs found
     looted_items: list[str] = Field(default_factory=list)  # Track which loot was taken
@@ -93,16 +92,6 @@ class LocationState(BaseModel):
         """Mark a secret as discovered."""
         if secret_id not in self.discovered_secrets:
             self.discovered_secrets.append(secret_id)
-
-    def add_npc_id(self, npc_id: str) -> None:
-        """Add an NPC id to this location."""
-        if npc_id not in self.npcs_present:
-            self.npcs_present.append(npc_id)
-
-    def remove_npc_id(self, npc_id: str) -> None:
-        """Remove an NPC id from this location."""
-        if npc_id in self.npcs_present:
-            self.npcs_present.remove(npc_id)
 
     def get_description_variant(self) -> str:
         """Get description variant based on state."""

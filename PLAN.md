@@ -1,6 +1,6 @@
 # Plan: Full Migration to Dynamic Instances (Character/NPC/Scenario) with Compute and Level-Up Basics
 
-This plan replaces all legacy, precomputed storage with a clean instance-based architecture and a compute layer. It fully migrates saves and API to instances, adds ScenarioInstance, and auto-materializes NPCs on location change. Performance is not a constraint.
+This plan replaces all legacy, precomputed storage with a clean instance-based architecture and a compute layer. It fully migrates saves and API to instances, adds ScenarioInstance, and auto-materializes NPCs on location change. Performance is not a constraint. We will apply SOLID and DRY principles across services and models.
 
 ## Objectives
 - Separate static templates (catalog: CharacterSheet, NPCSheet, Scenario) from dynamic runtime state (instances).
@@ -12,80 +12,83 @@ This plan replaces all legacy, precomputed storage with a clean instance-based a
 
 ## Model Refactor (templates vs instances)
 - Templates (static, under `data/`):
-  - CharacterSheet (trimmed to base identity and choices; remove dynamic runtime fields like current HP, AC, conditions, spell slots).
-  - NPCSheet (scenario-facing identity + reference to template character; no dynamic state).
+  - CharacterSheet (trimmed to base identity and choices; remove dynamic/derived runtime fields like HP/Hit Dice, AC/initiative/speed, proficiency bonus, saving throws, skill totals, attacks, conditions, inspiration/exhaustion, spell slots, spell save DC/attack bonus).
+  - NPCSheet (scenario-facing identity and still embeds a CharacterSheet template inline; the embedded character is also trimmed as above and carries no dynamic state).
   - Scenario (world definition; no dynamic state).
 - Instances (dynamic, under `app/models/instances/`):
   - CharacterInstance
-    - identity: `instance_id`, `template_id`, timestamps, metadata (`content_pack`, `origin_scenario` optional).
-    - base choices snapshot: race_index/subrace_index, class/subclass index, background/alignment, base ability scores, starting known spells, selected skills/languages, selected fighting style/subclass choices, etc. (copied from template at creation, then owned by the instance).
-    - dynamic state only: level, XP, current HP, current hit dice, conditions, exhaustion, inspiration, inventory/currency/equipment, spell slots, prepared spells, temporary HP/effects, attitude/notes/tags.
+    - identity: `instance_id` (stable across saves), `template_id`, timestamps, metadata (`content_pack`, `origin_scenario` optional).
+    - embeds a trimmed `CharacterSheet` snapshot (DRY). Dynamic/derived fields are removed from the sheet in the trimming phase.
+    - instance-only metadata/notes/tags; dynamic state lives on the instance after trimming the sheet in later phases.
   - NPCInstance
     - identity: `instance_id`, `scenario_npc_id`, timestamps, attitude/notes/present.
     - character: CharacterInstance (created from NPCSheet character template).
   - ScenarioInstance
-    - identity: `instance_id`, `template_id` (scenario id), timestamps, notes/tags.
-    - dynamic progression: current act id/index, visited locations, per-location state (danger level, encounters completed, secrets discovered, effects), active/complete quests, quest flags, discovered items, spawned monsters/NPCs.
+    - identity: `instance_id` (stable), `template_id` (scenario id), timestamps, notes/tags.
+    - dynamic progression/state unified here: current act index, `current_location_id`, visited locations, per-location state (danger level, encounters completed, secrets discovered, effects), active/complete quests, quest flags, discovered items, spawned monsters/NPCs.
 
-Note: All dynamic fields move from templates (and current GameState fields) to the relevant Instance. Templates remain single source of truth for definitions; Instances carry evolving state and player/NPC choices.
+Note: All dynamic fields move from templates (and current GameState fields) to the relevant Instance. Templates remain single source of truth for definitions and choices; Instances carry evolving state and player/NPC selections.
 
 ## Compute Layer (derived values at runtime)
-Introduce a minimal `CharacterComputeService` that, given a CharacterInstance and catalogs (class/race/features/items/spells):
-- Calculates: ability modifiers; proficiency bonus (by level); saving throws (class proficiencies + mods + proficiency); skill modifiers (proficiencies/expertise + mods + proficiency); AC (armor/shield + DEX cap rules + features like Defense); initiative; attacks (to-hit/damage strings from equipped weapons and stats); spell save DC (8 + prof + ability mod) and spell attack bonus; spell slot table (from class and level; stored in instance for consumption and persistence); senses/speed from race/subrace and equipment; languages.
-- Returns a `ComputedCharacterView` used by API/Context when rendering. No duplicate storage of derived numbers; compute fresh when needed.
+Introduce a minimal `CharacterComputeService` (via an interface) that, given the core models (CharacterInstance/CharacterSheet) and catalogs via repository interfaces:
+- Calculates: ability modifiers; proficiency bonus (by level); saving throws (class proficiencies + mods + proficiency); skill modifiers; AC (and later equipment rules); initiative; attacks (later); spell save DC and spell attack bonus. No view-only models; returns core models/values (DRY).
+- Spell slots: derive max slot totals from class progression (later). Persist only current slots; compute totals on demand.
 
-This supports removing precomputed `proficiency_bonus`, `saving_throws`, `skills`, `armor_class`, `attacks`, `spell slots` etc. from templates. Instances store only the mutable subset (e.g., current HP, current slots), while tables and totals come from compute + class progressions.
+This supports removing precomputed `proficiency_bonus`, `saving_throws`, `skills`, `armor_class`, `attacks`, `spell slots`, and `spell_save_dc/attack` from templates. Instances store only the mutable subset (e.g., current HP, current slots), while totals come from compute + class progressions.
 
 ## Level-Up (minimal service)
-`LevelProgressionService` (single-class only for this pass; TODO: multiclass support):
-- Increments level and updates: hit dice total, HP maximum (+ rolled or average + CON mod), spell slot totals (by class progression), new features indices unlocked (returning required choices), proficiency bonus (from compute), known spells changes (choice list produced; apply when selected).
-- Produces a `LevelUpPlan` detailing new features/choices; applies updates to CharacterInstance (XP, level, HP changes, slots totals/current as appropriate) once choices resolved.
+`LevelProgressionService` (single-class only; multiclassing out of scope):
+- Increments level and updates: hit dice total, HP maximum (+ rolled or average + CON mod), slot totals (progression or pact magic), new features unlocked (returning required choices), proficiency bonus (from compute), known spells changes (choice list; apply when selected).
+- Produces a `LevelUpPlan` detailing new features/choices; applies updates to CharacterInstance (XP, level, HP changes, slots current adjusted) once choices resolved.
 
 ## GameState Redesign
 - Replace embedded legacy types with instances:
   - `character: CharacterInstance` (was CharacterSheet)
   - `npcs: list[NPCInstance]` (was NPCSheet)
-  - Add `scenario: ScenarioInstance` (replaces scattered `scenario_id`, `current_location_id`, quest flags, location_states; migrate these into the ScenarioInstance structure)
+  - Add `scenario: ScenarioInstance` (moves `scenario_id`, `current_location_id`, quest flags, `location_states`, act progress, `active_quests`, `completed_quest_ids` into ScenarioInstance)
 - Keep: conversation history, game events, combat state (but link to instances by name/id), monsters list (unchanged for now but may become MonsterInstance later).
 
 ## Auto-materialize NPCs on Location Change
-- When changing location, load the scenario template location, resolve `npc_ids`, and materialize corresponding `NPCInstance` objects into `game_state.npcs` (ensure deduping). Presence controlled by `present` field in each NPCInstance.
+- When changing location, load the scenario template location, resolve `npc_ids`, and materialize corresponding `NPCInstance` objects into `game_state.npcs`.
+- Dedup by `scenario_npc_id`; update `present` flag according to the location.
 
 ## Save Format (full replacement)
-- Purge existing `saves/` (delete legacy). New layout per save:
-  - `metadata.json` (game_id, created_at/last_saved, agent info, etc.)
-  - `character_instance.json`
-  - `scenario_instance.json`
-  - `npcs/` → `<i>-<safe-name>.json` (NPCInstance)
+- New layout per save (folders for clarity):
+  - `metadata.json` (game_id, created_at/last_saved, agent info, scenario summary)
+  - `instances/`
+    - `character.json` (CharacterInstance)
+    - `scenario.json` (ScenarioInstance; includes location/quest state)
+    - `npcs/` → `<npc-instance-id>.json` (NPCInstance)
   - `monsters/` (unchanged for now)
   - `conversation_history.json`, `game_events.json`
   - `combat.json` when active
-- No legacy readers/wrappers. On startup (or first run of migration), wipe `saves/` directory.
+- Instance IDs are stable across saves (generated once and persisted).
+- No legacy readers/wrappers. Saves were purged manually already; no automatic deletion on startup.
 
 ## API Changes
-- `/characters` and `/characters/{id}`: still return CharacterSheet templates (for pre-game selection). We’ll ensure templates are compatible (contain base identity/choices), but derived numbers are not required.
-- `/scenarios` and `/scenarios/{id}`: still return Scenario templates (for pre-game selection).
-- `/game/new`: accepts character_id and scenario_id, creates an instance-based GameState.
-- `/game/{id}` and `/games`: return the new GameState shape with instances. For rendering, the server may also expose a computed view endpoint (optional): `/game/{id}/character/computed` returning `ComputedCharacterView`.
+- `/characters` and `/characters/{id}`: return trimmed CharacterSheet templates (identity + choices only).
+- `/scenarios` and `/scenarios/{id}`: return Scenario templates (unchanged layout; scenario NPCs still embed trimmed CharacterSheet).
+- `/game/new`: accepts character_id and scenario_id; creates an instance-based GameState.
+- `/game/{id}` and `/games`: return the new instance-based GameState shape (breaking change for MVP). No compatibility endpoints planned.
 
 ## Services Refactor
-- CharacterService: remains catalog/template service for characters. Add helpers to create CharacterInstance from a CharacterSheet template.
-- ScenarioService: remains template loader. Add `materialize_npc_instance` and helpers to seed ScenarioInstance (acts, starting location state).
+- CharacterService: remains catalog/template service for characters. Add `create_instance_from_template(template) -> CharacterInstance` and validation helpers.
+- ScenarioService: remains template loader. Add `materialize_npc_instance(scenario_id, npc_id) -> NPCInstance` and helpers to seed ScenarioInstance (acts, starting location state).
 - GameService:
-  - Initialize: create CharacterInstance, ScenarioInstance; set starting location; auto-materialize NPCs for the starting location.
-  - Change location: update ScenarioInstance current location and auto-materialize NPCInstances for that location.
-- SaveManager: read/write only new instance files; no legacy codepaths.
-- ContextService: consume instances; when needed, call compute service to render derived numbers.
+  - Initialize: create CharacterInstance, ScenarioInstance; set starting location; auto-materialize NPCs for the starting location; save with new structure.
+  - Change location: update ScenarioInstance current location and auto-materialize/dedupe NPCInstances for that location.
+- SaveManager: read/write only new instance files/folders; no legacy codepaths. Keep responsibilities focused (SRP).
+- ContextService: consume instances; call compute service for derived values when needed (AI context). No extra endpoints for frontend MVP.
 - New services:
   - CharacterComputeService
   - LevelProgressionService
 
 ## Data Migration (code + content)
-- Repo-wide cleanup: strip derived/dynamic fields from all `data/characters/*.json` templates and adjust the CharacterSheet model accordingly. Remove (non-exhaustive list): `proficiency_bonus`, `saving_throws`, `skills`, `armor_class`, `initiative`, `speed`, `hit_points`, `hit_dice`, `attacks`, `conditions`, `exhaustion_level`, `inspiration`, and in `spellcasting` remove `spell_save_dc`, `spell_attack_bonus`, and `spell_slots`. Keep only base identity and choices: name/id, race/subrace, class/subclass, background/alignment, base abilities, initial known/prepared spells (seed only), selected skills/languages/features, and starting inventory/equipment.
+- Repo-wide cleanup: strip derived/dynamic fields from all `data/characters/*.json` templates and adjust the CharacterSheet model accordingly. Remove (non-exhaustive list): `proficiency_bonus`, `saving_throws`, `skills` totals, `armor_class`, `initiative`, `speed`, `hit_points`, `hit_dice`, `attacks`, `conditions`, `exhaustion_level`, `inspiration`, and in `spellcasting` remove `spell_save_dc`, `spell_attack_bonus`, and `spell_slots`. Keep only base identity and choices: name/id, race/subrace, class/subclass, background/alignment, base abilities, initial known/prepared spells (seed only), selected skills/languages/features, and starting inventory/equipment.
 - Known/prepared spells: exist in templates only as initial seeds; after game creation they live exclusively on the CharacterInstance.
-- NPCSheet remains a scenario asset but must not carry dynamic fields; ensure scenario NPC JSONs follow this rule.
-- Purge `saves/` directory (delete all legacy saves) as part of migration.
-- Implement and run a normalization script to rewrite character templates and validate with repositories; commit updated JSONs.
+- Scenario NPC JSONs continue to embed a CharacterSheet, but that embedded sheet is also trimmed as above (no dynamic fields).
+- Saves were purged manually already.
+- Implement and run a normalization script to rewrite character templates and scenario NPC embedded characters; validate with repositories; commit updated JSONs.
 
 ## Implementation Steps
 1) Models (instances)
@@ -95,7 +98,7 @@ This supports removing precomputed `proficiency_bonus`, `saving_throws`, `skills
   - Confirm NPCSheet carries only identity + character template reference; no runtime state.
 3) Compute layer
   - Add `CharacterComputeService` with methods to derive: modifiers, proficiency, saves, skills, AC, initiative, attacks, spell DC/attack, slot totals by class+level. Use repos: classes, subclasses, races, items, weapon properties, skills, spells, features/traits as needed. Provide guardrails (clear errors) for missing data.
-  - Define `ComputedCharacterView` Pydantic model for API/Context consumption.
+  - No view-only models. Expose compute results as core models/values (e.g., `AbilityModifiers`, dicts for saves/skills).
 4) Level-up
   - Add `LevelProgressionService` with minimal logic to increment level, compute new HP/slots, and produce choices. Integrate with GameService endpoint(s) or tools.
 5) GameState & services
@@ -103,25 +106,28 @@ This supports removing precomputed `proficiency_bonus`, `saving_throws`, `skills
   - GameService.initialize_game creates instances, seeds starting location, auto-NPCs, saves.
   - Change location flow creates/updates NPCInstances and scenario location state.
 6) SaveManager
-  - Write/read `character_instance.json`, `scenario_instance.json`, and `npcs/*.json`. Update list+load routines accordingly.
-  - Implement utility to purge old `saves/`.
+  - Write/read `instances/character.json`, `instances/scenario.json`, and `instances/npcs/*.json`. Update list+load routines accordingly.
 7) Handlers/Tools
   - Update `CharacterHandler`, `InventoryHandler`, `LocationHandler`, `Time` rest logic to mutate instances only.
   - Use compute service for any derived values needed during handling (e.g., AC for display).
 8) API & container wiring
-  - Wire new services in `container.py`. Update API response models and routes to return instance-based GameState and, optionally, computed views.
-9) ContextService
-  - Update to use instances and computed view for display numbers.
+  - Wire new services in `container.py`. Update API response models and routes to return instance-based GameState.
+9) Frontend (MVP)
+  - Update the frontend to consume the new instance-based GameState (no backend compatibility endpoints).
 10) Docs
   - Add `docs/instances.md` and update `README.md` to explain templates vs instances and compute.
 
 ## Acceptance Criteria
-- Saves contain only instance files (character_instance.json, scenario_instance.json, npc instances), with no legacy files present. Existing `saves/` are cleared.
-- GameState contains CharacterInstance, ScenarioInstance, NPCInstances; location change auto-materializes location NPCs into `game_state.npcs`.
-- Derived character values are computed at runtime; templates do not store runtime numbers.
+- Saves contain only instance files/folders (`instances/character.json`, `instances/scenario.json`, `instances/npcs/*.json`), with no legacy files present.
+- GameState contains CharacterInstance, ScenarioInstance, NPCInstances; location change auto-materializes location NPCs (deduped) into `game_state.npcs` and toggles presence.
+- Derived character values are computed at runtime; templates do not store derived/runtime numbers. Instances store only mutable state (e.g., current slots).
 - Minimal level-up adjusts level, HP, slots, and outputs choices to apply.
-- `/characters` still lists templates for pre-game selection; `/game/*` endpoints return the new shapes.
- - Character templates in `data/characters` are cleaned of derived fields and committed; validation enforces absence of dynamic fields.
+- `/characters` still lists templates for pre-game selection; `/game/*` endpoints return the new instance-based shapes (breaking change for MVP).
+- Character templates in `data/characters` and embedded scenario NPC characters are cleaned of derived fields and committed; validation enforces absence of dynamic fields.
+- Instance IDs are stable across saves.
 
-## Clarifying Questions
-- None beyond naming preferences for any new endpoints (e.g., a computed character view), otherwise proceeding as specified.
+## Clarifications (confirmed)
+- Saves structure: keep `metadata.json`, `conversation_history.json`, `game_events.json`, `monsters/`, `quests/`, and `combat.json` alongside the new `instances/` folder. “Only” applies to replacing `character.json` and `npcs/` with `instances/*`.
+- Character template fields to keep: id, name, race/subrace, class/subclass, background, alignment, base ability scores, selected skills/languages/features/spells. Use explicit `starting_*` prefixed fields (e.g., `starting_level`, `starting_experience_points`, `starting_inventory`, `starting_currency`, `starting_spellcasting`) to seed instances. Move all dynamic/derived fields to the instance.
+- NPC instances: `NPCInstance` embeds a full `CharacterInstance` (created from the NPC’s trimmed character template) and carries `scenario_npc_id`, `attitude`, `notes`, and `present`.
+- Scenario instance: move `current_location_id`, `current_act_id`, `location_states`, `active_quests`, `completed_quest_ids`, and `quest_flags` from `GameState` into `ScenarioInstance`.

@@ -1,7 +1,6 @@
 """Command definitions for event-driven architecture."""
 
 from app.events.commands.broadcast_commands import (
-    BroadcastCharacterUpdateCommand,
     BroadcastGameUpdateCommand,
     BroadcastNarrativeCommand,
     BroadcastToolCallCommand,
@@ -42,5 +41,4 @@ __all__ = [
     "BroadcastToolCallCommand",
     "BroadcastToolResultCommand",
     "BroadcastGameUpdateCommand",
-    "BroadcastCharacterUpdateCommand",
 ]

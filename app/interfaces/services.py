@@ -9,13 +9,15 @@ from typing import Generic, TypeVar
 from pydantic import BaseModel
 
 from app.common.types import JSONSerializable
+from app.models.ability import Abilities, AbilityModifiers, SavingThrows
 from app.models.ai_response import AIResponse
 from app.models.character import CharacterSheet
 from app.models.game_state import GameEvent, GameEventType, GameState, Message, MessageRole
+from app.models.instances.entity_state import EntitySkill
 from app.models.item import ItemDefinition, ItemRarity, ItemType
 from app.models.monster import Monster
 from app.models.npc import NPCSheet
-from app.models.scenario import Scenario, ScenarioLocation
+from app.models.scenario import ScenarioLocation, ScenarioSheet
 from app.models.spell import SpellDefinition, SpellSchool
 from app.models.tool_results import ToolResult
 
@@ -120,19 +122,19 @@ class IScenarioService(ABC):
     """Interface for managing scenarios."""
 
     @abstractmethod
-    def get_scenario(self, scenario_id: str) -> Scenario | None:
+    def get_scenario(self, scenario_id: str) -> ScenarioSheet | None:
         pass
 
     @abstractmethod
-    def list_scenarios(self) -> list[Scenario]:
+    def list_scenarios(self) -> list[ScenarioSheet]:
         pass
 
     @abstractmethod
-    def get_default_scenario(self) -> Scenario | None:
+    def get_default_scenario(self) -> ScenarioSheet | None:
         pass
 
     @abstractmethod
-    def get_scenario_context_for_ai(self, scenario: Scenario, current_location_id: str) -> str:
+    def get_scenario_context_for_ai(self, scenario: ScenarioSheet, current_location_id: str) -> str:
         pass
 
     @abstractmethod
@@ -141,8 +143,8 @@ class IScenarioService(ABC):
         pass
 
     @abstractmethod
-    def get_location_npcs(self, scenario_id: str, location_id: str) -> list[NPCSheet]:
-        """List NPCSheets present at a location via npc_ids."""
+    def list_scenario_npcs(self, scenario_id: str) -> list[NPCSheet]:
+        """List all NPCSheets defined in a scenario."""
         pass
 
     @abstractmethod
@@ -191,10 +193,6 @@ class IMessageService(ABC):
         pass
 
     @abstractmethod
-    async def send_character_update(self, game_id: str, character: CharacterSheet) -> None:
-        pass
-
-    @abstractmethod
     async def send_error(self, game_id: str, error: str, error_type: str | None = None) -> None:
         pass
 
@@ -211,8 +209,8 @@ class IMessageService(ABC):
         self,
         game_id: str,
         game_state: GameState,
-        scenario: Scenario | None = None,
-        available_scenarios: list[Scenario] | None = None,
+        scenario: ScenarioSheet | None = None,
+        available_scenarios: list[ScenarioSheet] | None = None,
     ) -> AsyncGenerator[dict[str, str], None]:
         pass
 
@@ -397,6 +395,51 @@ class ISaveManager(ABC):
         Returns:
             True if save exists
         """
+        pass
+
+
+class ICharacterComputeService(ABC):
+    """Interface for computing derived character values (SOLID + DRY).
+
+    Designed to work with EntityState/CharacterInstance/NPCInstance by
+    consuming Abilities, level, and class_index to produce derived
+    numbers such as proficiency, saves, skills, AC, initiative, and
+    spell DC/attack.
+    """
+
+    @abstractmethod
+    def compute_ability_modifiers(self, abilities: Abilities) -> AbilityModifiers:
+        pass
+
+    @abstractmethod
+    def compute_proficiency_bonus(self, level: int) -> int:
+        pass
+
+    @abstractmethod
+    def compute_saving_throws(
+        self, class_index: str, modifiers: AbilityModifiers, proficiency_bonus: int
+    ) -> SavingThrows:
+        pass
+
+    @abstractmethod
+    def compute_skills(
+        self, selected_skills: list[str], modifiers: AbilityModifiers, proficiency_bonus: int
+    ) -> list[EntitySkill]:
+        pass
+
+    @abstractmethod
+    def compute_armor_class(self, modifiers: AbilityModifiers) -> int:
+        pass
+
+    @abstractmethod
+    def compute_initiative(self, modifiers: AbilityModifiers) -> int:
+        pass
+
+    @abstractmethod
+    def compute_spell_numbers(
+        self, class_index: str, modifiers: AbilityModifiers, proficiency_bonus: int
+    ) -> tuple[int | None, int | None]:
+        """Returns (spell_save_dc, spell_attack_bonus)."""
         pass
 
 

@@ -4,7 +4,6 @@ import logging
 
 from app.events.base import BaseCommand, CommandResult
 from app.events.commands.broadcast_commands import (
-    BroadcastCharacterUpdateCommand,
     BroadcastGameUpdateCommand,
     BroadcastNarrativeCommand,
     BroadcastToolCallCommand,
@@ -29,7 +28,6 @@ class BroadcastHandler(BaseHandler):
             BroadcastToolCallCommand,
             BroadcastToolResultCommand,
             BroadcastGameUpdateCommand,
-            BroadcastCharacterUpdateCommand,
         )
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
@@ -63,13 +61,6 @@ class BroadcastHandler(BaseHandler):
                 logger.debug(f"Broadcast tool result: {command.tool_name}")
             else:
                 logger.warning(f"Tool result for {command.tool_name} is None, skipping broadcast")
-
-        elif isinstance(command, BroadcastCharacterUpdateCommand):
-            await self.message_service.send_character_update(
-                command.game_id,
-                game_state.character,
-            )
-            logger.debug("Broadcast character update")
 
         elif isinstance(command, BroadcastGameUpdateCommand):
             await self.message_service.send_game_update(

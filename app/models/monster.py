@@ -3,7 +3,7 @@
 from pydantic import BaseModel, Field
 
 from app.models.ability import Abilities
-from app.models.character import HitPoints
+from app.models.instances.entity_state import HitPoints
 
 
 class MonsterAttack(BaseModel):

@@ -164,14 +164,15 @@ class CharacterService(ICharacterService):
         """
         errors = []
 
-        # Validate inventory items
-        for item in character.inventory:
+        # Validate starting inventory items
+        for item in character.starting_inventory:
             if not self.item_repository.validate_reference(item.name):
                 errors.append(f"Unknown item: {item.name}")
 
         # Validate known spells
-        if character.spellcasting:
-            for spell_name in character.spellcasting.spells_known:
+        starting_sc = character.starting_spellcasting
+        if starting_sc:
+            for spell_name in starting_sc.spells_known:
                 if not self.spell_repository.validate_reference(spell_name):
                     errors.append(f"Unknown spell: {spell_name}")
 
@@ -200,12 +201,6 @@ class CharacterService(ICharacterService):
                 if not self.language_repository.validate_reference(lang):
                     errors.append(f"Unknown language index: {lang}")
 
-        # Validate conditions
-        if character.conditions:
-            for cond in character.conditions:
-                if not self.condition_repository.validate_reference(cond):
-                    errors.append(f"Unknown condition index: {cond}")
-
         # Validate race and subrace
         if character.race and not self.race_repository.validate_reference(character.race):
             errors.append(f"Unknown race index: {character.race}")
@@ -222,12 +217,6 @@ class CharacterService(ICharacterService):
         if character.background and not self.background_repository.validate_reference(character.background):
             errors.append(f"Unknown background index: {character.background}")
 
-        # Validate skills keys (indexes)
-        if character.skills:
-            for key in character.skills:
-                if not self.skill_repository.validate_reference(key):
-                    errors.append(f"Unknown skill index: {key}")
-
         # Validate optional catalog references for features/traits/feats
         if character.trait_indexes:
             for t in character.trait_indexes:
@@ -241,15 +230,5 @@ class CharacterService(ICharacterService):
             for f in character.feat_indexes:
                 if not self.feat_repository.validate_reference(f):
                     errors.append(f"Unknown feat index: {f}")
-
-        # Validate attack damage types
-        for attack in character.attacks:
-            if attack.damage_type and not self.damage_type_repository.validate_reference(attack.damage_type):
-                errors.append(f"Unknown damage type for attack {attack.name}: {attack.damage_type}")
-
-            # Validate weapon properties
-            for prop in attack.properties:
-                if not self.weapon_property_repository.validate_reference(prop):
-                    errors.append(f"Unknown weapon property for attack {attack.name}: {prop}")
 
         return errors

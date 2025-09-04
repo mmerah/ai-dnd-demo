@@ -717,18 +717,18 @@ function initializeSSE() {
         gameState = data.game_state;
         updateUI();
         
-        // Extract and update location information from game state
-        if (gameState.current_location_id && gameState.location_states) {
+        // Extract and update location information from game state (now in scenario_instance)
+        if (gameState.scenario_instance && gameState.scenario_instance.current_location_id) {
             updateLocationFromGameState();
         }
         
-        // Update quest information from game state
-        if (gameState.active_quests || gameState.completed_quest_ids) {
+        // Update quest information from game state (now in scenario_instance)
+        if (gameState.scenario_instance && (gameState.scenario_instance.active_quests || gameState.scenario_instance.completed_quest_ids)) {
             updateQuestLogFromGameState();
         }
         
-        // Update act information from game state
-        if (gameState.current_act_index !== undefined) {
+        // Update act information from game state (now in scenario_instance)
+        if (gameState.scenario_instance && gameState.scenario_instance.current_act_id) {
             updateActFromGameState();
         }
     });
@@ -878,18 +878,20 @@ function updateCharacterSheet() {
     }
     
     console.log('[UI] Updating character sheet');
-    const char = gameState.character;
+    // Character data is now split between sheet (template) and state (runtime)
+    const charSheet = gameState.character.sheet || gameState.character;
+    const charState = gameState.character.state || gameState.character;
     
-    // Basic info
-    document.getElementById('charName').textContent = char.name;
-    document.getElementById('charRace').textContent = displayRaceName(char.race);
-    document.getElementById('charClass').textContent = `${displayClassName(char.class_index || char.class_name)} ${char.level}`;
+    // Basic info (from sheet)
+    document.getElementById('charName').textContent = charSheet.name;
+    document.getElementById('charRace').textContent = displayRaceName(charSheet.race);
+    document.getElementById('charClass').textContent = `${displayClassName(charSheet.class_index || charSheet.class_name)} ${charState.level || charSheet.level}`;
     // Optional subrace/subclass
     const subraceEl = document.getElementById('charSubrace');
     const subraceRow = subraceEl?.parentElement;
     if (subraceEl && subraceRow) {
-        if (char.subrace) {
-            subraceEl.textContent = (window.catalogs?.race_subraces?.[char.subrace] || char.subrace);
+        if (charSheet.subrace) {
+            subraceEl.textContent = (window.catalogs?.race_subraces?.[charSheet.subrace] || charSheet.subrace);
             subraceRow.style.display = '';
         } else {
             subraceEl.textContent = '';
@@ -899,56 +901,56 @@ function updateCharacterSheet() {
     const subclassEl = document.getElementById('charSubclass');
     const subclassRow = subclassEl?.parentElement;
     if (subclassEl && subclassRow) {
-        if (char.subclass) {
-            subclassEl.textContent = (window.catalogs?.subclasses?.[char.subclass] || char.subclass);
+        if (charSheet.subclass) {
+            subclassEl.textContent = (window.catalogs?.subclasses?.[charSheet.subclass] || charSheet.subclass);
             subclassRow.style.display = '';
         } else {
             subclassEl.textContent = '';
             subclassRow.style.display = 'none';
         }
     }
-    document.getElementById('charLevel').textContent = char.level;
+    document.getElementById('charLevel').textContent = charState.level || charSheet.level;
     
-    // HP
-    const current_hp = char.hit_points?.current ?? char.hit_points_current ?? 0;
-    const max_hp = char.hit_points?.maximum ?? char.hit_points_maximum ?? 0;
+    // HP (from state)
+    const current_hp = charState.hit_points?.current ?? 0;
+    const max_hp = charState.hit_points?.maximum ?? 0;
     const hpPercent = max_hp > 0 ? (current_hp / max_hp) * 100 : 0;
     document.getElementById('hpFill').style.width = `${hpPercent}%`;
     document.getElementById('hpText').textContent = `${current_hp}/${max_hp}`;
     
-    // Combat stats
-    document.getElementById('charAC').textContent = char.armor_class;
-    document.getElementById('charInitiative').textContent = char.initiative >= 0 ? `+${char.initiative}` : `${char.initiative}`;
-    document.getElementById('charSpeed').textContent = `${char.speed}ft`;
+    // Combat stats (from state)
+    document.getElementById('charAC').textContent = charState.armor_class || 10;
+    document.getElementById('charInitiative').textContent = (charState.initiative || 0) >= 0 ? `+${charState.initiative || 0}` : `${charState.initiative}`;
+    document.getElementById('charSpeed').textContent = `${charState.speed || 30}ft`;
     
-    // Abilities
-    updateAbilities(char.abilities);
+    // Abilities (from state)
+    updateAbilities(charState.abilities || charSheet.starting_abilities);
     
-    // Skills
-    updateSkills(char.skills);
+    // Skills (from state)
+    updateSkills(charState.skills);
 
-    // Features & Traits (indexes + text)
-    updateFeaturesAndTraits(char);
+    // Features & Traits (from sheet)
+    updateFeaturesAndTraits(charSheet);
 
-    // Feats (indexes)
-    updateFeats(char.feat_indexes);
+    // Feats (from sheet)
+    updateFeats(charSheet.feat_indexes);
     
-    // Spellcasting
-    if (char.spellcasting) {
-        updateSpellSlots(char.spellcasting.spell_slots);
-        updateSpellList(char.spellcasting.spells_known);
+    // Spellcasting (from state)
+    if (charState.spellcasting) {
+        updateSpellSlots(charState.spellcasting.spell_slots);
+        updateSpellList(charState.spellcasting.spells_known);
     }
     
-    // Inventory
+    // Inventory (from state)
     updateInventory({
-        gold: char.currency?.gold || 0,
-        silver: char.currency?.silver || 0,
-        copper: char.currency?.copper || 0,
-        inventory: char.inventory || []
+        gold: charState.currency?.gold || 0,
+        silver: charState.currency?.silver || 0,
+        copper: charState.currency?.copper || 0,
+        inventory: charState.inventory || []
     });
     
-    // Conditions
-    updateConditions(char.conditions);
+    // Conditions (from state)
+    updateConditions(charState.conditions);
 }
 
 // Update abilities
@@ -978,15 +980,17 @@ function updateSkills(skills) {
     if (!skillsList) return;
     skillsList.innerHTML = '';
 
-    if (!skills) return;
+    if (!skills || !Array.isArray(skills)) return;
 
-    Object.entries(skills).forEach(([index, bonus]) => {
+    // New format: array of EntitySkill objects with index and value
+    skills.forEach(skill => {
         const item = document.createElement('div');
         item.className = 'skill-item';
-        const display = (window.catalogs?.skills && window.catalogs.skills[index])
-            ? window.catalogs.skills[index]
-            : index.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
-        item.innerHTML = `<span>${display}</span><span>${bonus >= 0 ? '+' + bonus : bonus}</span>`;
+        const display = (window.catalogs?.skills && window.catalogs.skills[skill.index])
+            ? window.catalogs.skills[skill.index]
+            : skill.index.split('-').map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(' ');
+        const value = skill.value || 0;
+        item.innerHTML = `<span>${display}</span><span>${value >= 0 ? '+' + value : value}</span>`;
         skillsList.appendChild(item);
     });
 }
@@ -1424,26 +1428,7 @@ function updateLocationInfo(locationData) {
             connectionsContainer.innerHTML = '<div style="color: #666;">No visible exits</div>';
         }
     }
-    
-    // Update NPCs present
-    const npcsSection = document.getElementById('locationNPCs');
-    const npcsList = document.getElementById('npcsList');
-    if (npcsSection && npcsList) {
-        if (locationData.npcs_present && locationData.npcs_present.length > 0) {
-            npcsSection.style.display = 'block';
-            npcsList.innerHTML = '';
-            
-            locationData.npcs_present.forEach(npc => {
-                const npcTag = document.createElement('div');
-                npcTag.className = 'npc-tag';
-                npcTag.textContent = npc;
-                npcsList.appendChild(npcTag);
-            });
-        } else {
-            npcsSection.style.display = 'none';
-        }
-    }
-    
+        
     // Update danger level
     updateDangerLevel(locationData.danger_level);
 }
@@ -1489,41 +1474,48 @@ function updateDangerLevel(dangerLevel) {
 
 // Extract location data from game state and update UI
 function updateLocationFromGameState() {
-    if (!gameState) return;
+    if (!gameState || !gameState.scenario_instance) return;
     
     // Update the current location name display
     const locationName = document.getElementById('currentLocation');
     if (locationName) {
-        locationName.textContent = gameState.location || gameState.current_location_id || 'Unknown';
+        locationName.textContent = gameState.location || gameState.scenario_instance.current_location_id || 'Unknown';
     }
     
-    // If we have location state data, update danger level and NPCs
-    if (gameState.current_location_id && gameState.location_states) {
-        const locationState = gameState.location_states[gameState.current_location_id];
-        if (locationState) {
-            // Update danger level
-            if (locationState.danger_level) {
-                updateDangerLevel(locationState.danger_level);
-            }
+    // If we have location state data, update danger level
+    const currentLocId = gameState.scenario_instance.current_location_id;
+    if (currentLocId && gameState.scenario_instance.location_states) {
+        const locationState = gameState.scenario_instance.location_states[currentLocId];
+        if (locationState && locationState.danger_level) {
+            updateDangerLevel(locationState.danger_level);
+        }
+    }
+    
+    // Update NPCs present - filter by current_location_id
+    const npcsSection = document.getElementById('locationNPCs');
+    const npcsList = document.getElementById('npcsList');
+    if (npcsSection && npcsList && gameState.npcs && currentLocId) {
+        // Filter NPCs that are at the current location
+        const npcsAtLocation = gameState.npcs.filter(npc => 
+            npc.current_location_id === currentLocId
+        );
+        
+        if (npcsAtLocation.length > 0) {
+            npcsSection.style.display = 'block';
+            npcsList.innerHTML = '';
             
-            // Update NPCs present
-            const npcsSection = document.getElementById('locationNPCs');
-            const npcsList = document.getElementById('npcsList');
-            if (npcsSection && npcsList) {
-                if (locationState.npcs_present && locationState.npcs_present.length > 0) {
-                    npcsSection.style.display = 'block';
-                    npcsList.innerHTML = '';
-                    
-                    locationState.npcs_present.forEach(npc => {
-                        const npcTag = document.createElement('div');
-                        npcTag.className = 'npc-tag';
-                        npcTag.textContent = npc;
-                        npcsList.appendChild(npcTag);
-                    });
-                } else {
-                    npcsSection.style.display = 'none';
-                }
-            }
+            npcsAtLocation.forEach(npc => {
+                const npcTag = document.createElement('div');
+                npcTag.className = 'npc-tag';
+                // Use display name from sheet or fallback to character name
+                const displayName = npc.sheet?.display_name || 
+                                  npc.sheet?.character?.name || 
+                                  'Unknown NPC';
+                npcTag.textContent = displayName;
+                npcsList.appendChild(npcTag);
+            });
+        } else {
+            npcsSection.style.display = 'none';
         }
     }
     
@@ -1535,15 +1527,18 @@ function updateLocationFromGameState() {
 
 // Update location display using scenario data
 function updateLocationWithScenarioData() {
-    if (!window.currentScenario || !gameState || !gameState.current_location_id) return;
+    if (!window.currentScenario || !gameState || !gameState.scenario_instance) return;
+    
+    const currentLocId = gameState.scenario_instance.current_location_id;
+    if (!currentLocId) return;
     
     // Find the current location in the scenario
     const currentLocation = window.currentScenario.locations?.find(
-        loc => loc.id === gameState.current_location_id
+        loc => loc.id === currentLocId
     );
     
     if (!currentLocation) {
-        console.warn('[UI] Location not found in scenario:', gameState.current_location_id);
+        console.warn('[UI] Location not found in scenario:', currentLocId);
         return;
     }
     
@@ -1552,7 +1547,7 @@ function updateLocationWithScenarioData() {
     // Update location name
     const locationName = document.getElementById('currentLocation');
     if (locationName) {
-        locationName.textContent = currentLocation.name || gameState.current_location_id;
+        locationName.textContent = currentLocation.name || currentLocId;
     }
     
     // Update location description
@@ -1590,11 +1585,11 @@ function updateLocationWithScenarioData() {
 
 // Extract quest data from game state and update UI
 function updateQuestLogFromGameState() {
-    if (!gameState) return;
+    if (!gameState || !gameState.scenario_instance) return;
     
     const questData = {
-        active_quests: gameState.active_quests || [],
-        completed_quest_ids: gameState.completed_quest_ids || []
+        active_quests: gameState.scenario_instance.active_quests || [],
+        completed_quest_ids: gameState.scenario_instance.completed_quest_ids || []
     };
     
     updateQuestLog(questData);
@@ -1602,13 +1597,20 @@ function updateQuestLogFromGameState() {
 
 // Extract act data from game state and update UI
 function updateActFromGameState() {
-    if (!gameState || gameState.current_act_index === undefined) return;
+    if (!gameState || !gameState.scenario_instance) return;
+    
+    const actId = gameState.scenario_instance.current_act_id;
+    if (!actId) return;
     
     // Create act data object compatible with existing updateActInfo
+    // Extract act number from ID if it follows pattern "act_N" 
+    const actMatch = actId.match(/act[_-]?(\d+)/i);
+    const actNumber = actMatch ? parseInt(actMatch[1]) : 1;
+    
     const actData = {
-        act_id: `act_${gameState.current_act_index}`,
-        act_name: `Act ${gameState.current_act_index + 1}`,
-        act_index: gameState.current_act_index
+        act_id: actId,
+        act_name: `Act ${actNumber}`,
+        act_index: actNumber - 1
     };
     
     updateActInfo(actData);

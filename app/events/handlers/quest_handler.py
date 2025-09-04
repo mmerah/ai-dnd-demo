@@ -50,7 +50,7 @@ class QuestHandler(BaseHandler):
 
         if isinstance(command, StartQuestCommand):
             # Get scenario
-            scenario = self.scenario_service.get_scenario(game_state.scenario_id) if game_state.scenario_id else None
+            scenario = self.scenario_service.get_scenario(game_state.scenario_id)
             if not scenario:
                 raise ValueError("No scenario loaded")
 
@@ -60,8 +60,9 @@ class QuestHandler(BaseHandler):
                 raise ValueError(f"Quest '{command.quest_id}' not found")
 
             # Check prerequisites
-            if not quest.is_available(game_state.completed_quest_ids):
-                missing = [prereq for prereq in quest.prerequisites if prereq not in game_state.completed_quest_ids]
+            completed = game_state.scenario_instance.completed_quest_ids
+            if not quest.is_available(completed):
+                missing = [prereq for prereq in quest.prerequisites if prereq not in completed]
                 raise ValueError(f"Quest prerequisites not met. Missing: {', '.join(missing)}")
 
             # Create a copy of the quest for the game state
@@ -160,15 +161,16 @@ class QuestHandler(BaseHandler):
 
         elif isinstance(command, ProgressActCommand):
             # Get scenario
-            scenario = self.scenario_service.get_scenario(game_state.scenario_id) if game_state.scenario_id else None
+            scenario = self.scenario_service.get_scenario(game_state.scenario_id)
             if not scenario:
                 raise ValueError("No scenario loaded")
 
             # Check if can progress
-            if not scenario.progression.can_progress_to_next_act(game_state.completed_quest_ids):
+            completed = game_state.scenario_instance.completed_quest_ids
+            if not scenario.progression.can_progress_to_next_act(completed):
                 current_act = scenario.progression.get_current_act()
                 if current_act:
-                    missing = [q for q in current_act.quests if q not in game_state.completed_quest_ids]
+                    missing = [q for q in current_act.quests if q not in completed]
                     raise ValueError(f"Cannot progress to next act. Incomplete quests: {', '.join(missing)}")
                 else:
                     raise ValueError("No current act found")
@@ -177,7 +179,7 @@ class QuestHandler(BaseHandler):
             if scenario.progression.progress_to_next_act():
                 new_act = scenario.progression.get_current_act()
                 if new_act:
-                    game_state.current_act_id = new_act.id
+                    game_state.scenario_instance.current_act_id = new_act.id
 
                     # Save game state
                     self.game_service.save_game(game_state)

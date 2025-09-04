@@ -6,13 +6,13 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 from app.common.types import JSONSerializable
-
-from .character import CharacterSheet
-from .combat import CombatState
-from .location import LocationState
-from .monster import Monster
-from .npc import NPCSheet
-from .quest import Quest
+from app.models.combat import CombatState
+from app.models.instances.character_instance import CharacterInstance
+from app.models.instances.npc_instance import NPCInstance
+from app.models.instances.scenario_instance import ScenarioInstance
+from app.models.location import DangerLevel, LocationState
+from app.models.monster import Monster
+from app.models.quest import Quest
 
 
 class MessageRole(str, Enum):
@@ -100,32 +100,25 @@ class GameState(BaseModel):
     created_at: datetime = Field(default_factory=datetime.now)
     last_saved: datetime = Field(default_factory=datetime.now)
 
-    # Core game data
-    character: CharacterSheet
-    npcs: list[NPCSheet] = Field(default_factory=list)
+    # Core game data (instances)
+    character: CharacterInstance
+    npcs: list[NPCInstance] = Field(default_factory=list)
     monsters: list[Monster] = Field(default_factory=list)
 
     # Scenario information
-    scenario_id: str | None = None
-    scenario_title: str | None = None
-    current_location_id: str | None = None
-    current_act_id: str | None = None
+    scenario_id: str  # convenience alias of scenario_instance.template_id
+    scenario_title: str
+    scenario_instance: ScenarioInstance
 
     # Location and time
     location: str = "Unknown"
     description: str = ""
     game_time: GameTime = Field(default_factory=GameTime)
 
-    # Location tracking
-    location_states: dict[str, LocationState] = Field(default_factory=dict)
-
     # Combat state (optional)
     combat: CombatState | None = None
 
-    # Quest and story tracking
-    active_quests: list[Quest] = Field(default_factory=list)
-    completed_quest_ids: list[str] = Field(default_factory=list)
-    quest_flags: dict[str, JSONSerializable] = Field(default_factory=dict)
+    # Story tracking
     story_notes: list[str] = Field(default_factory=list)
 
     # Conversation history (narrative only)
@@ -179,23 +172,23 @@ class GameState(BaseModel):
         )
         self.game_events.append(event)
 
-    def add_npc(self, npc: NPCSheet) -> None:
+    def add_npc(self, npc: NPCInstance) -> None:
         """Add an NPC to the game."""
         # Check for duplicate names and rename if necessary
-        existing_names = [n.character.name for n in self.npcs]
-        if npc.character.name in existing_names:
+        existing_names = [n.sheet.character.name for n in self.npcs]
+        if npc.sheet.character.name in existing_names:
             counter = 2
-            base_name = npc.character.name
+            base_name = npc.sheet.character.name
             while f"{base_name} {counter}" in existing_names:
                 counter += 1
-            npc.character.name = f"{base_name} {counter}"
+            npc.sheet.character.name = f"{base_name} {counter}"
 
         self.npcs.append(npc)
 
     def remove_npc(self, name: str) -> bool:
         """Remove an NPC by name. Returns True if found and removed."""
         for i, npc in enumerate(self.npcs):
-            if npc.character.name == name:
+            if npc.sheet.character.name == name:
                 del self.npcs[i]
                 return True
         return False
@@ -230,14 +223,14 @@ class GameState(BaseModel):
     def get_active_monsters(self) -> list[Monster]:
         return [m for m in self.monsters if m.is_alive()]
 
-    def get_npc(self, name: str) -> NPCSheet | None:
+    def get_npc(self, name: str) -> NPCInstance | None:
         """Get an NPC by name."""
         for npc in self.npcs:
-            if npc.character.name == name:
+            if npc.sheet.character.name == name:
                 return npc
         return None
 
-    def get_active_npcs(self) -> list[NPCSheet]:
+    def get_active_npcs(self) -> list[NPCInstance]:
         """Get all NPCs that are still alive."""
         return [npc for npc in self.npcs if npc.is_alive()]
 
@@ -256,12 +249,11 @@ class GameState(BaseModel):
 
     def set_quest_flag(self, flag_name: str, value: JSONSerializable = True) -> None:
         """Set a quest flag."""
-        self.quest_flags[flag_name] = value
+        self.scenario_instance.quest_flags[flag_name] = value
 
     def check_quest_flag(self, flag_name: str) -> bool:
         """Check if a quest flag is set."""
-        value = self.quest_flags.get(flag_name, False)
-        # Convert to bool for backward compatibility
+        value = self.scenario_instance.quest_flags.get(flag_name, False)
         return bool(value)
 
     def add_story_note(self, note: str) -> None:
@@ -270,15 +262,13 @@ class GameState(BaseModel):
 
     def change_location(self, new_location_id: str, new_location_name: str, description: str = "") -> None:
         """Change the current location."""
-        # Update location state tracking
-        # TODO: Need to be updated with the NPC present at the location
-        if new_location_id not in self.location_states:
-            self.location_states[new_location_id] = LocationState(location_id=new_location_id)
-
-        location_state = self.location_states[new_location_id]
+        # Update location state tracking within scenario instance
+        if new_location_id not in self.scenario_instance.location_states:
+            self.scenario_instance.location_states[new_location_id] = LocationState(location_id=new_location_id)
+        location_state = self.scenario_instance.location_states[new_location_id]
         location_state.mark_visited()
+        self.scenario_instance.current_location_id = new_location_id
 
-        self.current_location_id = new_location_id
         self.location = new_location_name
         self.description = description
         self.add_story_note(f"Moved to {new_location_name}")
@@ -296,33 +286,46 @@ class GameState(BaseModel):
         self.last_saved = datetime.now()
 
     def get_location_state(self, location_id: str) -> LocationState:
-        """Get or create location state."""
-        if location_id not in self.location_states:
-            self.location_states[location_id] = LocationState(location_id=location_id)
-        return self.location_states[location_id]
+        """Get or create location state from scenario_instance.
+
+        Special handling for 'unknown-location' sentinel - returns ephemeral state
+        that is not persisted to avoid polluting saved games.
+        """
+        # Handle sentinel value for unknown/transitional locations
+        if location_id == "unknown-location":
+            # Return ephemeral state, not stored in location_states
+            return LocationState(
+                location_id="unknown-location",
+                danger_level=DangerLevel.MODERATE,
+                notes=["Transitional or undefined location"],
+            )
+
+        # Normal path: get or create persistent location state
+        if location_id not in self.scenario_instance.location_states:
+            self.scenario_instance.location_states[location_id] = LocationState(location_id=location_id)
+        return self.scenario_instance.location_states[location_id]
 
     def add_quest(self, quest: Quest) -> None:
         """Add a quest to active quests."""
-        # Check if quest already exists
-        for q in self.active_quests:
+        for q in self.scenario_instance.active_quests:
             if q.id == quest.id:
                 return
-        self.active_quests.append(quest)
+        self.scenario_instance.active_quests.append(quest)
         self.add_story_note(f"New quest started: {quest.name}")
 
     def complete_quest(self, quest_id: str) -> bool:
         """Mark a quest as completed. Returns True if found."""
-        for i, quest in enumerate(self.active_quests):
+        for i, quest in enumerate(self.scenario_instance.active_quests):
             if quest.id == quest_id:
-                self.active_quests.pop(i)
-                self.completed_quest_ids.append(quest_id)
+                self.scenario_instance.active_quests.pop(i)
+                self.scenario_instance.completed_quest_ids.append(quest_id)
                 self.add_story_note(f"Quest completed: {quest.name}")
                 return True
         return False
 
     def get_active_quest(self, quest_id: str) -> Quest | None:
         """Get an active quest by ID."""
-        for quest in self.active_quests:
+        for quest in self.scenario_instance.active_quests:
             if quest.id == quest_id:
                 return quest
         return None

@@ -3,13 +3,14 @@
   "display_name": "Tom",
   "role": "Barkeep",
   "description": "A stout, friendly man with a graying beard and knowing eyes.",
-  "dialogue_hints": [
+  "initial_location_id": "tavern",
+  "initial_dialogue_hints": [
     "Knows about the goblin attacks on the road",
     "Can provide information about the missing merchant",
     "Sells basic supplies and healing potions"
   ],
-  "attitude": "friendly",
-  "notes": [],
+  "initial_attitude": "friendly",
+  "initial_notes": [],
   "character": {
     "id": "npc-barkeep-tom",
     "name": "Tom",
@@ -17,11 +18,9 @@
     "class_index": "fighter",
     "subclass": null,
     "subrace": null,
-    "level": 1,
     "background": "acolyte",
     "alignment": "neutral-good",
-    "experience_points": 0,
-    "abilities": {
+    "starting_abilities": {
       "STR": 10,
       "DEX": 10,
       "CON": 10,
@@ -29,45 +28,55 @@
       "WIS": 14,
       "CHA": 13
     },
-    "ability_modifiers": {
-      "STR": 0,
-      "DEX": 0,
-      "CON": 0,
-      "INT": 1,
-      "WIS": 2,
-      "CHA": 1
-    },
-    "proficiency_bonus": 2,
-    "armor_class": 10,
-    "initiative": 0,
-    "speed": 30,
-    "hit_points": { "current": 4, "maximum": 4, "temporary": 0 },
-    "hit_dice": { "total": 1, "current": 1, "type": "d8" },
-    "saving_throws": {"STR": 0, "DEX": 0, "CON": 0, "INT": 1, "WIS": 2, "CHA": 1},
-    "skills": {"insight": 4, "persuasion": 3},
-    "attacks": [],
     "custom_features": [
-      {"name": "Local Knowledge", "description": "Knows the local area and recent events."}
+      {
+        "name": "Local Knowledge",
+        "description": "Knows the local area and recent events."
+      }
     ],
     "feature_indexes": [],
     "trait_indexes": [],
     "feat_indexes": [],
-    "spellcasting": null,
-    "inventory": [
-      {"name": "Potion of Healing", "quantity": 3, "equipped": false, "weight": 0.5, "value": 50, "description": "Heals 2d4+2 HP.", "item_type": "Potion"}
-    ],
-    "currency": {"copper": 0, "silver": 0, "electrum": 0, "gold": 5, "platinum": 0},
     "personality": {
-      "traits": ["Friendly", "Knowledgeable", "Cautious"],
-      "ideals": ["Community - The tavern brings people together"],
-      "bonds": ["This tavern has been in my family for three generations"],
-      "flaws": ["A bit too trusting of strangers with coin"]
+      "traits": [
+        "Friendly",
+        "Knowledgeable",
+        "Cautious"
+      ],
+      "ideals": [
+        "Community - The tavern brings people together"
+      ],
+      "bonds": [
+        "This tavern has been in my family for three generations"
+      ],
+      "flaws": [
+        "A bit too trusting of strangers with coin"
+      ]
     },
     "backstory": "A well-known local barkeep who keeps an ear to the ground.",
-    "languages": ["common"],
-    "conditions": [],
-    "exhaustion_level": 0,
-    "inspiration": false
-  },
-  "present": true
+    "languages": [
+      "common"
+    ],
+    "starting_inventory": [
+      {
+        "name": "Potion of Healing",
+        "quantity": 3,
+        "equipped": false,
+        "weight": 0.5,
+        "value": 50,
+        "description": "Heals 2d4+2 HP.",
+        "item_type": "Potion"
+      }
+    ],
+    "starting_currency": {
+      "copper": 0,
+      "silver": 0,
+      "electrum": 0,
+      "gold": 5,
+      "platinum": 0
+    },
+    "starting_spellcasting": null,
+    "starting_level": 1,
+    "starting_experience_points": 0
+  }
 }

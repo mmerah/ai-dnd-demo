@@ -12,11 +12,11 @@ from app.models.quest import ObjectiveStatus, Quest, QuestObjective, QuestStatus
 from app.models.scenario import (
     Encounter,
     LocationDescriptions,
-    Scenario,
     ScenarioAct,
     ScenarioLocation,
     ScenarioMonster,
     ScenarioProgression,
+    ScenarioSheet,
     Secret,
     TreasureGuidelines,
 )
@@ -25,7 +25,7 @@ from app.services.data.loaders.base_loader import BaseLoader
 logger = logging.getLogger(__name__)
 
 
-class ScenarioLoader(BaseLoader[Scenario]):
+class ScenarioLoader(BaseLoader[ScenarioSheet]):
     """Loader for scenario data with modular components.
 
     Follows Single Responsibility Principle: only handles scenario file operations.
@@ -42,7 +42,7 @@ class ScenarioLoader(BaseLoader[Scenario]):
         super().__init__(validate_on_load)
         self.path_resolver = path_resolver
 
-    def _parse_data(self, data: dict[str, Any] | list[Any], source_path: Path) -> Scenario:
+    def _parse_data(self, data: dict[str, Any] | list[Any], source_path: Path) -> ScenarioSheet:
         # Any is necessary because raw JSON data can contain mixed types
         """Parse raw JSON data into Scenario model.
 
@@ -76,7 +76,7 @@ class ScenarioLoader(BaseLoader[Scenario]):
             treasure_guidelines = self._parse_treasure_guidelines(data.get("treasure_guidelines", {}))
 
             # Create the scenario
-            scenario = Scenario(
+            scenario = ScenarioSheet(
                 id=scenario_id,
                 title=data.get("title", "Unknown Adventure"),
                 description=data.get("description", ""),
@@ -144,14 +144,6 @@ class ScenarioLoader(BaseLoader[Scenario]):
         with open(file_path, encoding="utf-8") as f:
             data = json.load(f)
 
-        # Parse npc_ids only (normalized approach)
-        npc_ids: list[str] = []
-        raw_npc_ids = data.get("npc_ids")
-        if isinstance(raw_npc_ids, list):
-            for nid in raw_npc_ids:
-                if isinstance(nid, str):
-                    npc_ids.append(nid)
-
         # Parse notable monsters by ids (optional per-location)
         notable_monsters = []
         monster_ids = data.get("monster_ids")
@@ -209,7 +201,6 @@ class ScenarioLoader(BaseLoader[Scenario]):
             name=data["name"],
             description=data.get("description", ""),
             descriptions=descriptions,
-            npc_ids=npc_ids,
             notable_monsters=notable_monsters,
             encounter_ids=encounter_ids,
             monster_ids=location_monster_ids,
@@ -411,7 +402,7 @@ class ScenarioLoader(BaseLoader[Scenario]):
             mundane_items=data.get("mundane_items", ""),
         )
 
-    def _prepare_for_save(self, data: Scenario) -> dict[str, Any]:
+    def _prepare_for_save(self, data: ScenarioSheet) -> dict[str, Any]:
         # Any is necessary for JSON-serializable output
         """Prepare scenario data for JSON serialization.
 
@@ -425,7 +416,7 @@ class ScenarioLoader(BaseLoader[Scenario]):
         # This is complex and might not be needed for the MVP
         return data.model_dump(mode="json")
 
-    def load_scenario(self, scenario_id: str) -> Scenario | None:
+    def load_scenario(self, scenario_id: str) -> ScenarioSheet | None:
         """Load a complete scenario by ID.
 
         Args:

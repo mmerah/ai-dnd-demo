@@ -4,7 +4,6 @@ import logging
 
 from app.events.base import BaseCommand, CommandResult
 from app.events.commands.broadcast_commands import (
-    BroadcastCharacterUpdateCommand,
     BroadcastGameUpdateCommand,
 )
 from app.events.commands.time_commands import (
@@ -35,15 +34,15 @@ class TimeHandler(BaseHandler):
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle time commands."""
         result = CommandResult()
-        character = game_state.character
+        character = game_state.character.state
 
         if isinstance(command, ShortRestCommand):
             # Short rest: restore some HP and reset abilities
             old_hp = character.hit_points.current
 
             # Spend hit dice for healing (simplified: use half of level)
-            constitution_modifier = (character.abilities.CON - 10) // 2
-            healing = character.level // 2 + constitution_modifier
+            constitution_modifier = (game_state.character.state.abilities.CON - 10) // 2
+            healing = game_state.character.state.level // 2 + constitution_modifier
             character.hit_points.current = min(character.hit_points.current + healing, character.hit_points.maximum)
 
             # Advance time by 1 hour
@@ -64,7 +63,6 @@ class TimeHandler(BaseHandler):
                 time=f"Day {game_state.game_time.day}, {game_state.game_time.hour:02d}:{game_state.game_time.minute:02d}",
             )
 
-            result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
             logger.info(f"Short Rest: Healed {healing} HP, time advanced 1 hour")
@@ -102,7 +100,6 @@ class TimeHandler(BaseHandler):
                 time=f"Day {game_state.game_time.day}, {game_state.game_time.hour:02d}:{game_state.game_time.minute:02d}",
             )
 
-            result.add_command(BroadcastCharacterUpdateCommand(game_id=command.game_id))
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
             logger.info("Long Rest: Full HP restored, spell slots restored, conditions cleared")
