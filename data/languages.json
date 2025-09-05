@@ -118,6 +118,314 @@
       "type": null,
       "script": null,
       "description": "Language unknown or not applicable."
+    },
+    {
+      "index": "any-one-language-(usually-common)",
+      "name": "Any One Language (Usually Common)",
+      "type": "Standard",
+      "script": null,
+      "description": "Can speak any one language, typically Common."
+    },
+    {
+      "index": "any-one-language",
+      "name": "Any One Language",
+      "type": "Standard",
+      "script": null,
+      "description": "Can speak any one language."
+    },
+    {
+      "index": "any-two-languages",
+      "name": "Any Two Languages",
+      "type": "Standard",
+      "script": null,
+      "description": "Can speak any two languages."
+    },
+    {
+      "index": "any-four-languages",
+      "name": "Any Four Languages",
+      "type": "Standard",
+      "script": null,
+      "description": "Can speak any four languages."
+    },
+    {
+      "index": "any-six-languages",
+      "name": "Any Six Languages",
+      "type": "Standard",
+      "script": null,
+      "description": "Can speak any six languages."
+    },
+    {
+      "index": "all",
+      "name": "All Languages",
+      "type": "Standard",
+      "script": null,
+      "description": "Can speak and understand all languages."
+    },
+    {
+      "index": "blink-dog",
+      "name": "Blink Dog",
+      "type": "Exotic",
+      "script": null,
+      "description": "The language of blink dogs."
+    },
+    {
+      "index": "giant-eagle",
+      "name": "Giant Eagle",
+      "type": "Exotic",
+      "script": null,
+      "description": "The language of giant eagles."
+    },
+    {
+      "index": "giant-elk",
+      "name": "Giant Elk",
+      "type": "Exotic",
+      "script": null,
+      "description": "The language of giant elk."
+    },
+    {
+      "index": "giant-owl",
+      "name": "Giant Owl",
+      "type": "Exotic",
+      "script": null,
+      "description": "The language of giant owls."
+    },
+    {
+      "index": "gnoll",
+      "name": "Gnoll",
+      "type": "Exotic",
+      "script": null,
+      "description": "The language of gnolls."
+    },
+    {
+      "index": "sahuagin",
+      "name": "Sahuagin",
+      "type": "Exotic",
+      "script": null,
+      "description": "The language of sahuagin."
+    },
+    {
+      "index": "sphinx",
+      "name": "Sphinx",
+      "type": "Exotic",
+      "script": null,
+      "description": "The language of sphinxes."
+    },
+    {
+      "index": "winter-wolf",
+      "name": "Winter Wolf",
+      "type": "Exotic",
+      "script": null,
+      "description": "The language of winter wolves."
+    },
+    {
+      "index": "worg",
+      "name": "Worg",
+      "type": "Exotic",
+      "script": null,
+      "description": "The language of worgs."
+    },
+    {
+      "index": "otyugh",
+      "name": "Otyugh",
+      "type": "Exotic",
+      "script": null,
+      "description": "The language of otyughs."
+    },
+    {
+      "index": "druidic",
+      "name": "Druidic",
+      "type": "Standard",
+      "script": null,
+      "description": "The secret language of druids."
+    },
+    {
+      "index": "understands-common-but-can't-speak",
+      "name": "Understands Common but can't speak",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand Common but lacks the ability to speak."
+    },
+    {
+      "index": "understands-draconic-but-can't-speak",
+      "name": "Understands Draconic but can't speak",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand Draconic but lacks the ability to speak."
+    },
+    {
+      "index": "understands-deep-speech-but-can't-speak",
+      "name": "Understands Deep Speech but can't speak",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand Deep Speech but lacks the ability to speak."
+    },
+    {
+      "index": "understands-infernal-but-can't-speak",
+      "name": "Understands Infernal but can't speak",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand Infernal but lacks the ability to speak."
+    },
+    {
+      "index": "understands-infernal-but-can't-speak-it",
+      "name": "Understands Infernal but can't speak it",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand Infernal but lacks the ability to speak it."
+    },
+    {
+      "index": "understands-abyssal",
+      "name": "Understands Abyssal",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand Abyssal."
+    },
+    {
+      "index": "understands-celestial",
+      "name": "Understands Celestial",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand Celestial."
+    },
+    {
+      "index": "understands-common-but-doesn't-speak-it",
+      "name": "Understands Common but doesn't speak it",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand Common but doesn't speak it."
+    },
+    {
+      "index": "understands-the-languages-of-its-creator-but-can't-speak",
+      "name": "Understands the languages of its creator but can't speak",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand the languages known by its creator but lacks the ability to speak."
+    },
+    {
+      "index": "one-language-known-by-its-creator",
+      "name": "One language known by its creator",
+      "type": "Special",
+      "script": null,
+      "description": "Knows one language that was known by its creator."
+    },
+    {
+      "index": "understands-all-languages-it-spoke-in-life-but-can't-speak",
+      "name": "Understands all languages it spoke in life but can't speak",
+      "type": "Special",
+      "script": null,
+      "description": "Retains understanding of languages from life but cannot speak."
+    },
+    {
+      "index": "understands-all-languages-it-knew-in-life-but-can't-speak",
+      "name": "Understands all languages it knew in life but can't speak",
+      "type": "Special",
+      "script": null,
+      "description": "Retains understanding of languages from life but cannot speak."
+    },
+    {
+      "index": "any-languages-it-knew-in-life",
+      "name": "Any languages it knew in life",
+      "type": "Special",
+      "script": null,
+      "description": "Retains any languages known in life."
+    },
+    {
+      "index": "the-languages-it-knew-in-life",
+      "name": "The languages it knew in life",
+      "type": "Special",
+      "script": null,
+      "description": "Retains the languages known in life."
+    },
+    {
+      "index": "understands-common-and-giant-but-can't-speak",
+      "name": "Understands Common and Giant but can't speak",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand Common and Giant but lacks the ability to speak."
+    },
+    {
+      "index": "understands-common-and-draconic-but-can't-speak",
+      "name": "Understands Common and Draconic but can't speak",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand Common and Draconic but lacks the ability to speak."
+    },
+    {
+      "index": "understands-commands-given-in-any-language-but-can't-speak",
+      "name": "Understands commands given in any language but can't speak",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand commands in any language but cannot speak."
+    },
+    {
+      "index": "common-(can't-speak-in-boar-form)",
+      "name": "Common (can't speak in boar form)",
+      "type": "Special",
+      "script": null,
+      "description": "Can speak Common but not while in boar form."
+    },
+    {
+      "index": "thieves'-cant-plus-any-two-languages",
+      "name": "Thieves' Cant plus any two languages",
+      "type": "Special",
+      "script": null,
+      "description": "Knows Thieves' Cant and any two other languages."
+    },
+    {
+      "index": "druidic-plus-any-two-languages",
+      "name": "Druidic plus any two languages",
+      "type": "Special",
+      "script": null,
+      "description": "Knows Druidic and any two other languages."
+    },
+    {
+      "index": "understands-sylvan-but-can't-speak-it",
+      "name": "Understands Sylvan but can't speak it",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand Sylvan but lacks the ability to speak it."
+    },
+    {
+      "index": "understands-common-and-auran-but-can't-speak",
+      "name": "Understands Common and Auran but can't speak",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand Common and Auran but lacks the ability to speak."
+    },
+    {
+      "index": "understands-common",
+      "name": "Understands Common",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand Common."
+    },
+    {
+      "index": "and-primordial-but-can't-speak",
+      "name": "And Primordial but can't speak",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand Primordial but lacks the ability to speak."
+    },
+    {
+      "index": "understands-abyssal-but-can't-speak",
+      "name": "Understands Abyssal but can't speak",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand Abyssal but lacks the ability to speak."
+    },
+    {
+      "index": "and-infernal-but-can't-speak",
+      "name": "And Infernal but can't speak",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand Infernal but lacks the ability to speak."
+    },
+    {
+      "index": "and-sylvan-but-can't-speak",
+      "name": "And Sylvan but can't speak",
+      "type": "Special",
+      "script": null,
+      "description": "Can understand Sylvan but lacks the ability to speak."
     }
   ]
 }

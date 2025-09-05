@@ -222,9 +222,18 @@ class ContextService:
 
     def _build_npc_context(self, game_state: GameState) -> str:
         """Build detailed NPC context with abilities."""
-        npc_lines = ["NPCs Present:"]
+        if not game_state.scenario_instance.is_in_known_location():
+            return ""
 
-        for npc in game_state.npcs:
+        current_loc_id = game_state.scenario_instance.current_location_id
+        npcs_here = [npc for npc in game_state.npcs if npc.current_location_id == current_loc_id]
+
+        if not npcs_here:
+            return ""
+
+        npc_lines = ["NPCs Present (Detailed):"]
+
+        for npc in npcs_here:
             # Basic info
             npc_name = npc.sheet.character.name
             npc_state = npc.state
@@ -298,13 +307,19 @@ class ContextService:
 
     def _build_npc_items_context(self, game_state: GameState) -> str | None:
         """Build context about items NPCs have available for trade/giving."""
-        if not game_state.npcs:
+        if not game_state.npcs or not game_state.scenario_instance.is_in_known_location():
+            return None
+
+        current_loc_id = game_state.scenario_instance.current_location_id
+        npcs_here = [npc for npc in game_state.npcs if npc.current_location_id == current_loc_id]
+
+        if not npcs_here:
             return None
 
         items_mentioned: set[str] = set()
         context_parts: list[str] = []
 
-        for npc in game_state.npcs:
+        for npc in npcs_here:
             npc_items: list[str] = []
             for item in npc.state.inventory:
                 if item.name not in items_mentioned:

@@ -8,7 +8,7 @@ let sseSource = null;
 // DOM elements - cached for performance
 const elements = {};
 
-// Catalog caches (index -> display name)
+// Catalog caches (index -> display name for simple catalogs, full data for complex ones)
 const catalogs = {
     classes: {},
     subclasses: {},
@@ -24,11 +24,14 @@ const catalogs = {
     weapon_properties: {},
     damage_types: {},
     conditions: {},
+    monsters: [],  // Full monster data
+    items: [],     // Full item data
+    spells: [],    // Full spell data
 };
 
 async function loadCatalogs() {
     try {
-        const [classesRes, subclassesRes, alignsRes, schoolsRes, racesRes, languagesRes, backgroundsRes, featuresRes, featsRes, skillsRes, wpropsRes, dtypesRes, subracesRes, conditionsRes, traitsRes] = await Promise.all([
+        const [classesRes, subclassesRes, alignsRes, schoolsRes, racesRes, languagesRes, backgroundsRes, featuresRes, featsRes, skillsRes, wpropsRes, dtypesRes, subracesRes, conditionsRes, traitsRes, monstersRes, itemsRes, spellsRes] = await Promise.all([
             fetch('/api/catalogs/classes'),
             fetch('/api/catalogs/subclasses'),
             fetch('/api/catalogs/alignments'),
@@ -44,9 +47,12 @@ async function loadCatalogs() {
             fetch('/api/catalogs/race_subraces'),
             fetch('/api/catalogs/conditions'),
             fetch('/api/catalogs/traits').catch(() => ({ ok: false })),
+            fetch('/api/catalogs/monsters').catch(() => ({ ok: false })),
+            fetch('/api/catalogs/items').catch(() => ({ ok: false })),
+            fetch('/api/catalogs/spells').catch(() => ({ ok: false })),
         ]);
 
-        const [classes, subclasses, alignments, schools, races, languages, backgrounds, features, feats, skills, wprops, dtypes, subraces, conditions, traits] = await Promise.all([
+        const [classes, subclasses, alignments, schools, races, languages, backgrounds, features, feats, skills, wprops, dtypes, subraces, conditions, traits, monsters, items, spells] = await Promise.all([
             classesRes.ok ? classesRes.json() : [],
             subclassesRes.ok ? subclassesRes.json() : [],
             alignsRes.ok ? alignsRes.json() : [],
@@ -62,6 +68,9 @@ async function loadCatalogs() {
             subracesRes.ok ? subracesRes.json() : [],
             conditionsRes.ok ? conditionsRes.json() : [],
             traitsRes.ok ? traitsRes.json() : [],
+            monstersRes.ok ? monstersRes.json() : [],
+            itemsRes.ok ? itemsRes.json() : [],
+            spellsRes.ok ? spellsRes.json() : [],
         ]);
 
         catalogs.classes = Object.fromEntries(classes.map(c => [c.index, c.name]));
@@ -79,11 +88,16 @@ async function loadCatalogs() {
         catalogs.race_subraces = Object.fromEntries((subraces || []).map(sr => [sr.index, sr.name]));
         catalogs.conditions = Object.fromEntries((conditions || []).map(c => [c.index, c.name]));
         catalogs.traits = Object.fromEntries((traits || []).map(t => [t.index, t.name]));
+        
+        // Store full data for complex catalogs
+        catalogs.monsters = monsters || [];
+        catalogs.items = items || [];
+        catalogs.spells = spells || [];
 
         // expose globally
         window.catalogs = catalogs;
         window.catalogData = {
-            classes, subclasses, alignments, schools, races, languages, backgrounds, features, feats, skills, wprops, dtypes, subraces, conditions, traits
+            classes, subclasses, alignments, schools, races, languages, backgrounds, features, feats, skills, wprops, dtypes, subraces, conditions, traits, monsters, items, spells
         };
 
         console.log('[CATALOGS] Loaded', { 
@@ -102,6 +116,9 @@ async function loadCatalogs() {
             conditions: Object.keys(catalogs.conditions || {}).length,
             subraces: Object.keys(catalogs.race_subraces || {}).length,
             traits: Object.keys(catalogs.traits || {}).length,
+            monsters: catalogs.monsters.length,
+            items: catalogs.items.length,
+            spells: catalogs.spells.length,
         });
     } catch (e) {
         console.warn('[CATALOGS] Failed to load one or more catalogs', e);
@@ -1035,7 +1052,7 @@ function updateSkills(skills) {
 }
 
 // Catalog full-screen (pagination)
-let catState = { type: 'monsters', page: 1, pageSize: 50, monsters: null, items: null };
+let catState = { type: 'monsters', page: 1, pageSize: 50 };
 
 function renderCatalogsNav(activeType) {
     const nav = document.getElementById('catalogsNav');
@@ -1043,6 +1060,7 @@ function renderCatalogsNav(activeType) {
     const cats = [
         ['monsters', 'Monsters'],
         ['items', 'Items'],
+        ['spells', 'Spells'],
         ['races', 'Races'],
         ['race_subraces', 'Subraces'],
         ['classes', 'Classes'],
@@ -1099,42 +1117,50 @@ function hideCatalogsScreen() {
     }
 }
 
-async function renderCatalogsPage() {
+function renderCatalogsPage() {
     const list = document.getElementById('catalogsContentList');
     const pageInfo = document.getElementById('catPageInfo');
     const pager = document.querySelector('#catalogsScreen .pagination');
     const { type, page, pageSize } = catState;
     if (!list || !pageInfo) return;
     list.innerHTML = '';
+    
     if (type === 'monsters') {
         if (pager) pager.style.display = 'flex';
-        if (!catState.monsters) {
-            const res = await fetch('/api/catalogs/monsters?keys_only=true');
-            catState.monsters = res.ok ? await res.json() : [];
-        }
-        const total = (catState.monsters || []).length;
+        const monsters = window.catalogs?.monsters || [];
+        const total = monsters.length;
         const start = (page - 1) * pageSize;
-        const slice = (catState.monsters || []).slice(start, start + pageSize);
-        slice.forEach(name => {
+        const slice = monsters.slice(start, start + pageSize);
+        slice.forEach(monster => {
             const row = document.createElement('div');
             row.className = 'catalog-row';
-            row.textContent = name;
+            row.textContent = `${monster.name} (${monster.index})`;
             list.appendChild(row);
         });
         pageInfo.textContent = `Page ${page} / ${Math.max(1, Math.ceil(total / pageSize))}`;
     } else if (type === 'items') {
         if (pager) pager.style.display = 'flex';
-        if (!catState.items) {
-            const res = await fetch('/api/catalogs/items');
-            catState.items = res.ok ? await res.json() : [];
-        }
-        const total = (catState.items || []).length;
+        const items = window.catalogs?.items || [];
+        const total = items.length;
         const start = (page - 1) * pageSize;
-        const slice = (catState.items || []).slice(start, start + pageSize);
+        const slice = items.slice(start, start + pageSize);
         slice.forEach(it => {
             const row = document.createElement('div');
             row.className = 'catalog-row';
-            row.textContent = `${it.name} — ${it.type}${it.rarity ? ' • ' + it.rarity : ''}`;
+            row.textContent = `${it.name} (${it.index}) — ${it.type}${it.rarity ? ' • ' + it.rarity : ''}`;
+            list.appendChild(row);
+        });
+        pageInfo.textContent = `Page ${page} / ${Math.max(1, Math.ceil(total / pageSize))}`;
+    } else if (type === 'spells') {
+        if (pager) pager.style.display = 'flex';
+        const spells = window.catalogs?.spells || [];
+        const total = spells.length;
+        const start = (page - 1) * pageSize;
+        const slice = spells.slice(start, start + pageSize);
+        slice.forEach(spell => {
+            const row = document.createElement('div');
+            row.className = 'catalog-row';
+            row.textContent = `${spell.name} (${spell.index}) — Level ${spell.level}`;
             list.appendChild(row);
         });
         pageInfo.textContent = `Page ${page} / ${Math.max(1, Math.ceil(total / pageSize))}`;

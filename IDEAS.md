@@ -4,8 +4,7 @@ Full D&D 5e functionality with scenario management, character management, functi
 
 ## Current Issues [CRITICAL]
 
-1. AI seems to take all NPCs in the game state and consider them there. Need to adapt context_service. Need maybe a DEBUG log file, could add the full message passed to the AI (which should be context + player action)
-2. Catalog: A bunch of monsters have weird alignments. That needs to be mapped somehow, but I thought we did a mapping no ? (at least for language I remember something) In alignments we do have "unknown" why isn't this taken ?
+
 
 ## Ideas
 

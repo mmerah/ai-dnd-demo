@@ -155,7 +155,7 @@ class NarrativeAgent(BaseAgent):
                 event_stream_handler=self.event_stream_handler,
             )
 
-            logger.debug(f"Response generated: {result.output[:100]}...")
+            logger.debug(f"Response generated: {result.output}...")
 
             # Broadcast final narrative via SSE
             await self.event_bus.submit_and_wait(
