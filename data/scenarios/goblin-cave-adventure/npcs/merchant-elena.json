@@ -55,11 +55,15 @@
     "languages": [
       "common"
     ],
+    "starting_skill_indexes": [
+      "insight",
+      "persuasion"
+    ],
     "starting_inventory": [
       {
         "name": "Rations (1 day)",
         "quantity": 5,
-        "equipped": false,
+        "equipped_quantity": 0,
         "weight": 2,
         "value": 0.5,
         "description": "Travel rations.",

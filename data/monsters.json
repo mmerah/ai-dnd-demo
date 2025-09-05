@@ -35,7 +35,7 @@
         {
           "name": "Tentacle",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+5",
@@ -45,7 +45,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "10 ft.",
           "range": null,
           "damage": "3d6+5",
@@ -107,7 +107,7 @@
         {
           "name": "Club",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4",
@@ -162,7 +162,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 11,
+          "attack_roll_bonus": 11,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+6",
@@ -172,7 +172,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 11,
+          "attack_roll_bonus": 11,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+6",
@@ -182,7 +182,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 11,
+          "attack_roll_bonus": 11,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d8+6",
@@ -243,7 +243,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 12,
+          "attack_roll_bonus": 12,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+7",
@@ -253,7 +253,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 12,
+          "attack_roll_bonus": 12,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+7",
@@ -263,7 +263,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 12,
+          "attack_roll_bonus": 12,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d8+7",
@@ -322,7 +322,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 11,
+          "attack_roll_bonus": 11,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+6",
@@ -332,7 +332,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 11,
+          "attack_roll_bonus": 11,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+6",
@@ -342,7 +342,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 11,
+          "attack_roll_bonus": 11,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d8+6",
@@ -400,7 +400,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 12,
+          "attack_roll_bonus": 12,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+7",
@@ -410,7 +410,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 12,
+          "attack_roll_bonus": 12,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+7",
@@ -420,7 +420,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 12,
+          "attack_roll_bonus": 12,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d8+7",
@@ -482,7 +482,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 11,
+          "attack_roll_bonus": 11,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+6",
@@ -492,7 +492,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 11,
+          "attack_roll_bonus": 11,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+6",
@@ -502,7 +502,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 11,
+          "attack_roll_bonus": 11,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d8+6",
@@ -561,7 +561,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+8",
@@ -571,7 +571,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+8",
@@ -581,7 +581,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d8+8",
@@ -645,7 +645,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 11,
+          "attack_roll_bonus": 11,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+6",
@@ -655,7 +655,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 11,
+          "attack_roll_bonus": 11,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+6",
@@ -665,7 +665,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 11,
+          "attack_roll_bonus": 11,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d8+6",
@@ -728,7 +728,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+8",
@@ -738,7 +738,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+8",
@@ -748,7 +748,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d8+8",
@@ -807,7 +807,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 13,
+          "attack_roll_bonus": 13,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+8",
@@ -817,7 +817,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 13,
+          "attack_roll_bonus": 13,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+8",
@@ -827,7 +827,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 13,
+          "attack_roll_bonus": 13,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d8+8",
@@ -884,7 +884,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 11,
+          "attack_roll_bonus": 11,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+6",
@@ -894,7 +894,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 11,
+          "attack_roll_bonus": 11,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+6",
@@ -904,7 +904,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 11,
+          "attack_roll_bonus": 11,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d8+6",
@@ -961,7 +961,7 @@
         {
           "name": "Slam",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+5",
@@ -1031,7 +1031,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 15,
+          "attack_roll_bonus": 15,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d10+8",
@@ -1041,7 +1041,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 15,
+          "attack_roll_bonus": 15,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+8",
@@ -1051,7 +1051,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 15,
+          "attack_roll_bonus": 15,
           "reach": "20 ft.",
           "range": null,
           "damage": "2d8+8",
@@ -1112,7 +1112,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 16,
+          "attack_roll_bonus": 16,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d10+9",
@@ -1122,7 +1122,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 16,
+          "attack_roll_bonus": 16,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+9",
@@ -1132,7 +1132,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 16,
+          "attack_roll_bonus": 16,
           "reach": "20 ft.",
           "range": null,
           "damage": "2d8+9",
@@ -1191,7 +1191,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d10+8",
@@ -1201,7 +1201,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+8",
@@ -1211,7 +1211,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "20 ft.",
           "range": null,
           "damage": "2d8+8",
@@ -1269,7 +1269,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 16,
+          "attack_roll_bonus": 16,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d10+9",
@@ -1279,7 +1279,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 16,
+          "attack_roll_bonus": 16,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+9",
@@ -1289,7 +1289,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 16,
+          "attack_roll_bonus": 16,
           "reach": "20 ft.",
           "range": null,
           "damage": "2d8+9",
@@ -1351,7 +1351,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 15,
+          "attack_roll_bonus": 15,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d10+8",
@@ -1361,7 +1361,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 15,
+          "attack_roll_bonus": 15,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+8",
@@ -1371,7 +1371,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 15,
+          "attack_roll_bonus": 15,
           "reach": "20 ft.",
           "range": null,
           "damage": "2d8+8",
@@ -1430,7 +1430,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 17,
+          "attack_roll_bonus": 17,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d10+10",
@@ -1440,7 +1440,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 17,
+          "attack_roll_bonus": 17,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+10",
@@ -1450,7 +1450,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 17,
+          "attack_roll_bonus": 17,
           "reach": "20 ft.",
           "range": null,
           "damage": "2d8+10",
@@ -1514,7 +1514,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 15,
+          "attack_roll_bonus": 15,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d10+8",
@@ -1524,7 +1524,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 15,
+          "attack_roll_bonus": 15,
           "reach": "10 ft.",
           "range": null,
           "damage": "4d6+8",
@@ -1534,7 +1534,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 15,
+          "attack_roll_bonus": 15,
           "reach": "20 ft.",
           "range": null,
           "damage": "2d8+8",
@@ -1597,7 +1597,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 17,
+          "attack_roll_bonus": 17,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d10+10",
@@ -1607,7 +1607,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 17,
+          "attack_roll_bonus": 17,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+10",
@@ -1617,7 +1617,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 17,
+          "attack_roll_bonus": 17,
           "reach": "20 ft.",
           "range": null,
           "damage": "2d8+10",
@@ -1676,7 +1676,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 17,
+          "attack_roll_bonus": 17,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d10+10",
@@ -1686,7 +1686,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 17,
+          "attack_roll_bonus": 17,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+10",
@@ -1696,7 +1696,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 17,
+          "attack_roll_bonus": 17,
           "reach": "20 ft.",
           "range": null,
           "damage": "2d8+10",
@@ -1753,7 +1753,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d10+8",
@@ -1763,7 +1763,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+8",
@@ -1773,7 +1773,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "20 ft.",
           "range": null,
           "damage": "2d8+8",
@@ -1835,7 +1835,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 12,
+          "attack_roll_bonus": 12,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d10+6",
@@ -1898,7 +1898,7 @@
         {
           "name": "Slam",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -1963,7 +1963,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -2010,7 +2010,7 @@
         {
           "name": "Fist",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+3",
@@ -2020,7 +2020,7 @@
         {
           "name": "Rock",
           "type": "Ranged",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": null,
           "range": "25/50 ft.",
           "damage": "1d6+3",
@@ -2069,7 +2069,7 @@
         {
           "name": "Dagger",
           "type": "Melee or Ranged",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": "20/60 ft.",
           "damage": "1d4+2",
@@ -2132,7 +2132,7 @@
         {
           "name": "Shortsword",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+3",
@@ -2142,7 +2142,7 @@
         {
           "name": "Light Crossbow",
           "type": "Ranged",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": null,
           "range": "80/320 ft.",
           "damage": "1d8+3",
@@ -2203,7 +2203,7 @@
         {
           "name": "Rake",
           "type": "Melee",
-          "to_hit": 1,
+          "attack_roll_bonus": 1,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4-1",
@@ -2258,7 +2258,7 @@
         {
           "name": "Slam",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "10 ft.",
           "range": null,
           "damage": "3d6+4",
@@ -2312,7 +2312,7 @@
         {
           "name": "Beak",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+2",
@@ -2358,7 +2358,7 @@
         {
           "name": "Warhammer",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+3",
@@ -2420,7 +2420,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 1,
+          "attack_roll_bonus": 1,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4-1",
@@ -2469,7 +2469,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "5 ft.",
           "range": null,
           "damage": "1",
@@ -2520,7 +2520,7 @@
         {
           "name": "Longsword",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "10 ft.",
           "range": null,
           "damage": "3d8+8",
@@ -2530,7 +2530,7 @@
         {
           "name": "Whip",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "30 ft.",
           "range": null,
           "damage": "2d6+8",
@@ -2602,7 +2602,7 @@
         {
           "name": "Scimitar",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+1",
@@ -2612,7 +2612,7 @@
         {
           "name": "Light Crossbow",
           "type": "Ranged",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": null,
           "range": "80 ft.",
           "damage": "1d8+1",
@@ -2661,7 +2661,7 @@
         {
           "name": "Scimitar",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+3",
@@ -2671,7 +2671,7 @@
         {
           "name": "Dagger",
           "type": "Melee or Ranged",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": "20/60 ft.",
           "damage": "1d4+3",
@@ -2721,7 +2721,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+3",
@@ -2731,7 +2731,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -2741,7 +2741,7 @@
         {
           "name": "Hurl Flame",
           "type": "Ranged",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": null,
           "range": "150 ft.",
           "damage": "3d6",
@@ -2806,7 +2806,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -2855,7 +2855,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 0,
+          "attack_roll_bonus": 0,
           "reach": "5 ft.",
           "range": null,
           "damage": "1",
@@ -2910,7 +2910,7 @@
         {
           "name": "Beard",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+2",
@@ -2920,7 +2920,7 @@
         {
           "name": "Glaive",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "10 ft.",
           "range": null,
           "damage": "1d10+3",
@@ -2990,7 +2990,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "10 ft.",
           "range": null,
           "damage": "3d10+6",
@@ -3000,7 +3000,7 @@
         {
           "name": "Constrict",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d10+6",
@@ -3048,7 +3048,7 @@
         {
           "name": "Greataxe",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d12+3",
@@ -3097,7 +3097,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -3107,7 +3107,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+2",
@@ -3161,7 +3161,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+2",
@@ -3212,7 +3212,7 @@
         {
           "name": "Pseudopod",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+3",
@@ -3286,7 +3286,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+1",
@@ -3337,7 +3337,7 @@
         {
           "name": "Beak",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+2",
@@ -3395,7 +3395,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+3",
@@ -3441,7 +3441,7 @@
         {
           "name": "Tusk",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+1",
@@ -3499,7 +3499,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "10 ft.",
           "range": null,
           "damage": "1d8+4",
@@ -3509,7 +3509,7 @@
         {
           "name": "Sting",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d8+4",
@@ -3575,7 +3575,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+2",
@@ -3626,7 +3626,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+3",
@@ -3679,7 +3679,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+4",
@@ -3689,7 +3689,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -3744,7 +3744,7 @@
         {
           "name": "Morningstar",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+2",
@@ -3754,7 +3754,7 @@
         {
           "name": "Javelin",
           "type": "Melee or Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": "30/120 ft.",
           "damage": "2d6+2",
@@ -3809,7 +3809,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "4d12+4",
@@ -3858,7 +3858,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4",
@@ -3905,7 +3905,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 0,
+          "attack_roll_bonus": 0,
           "reach": "5 ft.",
           "range": null,
           "damage": "1",
@@ -3961,7 +3961,7 @@
         {
           "name": "Pike",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "10 ft.",
           "range": null,
           "damage": "1d10+4",
@@ -3971,7 +3971,7 @@
         {
           "name": "Hooves",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -3981,7 +3981,7 @@
         {
           "name": "Longbow",
           "type": "Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": null,
           "range": "150/600 ft.",
           "damage": "1d8+2",
@@ -4032,7 +4032,7 @@
         {
           "name": "Chain",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -4097,7 +4097,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -4107,7 +4107,7 @@
         {
           "name": "Horns",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d12+4",
@@ -4117,7 +4117,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -4165,7 +4165,7 @@
         {
           "name": "Pincer",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -4224,7 +4224,7 @@
         {
           "name": "Slam",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d10+5",
@@ -4306,7 +4306,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -4316,7 +4316,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "10 ft.",
           "range": null,
           "damage": "1d8+3",
@@ -4379,7 +4379,7 @@
         {
           "name": "Morningstar",
           "type": "Melee",
-          "to_hit": 12,
+          "attack_roll_bonus": 12,
           "reach": "10 ft.",
           "range": null,
           "damage": "3d8+8",
@@ -4389,7 +4389,7 @@
         {
           "name": "Rock",
           "type": "Ranged",
-          "to_hit": 12,
+          "attack_roll_bonus": 12,
           "reach": null,
           "range": "60/240 ft.",
           "damage": "4d10+8",
@@ -4442,7 +4442,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+1",
@@ -4488,7 +4488,7 @@
         {
           "name": "Club",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4",
@@ -4532,7 +4532,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -4542,7 +4542,7 @@
         {
           "name": "Constrict",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+2",
@@ -4591,7 +4591,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+2",
@@ -4639,7 +4639,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+5",
@@ -4649,7 +4649,7 @@
         {
           "name": "Constrict",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -4713,7 +4713,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 0,
+          "attack_roll_bonus": 0,
           "reach": "5 ft.",
           "range": null,
           "damage": "1",
@@ -4764,7 +4764,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+2",
@@ -4819,7 +4819,7 @@
         {
           "name": "Dagger",
           "type": "Melee or Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": "20/60 ft.",
           "damage": "1d4+2",
@@ -4877,7 +4877,7 @@
         {
           "name": "Scimitar",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+1",
@@ -4928,7 +4928,7 @@
         {
           "name": "Crush",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+3",
@@ -4984,7 +4984,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -5041,7 +5041,7 @@
         {
           "name": "War Pick",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+2",
@@ -5051,7 +5051,7 @@
         {
           "name": "Poisoned Dart",
           "type": "Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": null,
           "range": "30/120 ft.",
           "damage": "1d4+2",
@@ -5108,7 +5108,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4",
@@ -5157,7 +5157,7 @@
         {
           "name": "Mace",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+4",
@@ -5224,7 +5224,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -5279,7 +5279,7 @@
         {
           "name": "Scimitar",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+5",
@@ -5340,7 +5340,7 @@
         {
           "name": "Slam",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+4",
@@ -5399,7 +5399,7 @@
         {
           "name": "Hooves",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+4",
@@ -5446,7 +5446,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 13,
+          "attack_roll_bonus": 13,
           "reach": "15 ft.",
           "range": null,
           "damage": "3d12+7",
@@ -5456,7 +5456,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 13,
+          "attack_roll_bonus": 13,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d8+7",
@@ -5466,7 +5466,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 13,
+          "attack_roll_bonus": 13,
           "reach": "15 ft.",
           "range": null,
           "damage": "3d12+7",
@@ -5519,7 +5519,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6",
@@ -5529,7 +5529,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4",
@@ -5587,7 +5587,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4",
@@ -5597,7 +5597,7 @@
         {
           "name": "Longsword",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "",
@@ -5607,7 +5607,7 @@
         {
           "name": "Longbow",
           "type": "Ranged",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": null,
           "range": "150/600 ft.",
           "damage": "1d8+3",
@@ -5678,7 +5678,7 @@
         {
           "name": "Shortsword",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -5688,7 +5688,7 @@
         {
           "name": "Hand Crossbow",
           "type": "Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": null,
           "range": "30/120 ft.",
           "damage": "1d6+2",
@@ -5751,7 +5751,7 @@
         {
           "name": "Quarterstaff",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "5 ft.",
           "range": null,
           "damage": "",
@@ -5806,7 +5806,7 @@
         {
           "name": "Club",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4",
@@ -5870,7 +5870,7 @@
         {
           "name": "War Pick",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+2",
@@ -5880,7 +5880,7 @@
         {
           "name": "Javelin",
           "type": "Melee or Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": "30/120 ft.",
           "damage": "1d6+2",
@@ -5940,7 +5940,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+2",
@@ -6001,7 +6001,7 @@
         {
           "name": "Talons",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+2",
@@ -6052,7 +6052,7 @@
         {
           "name": "Slam",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d8+5",
@@ -6119,7 +6119,7 @@
         {
           "name": "Scimitar",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+6",
@@ -6129,7 +6129,7 @@
         {
           "name": "Hurl Flame",
           "type": "Ranged",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": null,
           "range": "120 ft.",
           "damage": "5d6",
@@ -6184,7 +6184,7 @@
         {
           "name": "Gore",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "5 ft.",
           "range": null,
           "damage": "3d8+6",
@@ -6194,7 +6194,7 @@
         {
           "name": "Stomp",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "5 ft.",
           "range": null,
           "damage": "3d10+6",
@@ -6243,7 +6243,7 @@
         {
           "name": "Ram",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+3",
@@ -6253,7 +6253,7 @@
         {
           "name": "Hooves",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+3",
@@ -6304,7 +6304,7 @@
         {
           "name": "Longsword",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "5 ft.",
           "range": null,
           "damage": "",
@@ -6314,7 +6314,7 @@
         {
           "name": "Longbow",
           "type": "Ranged",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": null,
           "range": "150/600 ft.",
           "damage": "1d8+3",
@@ -6379,7 +6379,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+2",
@@ -6389,7 +6389,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+2",
@@ -6399,7 +6399,7 @@
         {
           "name": "Web",
           "type": "Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": null,
           "range": "30/60 ft.",
           "damage": "",
@@ -6461,7 +6461,7 @@
         {
           "name": "Battleaxe",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+5",
@@ -6471,7 +6471,7 @@
         {
           "name": "Morningstar",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+5",
@@ -6526,7 +6526,7 @@
         {
           "name": "Touch",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -6602,7 +6602,7 @@
         {
           "name": "Greatsword",
           "type": "Melee",
-          "to_hit": 11,
+          "attack_roll_bonus": 11,
           "reach": "10 ft.",
           "range": null,
           "damage": "6d6+7",
@@ -6612,7 +6612,7 @@
         {
           "name": "Rock",
           "type": "Ranged",
-          "to_hit": 11,
+          "attack_roll_bonus": 11,
           "reach": null,
           "range": "60/240 ft.",
           "damage": "4d10+7",
@@ -6660,7 +6660,7 @@
         {
           "name": "Slam",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+4",
@@ -6740,7 +6740,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "1",
@@ -6789,7 +6789,7 @@
         {
           "name": "Longsword",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+1",
@@ -6903,7 +6903,7 @@
         {
           "name": "Greataxe",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "10 ft.",
           "range": null,
           "damage": "3d12+6",
@@ -6913,7 +6913,7 @@
         {
           "name": "Rock",
           "type": "Ranged",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": null,
           "range": "60/240 ft.",
           "damage": "4d10+6",
@@ -6961,7 +6961,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -6971,7 +6971,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -7028,7 +7028,7 @@
         {
           "name": "Pseudopod",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "3d6",
@@ -7090,7 +7090,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+3",
@@ -7100,7 +7100,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -7163,7 +7163,7 @@
         {
           "name": "Withering Touch",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "4d6+3",
@@ -7238,7 +7238,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+2",
@@ -7248,7 +7248,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+2",
@@ -7301,7 +7301,7 @@
         {
           "name": "Fist",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "10 ft.",
           "range": null,
           "damage": "3d10+6",
@@ -7311,7 +7311,7 @@
         {
           "name": "Rock",
           "type": "Ranged",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": null,
           "range": "50/100 ft.",
           "damage": "7d6+6",
@@ -7355,7 +7355,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+1",
@@ -7365,7 +7365,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+1",
@@ -7414,7 +7414,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -7467,7 +7467,7 @@
         {
           "name": "Tusk",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -7520,7 +7520,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+2",
@@ -7566,7 +7566,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -7576,7 +7576,7 @@
         {
           "name": "Constrict",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+4",
@@ -7622,7 +7622,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+1",
@@ -7673,7 +7673,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "5 ft.",
           "range": null,
           "damage": "3d10+5",
@@ -7683,7 +7683,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d8+5",
@@ -7737,7 +7737,7 @@
         {
           "name": "Beak",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+3",
@@ -7747,7 +7747,7 @@
         {
           "name": "Talons",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -7803,7 +7803,7 @@
         {
           "name": "Ram",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -7813,7 +7813,7 @@
         {
           "name": "Hooves",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "4d8+4",
@@ -7862,7 +7862,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 1,
+          "attack_roll_bonus": 1,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6-1",
@@ -7914,7 +7914,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+1",
@@ -7967,7 +7967,7 @@
         {
           "name": "Ram",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+3",
@@ -8022,7 +8022,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -8071,7 +8071,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+2",
@@ -8118,7 +8118,7 @@
         {
           "name": "Tentacles",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "15 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -8183,7 +8183,7 @@
         {
           "name": "Talons",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+1",
@@ -8238,7 +8238,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "10 ft.",
           "range": null,
           "damage": "1d4+4",
@@ -8282,7 +8282,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+2",
@@ -8335,7 +8335,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+2",
@@ -8388,7 +8388,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+2",
@@ -8398,7 +8398,7 @@
         {
           "name": "Sting",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+2",
@@ -8442,7 +8442,7 @@
         {
           "name": "Ram",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+1",
@@ -8497,7 +8497,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "5 ft.",
           "range": null,
           "damage": "3d10+6",
@@ -8552,7 +8552,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+3",
@@ -8562,7 +8562,7 @@
         {
           "name": "Web",
           "type": "Ranged",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": null,
           "range": "30/60 ft.",
           "damage": "",
@@ -8619,7 +8619,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+2",
@@ -8676,7 +8676,7 @@
         {
           "name": "Beak",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+2",
@@ -8686,7 +8686,7 @@
         {
           "name": "Talons",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+2",
@@ -8739,7 +8739,7 @@
         {
           "name": "Sting",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -8786,7 +8786,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+3",
@@ -8838,7 +8838,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+1",
@@ -8895,7 +8895,7 @@
         {
           "name": "Bites",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "5 ft.",
           "range": null,
           "damage": "5d6",
@@ -8952,7 +8952,7 @@
         {
           "name": "Pincer",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+5",
@@ -8962,7 +8962,7 @@
         {
           "name": "Fist",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+2",
@@ -9029,7 +9029,7 @@
         {
           "name": "Spear",
           "type": "Melee or Ranged",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": "20/60 ft.",
           "damage": "",
@@ -9039,7 +9039,7 @@
         {
           "name": "Shield Bash",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+4",
@@ -9094,7 +9094,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+2",
@@ -9104,7 +9104,7 @@
         {
           "name": "Spear",
           "type": "Melee or Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": "20/60 ft.",
           "damage": "",
@@ -9114,7 +9114,7 @@
         {
           "name": "Longbow",
           "type": "Ranged",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": null,
           "range": "150/600 ft.",
           "damage": "1d8+1",
@@ -9163,7 +9163,7 @@
         {
           "name": "Ram",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+1",
@@ -9221,7 +9221,7 @@
         {
           "name": "Scimitar",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -9231,7 +9231,7 @@
         {
           "name": "Shortbow",
           "type": "Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": null,
           "range": "80/320 ft.",
           "damage": "1d6+2",
@@ -9285,7 +9285,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+4",
@@ -9338,7 +9338,7 @@
         {
           "name": "Gore",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d12+5",
@@ -9348,7 +9348,7 @@
         {
           "name": "Hooves",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d10+5",
@@ -9401,7 +9401,7 @@
         {
           "name": "Pseudopod",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+1",
@@ -9474,7 +9474,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+2",
@@ -9536,7 +9536,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+4",
@@ -9593,7 +9593,7 @@
         {
           "name": "Tentacles",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+2",
@@ -9603,7 +9603,7 @@
         {
           "name": "Beak",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -9656,7 +9656,7 @@
         {
           "name": "Beak",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+4",
@@ -9666,7 +9666,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -9721,7 +9721,7 @@
         {
           "name": "Spiked Bone Club",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+3",
@@ -9784,7 +9784,7 @@
         {
           "name": "Spear",
           "type": "Melee or Ranged",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": "20/60 ft.",
           "damage": "",
@@ -9831,7 +9831,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "10 ft.",
           "range": null,
           "damage": "1d8+4",
@@ -9841,7 +9841,7 @@
         {
           "name": "Spit Poison",
           "type": "Ranged",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": null,
           "range": "15/30 ft.",
           "damage": "",
@@ -9907,7 +9907,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+4",
@@ -9974,7 +9974,7 @@
         {
           "name": "Longsword",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "",
@@ -9984,7 +9984,7 @@
         {
           "name": "Shortsword",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+3",
@@ -9994,7 +9994,7 @@
         {
           "name": "Heavy Crossbow",
           "type": "Ranged",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": null,
           "range": "100/400 ft.",
           "damage": "1d10+1",
@@ -10042,7 +10042,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+1",
@@ -10052,7 +10052,7 @@
         {
           "name": "Club",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+1",
@@ -10098,7 +10098,7 @@
         {
           "name": "Talons",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1",
@@ -10151,7 +10151,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+3",
@@ -10208,7 +10208,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d10+4",
@@ -10218,7 +10218,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -10284,7 +10284,7 @@
         {
           "name": "Greatclub",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "10 ft.",
           "range": null,
           "damage": "3d8+5",
@@ -10294,7 +10294,7 @@
         {
           "name": "Rock",
           "type": "Ranged",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": null,
           "range": "60/240 ft.",
           "damage": "3d10+5",
@@ -10340,7 +10340,7 @@
         {
           "name": "Beak",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+3",
@@ -10350,7 +10350,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -10402,7 +10402,7 @@
         {
           "name": "Longsword",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "",
@@ -10412,7 +10412,7 @@
         {
           "name": "Longbow",
           "type": "Ranged",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": null,
           "range": "150/600 ft.",
           "damage": "1d8+1",
@@ -10463,7 +10463,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1",
@@ -10519,7 +10519,7 @@
         {
           "name": "Fork",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d8+6",
@@ -10529,7 +10529,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "10 ft.",
           "range": null,
           "damage": "1d8+6",
@@ -10539,7 +10539,7 @@
         {
           "name": "Hurl Flame",
           "type": "Ranged",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": null,
           "range": "150 ft.",
           "damage": "4d6",
@@ -10602,7 +10602,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+4",
@@ -10657,7 +10657,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "10 ft.",
           "range": null,
           "damage": "1d10+5",
@@ -10720,7 +10720,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6",
@@ -10771,7 +10771,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+5",
@@ -10781,7 +10781,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+5",
@@ -10791,7 +10791,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+5",
@@ -10856,7 +10856,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+1",
@@ -10929,7 +10929,7 @@
         {
           "name": "Sting (Bite in Beast Form)",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+3",
@@ -11000,7 +11000,7 @@
         {
           "name": "Slam",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -11068,7 +11068,7 @@
         {
           "name": "Slam",
           "type": "Melee",
-          "to_hit": 13,
+          "attack_roll_bonus": 13,
           "reach": "5 ft.",
           "range": null,
           "damage": "3d8+7",
@@ -11078,7 +11078,7 @@
         {
           "name": "Sword",
           "type": "Melee",
-          "to_hit": 13,
+          "attack_roll_bonus": 13,
           "reach": "10 ft.",
           "range": null,
           "damage": "3d10+7",
@@ -11153,7 +11153,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 1,
+          "attack_roll_bonus": 1,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4-1",
@@ -11208,7 +11208,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "5d6+4",
@@ -11267,7 +11267,7 @@
         {
           "name": "Greatsword",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -11277,7 +11277,7 @@
         {
           "name": "Heavy Crossbow",
           "type": "Ranged",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": null,
           "range": "100/400 ft.",
           "damage": "1d10",
@@ -11329,7 +11329,7 @@
         {
           "name": "Dagger",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+2",
@@ -11339,7 +11339,7 @@
         {
           "name": "Sling",
           "type": "Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": null,
           "range": "30/120 ft.",
           "damage": "1d4+2",
@@ -11397,7 +11397,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "3d8+10",
@@ -11407,7 +11407,7 @@
         {
           "name": "Tentacle",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "30 ft.",
           "range": null,
           "damage": "3d6+10",
@@ -11477,7 +11477,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d10+3",
@@ -11487,7 +11487,7 @@
         {
           "name": "Dagger",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+3",
@@ -11497,7 +11497,7 @@
         {
           "name": "Intoxicating Touch",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "",
@@ -11548,7 +11548,7 @@
         {
           "name": "Fist",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4",
@@ -11617,7 +11617,7 @@
         {
           "name": "Paralyzing Touch",
           "type": "Melee",
-          "to_hit": 12,
+          "attack_roll_bonus": 12,
           "reach": "5 ft.",
           "range": null,
           "damage": "3d6",
@@ -11694,7 +11694,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+3",
@@ -11704,7 +11704,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+3",
@@ -11765,7 +11765,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 0,
+          "attack_roll_bonus": 0,
           "reach": "5 ft.",
           "range": null,
           "damage": "1",
@@ -11815,7 +11815,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -11825,7 +11825,7 @@
         {
           "name": "Heavy Club",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -11835,7 +11835,7 @@
         {
           "name": "Javelin",
           "type": "Melee or Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": "30/120 ft.",
           "damage": "1d6+2",
@@ -11845,7 +11845,7 @@
         {
           "name": "Spiked Shield",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -11899,7 +11899,7 @@
         {
           "name": "Dagger",
           "type": "Melee or Ranged",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": "20/60 ft.",
           "damage": "1d4+2",
@@ -11952,7 +11952,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+1",
@@ -12018,7 +12018,7 @@
         {
           "name": "Touch",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6",
@@ -12075,7 +12075,7 @@
         {
           "name": "Gore",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "10 ft.",
           "range": null,
           "damage": "4d8+7",
@@ -12085,7 +12085,7 @@
         {
           "name": "Stomp",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "5 ft.",
           "range": null,
           "damage": "4d10+7",
@@ -12134,7 +12134,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+3",
@@ -12144,7 +12144,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+3",
@@ -12154,7 +12154,7 @@
         {
           "name": "Tail Spike",
           "type": "Ranged",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": null,
           "range": "100/200 ft.",
           "damage": "1d8+3",
@@ -12205,7 +12205,7 @@
         {
           "name": "Longsword",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+4",
@@ -12215,7 +12215,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+4",
@@ -12283,7 +12283,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+1",
@@ -12339,7 +12339,7 @@
         {
           "name": "Snake Hair",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+2",
@@ -12349,7 +12349,7 @@
         {
           "name": "Shortsword",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -12359,7 +12359,7 @@
         {
           "name": "Longbow",
           "type": "Ranged",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": null,
           "range": "150/600 ft.",
           "damage": "1d8+2",
@@ -12413,7 +12413,7 @@
         {
           "name": "Spear",
           "type": "Melee or Ranged",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "5 ft.",
           "range": "20/60 ft.",
           "damage": "",
@@ -12465,7 +12465,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+4",
@@ -12475,7 +12475,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+4",
@@ -12485,7 +12485,7 @@
         {
           "name": "Harpoon",
           "type": "Melee or Ranged",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": "20/60 ft.",
           "damage": "2d6+4",
@@ -12536,7 +12536,7 @@
         {
           "name": "Pseudopod",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+3",
@@ -12546,7 +12546,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+3",
@@ -12615,7 +12615,7 @@
         {
           "name": "Greataxe",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d12+4",
@@ -12625,7 +12625,7 @@
         {
           "name": "Gore",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+4",
@@ -12684,7 +12684,7 @@
         {
           "name": "Greataxe",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d12+4",
@@ -12694,7 +12694,7 @@
         {
           "name": "Gore",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+4",
@@ -12750,7 +12750,7 @@
         {
           "name": "Hooves",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+2",
@@ -12805,7 +12805,7 @@
         {
           "name": "Rotting Fist",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -12867,7 +12867,7 @@
         {
           "name": "Rotting Fist",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "5 ft.",
           "range": null,
           "damage": "3d6+4",
@@ -12938,7 +12938,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "5 ft.",
           "range": null,
           "damage": "5d10+5",
@@ -12948,7 +12948,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "10 ft.",
           "range": null,
           "damage": "3d6+5",
@@ -13016,7 +13016,7 @@
         {
           "name": "Claws (Hag Form Only)",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+4",
@@ -13083,7 +13083,7 @@
         {
           "name": "Hooves",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+4",
@@ -13144,7 +13144,7 @@
         {
           "name": "Rapier",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+1",
@@ -13188,7 +13188,7 @@
         {
           "name": "Pseudopod",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+2",
@@ -13256,7 +13256,7 @@
         {
           "name": "Tentacles",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1",
@@ -13316,7 +13316,7 @@
         {
           "name": "Greatclub",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+4",
@@ -13326,7 +13326,7 @@
         {
           "name": "Javelin",
           "type": "Melee or Ranged",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": "30/120 ft.",
           "damage": "2d6+4",
@@ -13372,7 +13372,7 @@
         {
           "name": "Morningstar",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+4",
@@ -13432,7 +13432,7 @@
         {
           "name": "Claw (Oni Form Only)",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+4",
@@ -13442,7 +13442,7 @@
         {
           "name": "Glaive",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+4",
@@ -13504,7 +13504,7 @@
         {
           "name": "Greataxe",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d12+3",
@@ -13514,7 +13514,7 @@
         {
           "name": "Javelin",
           "type": "Melee or Ranged",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": "30/120 ft.",
           "damage": "1d6+3",
@@ -13565,7 +13565,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+3",
@@ -13575,7 +13575,7 @@
         {
           "name": "Tentacle",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "10 ft.",
           "range": null,
           "damage": "1d8+3",
@@ -13627,7 +13627,7 @@
         {
           "name": "Talons",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1",
@@ -13682,7 +13682,7 @@
         {
           "name": "Beak",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+5",
@@ -13692,7 +13692,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+5",
@@ -13744,7 +13744,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -13754,7 +13754,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+2",
@@ -13814,7 +13814,7 @@
         {
           "name": "Hooves",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -13860,7 +13860,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+2",
@@ -13919,7 +13919,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "5 ft.",
           "range": null,
           "damage": "4d6+8",
@@ -13929,7 +13929,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d8+8",
@@ -13939,7 +13939,7 @@
         {
           "name": "Mace",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+8",
@@ -13949,7 +13949,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "10 ft.",
           "range": null,
           "damage": "3d10+8",
@@ -14022,7 +14022,7 @@
         {
           "name": "Greatsword",
           "type": "Melee",
-          "to_hit": 12,
+          "attack_roll_bonus": 12,
           "reach": "5 ft.",
           "range": null,
           "damage": "4d6+7",
@@ -14093,7 +14093,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "10 ft.",
           "range": null,
           "damage": "3d6+4",
@@ -14142,7 +14142,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1",
@@ -14188,7 +14188,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+5",
@@ -14198,7 +14198,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+5",
@@ -14247,7 +14247,7 @@
         {
           "name": "Hooves",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+2",
@@ -14297,7 +14297,7 @@
         {
           "name": "Mace",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6",
@@ -14355,7 +14355,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+2",
@@ -14365,7 +14365,7 @@
         {
           "name": "Sting",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+2",
@@ -14422,7 +14422,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "10 ft.",
           "range": null,
           "damage": "3d8+9",
@@ -14432,7 +14432,7 @@
         {
           "name": "Tail Stinger",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "10 ft.",
           "range": null,
           "damage": "3d6+9",
@@ -14486,7 +14486,7 @@
         {
           "name": "Claw (Bite in Beast Form)",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+3",
@@ -14548,7 +14548,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1",
@@ -14607,7 +14607,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+2",
@@ -14664,7 +14664,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 0,
+          "attack_roll_bonus": 0,
           "reach": "5 ft.",
           "range": null,
           "damage": "1",
@@ -14715,7 +14715,7 @@
         {
           "name": "Beak",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1",
@@ -14769,7 +14769,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+4",
@@ -14817,7 +14817,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+2",
@@ -14870,7 +14870,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 11,
+          "attack_roll_bonus": 11,
           "reach": "10 ft.",
           "range": null,
           "damage": "6d10+7",
@@ -14922,7 +14922,7 @@
         {
           "name": "Gore",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+5",
@@ -14971,7 +14971,7 @@
         {
           "name": "Hooves",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+3",
@@ -15017,7 +15017,7 @@
         {
           "name": "Beak",
           "type": "Melee",
-          "to_hit": 13,
+          "attack_roll_bonus": 13,
           "reach": "10 ft.",
           "range": null,
           "damage": "4d8+9",
@@ -15027,7 +15027,7 @@
         {
           "name": "Talons",
           "type": "Melee",
-          "to_hit": 13,
+          "attack_roll_bonus": 13,
           "reach": "5 ft.",
           "range": null,
           "damage": "4d6+9",
@@ -15079,7 +15079,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "4d8+4",
@@ -15089,7 +15089,7 @@
         {
           "name": "Tendril",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "50 ft.",
           "range": null,
           "damage": "",
@@ -15146,7 +15146,7 @@
         {
           "name": "Smother",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "",
@@ -15214,7 +15214,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+1",
@@ -15270,7 +15270,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+5",
@@ -15280,7 +15280,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+5",
@@ -15337,7 +15337,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+1",
@@ -15347,7 +15347,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+1",
@@ -15357,7 +15357,7 @@
         {
           "name": "Spear",
           "type": "Melee or Ranged",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": "20/60 ft.",
           "damage": "",
@@ -15416,7 +15416,7 @@
         {
           "name": "Spear",
           "type": "Melee or Ranged",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": "20 ft.",
           "damage": "",
@@ -15426,7 +15426,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -15493,7 +15493,7 @@
         {
           "name": "Ram",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+1",
@@ -15503,7 +15503,7 @@
         {
           "name": "Shortsword",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+3",
@@ -15513,7 +15513,7 @@
         {
           "name": "Shortbow",
           "type": "Ranged",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": null,
           "range": "80/320 ft.",
           "damage": "1d6+3",
@@ -15562,7 +15562,7 @@
         {
           "name": "Sting",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "5 ft.",
           "range": null,
           "damage": "1",
@@ -15613,7 +15613,7 @@
         {
           "name": "Shortsword",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -15623,7 +15623,7 @@
         {
           "name": "Longbow",
           "type": "Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": null,
           "range": "150/600 ft.",
           "damage": "1d8+2",
@@ -15676,7 +15676,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -15769,7 +15769,7 @@
         {
           "name": "Strength Drain",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+2",
@@ -15849,7 +15849,7 @@
         {
           "name": "Slam",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+4",
@@ -15909,7 +15909,7 @@
         {
           "name": "Fist",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -16021,7 +16021,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+4",
@@ -16069,7 +16069,7 @@
         {
           "name": "Shortsword",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -16079,7 +16079,7 @@
         {
           "name": "Shortbow",
           "type": "Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": null,
           "range": "80/320 ft.",
           "damage": "1d6+2",
@@ -16134,7 +16134,7 @@
         {
           "name": "Greatsword",
           "type": "Melee",
-          "to_hit": 15,
+          "attack_roll_bonus": 15,
           "reach": "5 ft.",
           "range": null,
           "damage": "4d6+8",
@@ -16144,7 +16144,7 @@
         {
           "name": "Slaying Longbow",
           "type": "Ranged",
-          "to_hit": 13,
+          "attack_roll_bonus": 13,
           "reach": null,
           "range": "150/600 ft.",
           "damage": "2d8+6",
@@ -16218,7 +16218,7 @@
         {
           "name": "Life Drain",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "3d6",
@@ -16293,7 +16293,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1",
@@ -16353,7 +16353,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "10 ft.",
           "range": null,
           "damage": "1d6+4",
@@ -16418,7 +16418,7 @@
         {
           "name": "Longsword",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "5 ft.",
           "range": null,
           "damage": "1",
@@ -16428,7 +16428,7 @@
         {
           "name": "Shortbow",
           "type": "Ranged",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": null,
           "range": "40/160 ft.",
           "damage": "1",
@@ -16481,7 +16481,7 @@
         {
           "name": "Shortsword",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -16491,7 +16491,7 @@
         {
           "name": "Hand Crossbow",
           "type": "Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": null,
           "range": "30/120 ft.",
           "damage": "1d6+2",
@@ -16546,7 +16546,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4",
@@ -16604,7 +16604,7 @@
         {
           "name": "Blood Drain",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+3",
@@ -16653,7 +16653,7 @@
         {
           "name": "Greatclub",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "15 ft.",
           "range": null,
           "damage": "3d8+6",
@@ -16663,7 +16663,7 @@
         {
           "name": "Rock",
           "type": "Ranged",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": null,
           "range": "60/240 ft.",
           "damage": "4d10+6",
@@ -16714,7 +16714,7 @@
         {
           "name": "Slam",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "5 ft.",
           "range": null,
           "damage": "3d8+6",
@@ -16790,7 +16790,7 @@
         {
           "name": "Greatsword",
           "type": "Melee",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": "10 ft.",
           "range": null,
           "damage": "6d6+9",
@@ -16800,7 +16800,7 @@
         {
           "name": "Rock",
           "type": "Ranged",
-          "to_hit": 14,
+          "attack_roll_bonus": 14,
           "reach": null,
           "range": "60/240 ft.",
           "damage": "4d12+9",
@@ -16868,7 +16868,7 @@
         {
           "name": "Claw (Fiend Form Only)",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+3",
@@ -16927,7 +16927,7 @@
         {
           "name": "Bites",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "0 ft.",
           "range": null,
           "damage": "2d4",
@@ -16997,7 +16997,7 @@
         {
           "name": "Bites",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "0 ft.",
           "range": null,
           "damage": "4d4",
@@ -17059,7 +17059,7 @@
         {
           "name": "Bites",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "0 ft.",
           "range": null,
           "damage": "4d4",
@@ -17121,7 +17121,7 @@
         {
           "name": "Bites",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "0 ft.",
           "range": null,
           "damage": "4d4",
@@ -17183,7 +17183,7 @@
         {
           "name": "Bites",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "0 ft.",
           "range": null,
           "damage": "2d6",
@@ -17245,7 +17245,7 @@
         {
           "name": "Bites",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "0 ft.",
           "range": null,
           "damage": "4d6",
@@ -17315,7 +17315,7 @@
         {
           "name": "Bites",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "0 ft.",
           "range": null,
           "damage": "2d6",
@@ -17381,7 +17381,7 @@
         {
           "name": "Beaks",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6",
@@ -17443,7 +17443,7 @@
         {
           "name": "Bites",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "0 ft.",
           "range": null,
           "damage": "4d4",
@@ -17516,7 +17516,7 @@
         {
           "name": "Bites",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "0 ft.",
           "range": null,
           "damage": "4d4",
@@ -17578,7 +17578,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 19,
+          "attack_roll_bonus": 19,
           "reach": "10 ft.",
           "range": null,
           "damage": "4d12+10",
@@ -17588,7 +17588,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 19,
+          "attack_roll_bonus": 19,
           "reach": "15 ft.",
           "range": null,
           "damage": "4d8+10",
@@ -17598,7 +17598,7 @@
         {
           "name": "Horns",
           "type": "Melee",
-          "to_hit": 19,
+          "attack_roll_bonus": 19,
           "reach": "10 ft.",
           "range": null,
           "damage": "4d10+10",
@@ -17608,7 +17608,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 19,
+          "attack_roll_bonus": 19,
           "reach": "20 ft.",
           "range": null,
           "damage": "4d6+10",
@@ -17682,7 +17682,7 @@
         {
           "name": "Mace",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -17692,7 +17692,7 @@
         {
           "name": "Heavy Crossbow",
           "type": "Ranged",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": null,
           "range": "100/400 ft.",
           "damage": "1d10",
@@ -17744,7 +17744,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+3",
@@ -17754,7 +17754,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+3",
@@ -17812,7 +17812,7 @@
         {
           "name": "Slam",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "5 ft.",
           "range": null,
           "damage": "3d6+6",
@@ -17822,7 +17822,7 @@
         {
           "name": "Rock",
           "type": "Ranged",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": null,
           "range": "60/180 ft.",
           "damage": "4d10+6",
@@ -17882,7 +17882,7 @@
         {
           "name": "Spear",
           "type": "Melee or Ranged",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": "20/60 ft.",
           "damage": "",
@@ -17931,7 +17931,7 @@
         {
           "name": "Gore",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "5 ft.",
           "range": null,
           "damage": "4d8+6",
@@ -17941,7 +17941,7 @@
         {
           "name": "Stomp",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "5 ft.",
           "range": null,
           "damage": "3d10+6",
@@ -17994,7 +17994,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+4",
@@ -18004,7 +18004,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -18059,7 +18059,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "10 ft.",
           "range": null,
           "damage": "4d12+7",
@@ -18069,7 +18069,7 @@
         {
           "name": "Tail",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "10 ft.",
           "range": null,
           "damage": "3d8+7",
@@ -18117,7 +18117,7 @@
         {
           "name": "Hooves",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -18127,7 +18127,7 @@
         {
           "name": "Horn",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+4",
@@ -18199,7 +18199,7 @@
         {
           "name": "Unarmed Strike",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+4",
@@ -18209,7 +18209,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+4",
@@ -18286,7 +18286,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+4",
@@ -18429,7 +18429,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+3",
@@ -18439,7 +18439,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+3",
@@ -18504,7 +18504,7 @@
         {
           "name": "Longsword",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "",
@@ -18514,7 +18514,7 @@
         {
           "name": "Shortsword",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+3",
@@ -18524,7 +18524,7 @@
         {
           "name": "Heavy Crossbow",
           "type": "Ranged",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": null,
           "range": "100/400 ft.",
           "damage": "1d10+1",
@@ -18568,7 +18568,7 @@
         {
           "name": "Rotting Touch",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "10 ft.",
           "range": null,
           "damage": "1d8",
@@ -18623,7 +18623,7 @@
         {
           "name": "Beak",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -18633,7 +18633,7 @@
         {
           "name": "Talons",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d10+3",
@@ -18693,7 +18693,7 @@
         {
           "name": "Beak",
           "type": "Melee",
-          "to_hit": 2,
+          "attack_roll_bonus": 2,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4",
@@ -18746,7 +18746,7 @@
         {
           "name": "Hooves",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -18795,7 +18795,7 @@
         {
           "name": "Hooves",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -18848,7 +18848,7 @@
         {
           "name": "Slam",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+4",
@@ -18918,7 +18918,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1",
@@ -18969,7 +18969,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d10+4",
@@ -18979,7 +18979,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+4",
@@ -19038,7 +19038,7 @@
         {
           "name": "Greataxe",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d12+4",
@@ -19097,7 +19097,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d10+4",
@@ -19107,7 +19107,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+4",
@@ -19117,7 +19117,7 @@
         {
           "name": "Greataxe",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d12+4",
@@ -19174,7 +19174,7 @@
         {
           "name": "Tusks",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -19237,7 +19237,7 @@
         {
           "name": "Maul",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -19296,7 +19296,7 @@
         {
           "name": "Maul",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -19306,7 +19306,7 @@
         {
           "name": "Tusks",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -19370,7 +19370,7 @@
         {
           "name": "Shortsword",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -19380,7 +19380,7 @@
         {
           "name": "Hand Crossbow",
           "type": "Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": null,
           "range": "30/120 ft.",
           "damage": "1d6+2",
@@ -19440,7 +19440,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+2",
@@ -19450,7 +19450,7 @@
         {
           "name": "Shortsword",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -19460,7 +19460,7 @@
         {
           "name": "Hand Crossbow",
           "type": "Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": null,
           "range": "30/120 ft.",
           "damage": "1d6+2",
@@ -19518,7 +19518,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d4+2",
@@ -19578,7 +19578,7 @@
         {
           "name": "Scimitar",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+3",
@@ -19588,7 +19588,7 @@
         {
           "name": "Longbow",
           "type": "Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": null,
           "range": "150/600 ft.",
           "damage": "1d8+2",
@@ -19648,7 +19648,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+3",
@@ -19658,7 +19658,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+3",
@@ -19668,7 +19668,7 @@
         {
           "name": "Scimitar",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+3",
@@ -19678,7 +19678,7 @@
         {
           "name": "Longbow",
           "type": "Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": null,
           "range": "150/600 ft.",
           "damage": "1d8+2",
@@ -19740,7 +19740,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+3",
@@ -19750,7 +19750,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+3",
@@ -19813,7 +19813,7 @@
         {
           "name": "Spear",
           "type": "Melee or Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": "20/60 ft.",
           "damage": "",
@@ -19872,7 +19872,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+2",
@@ -19882,7 +19882,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+2",
@@ -19939,7 +19939,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d8+2",
@@ -19999,7 +19999,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d10+2",
@@ -20050,7 +20050,7 @@
         {
           "name": "Life Drain",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+2",
@@ -20060,7 +20060,7 @@
         {
           "name": "Longsword",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "",
@@ -20070,7 +20070,7 @@
         {
           "name": "Longbow",
           "type": "Ranged",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": null,
           "range": "150/600 ft.",
           "damage": "1d8+2",
@@ -20129,7 +20129,7 @@
         {
           "name": "Shock",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8",
@@ -20215,7 +20215,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -20277,7 +20277,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 4,
+          "attack_roll_bonus": 4,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d4+2",
@@ -20335,7 +20335,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 5,
+          "attack_roll_bonus": 5,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+3",
@@ -20386,7 +20386,7 @@
         {
           "name": "Life Drain",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "4d8+3",
@@ -20460,7 +20460,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -20470,7 +20470,7 @@
         {
           "name": "Claws",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d8+4",
@@ -20480,7 +20480,7 @@
         {
           "name": "Stinger",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -20529,7 +20529,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "3d6+3",
@@ -20539,7 +20539,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 6,
+          "attack_roll_bonus": 6,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+3",
@@ -20604,7 +20604,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+4",
@@ -20614,7 +20614,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -20671,7 +20671,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+5",
@@ -20681,7 +20681,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 9,
+          "attack_roll_bonus": 9,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+5",
@@ -20734,7 +20734,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+4",
@@ -20744,7 +20744,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -20797,7 +20797,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+5",
@@ -20807,7 +20807,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 8,
+          "attack_roll_bonus": 8,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+5",
@@ -20865,7 +20865,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+4",
@@ -20875,7 +20875,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -20929,7 +20929,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+6",
@@ -20939,7 +20939,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+6",
@@ -20997,7 +20997,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+4",
@@ -21007,7 +21007,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -21066,7 +21066,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+6",
@@ -21076,7 +21076,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+6",
@@ -21130,7 +21130,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+6",
@@ -21140,7 +21140,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 10,
+          "attack_roll_bonus": 10,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+6",
@@ -21192,7 +21192,7 @@
         {
           "name": "Bite",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "10 ft.",
           "range": null,
           "damage": "2d10+4",
@@ -21202,7 +21202,7 @@
         {
           "name": "Claw",
           "type": "Melee",
-          "to_hit": 7,
+          "attack_roll_bonus": 7,
           "reach": "5 ft.",
           "range": null,
           "damage": "2d6+4",
@@ -21255,7 +21255,7 @@
         {
           "name": "Slam",
           "type": "Melee",
-          "to_hit": 3,
+          "attack_roll_bonus": 3,
           "reach": "5 ft.",
           "range": null,
           "damage": "1d6+1",

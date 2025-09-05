@@ -185,6 +185,16 @@ class RollDiceResult(BaseModel):
     combatants: list[str] | None = None
 
 
+class LevelUpResult(BaseModel):
+    type: str = "level_up"
+    old_level: int
+    new_level: int
+    old_max_hp: int
+    new_max_hp: int
+    hp_increase: int
+    message: str
+
+
 # Union type representing any possible successful result from a tool
 ToolResult = (
     UpdateHPResult
@@ -208,4 +218,5 @@ ToolResult = (
     | TriggerEncounterResult
     | SpawnMonstersResult
     | RollDiceResult
+    | LevelUpResult
 )

@@ -40,6 +40,7 @@ You have access to game tools that handle mechanics. Use them naturally when:
 - **Combat**: Use start_combat for encounters, trigger_scenario_encounter for predefined battles, spawn_monsters to add enemies
 - **Quests**: Use start_quest when accepting missions, complete_objective for progress, complete_quest when done
 - **Progression**: Use progress_act to advance the story when major milestones are reached
+- **Level-Up**: Use level_up when the character has gained enough experience to reach the next level
 - **Character State**:
   - Use update_hp for damage (negative) or healing (positive)
   - Use update_condition with action="add" or "remove" for status effects

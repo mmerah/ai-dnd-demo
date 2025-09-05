@@ -9,12 +9,12 @@ from app.interfaces.services import (
     IEventManager,
     IGameService,
     IGameStateManager,
+    IItemRepository,
     IMessageManager,
     IMetadataService,
     ISaveManager,
     IScenarioService,
 )
-from app.models.ability import SavingThrows
 from app.models.character import CharacterSheet
 from app.models.game_state import (
     GameEventType,
@@ -27,6 +27,7 @@ from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.entity_state import EntityState, HitDice, HitPoints
 from app.models.instances.npc_instance import NPCInstance
 from app.models.instances.scenario_instance import ScenarioInstance
+from app.models.item import InventoryItem, ItemDefinition, ItemSubtype, ItemType
 from app.models.quest import QuestStatus
 from app.models.scenario import ScenarioLocation, ScenarioMonster
 
@@ -47,6 +48,7 @@ class GameService(IGameService):
         event_manager: IEventManager,
         metadata_service: IMetadataService,
         compute_service: ICharacterComputeService,
+        item_repository: IItemRepository,
     ) -> None:
         """
         Initialize the game service.
@@ -59,6 +61,7 @@ class GameService(IGameService):
             event_manager: Manager for game events
             metadata_service: Service for extracting metadata
             compute_service: Service for computing derived character values
+            item_repository: Repository for all items of the game
         """
         self.scenario_service = scenario_service
         self.save_manager = save_manager
@@ -67,31 +70,70 @@ class GameService(IGameService):
         self.event_manager = event_manager
         self.metadata_service = metadata_service
         self.compute_service = compute_service
+        self.item_repository = item_repository
 
     def _build_entity_state_from_sheet(self, character: CharacterSheet) -> EntityState:
-        """Create an EntityState from a CharacterSheet's starting_* fields.
+        """Create an EntityState from a CharacterSheet's starting_* fields using compute layer."""
+        # Base inputs
+        abilities = character.starting_abilities
+        level = character.starting_level
 
-        Uses sensible defaults for derived values until the compute layer is wired.
-        """
-        # TODO: Wire compute layer to get correct values instead of defaults
+        # Derived basics
+        modifiers = self.compute_service.compute_ability_modifiers(abilities)
+        proficiency = self.compute_service.compute_proficiency_bonus(level)
+        saving_throws = self.compute_service.compute_saving_throws(character.class_index, modifiers, proficiency)
+        skills = self.compute_service.compute_skills(
+            character.class_index,
+            selected_skills=character.starting_skill_indexes,
+            modifiers=modifiers,
+            proficiency_bonus=proficiency,
+        )
+        armor_class = self.compute_service.compute_armor_class(modifiers, character.starting_inventory)
+        initiative = self.compute_service.compute_initiative(modifiers)
+
+        # HP / Hit Dice
+        max_hp, hit_dice_total, hit_die_type = self.compute_service.compute_hit_points_and_dice(
+            character.class_index, level, modifiers.CON
+        )
+
+        # Spellcasting copy with computed numbers
+        spellcasting = None
+        if character.starting_spellcasting is not None:
+            sc = character.starting_spellcasting.model_copy(deep=True)
+            dc, atk = self.compute_service.compute_spell_numbers(character.class_index, modifiers, proficiency)
+            sc.spell_save_dc = dc
+            sc.spell_attack_bonus = atk
+            spellcasting = sc
+
+        # Speed from race (minimal rule)
+        speed = self.compute_service.compute_speed(character.race, character.starting_inventory)
+
+        attacks = self.compute_service.compute_attacks(
+            character.class_index,
+            character.race,
+            character.starting_inventory,
+            modifiers,
+            proficiency,
+        )
+
         return EntityState(
-            abilities=character.starting_abilities,
-            level=character.starting_level,
+            abilities=abilities,
+            level=level,
             experience_points=character.starting_experience_points,
-            hit_points=HitPoints(current=10, maximum=10, temporary=0),
-            hit_dice=HitDice(total=1, current=1, type="d8"),
-            armor_class=10,
-            initiative=0,
-            speed=30,
-            saving_throws=SavingThrows(),
-            skills=[],
-            attacks=[],
+            hit_points=HitPoints(current=max_hp, maximum=max_hp, temporary=0),
+            hit_dice=HitDice(total=hit_dice_total, current=hit_dice_total, type=hit_die_type),
+            armor_class=armor_class,
+            initiative=initiative,
+            speed=speed,
+            saving_throws=saving_throws,
+            skills=skills,
+            attacks=attacks,
             conditions=[],
             exhaustion_level=0,
             inspiration=False,
             inventory=character.starting_inventory,
             currency=character.starting_currency,
-            spellcasting=character.starting_spellcasting,
+            spellcasting=spellcasting,
         )
 
     def generate_game_id(self, character_name: str) -> str:
@@ -338,6 +380,84 @@ class GameService(IGameService):
                     if isinstance(sm, ScenarioMonster):
                         # Add a deep copy so multiple visits don't share state
                         game_state.add_monster(sm.monster.model_copy(deep=True))
+
+    def recompute_character_state(self, game_state: GameState) -> None:
+        """Recompute derived values for the player character using the compute service."""
+        char = game_state.character
+        new_state = self.compute_service.recompute_entity_state(char.sheet, char.state)
+        char.state = new_state
+        char.touch()
+
+    def set_item_equipped(self, game_id: str, item_name: str, equipped: bool) -> GameState:
+        """Equip/unequip a single unit of the named item and persist changes.
+
+        Splits/merges stacks for equippable items and recomputes derived stats.
+        """
+        game_state = self.get_game(game_id)
+        if not game_state:
+            raise ValueError(f"Game {game_id} not found")
+
+        inventory = game_state.character.state.inventory
+        # Locate item by name (case-insensitive fallback)
+        item = next((it for it in inventory if it.name == item_name), None)
+        if not item:
+            item = next((it for it in inventory if it.name.lower() == item_name.lower()), None)
+        if not item:
+            raise ValueError(f"Item '{item_name}' not found in inventory")
+
+        # Validate using item repository
+        item_def = self.item_repository.get(item.name)
+        if not item_def:
+            raise ValueError(f"Unknown item definition for '{item.name}'")
+        if item_def.type not in (ItemType.WEAPON, ItemType.ARMOR):
+            raise ValueError(f"Item '{item.name}' is not equippable")
+
+        # Single-entry model: adjust equipped_quantity by one
+        if equipped:
+            # TODO: Future: move to a slot-based equipment system (typed slots, constraints)
+            self._enforce_equip_constraints(inventory, item_def)
+            if item.equipped_quantity < item.quantity:
+                item.equipped_quantity += 1
+        else:
+            if item.equipped_quantity > 0:
+                item.equipped_quantity -= 1
+
+        # Recompute and save
+        self.recompute_character_state(game_state)
+        self.save_game(game_state)
+        return game_state
+
+    def _is_shield(self, idef: ItemDefinition) -> bool:
+        return idef.type == ItemType.ARMOR and idef.subtype == ItemSubtype.SHIELD
+
+    def _is_body_armor(self, idef: ItemDefinition) -> bool:
+        return idef.type == ItemType.ARMOR and idef.subtype in (
+            ItemSubtype.LIGHT,
+            ItemSubtype.MEDIUM,
+            ItemSubtype.HEAVY,
+        )
+
+    def _enforce_equip_constraints(self, inventory: list[InventoryItem], equipping_def: ItemDefinition) -> None:
+        """
+        Enforce simple equipment constraints.
+
+        - Only one shield may be equipped
+        - Only one body armor (light/medium/heavy) may be equipped
+        """
+        if self._is_shield(equipping_def):
+            for it in inventory:
+                if (it.equipped_quantity or 0) <= 0:
+                    continue
+                current_def = self.item_repository.get(it.name)
+                if current_def and self._is_shield(current_def):
+                    raise ValueError("Cannot equip more than one shield at a time")
+        elif self._is_body_armor(equipping_def):
+            for it in inventory:
+                if (it.equipped_quantity or 0) <= 0:
+                    continue
+                current_def = self.item_repository.get(it.name)
+                if current_def and self._is_body_armor(current_def):
+                    raise ValueError("Already wearing body armor; unequip it first")
 
     def add_game_event(
         self,

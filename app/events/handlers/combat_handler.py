@@ -90,8 +90,8 @@ class CombatHandler(BaseHandler):
             logger.info(f"Combat started with {len(participants_added)} participants")
 
         elif isinstance(command, TriggerScenarioEncounterCommand):
-            # Get scenario
-            scenario = self.scenario_service.get_scenario(game_state.scenario_id) if game_state.scenario_id else None
+            # Get scenario from embedded sheet
+            scenario = game_state.scenario_instance.sheet if game_state.scenario_instance else None
             if not scenario:
                 raise ValueError("No scenario loaded")
 

@@ -18,8 +18,8 @@
     "senses": "darkvision 60 ft., passive Perception 10",
     "languages": ["common", "goblin"],
     "attacks": [
-      {"name": "Scimitar", "type": "Melee", "to_hit": 4, "reach": "5 ft.", "range": null, "damage": "1d6+2", "damage_type": "slashing", "special": null},
-      {"name": "Javelin", "type": "Ranged", "to_hit": 4, "reach": null, "range": "30/120 ft.", "damage": "1d6+2", "damage_type": "piercing", "special": null}
+      {"name": "Scimitar", "type": "Melee", "attack_roll_bonus": 4, "reach": "5 ft.", "range": null, "damage": "1d6+2", "damage_type": "slashing", "special": null},
+      {"name": "Javelin", "type": "Ranged", "attack_roll_bonus": 4, "reach": null, "range": "30/120 ft.", "damage": "1d6+2", "damage_type": "piercing", "special": null}
     ],
     "special_abilities": [
       {"name": "Redirect Attack", "description": "When a creature the boss can see targets it with an attack, the boss chooses one of its allies within 5 feet of it. The two creatures swap places, and the chosen ally becomes the target instead."}

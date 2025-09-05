@@ -22,7 +22,7 @@ class HitDice(BaseModel):
 
 class EntityAttack(BaseModel):
     name: str
-    to_hit: int | None = None
+    attack_roll_bonus: int | None = None
     damage: str | None = None
     damage_type: str | None = None
     range: str | None = None

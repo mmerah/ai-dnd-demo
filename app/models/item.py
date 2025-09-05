@@ -75,7 +75,7 @@ class InventoryItem(BaseModel):
 
     name: str
     quantity: int = Field(ge=1, default=1)
-    equipped: bool = False
+    equipped_quantity: int = Field(ge=0, default=0)
 
     # These can be populated from ItemDefinition when needed
     weight: float = Field(ge=0, default=0.0)
@@ -84,17 +84,26 @@ class InventoryItem(BaseModel):
     item_type: ItemType | None = None
 
     @classmethod
-    def from_definition(cls, definition: ItemDefinition, quantity: int = 1, equipped: bool = False) -> "InventoryItem":
+    def from_definition(
+        cls, definition: ItemDefinition, quantity: int = 1, equipped_quantity: int = 0
+    ) -> "InventoryItem":
         """Create an inventory item from an item definition."""
         return cls(
             name=definition.name,
             quantity=quantity,
-            equipped=equipped,
+            equipped_quantity=equipped_quantity,
             weight=definition.weight,
             value=definition.value,
             description=definition.description,
             item_type=definition.type,
         )
+
+    def model_post_init(self, __context: object) -> None:
+        # Ensure equipped_quantity does not exceed quantity
+        if self.equipped_quantity < 0:
+            self.equipped_quantity = 0
+        if self.equipped_quantity > self.quantity:
+            self.equipped_quantity = self.quantity
 
     def get_total_weight(self) -> float:
         """Calculate total weight for stacked items."""

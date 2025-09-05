@@ -11,7 +11,7 @@ class MonsterAttack(BaseModel):
 
     name: str
     type: str = Field(pattern="^(Melee|Ranged|Melee or Ranged)$")
-    to_hit: int
+    attack_roll_bonus: int
     reach: str | None = None
     range: str | None = None
     damage: str

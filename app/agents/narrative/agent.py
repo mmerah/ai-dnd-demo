@@ -78,6 +78,7 @@ class NarrativeAgent(BaseAgent):
             character_tools.update_hp,
             character_tools.update_condition,
             character_tools.update_spell_slots,
+            character_tools.level_up,
             inventory_tools.modify_currency,
             inventory_tools.modify_inventory,
             time_tools.short_rest,

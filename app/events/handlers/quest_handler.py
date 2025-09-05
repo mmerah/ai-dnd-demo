@@ -49,10 +49,8 @@ class QuestHandler(BaseHandler):
         result = CommandResult()
 
         if isinstance(command, StartQuestCommand):
-            # Get scenario
-            scenario = self.scenario_service.get_scenario(game_state.scenario_id)
-            if not scenario:
-                raise ValueError("No scenario loaded")
+            # Get scenario from embedded sheet
+            scenario = game_state.scenario_instance.sheet
 
             # Get quest from scenario
             quest = scenario.get_quest(command.quest_id)
@@ -160,10 +158,8 @@ class QuestHandler(BaseHandler):
                 raise RuntimeError(f"Failed to complete quest '{command.quest_id}'")
 
         elif isinstance(command, ProgressActCommand):
-            # Get scenario
-            scenario = self.scenario_service.get_scenario(game_state.scenario_id)
-            if not scenario:
-                raise ValueError("No scenario loaded")
+            # Get scenario from embedded sheet
+            scenario = game_state.scenario_instance.sheet
 
             # Check if can progress
             completed = game_state.scenario_instance.completed_quest_ids

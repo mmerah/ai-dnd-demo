@@ -18,7 +18,7 @@
     "senses": "darkvision 60 ft., passive Perception 9",
     "languages": ["common", "goblin"],
     "attacks": [
-      {"name": "Shortbow", "type": "Ranged", "to_hit": 4, "reach": null, "range": "80/320 ft.", "damage": "1d6+2", "damage_type": "piercing", "special": null}
+      {"name": "Shortbow", "type": "Ranged", "attack_roll_bonus": 4, "reach": null, "range": "80/320 ft.", "damage": "1d6+2", "damage_type": "piercing", "special": null}
     ],
     "special_abilities": [],
     "damage_vulnerabilities": [],

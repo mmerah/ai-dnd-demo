@@ -176,6 +176,11 @@ class CharacterService(ICharacterService):
                 if not self.spell_repository.validate_reference(spell_name):
                     errors.append(f"Unknown spell: {spell_name}")
 
+        # Validate selected skills (optional)
+        for sk in character.starting_skill_indexes:
+            if not self.skill_repository.validate_reference(sk):
+                errors.append(f"Unknown skill index: {sk}")
+
         # Validate alignment index
         if character.alignment and not self.alignment_repository.validate_reference(character.alignment):
             errors.append(f"Unknown alignment index: {character.alignment}")

@@ -24,6 +24,7 @@ from app.interfaces.services import (
     IGameService,
     IGameStateManager,
     IItemRepository,
+    ILevelProgressionService,
     ILoader,
     IMessageManager,
     IMessageService,
@@ -40,6 +41,7 @@ from app.services.ai import AIService, MessageService
 from app.services.ai.orchestrator_service import AgentOrchestrator
 from app.services.character import CharacterService
 from app.services.character.compute_service import CharacterComputeService
+from app.services.character.level_service import LevelProgressionService
 from app.services.common import BroadcastService, DiceService
 from app.services.common.path_resolver import PathResolver
 from app.services.data.loaders.character_loader import CharacterLoader
@@ -87,6 +89,7 @@ class Container:
             event_manager=self.event_manager,
             metadata_service=self.metadata_service,
             compute_service=self.character_compute_service,
+            item_repository=self.item_repository,
         )
 
     @cached_property
@@ -241,14 +244,19 @@ class Container:
             skill_repository=self.skill_repository,
             item_repository=self.item_repository,
             spell_repository=self.spell_repository,
+            race_repository=self.race_repository,
         )
+
+    @cached_property
+    def level_progression_service(self) -> ILevelProgressionService:
+        return LevelProgressionService(self.character_compute_service)
 
     @cached_property
     def event_bus(self) -> IEventBus:
         event_bus = EventBus(self.game_service)
 
         # Register all handlers
-        event_bus.register_handler("character", CharacterHandler(self.game_service))
+        event_bus.register_handler("character", CharacterHandler(self.game_service, self.level_progression_service))
         event_bus.register_handler("dice", DiceHandler(self.game_service, self.dice_service))
         event_bus.register_handler("inventory", InventoryHandler(self.game_service, self.item_repository))
         event_bus.register_handler("time", TimeHandler(self.game_service))

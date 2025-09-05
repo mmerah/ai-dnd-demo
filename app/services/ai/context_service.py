@@ -34,29 +34,28 @@ class ContextService:
 
         # Add scenario context if available and in known location
         if game_state.scenario_instance.is_in_known_location():
-            scenario = self.scenario_service.get_scenario(game_state.scenario_id)
-            if scenario:
-                # Get base scenario context
-                scenario_context = self.scenario_service.get_scenario_context_for_ai(
-                    scenario,
-                    game_state.scenario_instance.current_location_id,
-                )
-                context_parts.append(scenario_context)
+            scenario = game_state.scenario_instance.sheet
+            # Get base scenario context
+            scenario_context = self.scenario_service.get_scenario_context_for_ai(
+                scenario,
+                game_state.scenario_instance.current_location_id,
+            )
+            context_parts.append(scenario_context)
 
-                # Add enhanced location details
-                location_context = self._build_location_context(game_state, scenario)
-                if location_context:
-                    context_parts.append(location_context)
+            # Add enhanced location details
+            location_context = self._build_location_context(game_state, scenario)
+            if location_context:
+                context_parts.append(location_context)
 
-                # Add NPCs at current location
-                npcs_context = self._build_npcs_at_location_context(game_state)
-                if npcs_context:
-                    context_parts.append(npcs_context)
+            # Add NPCs at current location
+            npcs_context = self._build_npcs_at_location_context(game_state)
+            if npcs_context:
+                context_parts.append(npcs_context)
 
-                # Add quest context
-                quest_context = self._build_quest_context(game_state, scenario)
-                if quest_context:
-                    context_parts.append(quest_context)
+            # Add quest context
+            quest_context = self._build_quest_context(game_state, scenario)
+            if quest_context:
+                context_parts.append(quest_context)
 
         # Add current game state
         char_sheet = game_state.character.sheet

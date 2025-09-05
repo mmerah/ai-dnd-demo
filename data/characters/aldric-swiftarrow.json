@@ -72,11 +72,16 @@
     "elvish",
     "goblin"
   ],
+  "starting_skill_indexes": [
+    "perception",
+    "stealth",
+    "survival"
+  ],
   "starting_inventory": [
     {
       "name": "Potion of Healing",
       "quantity": 2,
-      "equipped": false,
+      "equipped_quantity": 0,
       "weight": 0.5,
       "value": 50,
       "description": "You regain 2d4 + 2 hit points when you drink this potion.",
@@ -85,7 +90,7 @@
     {
       "name": "Rope, hempen (50 feet)",
       "quantity": 1,
-      "equipped": false,
+      "equipped_quantity": 0,
       "weight": 10,
       "value": 1,
       "description": "Rope has 2 hit points and can be burst with a DC 17 Strength check.",
@@ -94,7 +99,7 @@
     {
       "name": "Torch",
       "quantity": 5,
-      "equipped": false,
+      "equipped_quantity": 0,
       "weight": 1,
       "value": 0.01,
       "description": "A torch burns for 1 hour, providing bright light in a 20-foot radius.",
@@ -103,7 +108,7 @@
     {
       "name": "Rations (1 day)",
       "quantity": 10,
-      "equipped": false,
+      "equipped_quantity": 0,
       "weight": 2,
       "value": 0.5,
       "description": "Rations consist of dry foods suitable for extended travel.",
@@ -112,7 +117,7 @@
     {
       "name": "Longbow",
       "quantity": 1,
-      "equipped": true,
+      "equipped_quantity": 1,
       "weight": 2,
       "value": 50,
       "description": "A tall bow for shooting arrows at long range.",
@@ -121,7 +126,7 @@
     {
       "name": "Arrow",
       "quantity": 40,
-      "equipped": true,
+      "equipped_quantity": 0,
       "weight": 0.05,
       "value": 0.05,
       "description": "Standard arrows for use with a bow.",
@@ -130,7 +135,7 @@
     {
       "name": "Shortsword",
       "quantity": 1,
-      "equipped": true,
+      "equipped_quantity": 1,
       "weight": 2,
       "value": 10,
       "description": "A short, lightweight sword ideal for quick strikes.",
@@ -139,7 +144,7 @@
     {
       "name": "Leather Armor",
       "quantity": 1,
-      "equipped": true,
+      "equipped_quantity": 1,
       "weight": 10,
       "value": 10,
       "description": "Light armor made of stiffened leather.",
@@ -148,7 +153,7 @@
     {
       "name": "Explorer's Pack",
       "quantity": 1,
-      "equipped": false,
+      "equipped_quantity": 0,
       "weight": 59,
       "value": 10,
       "description": "Includes a backpack, bedroll, mess kit, tinderbox, torches, rations, waterskin, and rope.",
@@ -157,7 +162,7 @@
     {
       "name": "Component pouch",
       "quantity": 1,
-      "equipped": true,
+      "equipped_quantity": 0,
       "weight": 2,
       "value": 25,
       "description": "A small, watertight leather belt pouch containing material components for spells.",

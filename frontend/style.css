@@ -38,6 +38,46 @@ body {
     display: none !important;
 }
 
+/* Inventory sections */
+.inventory-section-header {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+    color: var(--accent-color);
+    font-weight: bold;
+}
+
+.inventory-empty {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.attacks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.attack-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+}
+
+.attack-name {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.attack-meta {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
 /* Character Selection Screen */
 .selection-container {
     max-width: 800px;

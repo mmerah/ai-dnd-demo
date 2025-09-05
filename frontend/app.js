@@ -275,13 +275,13 @@ function createSavedGameCard(game) {
     }
     
     // Get the title to display - prefer scenario_title, fallback to character name
-    const title = game.scenario_title || `${game.character.name}'s Adventure`;
-    const classDisplay = displayClassName(game.character.class_index || game.character.class_name);
+    const title = game.scenario_title || `${game.character.sheet?.name || 'Unknown Hero'}'s Adventure`;
+    const classDisplay = displayClassName(game.character.sheet?.class_index);
     
     card.innerHTML = `
         <div class="saved-game-info">
             <h3>${title}</h3>
-            <p class="character">🧝 ${game.character.name} - Level ${game.character.level} ${classDisplay}</p>
+            <p class="character">🧝 ${game.character.sheet?.name} - Level ${game.character.state?.level} ${classDisplay}</p>
             <p class="location">📍 ${game.location}</p>
             <p class="time-ago">⏰ ${timeText}</p>
         </div>
@@ -440,9 +440,9 @@ function createCharacterCard(character) {
     card.className = 'character-card';
     card.innerHTML = `
         <h3>${character.name}</h3>
-        <p><strong>Class:</strong> ${displayClassName(character.class_index || character.class_name)}</p>
+        <p><strong>Class:</strong> ${displayClassName(character.class_index)}</p>
         <p><strong>Race:</strong> ${displayRaceName(character.race)}</p>
-        <p><strong>Level:</strong> ${character.level}</p>
+        <p><strong>Level:</strong> ${character.starting_level}</p>
         <p><strong>Background:</strong> ${displayBackgroundName(character.background)}</p>
     `;
     
@@ -629,13 +629,17 @@ function initializeSSE() {
     sseSource.addEventListener('tool_result', (event) => {
         const data = JSON.parse(event.data);
         console.log('[SSE] Tool result received:', data);
-        
+
         // Format tool result based on type
         let resultMessage = '';
-        
+
         // The result is now a Pydantic BaseModel object
         let result = data.result;
-        
+
+        // Level up
+        if (result && result.type === 'level_up') {
+            resultMessage = `⬆️ Level Up: ${result.old_level} → ${result.new_level} (HP +${result.hp_increase})`;
+        } else 
         if (data.tool_name && data.tool_name.includes('roll')) {
             // Dice roll result - handle BaseModel format
             if (typeof result === 'object' && result !== null) {
@@ -700,14 +704,6 @@ function initializeSSE() {
         }
     });
     
-    // Character updates
-    sseSource.addEventListener('character_update', (event) => {
-        const data = JSON.parse(event.data);
-        console.log('[SSE] Character update received:', data);
-        gameState.character = data.character;
-        updateCharacterSheet();
-    });
-    
     
     // Game state updates
     sseSource.addEventListener('game_update', (event) => {
@@ -742,7 +738,7 @@ function initializeSSE() {
         window.currentScenario = data.current_scenario;
         
         // Update location display with full scenario data
-        if (window.currentScenario && gameState && gameState.current_location_id) {
+        if (window.currentScenario && gameState && gameState.scenario_instance && gameState.scenario_instance.current_location_id) {
             updateLocationWithScenarioData();
         }
     });
@@ -885,7 +881,7 @@ function updateCharacterSheet() {
     // Basic info (from sheet)
     document.getElementById('charName').textContent = charSheet.name;
     document.getElementById('charRace').textContent = displayRaceName(charSheet.race);
-    document.getElementById('charClass').textContent = `${displayClassName(charSheet.class_index || charSheet.class_name)} ${charState.level || charSheet.level}`;
+    document.getElementById('charClass').textContent = `${displayClassName(charSheet.class_index)} ${charState.level || charSheet.starting_level}`;
     // Optional subrace/subclass
     const subraceEl = document.getElementById('charSubrace');
     const subraceRow = subraceEl?.parentElement;
@@ -909,7 +905,7 @@ function updateCharacterSheet() {
             subclassRow.style.display = 'none';
         }
     }
-    document.getElementById('charLevel').textContent = charState.level || charSheet.level;
+    document.getElementById('charLevel').textContent = charState.level || charSheet.starting_level;
     
     // HP (from state)
     const current_hp = charState.hit_points?.current ?? 0;
@@ -922,7 +918,10 @@ function updateCharacterSheet() {
     document.getElementById('charAC').textContent = charState.armor_class || 10;
     document.getElementById('charInitiative').textContent = (charState.initiative || 0) >= 0 ? `+${charState.initiative || 0}` : `${charState.initiative}`;
     document.getElementById('charSpeed').textContent = `${charState.speed || 30}ft`;
-    
+
+    // Attacks (from state)
+    updateAttacks(charState.attacks || []);
+
     // Abilities (from state)
     updateAbilities(charState.abilities || charSheet.starting_abilities);
     
@@ -951,6 +950,46 @@ function updateCharacterSheet() {
     
     // Conditions (from state)
     updateConditions(charState.conditions);
+}
+
+function updateAttacks(attacks) {
+    const list = document.getElementById('attacksList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    if (!attacks || attacks.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'inventory-empty';
+        empty.textContent = 'No attacks available';
+        list.appendChild(empty);
+        return;
+    }
+
+    attacks.forEach(att => {
+        const row = document.createElement('div');
+        row.className = 'attack-item';
+
+        const left = document.createElement('div');
+        left.className = 'attack-name';
+        left.textContent = att.name || 'Unknown';
+
+        const right = document.createElement('div');
+        right.className = 'attack-meta';
+        const toHitVal = (typeof att.attack_roll_bonus === 'number') ? (att.attack_roll_bonus >= 0 ? `+${att.attack_roll_bonus}` : `${att.attack_roll_bonus}`) : '';
+        const dmgStr = att.damage ? `${att.damage}${att.damage_type ? ' ' + att.damage_type.toLowerCase() : ''}` : '';
+        const rangeStr = att.range ? `${att.range}` : '';
+
+        // Make it explicit for players
+        const parts = [];
+        if (toHitVal) parts.push(`Attack Roll ${toHitVal}`);
+        if (dmgStr) parts.push(`Damage ${dmgStr}`);
+        if (rangeStr) parts.push(`Range ${rangeStr}`);
+        right.textContent = parts.join(' • ');
+
+        row.appendChild(left);
+        row.appendChild(right);
+        list.appendChild(row);
+    });
 }
 
 // Update abilities
@@ -1272,18 +1311,106 @@ function updateInventory(inventory) {
     // Update items
     const inventoryList = document.getElementById('inventoryList');
     inventoryList.innerHTML = '';
-    
-    if (inventory.inventory) {
-        inventory.inventory.forEach(item => {
-            const itemDiv = document.createElement('div');
-            itemDiv.className = 'inventory-item';
-            const equipped = item.equipped ? ' (equipped)' : '';
-            itemDiv.innerHTML = `
-                <span>${item.name}${equipped}</span>
-                <span>×${item.quantity || 1}</span>
-            `;
-            inventoryList.appendChild(itemDiv);
+
+    if (!inventory.inventory) return;
+
+    const items = inventory.inventory;
+    const equippedItems = items.filter(it => (it.equipped_quantity || 0) > 0);
+    const backpackItems = items.filter(it => ((it.quantity || 0) - (it.equipped_quantity || 0)) > 0);
+
+    // Render equipped section
+    const equippedHeader = document.createElement('div');
+    equippedHeader.className = 'inventory-section-header';
+    equippedHeader.textContent = 'Equipped';
+    inventoryList.appendChild(equippedHeader);
+
+    if (equippedItems.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'inventory-empty';
+        empty.textContent = 'No equipped items';
+        inventoryList.appendChild(empty);
+    } else {
+        equippedItems.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'inventory-item';
+            const left = document.createElement('div');
+            left.textContent = `${item.name}`;
+            left.style.fontWeight = '600';
+            const count = document.createElement('div');
+            count.textContent = `×${item.equipped_quantity || 0}`;
+            const btn = document.createElement('button');
+            btn.className = 'btn-small';
+            btn.textContent = 'Unequip';
+            btn.addEventListener('click', async () => {
+                await equipToggle(item.name, false);
+            });
+            row.appendChild(left);
+            row.appendChild(count);
+            // Put button on its own line for consistent visuals
+            const actions = document.createElement('div');
+            actions.appendChild(btn);
+            row.appendChild(actions);
+            inventoryList.appendChild(row);
         });
+    }
+
+    // Render backpack section
+    const backpackHeader = document.createElement('div');
+    backpackHeader.className = 'inventory-section-header';
+    backpackHeader.textContent = 'Backpack';
+    inventoryList.appendChild(backpackHeader);
+
+    if (backpackItems.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'inventory-empty';
+        empty.textContent = 'Inventory empty';
+        inventoryList.appendChild(empty);
+    } else {
+        backpackItems.forEach(item => {
+            const row = document.createElement('div');
+            row.className = 'inventory-item';
+            const left = document.createElement('div');
+            left.textContent = `${item.name}`;
+            left.style.fontWeight = '600';
+            const right = document.createElement('div');
+            const freeQty = (item.quantity || 0) - (item.equipped_quantity || 0);
+            right.textContent = `×${freeQty}`;
+            row.appendChild(left);
+            row.appendChild(right);
+
+            // Equippable check (only Armor/Weapon)
+            const equippable = (item.item_type === 'Armor' || item.item_type === 'Weapon');
+            if (equippable && freeQty > 0) {
+                const btn = document.createElement('button');
+                btn.className = 'btn-small';
+                btn.textContent = 'Equip';
+                btn.addEventListener('click', async () => {
+                    await equipToggle(item.name, true);
+                });
+                const actions = document.createElement('div');
+                actions.appendChild(btn);
+                row.appendChild(actions);
+            }
+
+            inventoryList.appendChild(row);
+        });
+    }
+}
+
+async function equipToggle(itemName, equip) {
+    if (!currentGameId) return;
+    try {
+        const res = await fetch(`/api/game/${currentGameId}/equip`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ item_name: itemName, equipped: equip })
+        });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        // Refresh state to reflect inventory changes and AC/attacks
+        await loadGameState();
+    } catch (e) {
+        console.error('[ERROR] Equip toggle failed:', e);
+        showError('Failed to change equipment.');
     }
 }
 

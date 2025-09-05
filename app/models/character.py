@@ -64,6 +64,8 @@ class CharacterSheet(BaseModel):
     trait_indexes: list[str] = Field(default_factory=list)
     feat_indexes: list[str] = Field(default_factory=list)
 
+    # Skill choices and spellcasting seeds
+    starting_skill_indexes: list[str] = Field(default_factory=list)
     # Spellcasting seed (known/prepared)
     starting_spellcasting: Spellcasting | None = None
 

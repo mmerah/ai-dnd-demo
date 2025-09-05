@@ -26,7 +26,13 @@ from app.models.magic_school import MagicSchool
 from app.models.monster import Monster
 from app.models.race import RaceDefinition
 from app.models.race import SubraceDefinition as RaceSubraceDefinition
-from app.models.requests import NewGameRequest, NewGameResponse, PlayerActionRequest
+from app.models.requests import (
+    EquipItemRequest,
+    EquipItemResponse,
+    NewGameRequest,
+    NewGameResponse,
+    PlayerActionRequest,
+)
 from app.models.scenario import ScenarioSheet
 from app.models.skill import Skill
 from app.models.spell import SpellDefinition
@@ -205,6 +211,58 @@ async def process_player_action(
         raise HTTPException(status_code=500, detail=f"Failed to process action: {e!s}") from e
 
 
+@router.post("/game/{game_id}/equip", response_model=EquipItemResponse)
+async def equip_item(game_id: str, request: EquipItemRequest) -> EquipItemResponse:
+    """Equip or unequip a single unit of a player's inventory item and recompute derived stats.
+
+    Args:
+        game_id: Unique game identifier
+        request: EquipItemRequest with item name and equipped flag (applies to exactly one unit)
+
+    Returns:
+        EquipItemResponse with updated armor class
+
+    Notes:
+        - Supports only one-unit operations per call; bulk equip/unequip is not supported
+        - Constraints enforced: at most one shield equipped and at most one body armor equipped at a time
+    """
+    game_service = container.game_service
+    message_service = container.message_service
+
+    try:
+        # Delegate to service
+        updated_state = game_service.set_item_equipped(game_id, request.item_name, request.equipped)
+
+        # Broadcast game update
+        await message_service.send_game_update(game_id, updated_state)
+
+        # Resolve the effective item name casing from inventory
+        item = next(
+            (it for it in updated_state.character.state.inventory if it.name.lower() == request.item_name.lower()),
+            None,
+        )
+        final_name = item.name if item else request.item_name
+
+        # Determine new equipped quantity for this item
+        eq_item = next(
+            (it for it in updated_state.character.state.inventory if it.name.lower() == final_name.lower()),
+            None,
+        )
+        equipped_qty = eq_item.equipped_quantity if eq_item else 0
+
+        return EquipItemResponse(
+            game_id=game_id,
+            item_name=final_name,
+            equipped_quantity=equipped_qty,
+            new_armor_class=updated_state.character.state.armor_class,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to equip item: {e!s}") from e
+
+
 @router.get("/game/{game_id}/sse")
 async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
     """
@@ -234,12 +292,9 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
         message_service = container.message_service
         scenario_service = container.scenario_service
 
-        # Get scenario info if available
-        scenario = None
-        available_scenarios = None
-        if game_state.scenario_id:
-            scenario = scenario_service.get_scenario(game_state.scenario_id)
-            available_scenarios = scenario_service.list_scenarios()
+        # Get scenario info from embedded sheet and list all available
+        scenario = game_state.scenario_instance.sheet if game_state.scenario_instance else None
+        available_scenarios = scenario_service.list_scenarios()
 
         # Use MessageService to generate SSE events
         return EventSourceResponse(

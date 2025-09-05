@@ -39,3 +39,11 @@ class UpdateSpellSlotsCommand(BaseCommand):
 
     def get_handler_name(self) -> str:
         return "character"
+
+
+@dataclass
+class LevelUpCommand(BaseCommand):
+    """Command to level up the player character by one level."""
+
+    def get_handler_name(self) -> str:
+        return "character"

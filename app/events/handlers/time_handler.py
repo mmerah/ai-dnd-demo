@@ -54,6 +54,8 @@ class TimeHandler(BaseHandler):
                     game_state.game_time.hour -= 24
                     game_state.game_time.day += 1
 
+            # Refresh derived values
+            self.game_service.recompute_character_state(game_state)
             self.game_service.save_game(game_state)
 
             result.data = ShortRestResult(
@@ -90,6 +92,8 @@ class TimeHandler(BaseHandler):
                 game_state.game_time.hour -= 24
                 game_state.game_time.day += 1
 
+            # Refresh derived values
+            self.game_service.recompute_character_state(game_state)
             self.game_service.save_game(game_state)
 
             result.data = LongRestResult(
@@ -122,6 +126,8 @@ class TimeHandler(BaseHandler):
                 f"Day {game_state.game_time.day}, {game_state.game_time.hour:02d}:{game_state.game_time.minute:02d}"
             )
 
+            # Refresh derived values (time passing may not affect derived stats, but ensures consistency)
+            self.game_service.recompute_character_state(game_state)
             self.game_service.save_game(game_state)
 
             result.data = AdvanceTimeResult(

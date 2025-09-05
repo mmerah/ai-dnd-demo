@@ -119,9 +119,9 @@ def convert_monster(m: dict[str, Any]) -> dict[str, Any]:
         if "Weapon Attack" not in desc and "Spell Attack" not in desc and not act.get("attack_bonus"):
             # Not an attack action we can simplify meaningfully
             continue
-        to_hit = act.get("attack_bonus")
-        if isinstance(to_hit, list):
-            to_hit = to_hit[0] if to_hit else None
+        attack_roll_bonus = act.get("attack_bonus")
+        if isinstance(attack_roll_bonus, list):
+            attack_roll_bonus = attack_roll_bonus[0] if attack_roll_bonus else None
         damage_dice, damage_type = extract_first_damage(act.get("damage"))
         atk_type = parse_attack_type(desc)
         reach = extract_reach(desc)
@@ -130,7 +130,7 @@ def convert_monster(m: dict[str, Any]) -> dict[str, Any]:
             {
                 "name": name,
                 "type": atk_type,
-                "to_hit": as_int(to_hit, 0),
+                "attack_roll_bonus": as_int(attack_roll_bonus, 0),
                 "reach": reach,
                 "range": rng,
                 "damage": damage_dice or "",

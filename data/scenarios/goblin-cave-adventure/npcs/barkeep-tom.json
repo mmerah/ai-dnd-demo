@@ -57,11 +57,15 @@
     "languages": [
       "common"
     ],
+    "starting_skill_indexes": [
+      "insight",
+      "perception"
+    ],
     "starting_inventory": [
       {
         "name": "Potion of Healing",
         "quantity": 3,
-        "equipped": false,
+        "equipped_quantity": 0,
         "weight": 0.5,
         "value": 50,
         "description": "Heals 2d4+2 HP.",

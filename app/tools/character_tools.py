@@ -8,6 +8,7 @@ from pydantic_ai import RunContext
 
 from app.agents.core.dependencies import AgentDependencies
 from app.events.commands.character_commands import (
+    LevelUpCommand,
     UpdateConditionCommand,
     UpdateHPCommand,
     UpdateSpellSlotsCommand,
@@ -84,5 +85,16 @@ async def update_spell_slots(ctx: RunContext[AgentDependencies], level: int, amo
         - Cast level 1 spell: level=1, amount=-1
         - Restore level 2 slot: level=2, amount=1
         - Cast Hunter's Mark: level=1, amount=-1
+    """
+    raise NotImplementedError("This is handled by the @tool_handler decorator")
+
+
+@tool_handler(LevelUpCommand)
+async def level_up(ctx: RunContext[AgentDependencies]) -> BaseModel:
+    # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
+    """Level up the player character by one level.
+
+    Use when the player has earned enough XP or for testing progression.
+    No parameters; applies to the player character.
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")

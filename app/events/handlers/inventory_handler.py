@@ -90,7 +90,7 @@ class InventoryHandler(BaseHandler):
                 if not item_def:
                     raise ValueError(f"Failed to load item definition: {command.item_name}")
 
-                new_item = InventoryItem.from_definition(item_def, quantity=command.quantity)
+                new_item = InventoryItem.from_definition(item_def, quantity=command.quantity, equipped_quantity=0)
                 character.inventory.append(new_item)
 
             self.game_service.save_game(game_state)
@@ -111,12 +111,15 @@ class InventoryHandler(BaseHandler):
             if not existing_item:
                 raise ValueError(f"Item {command.item_name} not found in inventory")
 
-            if existing_item.quantity < abs(command.quantity):
+            # Do not allow removing equipped units implicitly
+            removable = (existing_item.quantity or 0) - (existing_item.equipped_quantity or 0)
+            need = abs(command.quantity)
+            if removable < need:
                 raise ValueError(
-                    f"Not enough {command.item_name} (have {existing_item.quantity}, need {abs(command.quantity)})"
+                    f"Not enough unequipped {command.item_name} to remove (have {removable}, need {need}). Unequip first."
                 )
 
-            existing_item.quantity -= abs(command.quantity)
+            existing_item.quantity -= need
 
             # Remove item completely if quantity reaches 0
             if existing_item.quantity == 0:

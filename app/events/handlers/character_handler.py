@@ -5,14 +5,17 @@ import logging
 from app.events.base import BaseCommand, CommandResult
 from app.events.commands.broadcast_commands import BroadcastGameUpdateCommand
 from app.events.commands.character_commands import (
+    LevelUpCommand,
     UpdateConditionCommand,
     UpdateHPCommand,
     UpdateSpellSlotsCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
+from app.interfaces.services import IGameService, ILevelProgressionService
 from app.models.game_state import GameState
 from app.models.tool_results import (
     AddConditionResult,
+    LevelUpResult,
     RemoveConditionResult,
     UpdateHPResult,
     UpdateSpellSlotsResult,
@@ -29,7 +32,12 @@ class CharacterHandler(BaseHandler):
         UpdateHPCommand,
         UpdateConditionCommand,
         UpdateSpellSlotsCommand,
+        LevelUpCommand,
     )
+
+    def __init__(self, game_service: IGameService, level_service: ILevelProgressionService):
+        super().__init__(game_service)
+        self.level_service = level_service
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
         """Handle character commands."""
@@ -164,6 +172,32 @@ class CharacterHandler(BaseHandler):
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
             logger.info(f"Spell Slots: Level {command.level} - {old_slots} → {new_slots}/{max_slots}")
+
+        elif isinstance(command, LevelUpCommand):
+            character_instance = game_state.character
+
+            old_level = character_instance.state.level
+            old_max_hp = character_instance.state.hit_points.maximum
+
+            self.level_service.level_up_character(character_instance)
+
+            new_level = character_instance.state.level
+            new_max_hp = character_instance.state.hit_points.maximum
+            hp_increase = max(0, new_max_hp - old_max_hp)
+
+            self.game_service.save_game(game_state)
+
+            result.data = LevelUpResult(
+                old_level=old_level,
+                new_level=new_level,
+                old_max_hp=old_max_hp,
+                new_max_hp=new_max_hp,
+                hp_increase=hp_increase,
+                message=f"Leveled up to {new_level}! HP +{hp_increase}",
+            )
+
+            result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
+            logger.info(f"Level Up: {old_level} -> {new_level}, HP {old_max_hp}->{new_max_hp}")
 
         return result
 
