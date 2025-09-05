@@ -599,6 +599,8 @@ class GameService(IGameService):
         npc_sheets = self.scenario_service.list_scenario_npcs(game_state.scenario_id)
 
         # Create an instance for each NPC in the scenario
+        # NOTE: For MVP1, all NPCs are loaded at game start regardless of location.
+        # Future enhancement could implement lazy loading based on location proximity.
         for npc_sheet in npc_sheets:
             # Create NPCInstance with initial location
             npc_instance = NPCInstance(
