@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, Field
 
-from app.models.ability import Abilities
+from app.models.attributes import Abilities
 from app.models.item import InventoryItem
 from app.models.spell import Spellcasting
 

@@ -33,12 +33,13 @@ async def update_hp(
     Args:
         amount: HP change (negative for damage, positive for healing)
         damage_type: Type of damage/healing
-        target: 'player' or NPC name
+        target: 'player', an NPC name, or a monster name
 
     Examples:
         - Deal 7 damage: amount=-7, damage_type="slashing"
         - Heal 5 HP: amount=5, damage_type="healing"
         - Poison damage to NPC: amount=-3, damage_type="poison", target="Goblin"
+        - Damage a monster: amount=-6, damage_type="slashing", target="Goblin 2"
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
@@ -55,7 +56,7 @@ async def update_condition(
     """Add or remove a status condition from a target.
 
     Args:
-        target: 'player' or the name of an NPC
+        target: 'player', an NPC name, or a monster name
         condition: The condition to apply or remove (e.g., 'poisoned', 'prone', 'frightened')
         action: Whether to 'add' or 'remove' the condition
         duration: Duration in rounds (0 for until removed) - only used when adding

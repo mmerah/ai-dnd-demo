@@ -239,6 +239,19 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
             try:
                 with open(file_path, encoding="utf-8") as f:
                     raw = json.load(f)
+
+                # Parse skills from dict to list format if needed
+                if "monster" in raw and "skills" in raw["monster"]:
+                    skills_data = raw["monster"]["skills"]
+                    if isinstance(skills_data, dict):
+                        # Convert dict format to list of SkillValue
+                        skills_list = []
+                        for skill_name, modifier in skills_data.items():
+                            # Normalize skill name to index format
+                            skill_index = skill_name.lower().replace(" ", "-")
+                            skills_list.append({"index": skill_index, "value": modifier})
+                        raw["monster"]["skills"] = skills_list
+
                 sm = ScenarioMonster(**raw)
                 m_map[sm.id] = sm
             except Exception as e:

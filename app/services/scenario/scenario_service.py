@@ -4,7 +4,7 @@ import json
 import logging
 
 from app.interfaces.services import ICharacterService, ILoader, IMonsterRepository, IPathResolver, IScenarioService
-from app.models.monster import Monster
+from app.models.monster import MonsterSheet
 from app.models.npc import NPCSheet
 from app.models.scenario import ScenarioMonster, ScenarioSheet
 
@@ -128,8 +128,8 @@ class ScenarioService(IScenarioService):
             return next(iter(self._scenarios.values()))
         return None
 
-    def get_scenario_monster(self, scenario_id: str, monster_id: str) -> Monster | None:
-        """Load a scenario-defined monster by id and return its Monster model.
+    def get_scenario_monster(self, scenario_id: str, monster_id: str) -> MonsterSheet | None:
+        """Load a scenario-defined monster by id and return its MonsterSheet model.
 
         Returns None if not found or invalid.
         """

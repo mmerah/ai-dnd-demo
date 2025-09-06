@@ -5,16 +5,17 @@ from typing import Any
 
 from app.interfaces.services import IMonsterRepository, IPathResolver, IRepository
 from app.models.alignment import Alignment
+from app.models.attributes import SkillValue
 from app.models.condition import Condition
 from app.models.language import Language
-from app.models.monster import Monster, MonsterSkill
+from app.models.monster import MonsterSheet
 from app.models.skill import Skill
 from app.services.data.repositories.base_repository import BaseRepository
 
 logger = logging.getLogger(__name__)
 
 
-class MonsterRepository(BaseRepository[Monster], IMonsterRepository):
+class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
     """Repository for loading and managing monster data.
 
     Follows Single Responsibility Principle: only manages monster data access.
@@ -65,7 +66,7 @@ class MonsterRepository(BaseRepository[Monster], IMonsterRepository):
                 # Log error but continue loading other monsters
                 logger.warning(f"Failed to load monster {monster_data.get('name', 'unknown')}: {e}")
 
-    def _load_item(self, key: str) -> Monster | None:
+    def _load_item(self, key: str) -> MonsterSheet | None:
         """Load a single monster by name.
 
         Args:
@@ -119,8 +120,8 @@ class MonsterRepository(BaseRepository[Monster], IMonsterRepository):
                 return True
         return False
 
-    def _parse_skills(self, data: dict[str, int] | None) -> list[MonsterSkill]:
-        """Parse skills from JSON dict to list of MonsterSkill."""
+    def _parse_skills(self, data: dict[str, int] | None) -> list[SkillValue]:
+        """Parse skills from JSON dict to list of SkillValue using repository indexes."""
         if not data:
             return []
 
@@ -128,22 +129,23 @@ class MonsterRepository(BaseRepository[Monster], IMonsterRepository):
         for skill_name, modifier in data.items():
             # Validate skill if repository available
             if self.skill_repository:
-                # Skills in JSON use capitalized names, need to check against catalog
-                # The skill repository checks by index or name (case-insensitive)
-                skill_name_lower = skill_name.replace(" ", "-").lower()
-                valid = self.skill_repository.validate_reference(skill_name_lower)
-                if not valid:
-                    # Try without modifications in case it matches exactly
-                    valid = self.skill_repository.validate_reference(skill_name)
-                if not valid:
+                # Resolve to index via repo (by name or index)
+                skill_def = self.skill_repository.get(skill_name)
+                if not skill_def:
+                    normalized = skill_name.replace(" ", "-").lower()
+                    skill_def = self.skill_repository.get(normalized)
+                if not skill_def:
                     logger.warning(f"Unknown skill: {skill_name}")
                     continue
+                idx = skill_def.index
+            else:
+                idx = skill_name.replace(" ", "-").lower()
 
-            skills.append(MonsterSkill(name=skill_name, modifier=modifier))
+            skills.append(SkillValue(index=idx, value=modifier))
 
         return skills
 
-    def _parse_monster_data(self, data: dict[str, Any]) -> Monster:
+    def _parse_monster_data(self, data: dict[str, Any]) -> MonsterSheet:
         # Any is necessary because monster data from JSON contains mixed types
         """Parse monster data from JSON into Monster model.
 
@@ -174,11 +176,11 @@ class MonsterRepository(BaseRepository[Monster], IMonsterRepository):
             elif langs is None:
                 data["languages"] = []
 
-            # Parse skills to list of MonsterSkill
+            # Parse skills to list of SkillValue
             data["skills"] = self._parse_skills(data.get("skills"))
 
-            # Create Monster from data
-            monster = Monster(**data)
+            # Create MonsterSheet from data
+            monster = MonsterSheet(**data)
 
             # Validate alignment (fail-fast)
             if self.alignment_repository and not self.alignment_repository.validate_reference(monster.alignment):
@@ -200,7 +202,7 @@ class MonsterRepository(BaseRepository[Monster], IMonsterRepository):
         except Exception as e:
             raise ValueError(f"Failed to parse monster data: {e}") from e
 
-    def get(self, key: str) -> Monster | None:
+    def get(self, key: str) -> MonsterSheet | None:
         """Get a monster by name, returning a deep copy.
 
         Override base implementation to return deep copies to avoid
@@ -210,7 +212,7 @@ class MonsterRepository(BaseRepository[Monster], IMonsterRepository):
             key: Monster name to get
 
         Returns:
-            Deep copy of Monster or None if not found
+            Deep copy of MonsterSheet or None if not found
         """
         monster = super().get(key)
         if monster:
@@ -218,7 +220,7 @@ class MonsterRepository(BaseRepository[Monster], IMonsterRepository):
             return monster.model_copy(deep=True)
         return None
 
-    def get_by_challenge_rating(self, min_cr: float, max_cr: float) -> list[Monster]:
+    def get_by_challenge_rating(self, min_cr: float, max_cr: float) -> list[MonsterSheet]:
         """Get all monsters within a challenge rating range.
 
         Args:
@@ -239,7 +241,7 @@ class MonsterRepository(BaseRepository[Monster], IMonsterRepository):
             ]
 
         # Without cache, load all and filter
-        all_monsters: list[Monster] = []
+        all_monsters: list[MonsterSheet] = []
         data = self._load_json_file(self.monsters_file)
         if data and isinstance(data, dict):
             for monster_data in data.get("monsters", []):
@@ -252,7 +254,7 @@ class MonsterRepository(BaseRepository[Monster], IMonsterRepository):
 
         return all_monsters
 
-    def get_by_type(self, creature_type: str) -> list[Monster]:
+    def get_by_type(self, creature_type: str) -> list[MonsterSheet]:
         """Get all monsters of a specific type.
 
         Args:
@@ -274,7 +276,7 @@ class MonsterRepository(BaseRepository[Monster], IMonsterRepository):
             ]
 
         # Without cache, load all and filter
-        all_monsters: list[Monster] = []
+        all_monsters: list[MonsterSheet] = []
         data = self._load_json_file(self.monsters_file)
         if data and isinstance(data, dict):
             for monster_data in data.get("monsters", []):

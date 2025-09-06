@@ -66,7 +66,21 @@ class CharacterHandler(BaseHandler):
                     )
                     npc.state.hit_points.current = new_hp
                 else:
-                    raise ValueError(f"Target {command.target} not found")
+                    # Try monsters by display name
+                    monster = next(
+                        (m for m in game_state.monsters if m.sheet.name.lower() == command.target.lower()), None
+                    )
+                    if monster:
+                        old_hp = monster.state.hit_points.current
+                        max_hp = monster.state.hit_points.maximum
+                        new_hp = (
+                            min(old_hp + command.amount, max_hp)
+                            if command.amount > 0
+                            else max(0, old_hp + command.amount)
+                        )
+                        monster.state.hit_points.current = new_hp
+                    else:
+                        raise ValueError(f"Target {command.target} not found")
 
             # Save game state
             self.game_service.save_game(game_state)
@@ -100,7 +114,18 @@ class CharacterHandler(BaseHandler):
                     if participant.name.lower() == command.target.lower():
                         if command.condition not in participant.conditions:
                             participant.conditions.append(command.condition)
+                        # Mirror to monster instance state if applicable
+                        monster = next(
+                            (m for m in game_state.monsters if m.sheet.name.lower() == command.target.lower()), None
+                        )
+                        if monster and command.condition not in monster.state.conditions:
+                            monster.state.conditions.append(command.condition)
                         break
+            else:
+                # Also update monster state conditions if applicable
+                monster = next((m for m in game_state.monsters if m.sheet.name.lower() == command.target.lower()), None)
+                if monster and command.condition not in monster.state.conditions:
+                    monster.state.conditions.append(command.condition)
 
             self.game_service.save_game(game_state)
 
@@ -128,7 +153,20 @@ class CharacterHandler(BaseHandler):
                         if command.condition in participant.conditions:
                             participant.conditions.remove(command.condition)
                             removed = True
+                        # Mirror to monster instance state if applicable
+                        monster = next(
+                            (m for m in game_state.monsters if m.sheet.name.lower() == command.target.lower()), None
+                        )
+                        if monster and command.condition in monster.state.conditions:
+                            monster.state.conditions.remove(command.condition)
+                            removed = True
                         break
+            else:
+                # Also update monster state conditions if applicable
+                monster = next((m for m in game_state.monsters if m.sheet.name.lower() == command.target.lower()), None)
+                if monster and command.condition in monster.state.conditions:
+                    monster.state.conditions.remove(command.condition)
+                    removed = True
 
             self.game_service.save_game(game_state)
 

@@ -9,14 +9,15 @@ from typing import Generic, TypeVar
 from pydantic import BaseModel
 
 from app.common.types import JSONSerializable
-from app.models.ability import Abilities, AbilityModifiers, SavingThrows
 from app.models.ai_response import AIResponse
+from app.models.attributes import Abilities, AbilityModifiers, AttackAction, SavingThrows, SkillValue
 from app.models.character import CharacterSheet
 from app.models.game_state import GameEvent, GameEventType, GameState, Message, MessageRole
 from app.models.instances.character_instance import CharacterInstance
-from app.models.instances.entity_state import EntityAttack, EntitySkill, EntityState
+from app.models.instances.entity_state import EntityState
+from app.models.instances.monster_instance import MonsterInstance
 from app.models.item import InventoryItem, ItemDefinition, ItemRarity, ItemType
-from app.models.monster import Monster
+from app.models.monster import MonsterSheet
 from app.models.npc import NPCSheet
 from app.models.scenario import ScenarioLocation, ScenarioSheet
 from app.models.spell import SpellDefinition, SpellSchool
@@ -105,6 +106,11 @@ class IGameService(ABC):
         pass
 
     @abstractmethod
+    def create_monster_instance(self, sheet: MonsterSheet, current_location_id: str | None) -> MonsterInstance:
+        """Create a MonsterInstance from a MonsterSheet template."""
+        pass
+
+    @abstractmethod
     def recompute_character_state(self, game_state: GameState) -> None:
         """Recompute derived values for the player character from sheet + state."""
         pass
@@ -122,6 +128,15 @@ class IGameService(ABC):
         - Only one body armor (light/medium/heavy) may be equipped at a time
         - Operation equips/unequips exactly one unit per call
         """
+        pass
+
+
+class IMonsterFactory(ABC):
+    """Factory for creating MonsterInstance objects from templates."""
+
+    @abstractmethod
+    def create(self, sheet: MonsterSheet, current_location_id: str | None) -> MonsterInstance:
+        """Map MonsterSheet → MonsterInstance with a proper EntityState."""
         pass
 
 
@@ -169,8 +184,8 @@ class IScenarioService(ABC):
         pass
 
     @abstractmethod
-    def get_scenario_monster(self, scenario_id: str, monster_id: str) -> Monster | None:
-        """Resolve a scenario-defined monster by id to a Monster."""
+    def get_scenario_monster(self, scenario_id: str, monster_id: str) -> MonsterSheet | None:
+        """Resolve a scenario-defined monster by id to a MonsterSheet."""
         pass
 
 
@@ -318,16 +333,16 @@ class IItemRepository(IRepository[ItemDefinition]):
         pass
 
 
-class IMonsterRepository(IRepository[Monster]):
+class IMonsterRepository(IRepository[MonsterSheet]):
     """Repository interface for monster data."""
 
     @abstractmethod
-    def get_by_challenge_rating(self, min_cr: float, max_cr: float) -> list[Monster]:
+    def get_by_challenge_rating(self, min_cr: float, max_cr: float) -> list[MonsterSheet]:
         """Get all monsters within a challenge rating range."""
         pass
 
     @abstractmethod
-    def get_by_type(self, creature_type: str) -> list[Monster]:
+    def get_by_type(self, creature_type: str) -> list[MonsterSheet]:
         """Get all monsters of a specific type."""
         pass
 
@@ -449,7 +464,7 @@ class ICharacterComputeService(ABC):
         selected_skills: list[str],
         modifiers: AbilityModifiers,
         proficiency_bonus: int,
-    ) -> list[EntitySkill]:
+    ) -> list[SkillValue]:
         pass
 
     @abstractmethod
@@ -497,7 +512,7 @@ class ICharacterComputeService(ABC):
         inventory: list[InventoryItem],
         modifiers: AbilityModifiers,
         proficiency_bonus: int,
-    ) -> list[EntityAttack]:
+    ) -> list[AttackAction]:
         """Compute available attacks from equipped weapons or provide an unarmed strike.
 
         Uses simple proficiency heuristics (class/race proficiencies) and weapon properties

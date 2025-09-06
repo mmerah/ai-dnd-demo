@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from app.models.ability import AbilityBonuses
+from app.models.attributes import AbilityBonuses
 
 
 class RaceDefinition(BaseModel):

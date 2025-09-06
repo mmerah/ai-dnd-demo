@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 from app.interfaces.services import ICharacterComputeService, IItemRepository, IRepository, ISpellRepository
-from app.models.ability import Abilities, AbilityModifiers, SavingThrows
+from app.models.attributes import Abilities, AbilityModifiers, AttackAction, SavingThrows, SkillValue
 from app.models.character import CharacterSheet
 from app.models.class_definitions import ClassDefinition
-from app.models.instances.entity_state import EntityAttack, EntitySkill, EntityState
+from app.models.instances.entity_state import EntityState
 from app.models.item import InventoryItem, ItemDefinition, ItemSubtype, ItemType
 from app.models.race import RaceDefinition
 from app.models.skill import Skill
@@ -92,8 +92,8 @@ class CharacterComputeService(ICharacterComputeService):
         selected_skills: list[str],
         modifiers: AbilityModifiers,
         proficiency_bonus: int,
-    ) -> list[EntitySkill]:
-        out: list[EntitySkill] = []
+    ) -> list[SkillValue]:
+        out: list[SkillValue] = []
         # If no explicit selection, pick first allowed skills from class proficiency choices
         chosen: list[str] = list(selected_skills)
         if not chosen:
@@ -119,7 +119,7 @@ class CharacterComputeService(ICharacterComputeService):
         for key in self.skill_repository.list_keys():
             base = self._skill_base_mod(key, modifiers)
             value = base + (proficiency_bonus if key in selected else 0)
-            out.append(EntitySkill(index=key, value=value))
+            out.append(SkillValue(index=key, value=value))
         return out
 
     def compute_armor_class(self, modifiers: AbilityModifiers, inventory: list[InventoryItem]) -> int:
@@ -314,8 +314,8 @@ class CharacterComputeService(ICharacterComputeService):
         inventory: list[InventoryItem],
         modifiers: AbilityModifiers,
         proficiency_bonus: int,
-    ) -> list[EntityAttack]:
-        attacks: list[EntityAttack] = []
+    ) -> list[AttackAction]:
+        attacks: list[AttackAction] = []
         # Build from equipped weapons
         for inv in inventory:
             if (inv.equipped_quantity or 0) <= 0:
@@ -330,7 +330,7 @@ class CharacterComputeService(ICharacterComputeService):
             dmg = self._format_damage_with_mod(idef.damage, ability_mod)
             rng = None  # data lacks exact ranges; omit for now
             attacks.append(
-                EntityAttack(
+                AttackAction(
                     name=idef.name,
                     attack_roll_bonus=attack_roll_bonus,
                     damage=dmg,
@@ -347,7 +347,7 @@ class CharacterComputeService(ICharacterComputeService):
             base = "1"
             dmg = self._format_damage_with_mod(base, str_mod)
             attacks.append(
-                EntityAttack(
+                AttackAction(
                     name="Unarmed Strike", attack_roll_bonus=attack_roll_bonus, damage=dmg, damage_type="Bludgeoning"
                 )
             )

@@ -10,9 +10,9 @@ from app.interfaces.services import IPathResolver, ISaveManager
 from app.models.combat import CombatState
 from app.models.game_state import GameEvent, GameState, GameTime, Message
 from app.models.instances.character_instance import CharacterInstance
+from app.models.instances.monster_instance import MonsterInstance
 from app.models.instances.npc_instance import NPCInstance
 from app.models.instances.scenario_instance import ScenarioInstance
-from app.models.monster import Monster
 from app.models.quest import Quest
 
 logger = logging.getLogger(__name__)
@@ -42,12 +42,12 @@ class SaveManager(ISaveManager):
             ├── instances/
             │   ├── character.json
             │   ├── scenario.json
-            │   └── npcs/
-            │       └── [npc-instance-id].json
+            │   ├── npcs/
+            │   │    └── [npc-instance-id].json
+            |   └── monsters/
+            │       └── [monster-instance-id].json
             ├── conversation_history.json
             ├── game_events.json
-            ├── monsters/
-            │   └── [monster-name].json
             └── (optional legacy folders not used in new format)
 
         Args:
@@ -68,7 +68,7 @@ class SaveManager(ISaveManager):
         self._save_instances(save_dir, game_state)
         self._save_conversation_history(save_dir, game_state.conversation_history)
         self._save_game_events(save_dir, game_state.game_events)
-        self._save_monsters(save_dir, game_state.monsters)
+        self._save_monster_instances(save_dir, game_state.monsters)
 
         # Save combat state if active
         if game_state.combat:
@@ -136,7 +136,7 @@ class SaveManager(ISaveManager):
             game_state.conversation_history = self._load_conversation_history(save_dir)
             game_state.game_events = self._load_game_events(save_dir)
             game_state.npcs = self._load_npc_instances(save_dir)
-            game_state.monsters = self._load_monsters(save_dir)
+            game_state.monsters = self._load_monster_instances(save_dir)
 
             # Load combat if exists
             if (save_dir / "combat.json").exists():
@@ -270,14 +270,13 @@ class SaveManager(ISaveManager):
         with open(save_dir / "game_events.json", "w", encoding="utf-8") as f:
             json.dump(events_data, f, indent=2)
 
-    def _save_monsters(self, save_dir: Path, monsters: list[Monster]) -> None:
-        """Save Monsters."""
-        monsters_dir = save_dir / "monsters"
-        monsters_dir.mkdir(exist_ok=True)
+    def _save_monster_instances(self, save_dir: Path, monsters: list[MonsterInstance]) -> None:
+        """Save MonsterInstances under instances/monsters."""
+        monsters_dir = save_dir / "instances" / "monsters"
+        monsters_dir.mkdir(parents=True, exist_ok=True)
 
-        for i, monster in enumerate(monsters):
-            safe_name = monster.name.replace(" ", "-").replace("/", "-").lower()
-            file_path = monsters_dir / f"{i:03d}-{safe_name}.json"
+        for monster in monsters:
+            file_path = monsters_dir / f"{monster.instance_id}.json"
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(monster.model_dump_json(indent=2))
 
@@ -358,17 +357,17 @@ class SaveManager(ISaveManager):
             npcs.append(NPCInstance(**data))
         return npcs
 
-    def _load_monsters(self, save_dir: Path) -> list[Monster]:
-        """Load Monsters."""
-        monsters_dir = save_dir / "monsters"
+    def _load_monster_instances(self, save_dir: Path) -> list[MonsterInstance]:
+        """Load MonsterInstances from instances/monsters."""
+        monsters_dir = save_dir / "instances" / "monsters"
         if not monsters_dir.exists():
             return []
 
-        monsters: list[Monster] = []
+        monsters: list[MonsterInstance] = []
         for file_path in sorted(monsters_dir.glob("*.json")):
             with open(file_path, encoding="utf-8") as f:
                 data = json.load(f)
-            monsters.append(Monster(**data))
+            monsters.append(MonsterInstance(**data))
         return monsters
 
     def _load_combat(self, save_dir: Path) -> CombatState | None:

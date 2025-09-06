@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, Field
 
-from app.models.ability import Abilities, SavingThrows
+from app.models.attributes import Abilities, AttackAction, SavingThrows, SkillValue
 from app.models.character import Currency
 from app.models.item import InventoryItem
 from app.models.spell import Spellcasting
@@ -20,22 +20,6 @@ class HitDice(BaseModel):
     type: str
 
 
-class EntityAttack(BaseModel):
-    name: str
-    attack_roll_bonus: int | None = None
-    damage: str | None = None
-    damage_type: str | None = None
-    range: str | None = None
-    properties: list[str] = Field(default_factory=list)
-
-
-class EntitySkill(BaseModel):
-    """Runtime skill value bound to a skill index."""
-
-    index: str
-    value: int
-
-
 class EntityState(BaseModel):
     abilities: Abilities
     level: int = Field(ge=1, le=20, default=1)
@@ -46,8 +30,8 @@ class EntityState(BaseModel):
     initiative: int = 0
     speed: int = Field(ge=0, default=30)
     saving_throws: SavingThrows = Field(default_factory=SavingThrows)
-    skills: list[EntitySkill] = Field(default_factory=list)
-    attacks: list[EntityAttack] = Field(default_factory=list)
+    skills: list[SkillValue] = Field(default_factory=list)
+    attacks: list[AttackAction] = Field(default_factory=list)
     conditions: list[str] = Field(default_factory=list)
     exhaustion_level: int = Field(ge=0, le=6, default=0)
     inspiration: bool = False

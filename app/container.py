@@ -29,6 +29,7 @@ from app.interfaces.services import (
     IMessageManager,
     IMessageService,
     IMetadataService,
+    IMonsterFactory,
     IMonsterRepository,
     IPathResolver,
     ISaveManager,
@@ -68,6 +69,7 @@ from app.services.game.event_manager import EventManager
 from app.services.game.game_state_manager import GameStateManager
 from app.services.game.message_manager import MessageManager as GameMessageManager
 from app.services.game.metadata_service import MetadataService
+from app.services.game.monster_factory import MonsterFactory
 from app.services.game.save_manager import SaveManager
 from app.services.scenario import ScenarioService
 
@@ -90,6 +92,7 @@ class Container:
             metadata_service=self.metadata_service,
             compute_service=self.character_compute_service,
             item_repository=self.item_repository,
+            monster_factory=self.monster_factory,
         )
 
     @cached_property
@@ -144,6 +147,10 @@ class Container:
             condition_repository=self.condition_repository,
             alignment_repository=self.alignment_repository,
         )
+
+    @cached_property
+    def monster_factory(self) -> IMonsterFactory:
+        return MonsterFactory()
 
     @cached_property
     def spell_repository(self) -> ISpellRepository:

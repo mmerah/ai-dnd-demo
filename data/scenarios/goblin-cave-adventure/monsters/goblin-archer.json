@@ -14,7 +14,7 @@
     "speed": "walk 30 ft",
     "challenge_rating": 0.25,
     "abilities": {"STR": 8, "DEX": 14, "CON": 10, "INT": 10, "WIS": 8, "CHA": 8},
-    "skills": [{"name": "Stealth", "modifier": 6}],
+    "skills": {"Stealth": 6},
     "senses": "darkvision 60 ft., passive Perception 9",
     "languages": ["common", "goblin"],
     "attacks": [

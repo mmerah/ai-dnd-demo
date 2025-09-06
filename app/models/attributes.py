@@ -48,3 +48,23 @@ class SavingThrows(BaseModel):
     INT: int = 0
     WIS: int = 0
     CHA: int = 0
+
+
+class AttackAction(BaseModel):
+    name: str
+    attack_roll_bonus: int | None = None
+    damage: str | None = None
+    damage_type: str | None = None
+    range: str | None = None
+    properties: list[str] = Field(default_factory=list)
+    # Extra optional fields commonly used by monster actions
+    type: str | None = None  # e.g., "Melee", "Ranged", "Melee or Ranged"
+    reach: str | None = None  # e.g., "5 ft.", "10 ft."
+    special: str | None = None  # additional notes
+
+
+class SkillValue(BaseModel):
+    """Runtime skill value bound to a skill index."""
+
+    index: str
+    value: int

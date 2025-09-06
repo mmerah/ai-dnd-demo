@@ -23,7 +23,7 @@ from app.models.game_state import GameState
 from app.models.item import ItemDefinition
 from app.models.language import Language
 from app.models.magic_school import MagicSchool
-from app.models.monster import Monster
+from app.models.monster import MonsterSheet
 from app.models.race import RaceDefinition
 from app.models.race import SubraceDefinition as RaceSubraceDefinition
 from app.models.requests import (
@@ -441,13 +441,13 @@ async def get_spell(index: str) -> SpellDefinition:
 
 # Monsters
 @router.get("/catalogs/monsters")
-async def list_monsters(keys_only: bool = False) -> list[Monster] | list[str]:
+async def list_monsters(keys_only: bool = False) -> list[MonsterSheet] | list[str]:
     """List all monsters (full objects by default, or keys with ?keys_only=true)."""
     repo = container.monster_repository
     keys = repo.list_keys()
     if keys_only:
         return keys
-    result: list[Monster] = []
+    result: list[MonsterSheet] = []
     for k in keys:
         item = repo.get(k)
         if item is not None:
@@ -456,7 +456,7 @@ async def list_monsters(keys_only: bool = False) -> list[Monster] | list[str]:
 
 
 @router.get("/catalogs/monsters/{index}")
-async def get_monster(index: str) -> Monster:
+async def get_monster(index: str) -> MonsterSheet:
     repo = container.monster_repository
     monster = repo.get(index)
     if not monster:

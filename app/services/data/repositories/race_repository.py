@@ -3,7 +3,7 @@
 from typing import Any
 
 from app.interfaces.services import IPathResolver
-from app.models.ability import AbilityBonuses
+from app.models.attributes import AbilityBonuses
 from app.models.race import RaceDefinition, SubraceDefinition
 from app.services.data.repositories.base_repository import BaseRepository
 

@@ -8,11 +8,12 @@ from pydantic import BaseModel, Field
 from app.common.types import JSONSerializable
 from app.models.combat import CombatState
 from app.models.instances.character_instance import CharacterInstance
+from app.models.instances.monster_instance import MonsterInstance
 from app.models.instances.npc_instance import NPCInstance
 from app.models.instances.scenario_instance import ScenarioInstance
 from app.models.location import DangerLevel, LocationState
-from app.models.monster import Monster
 from app.models.quest import Quest
+from app.utils.names import dedupe_display_name
 
 
 class MessageRole(str, Enum):
@@ -103,7 +104,7 @@ class GameState(BaseModel):
     # Core game data (instances)
     character: CharacterInstance
     npcs: list[NPCInstance] = Field(default_factory=list)
-    monsters: list[Monster] = Field(default_factory=list)
+    monsters: list[MonsterInstance] = Field(default_factory=list)
 
     # Scenario information
     scenario_id: str  # convenience alias of scenario_instance.template_id
@@ -193,34 +194,33 @@ class GameState(BaseModel):
                 return True
         return False
 
-    def add_monster(self, monster: Monster) -> str:
-        """Add a monster to the game and return its final name (with suffix if deduped)."""
-        existing_names = [m.name for m in self.monsters]
-        final_name = monster.name
-        if final_name in existing_names:
-            counter = 2
-            base_name = final_name
-            while f"{base_name} {counter}" in existing_names:
-                counter += 1
-            final_name = f"{base_name} {counter}"
-            monster.name = final_name
+    def add_monster_instance(self, monster: MonsterInstance) -> str:
+        """Add a MonsterInstance to the game and ensure unique display name.
+
+        Returns final display name (with suffix if deduped). Mutates the instance's
+        sheet.name if deduping is applied to maintain display consistency across systems.
+        """
+        existing_names = [m.sheet.name for m in self.monsters]
+        final_name = dedupe_display_name(existing_names, monster.sheet.name)
+        monster.sheet.name = final_name
+
         self.monsters.append(monster)
         return final_name
 
     def remove_monster(self, name: str) -> bool:
         for i, m in enumerate(self.monsters):
-            if m.name == name:
+            if m.sheet.name == name:
                 del self.monsters[i]
                 return True
         return False
 
-    def get_monster(self, name: str) -> Monster | None:
+    def get_monster(self, name: str) -> MonsterInstance | None:
         for m in self.monsters:
-            if m.name == name:
+            if m.sheet.name == name:
                 return m
         return None
 
-    def get_active_monsters(self) -> list[Monster]:
+    def get_active_monsters(self) -> list[MonsterInstance]:
         return [m for m in self.monsters if m.is_alive()]
 
     def get_npc(self, name: str) -> NPCInstance | None:

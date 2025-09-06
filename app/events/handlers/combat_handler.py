@@ -130,8 +130,11 @@ class CombatHandler(BaseHandler):
                         if not monster_data and repo_name:
                             monster_data = self.monster_repository.get(repo_name)
                         if monster_data:
-                            # Add to game state (handles duplicate name suffixing)
-                            name = game_state.add_monster(monster_data)
+                            # Create runtime instance and add to game state (dedup name)
+                            inst = self.game_service.create_monster_instance(
+                                monster_data, game_state.scenario_instance.current_location_id
+                            )
+                            name = game_state.add_monster_instance(inst)
 
                             # Roll initiative
                             dex_mod = (monster_data.abilities.DEX - 10) // 2
@@ -175,8 +178,11 @@ class CombatHandler(BaseHandler):
                     try:
                         monster_data = self.monster_repository.get(monster_name)
                         if monster_data:
-                            # Add to game state (handles duplicate name suffixing)
-                            name = game_state.add_monster(monster_data)
+                            # Create runtime instance and add to game state (dedup name)
+                            inst = self.game_service.create_monster_instance(
+                                monster_data, game_state.scenario_instance.current_location_id
+                            )
+                            name = game_state.add_monster_instance(inst)
 
                             # Roll initiative for the monster
                             dex_mod = (monster_data.abilities.DEX - 10) // 2

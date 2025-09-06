@@ -12,6 +12,7 @@ from app.interfaces.services import (
     IItemRepository,
     IMessageManager,
     IMetadataService,
+    IMonsterFactory,
     ISaveManager,
     IScenarioService,
 )
@@ -25,9 +26,11 @@ from app.models.game_state import (
 )
 from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.entity_state import EntityState, HitDice, HitPoints
+from app.models.instances.monster_instance import MonsterInstance
 from app.models.instances.npc_instance import NPCInstance
 from app.models.instances.scenario_instance import ScenarioInstance
 from app.models.item import InventoryItem, ItemDefinition, ItemSubtype, ItemType
+from app.models.monster import MonsterSheet
 from app.models.quest import QuestStatus
 from app.models.scenario import ScenarioLocation, ScenarioMonster
 
@@ -49,6 +52,7 @@ class GameService(IGameService):
         metadata_service: IMetadataService,
         compute_service: ICharacterComputeService,
         item_repository: IItemRepository,
+        monster_factory: IMonsterFactory,
     ) -> None:
         """
         Initialize the game service.
@@ -71,6 +75,7 @@ class GameService(IGameService):
         self.metadata_service = metadata_service
         self.compute_service = compute_service
         self.item_repository = item_repository
+        self.monster_factory = monster_factory
 
     def _build_entity_state_from_sheet(self, character: CharacterSheet) -> EntityState:
         """Create an EntityState from a CharacterSheet's starting_* fields using compute layer."""
@@ -359,6 +364,10 @@ class GameService(IGameService):
         # Already sorted by last_saved from save_manager
         return games
 
+    def create_monster_instance(self, sheet: MonsterSheet, current_location_id: str | None) -> MonsterInstance:
+        """Create a MonsterInstance from a MonsterSheet (delegates to factory)."""
+        return self.monster_factory.create(sheet, current_location_id)
+
     def initialize_location_from_scenario(self, game_state: GameState, scenario_location: ScenarioLocation) -> None:
         """
         Initialize a location's state from scenario data on first visit.
@@ -378,8 +387,11 @@ class GameService(IGameService):
             if scenario_location.notable_monsters:
                 for sm in scenario_location.notable_monsters:
                     if isinstance(sm, ScenarioMonster):
-                        # Add a deep copy so multiple visits don't share state
-                        game_state.add_monster(sm.monster.model_copy(deep=True))
+                        inst = self.create_monster_instance(
+                            sm.monster.model_copy(deep=True),
+                            current_location_id=scenario_location.id,
+                        )
+                        game_state.add_monster_instance(inst)
 
     def recompute_character_state(self, game_state: GameState) -> None:
         """Recompute derived values for the player character using the compute service."""

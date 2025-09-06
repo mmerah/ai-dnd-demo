@@ -3,7 +3,7 @@
 from pydantic import BaseModel, Field
 
 from app.models.location import DangerLevel, LocationConnection, LootEntry, MonsterSpawn
-from app.models.monster import Monster
+from app.models.monster import MonsterSheet
 from app.models.quest import Quest
 
 
@@ -13,7 +13,7 @@ class ScenarioMonster(BaseModel):
     id: str
     display_name: str
     description: str | None = None
-    monster: Monster
+    monster: MonsterSheet
 
 
 class Encounter(BaseModel):

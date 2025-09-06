@@ -1038,7 +1038,7 @@ function updateSkills(skills) {
 
     if (!skills || !Array.isArray(skills)) return;
 
-    // New format: array of EntitySkill objects with index and value
+    // New format: array of SkillValue objects with index and value
     skills.forEach(skill => {
         const item = document.createElement('div');
         item.className = 'skill-item';
