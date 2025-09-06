@@ -2,12 +2,6 @@
 
 This document tracks what’s been completed and what remains from CLAUDE-REVIEW.md.
 
-## Summary
-- Completed Phase 1 of the entity architecture refactor for monsters, including a full save-format migration and DRY model cleanup.
-- Monsters now use instances with unified runtime state, created via a factory and persisted under instances/.
-- Tools can now target monsters for HP and conditions updates by name.
-- Several review items remain for later phases (combat turn tools, ContextService simplification, ID-based combat, location validation, etc.).
-
 ## Completed Work
 
 - Entity Architecture: Monster Instance Pattern
@@ -28,12 +22,65 @@ This document tracks what’s been completed and what remains from CLAUDE-REVIEW
       - `app/services/game/game_service.py`
     - Combat spawns create instances via factory and add to GameState.
       - `app/events/handlers/combat_handler.py`
-  - Tools now support monsters:
-    - HP updates support monsters by display name.
-    - Conditions add/remove mirror to monster state to reduce drift with `CombatParticipant.conditions`.
-      - `app/events/handlers/character_handler.py`
-  - API returns MonsterSheet objects.
+- Tools support monsters (ID-based):
+    - HP/conditions updates target entities by `entity_id` + `entity_type` (player, npc, monster).
+      - `app/events/commands/character_commands.py`, `app/tools/character_tools.py`, `app/events/handlers/character_handler.py`
+- API returns MonsterSheet objects.
     - `app/api/routes.py`
+
+- Unified Entity Interface (Phase 1)
+  - Defined `ICombatEntity` protocol and `EntityType` alias.
+    - `app/models/entity.py` (EntityType is now an Enum)
+  - Added `display_name`/`is_alive()` to instances for consistency.
+    - `app/models/instances/character_instance.py`
+    - `app/models/instances/npc_instance.py`
+    - `app/models/instances/monster_instance.py`
+  - Updated `CombatParticipant` to reference stable `entity_id`/`entity_type`; removed `conditions`.
+    - `app/models/combat.py`
+  - Updated combat handlers to populate IDs and avoid name-only resolution.
+    - `app/events/handlers/combat_handler.py`
+  - Removed condition duplication; handlers now update entity state only.
+    - `app/events/handlers/character_handler.py`
+  - Added GameState helpers for unified entity lookup.
+    - `app/models/game_state.py`
+
+- Combat Turn Management Tools
+  - Added `NextTurnCommand`/`EndCombatCommand` and handlers.
+    - Commands: `app/events/commands/combat_commands.py`
+    - Handlers: `app/events/handlers/combat_handler.py`
+    - Tool bindings: `app/tools/combat_tools.py`
+    - Results: `app/models/tool_results.py`
+  - Registered new tools in narrative agent.
+    - `app/agents/narrative/agent.py`
+  - Added add/remove participant tools and commands.
+    - Commands: `app/events/commands/combat_commands.py`
+    - Tools: `app/tools/combat_tools.py`
+    - Handler: `app/events/handlers/combat_handler.py`
+
+- Combat Service (SOLID/DRY)
+  - Introduced `ICombatService` and `CombatService` for initiative rolling and participant adds.
+    - Interface: `app/interfaces/services.py`
+    - Impl: `app/services/game/combat_service.py`
+    - DI: `app/container.py`
+  - Updated `CombatHandler` to use the service and roll initiative from entity state instead of placeholders.
+    - `app/events/handlers/combat_handler.py`
+  - Final sweep: removed redundant initiative computations in encounter/spawn paths and cleaned duplicate logs.
+    - `app/events/handlers/combat_handler.py`
+
+- Context
+  - Added "Monsters Present" block listing runtime monsters with IDs and combat stats.
+  - Added "Monsters in Combat" block with IDs, initiative, status, HP/AC, and conditions.
+    - `app/services/ai/context_service.py`
+
+- ID-based Character Tools (Phase 2 migration)
+  - Updated commands and tools to target entities by `entity_id` + `entity_type` instead of name strings.
+    - Commands: `app/events/commands/character_commands.py`
+    - Tools: `app/tools/character_tools.py`
+    - Handler: `app/events/handlers/character_handler.py`
+
+- DRY Cleanup
+  - Removed duplicate `GameService.set_quest_flag`; use `GameState.set_quest_flag` directly.
+    - `app/services/game/game_service.py`
 
 - DRY Models and Normalization
   - Shared models consolidated as attributes:
@@ -55,20 +102,17 @@ This document tracks what’s been completed and what remains from CLAUDE-REVIEW
 
 ## Remaining Work (from CLAUDE-REVIEW.md)
 
-- Combat System (Phase 2)
-  - Turn management tools: `next_turn`, `end_combat`; route via event-bus.
-    - Add commands and handlers; wire tools in `app/tools/combat_tools.py`.
-  - Extend CombatState for formatted turn-order display.
-  - Resolve conditions source of truth by removing duplication from `CombatParticipant` and reading from entity state only.
-  - Move `CombatParticipant` to ID-based with unified entity interface (e.g., `ICombatEntity`) and drop name-based lookups.
+- Unified Entity Interface
+  - Use `ICombatEntity` in any future combat action helpers (if introduced)
+
+- Combat System
+  - Optional: Add a formatted turn-order display helper on `CombatState` (context already covers it).
 
 - ContextService Simplification
   - Remove `IScenarioService` dependency; build context directly from `game_state.scenario_instance.sheet`.
   - Update `app/agents/factory.py` construction accordingly.
 
-- TODO Cleanup (Critical/Important)
-  - Remove duplicate `GameService.set_quest_flag` (GameState method already exists).
-    - `app/services/game/game_service.py`
+- TODO Cleanup (Important)
   - Repository reverse lookups: add inverse mapping (`get_name_from_index`) where helpful.
     - `app/services/character/compute_service.py` TODO reference
   - NPC movement tool/handler to move `NPCInstance` between locations.
@@ -93,31 +137,15 @@ This document tracks what’s been completed and what remains from CLAUDE-REVIEW
 - Data: Monster skills are normalized to `SkillValue.index`. Unknown skills in dataset are logged and skipped.
 
 ## Next Steps (Recommended Order)
-1. Combat Phase 2
-   - Add `NextTurnCommand`/`EndCombatCommand`, tool handlers, and broadcast updates.
-   - Add `CombatState.get_turn_order_display()` helper for richer context.
-   - Define `ICombatEntity`, migrate `CombatParticipant` to IDs, remove condition duplication.
-2. ContextService Simplification
-   - Remove `IScenarioService` dependency; refactor builder to read from embedded scenario.
-3. Core TODOs
-   - Remove duplicate `set_quest_flag` in GameService.
-   - Add repository inverse lookups where referenced.
-   - Implement NPC movement tool/handler.
-4. Location Data & Validation
+1. ContextService Simplification
+   - Remove `IScenarioService` dependency; refactor builder to read from embedded scenario where possible.
+2. Location Data & Validation
    - Clean JSON (`npc_ids`), add traversal validation for `ChangeLocation`.
-5. Polish (MVP2)
-   - SSE audit, narrative formatting pass, equipment slots, random encounters.
-
-## Files Touched (Key)
-- Models
-  - `app/models/monster.py`, `app/models/attributes.py`, `app/models/instances/monster_instance.py`, `app/models/instances/entity_state.py`
-- Persistence
-  - `app/services/game/save_manager.py`
-- Services
-  - `app/services/game/game_service.py`, `app/services/game/monster_factory.py`, `app/services/data/repositories/monster_repository.py`
-- Handlers/Tools
-  - `app/events/handlers/combat_handler.py`, `app/events/handlers/character_handler.py`, `app/tools/character_tools.py`
-- API & DI
-  - `app/api/routes.py`, `app/container.py`, `app/interfaces/services.py`
-- Utilities
-  - `app/utils/names.py`
+3. NPC Movement
+   - Implement NPC movement tool/handler and event flow.
+4. Repository Inverse Lookups
+   - Add reverse mapping helpers (e.g., `get_name_from_index`) where referenced.
+5. Combat Polish (Optional)
+   - Add `CombatState.get_turn_order_display()` helper if needed; context already shows order with IDs/initiative.
+6. SSE Audit and Narrative Polish
+   - Trim unused events and improve initial narrative formatting.

@@ -3,13 +3,15 @@
 from dataclasses import dataclass
 
 from app.events.base import BaseCommand
+from app.models.entity import EntityType
 
 
 @dataclass
 class UpdateHPCommand(BaseCommand):
     """Command to update character or NPC hit points."""
 
-    target: str = "player"  # 'player' or NPC name
+    entity_id: str = ""  # required: instance id of target
+    entity_type: EntityType = EntityType.PLAYER
     amount: int = 0  # negative for damage, positive for healing
     damage_type: str = "untyped"
 
@@ -21,7 +23,8 @@ class UpdateHPCommand(BaseCommand):
 class UpdateConditionCommand(BaseCommand):
     """Command to add or remove a condition from a target."""
 
-    target: str = "player"  # 'player' or NPC name
+    entity_id: str = ""
+    entity_type: EntityType = EntityType.PLAYER
     condition: str = ""
     action: str = "add"  # 'add' or 'remove'
     duration: int = 0

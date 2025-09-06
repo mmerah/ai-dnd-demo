@@ -39,3 +39,8 @@ class MonsterInstance(BaseModel):
 
     def is_alive(self) -> bool:
         return self.state.hit_points.current > 0
+
+    @property
+    def display_name(self) -> str:
+        """Human-readable name for UI/combat."""
+        return self.sheet.name

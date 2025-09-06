@@ -20,6 +20,7 @@ from app.interfaces.services import (
     IBroadcastService,
     ICharacterComputeService,
     ICharacterService,
+    ICombatService,
     IEventManager,
     IGameService,
     IGameStateManager,
@@ -65,6 +66,7 @@ from app.services.data.repositories.spell_repository import SpellRepository
 from app.services.data.repositories.trait_repository import TraitRepository
 from app.services.data.repositories.weapon_property_repository import WeaponPropertyRepository
 from app.services.game import GameService
+from app.services.game.combat_service import CombatService
 from app.services.game.event_manager import EventManager
 from app.services.game.game_state_manager import GameStateManager
 from app.services.game.message_manager import MessageManager as GameMessageManager
@@ -273,7 +275,13 @@ class Container:
             LocationHandler(self.game_service, self.scenario_service, self.monster_repository, self.item_repository),
         )
         event_bus.register_handler(
-            "combat", CombatHandler(self.game_service, self.scenario_service, self.monster_repository)
+            "combat",
+            CombatHandler(
+                self.game_service,
+                self.scenario_service,
+                self.monster_repository,
+                self.combat_service,
+            ),
         )
         event_bus.register_handler(
             "quest", QuestHandler(self.game_service, self.scenario_service, self.item_repository)
@@ -307,6 +315,10 @@ class Container:
     @cached_property
     def broadcast_service(self) -> IBroadcastService:
         return BroadcastService()
+
+    @cached_property
+    def combat_service(self) -> ICombatService:
+        return CombatService()
 
 
 # Singleton instance of the container

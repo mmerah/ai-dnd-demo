@@ -2,15 +2,21 @@
 
 from pydantic import BaseModel, Field
 
+from app.models.entity import EntityType
+
 
 class CombatParticipant(BaseModel):
-    """Participant in combat with initiative."""
+    """Participant in combat with initiative and stable entity reference."""
 
+    # Stable reference to an entity in GameState
+    entity_id: str
+    entity_type: EntityType
+
+    # Display information
     name: str
     initiative: int | None = None  # Optional for when it needs to be rolled
     is_player: bool = False
     is_active: bool = True
-    conditions: list[str] = Field(default_factory=list)
 
 
 class CombatState(BaseModel):
@@ -21,9 +27,23 @@ class CombatState(BaseModel):
     participants: list[CombatParticipant] = Field(default_factory=list)
     is_active: bool = True
 
-    def add_participant(self, name: str, initiative: int, is_player: bool = False) -> None:
-        """Add a participant to combat."""
-        participant = CombatParticipant(name=name, initiative=initiative, is_player=is_player)
+    def add_participant(
+        self,
+        name: str,
+        initiative: int,
+        is_player: bool = False,
+        *,
+        entity_id: str,
+        entity_type: EntityType,
+    ) -> None:
+        """Add a participant to combat (id-aware)."""
+        participant = CombatParticipant(
+            name=name,
+            initiative=initiative,
+            is_player=is_player,
+            entity_id=entity_id,
+            entity_type=entity_type,
+        )
         self.participants.append(participant)
         self.sort_by_initiative()
 
@@ -63,6 +83,13 @@ class CombatState(BaseModel):
         self.participants = [p for p in self.participants if p.name != name]
 
         # Adjust turn index if needed
+        active_participants = [p for p in self.participants if p.is_active]
+        if self.turn_index >= len(active_participants):
+            self.turn_index = 0
+
+    def remove_participant_by_id(self, entity_id: str) -> None:
+        """Remove a participant by entity instance ID."""
+        self.participants = [p for p in self.participants if p.entity_id != entity_id]
         active_participants = [p for p in self.participants if p.is_active]
         if self.turn_index >= len(active_participants):
             self.turn_index = 0

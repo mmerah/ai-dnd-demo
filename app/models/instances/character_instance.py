@@ -27,3 +27,12 @@ class CharacterInstance(BaseModel):
     def touch(self) -> None:
         """Update the modification timestamp."""
         self.updated_at = datetime.now()
+
+    @property
+    def display_name(self) -> str:
+        """Human-readable name used across UI/combat."""
+        return self.sheet.name
+
+    def is_alive(self) -> bool:
+        """Character considered alive if HP > 0."""
+        return self.state.hit_points.current > 0

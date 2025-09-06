@@ -13,6 +13,7 @@ from app.events.commands.character_commands import (
     UpdateHPCommand,
     UpdateSpellSlotsCommand,
 )
+from app.models.entity import EntityType
 from app.tools.decorators import tool_handler
 
 logger = logging.getLogger(__name__)
@@ -21,9 +22,10 @@ logger = logging.getLogger(__name__)
 @tool_handler(UpdateHPCommand)
 async def update_hp(
     ctx: RunContext[AgentDependencies],
+    entity_id: str,
+    entity_type: EntityType,
     amount: int,
     damage_type: str = "untyped",
-    target: str = "player",
 ) -> BaseModel:
     # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Update hit points for damage or healing.
@@ -31,15 +33,15 @@ async def update_hp(
     Use after damage rolls or healing effects.
 
     Args:
+        entity_id: Instance ID of target
+        entity_type: One of 'player' | 'npc' | 'monster'
         amount: HP change (negative for damage, positive for healing)
         damage_type: Type of damage/healing
-        target: 'player', an NPC name, or a monster name
 
     Examples:
-        - Deal 7 damage: amount=-7, damage_type="slashing"
-        - Heal 5 HP: amount=5, damage_type="healing"
-        - Poison damage to NPC: amount=-3, damage_type="poison", target="Goblin"
-        - Damage a monster: amount=-6, damage_type="slashing", target="Goblin 2"
+        - Deal 7 damage to monster: entity_type="monster", entity_id="<id>", amount=-7, damage_type="slashing"
+        - Heal 5 HP (player): entity_type="player", entity_id="<player-id>", amount=5
+        - Poison damage to NPC: entity_type="npc", entity_id="<npc-id>", amount=-3, damage_type="poison"
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
@@ -47,7 +49,8 @@ async def update_hp(
 @tool_handler(UpdateConditionCommand)
 async def update_condition(
     ctx: RunContext[AgentDependencies],
-    target: str,
+    entity_id: str,
+    entity_type: EntityType,
     condition: str,
     action: Literal["add", "remove"],
     duration: int = 0,
@@ -56,17 +59,16 @@ async def update_condition(
     """Add or remove a status condition from a target.
 
     Args:
-        target: 'player', an NPC name, or a monster name
+        entity_id: Instance ID of target (player, npc, or monster)
+        entity_type: One of 'player' | 'npc' | 'monster'
         condition: The condition to apply or remove (e.g., 'poisoned', 'prone', 'frightened')
         action: Whether to 'add' or 'remove' the condition
         duration: Duration in rounds (0 for until removed) - only used when adding
 
     Examples:
-        - Apply poison: target="player", condition="poisoned", action="add", duration=3
-        - Remove poison: target="player", condition="poisoned", action="remove"
-        - Knock prone: target="Goblin", condition="prone", action="add"
-        - Stand up: target="player", condition="prone", action="remove"
-        - Fear spell: target="Orc", condition="frightened", action="add", duration=2
+        - Apply poison to monster: entity_type="monster", entity_id="<id>", condition="poisoned", action="add", duration=3
+        - Remove poison from player: entity_type="player", entity_id="<player-id>", condition="poisoned", action="remove"
+        - Knock NPC prone: entity_type="npc", entity_id="<npc-id>", condition="prone", action="add"
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 

@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 
 from app.common.types import JSONSerializable
 from app.models.combat import CombatState
+from app.models.entity import EntityType, ICombatEntity
 from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.monster_instance import MonsterInstance
 from app.models.instances.npc_instance import NPCInstance
@@ -233,6 +234,41 @@ class GameState(BaseModel):
     def get_active_npcs(self) -> list[NPCInstance]:
         """Get all NPCs that are still alive."""
         return [npc for npc in self.npcs if npc.is_alive()]
+
+    # Unified entity helpers
+    def find_entity_by_name(self, name: str) -> tuple[EntityType, ICombatEntity] | None:
+        """Find any entity by display name (case-insensitive)."""
+        # Player
+        if self.character.sheet.name.lower() == name.lower():
+            return (EntityType.PLAYER, self.character)
+
+        # NPCs
+        for npc in self.npcs:
+            if npc.sheet.character.name.lower() == name.lower():
+                return (EntityType.NPC, npc)
+
+        # Monsters
+        for mon in self.monsters:
+            if mon.sheet.name.lower() == name.lower():
+                return (EntityType.MONSTER, mon)
+
+        return None
+
+    def get_entity_by_id(self, entity_type: EntityType | str, entity_id: str) -> ICombatEntity | None:
+        """Resolve an entity by type and instance id."""
+        etype = entity_type.value if isinstance(entity_type, EntityType) else entity_type
+
+        if etype == "player" and self.character.instance_id == entity_id:
+            return self.character
+        if etype == "npc":
+            for npc in self.npcs:
+                if npc.instance_id == entity_id:
+                    return npc
+        if etype == "monster":
+            for mon in self.monsters:
+                if mon.instance_id == entity_id:
+                    return mon
+        return None
 
     def start_combat(self) -> CombatState:
         """Initialize combat state."""

@@ -94,7 +94,7 @@ class GameService(IGameService):
             proficiency_bonus=proficiency,
         )
         armor_class = self.compute_service.compute_armor_class(modifiers, character.starting_inventory)
-        initiative = self.compute_service.compute_initiative(modifiers)
+        initiative_bonus = self.compute_service.compute_initiative_bonus(modifiers)
 
         # HP / Hit Dice
         max_hp, hit_dice_total, hit_die_type = self.compute_service.compute_hit_points_and_dice(
@@ -128,7 +128,7 @@ class GameService(IGameService):
             hit_points=HitPoints(current=max_hp, maximum=max_hp, temporary=0),
             hit_dice=HitDice(total=hit_dice_total, current=hit_dice_total, type=hit_die_type),
             armor_class=armor_class,
-            initiative=initiative,
+            initiative_bonus=initiative_bonus,
             speed=speed,
             saving_throws=saving_throws,
             skills=skills,
@@ -567,30 +567,6 @@ class GameService(IGameService):
             npcs_mentioned=npcs_mentioned,
             combat_round=combat_round,
         )
-        self.save_game(game_state)
-        return game_state
-
-    # TODO: Look unused. GameState has a method with exact same name
-    def set_quest_flag(self, game_id: str, flag_name: str, value: JSONSerializable) -> GameState:
-        """
-        Set a quest flag value.
-
-        Args:
-            game_id: Game ID
-            flag_name: Name of the quest flag
-            value: Value to set
-
-        Returns:
-            Updated GameState
-
-        Raises:
-            ValueError: If game not found
-        """
-        game_state = self.get_game(game_id)
-        if not game_state:
-            raise ValueError(f"Game {game_id} not found")
-
-        game_state.set_quest_flag(flag_name, value)
         self.save_game(game_state)
         return game_state
 

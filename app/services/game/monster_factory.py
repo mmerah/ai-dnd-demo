@@ -77,7 +77,7 @@ class MonsterFactory(IMonsterFactory):
                 hit_points=HitPoints(current=sheet.hit_points.current, maximum=sheet.hit_points.maximum, temporary=0),
                 hit_dice=HitDice(total=hd_total, current=hd_total, type=hd_type),
                 armor_class=sheet.armor_class,
-                initiative=dex_mod,
+                initiative_bonus=dex_mod,
                 speed=speed_val,
                 saving_throws=SavingThrows(),
                 skills=[s.model_copy(deep=True) for s in sheet.skills] if sheet.skills else [],

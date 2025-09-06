@@ -166,6 +166,30 @@ class SpawnMonstersResult(BaseModel):
     message: str
 
 
+class NextTurnResult(BaseModel):
+    type: str = "next_turn"
+    round_number: int
+    current_turn: CombatParticipant | None
+    message: str
+
+
+class EndCombatResult(BaseModel):
+    type: str = "end_combat"
+    message: str
+
+
+class AddParticipantResult(BaseModel):
+    type: str = "add_participant"
+    participant: CombatParticipant
+    message: str
+
+
+class RemoveParticipantResult(BaseModel):
+    type: str = "remove_participant"
+    entity_id: str
+    message: str
+
+
 class RollDiceResult(BaseModel):
     type: str
     roll_type: str
@@ -217,6 +241,10 @@ ToolResult = (
     | StartCombatResult
     | TriggerEncounterResult
     | SpawnMonstersResult
+    | NextTurnResult
+    | EndCombatResult
+    | AddParticipantResult
+    | RemoveParticipantResult
     | RollDiceResult
     | LevelUpResult
 )

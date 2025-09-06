@@ -48,45 +48,21 @@ class CharacterHandler(BaseHandler):
             new_hp = 0
             max_hp = 0
 
-            if command.target == "player":
-                character = game_state.character.state
-                old_hp = character.hit_points.current
-                max_hp = character.hit_points.maximum
-                new_hp = min(old_hp + command.amount, max_hp) if command.amount > 0 else max(0, old_hp + command.amount)
-                character.hit_points.current = new_hp
-            else:
-                npc = next(
-                    (n for n in game_state.npcs if n.sheet.character.name.lower() == command.target.lower()), None
-                )
-                if npc:
-                    old_hp = npc.state.hit_points.current
-                    max_hp = npc.state.hit_points.maximum
-                    new_hp = (
-                        min(old_hp + command.amount, max_hp) if command.amount > 0 else max(0, old_hp + command.amount)
-                    )
-                    npc.state.hit_points.current = new_hp
-                else:
-                    # Try monsters by display name
-                    monster = next(
-                        (m for m in game_state.monsters if m.sheet.name.lower() == command.target.lower()), None
-                    )
-                    if monster:
-                        old_hp = monster.state.hit_points.current
-                        max_hp = monster.state.hit_points.maximum
-                        new_hp = (
-                            min(old_hp + command.amount, max_hp)
-                            if command.amount > 0
-                            else max(0, old_hp + command.amount)
-                        )
-                        monster.state.hit_points.current = new_hp
-                    else:
-                        raise ValueError(f"Target {command.target} not found")
+            entity = game_state.get_entity_by_id(command.entity_type, command.entity_id)
+            if not entity:
+                raise ValueError("Target entity not found")
+
+            state = entity.state
+            old_hp = state.hit_points.current
+            max_hp = state.hit_points.maximum
+            new_hp = min(old_hp + command.amount, max_hp) if command.amount > 0 else max(0, old_hp + command.amount)
+            state.hit_points.current = new_hp
 
             # Save game state
             self.game_service.save_game(game_state)
 
             result.data = UpdateHPResult(
-                target=command.target,
+                target=getattr(entity, "display_name", "unknown"),
                 old_hp=old_hp,
                 new_hp=new_hp,
                 max_hp=max_hp,
@@ -100,85 +76,55 @@ class CharacterHandler(BaseHandler):
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
             logger.info(
-                f"HP Update: {command.target} {'healed' if command.amount > 0 else 'took'} "
+                f"HP Update: {getattr(entity, 'display_name', 'unknown')} "
+                f"{'healed' if command.amount > 0 else 'took'} "
                 f"{abs(command.amount)} {command.damage_type} - HP: {old_hp} → {new_hp}/{max_hp}",
             )
 
         elif isinstance(command, UpdateConditionCommand) and command.action == "add":
-            if command.target == "player":
-                character = game_state.character.state
-                if command.condition not in character.conditions:
-                    character.conditions.append(command.condition)
-            elif game_state.combat:
-                for participant in game_state.combat.participants:
-                    if participant.name.lower() == command.target.lower():
-                        if command.condition not in participant.conditions:
-                            participant.conditions.append(command.condition)
-                        # Mirror to monster instance state if applicable
-                        monster = next(
-                            (m for m in game_state.monsters if m.sheet.name.lower() == command.target.lower()), None
-                        )
-                        if monster and command.condition not in monster.state.conditions:
-                            monster.state.conditions.append(command.condition)
-                        break
-            else:
-                # Also update monster state conditions if applicable
-                monster = next((m for m in game_state.monsters if m.sheet.name.lower() == command.target.lower()), None)
-                if monster and command.condition not in monster.state.conditions:
-                    monster.state.conditions.append(command.condition)
+            entity = game_state.get_entity_by_id(command.entity_type, command.entity_id)
+            if not entity:
+                raise ValueError("Target entity not found")
+
+            if command.condition not in entity.state.conditions:
+                entity.state.conditions.append(command.condition)
 
             self.game_service.save_game(game_state)
 
             result.data = AddConditionResult(
-                target=command.target,
+                target=getattr(entity, "display_name", "unknown"),
                 condition=command.condition,
                 duration=command.duration,
             )
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
-            logger.info(f"Condition Added: {command.target} is now {command.condition}")
+            logger.info(f"Condition Added: {getattr(entity, 'display_name', 'unknown')} is now {command.condition}")
 
         elif isinstance(command, UpdateConditionCommand) and command.action == "remove":
             removed = False
 
-            if command.target == "player":
-                character = game_state.character.state
-                if command.condition in character.conditions:
-                    character.conditions.remove(command.condition)
-                    removed = True
-            elif game_state.combat:
-                for participant in game_state.combat.participants:
-                    if participant.name.lower() == command.target.lower():
-                        if command.condition in participant.conditions:
-                            participant.conditions.remove(command.condition)
-                            removed = True
-                        # Mirror to monster instance state if applicable
-                        monster = next(
-                            (m for m in game_state.monsters if m.sheet.name.lower() == command.target.lower()), None
-                        )
-                        if monster and command.condition in monster.state.conditions:
-                            monster.state.conditions.remove(command.condition)
-                            removed = True
-                        break
-            else:
-                # Also update monster state conditions if applicable
-                monster = next((m for m in game_state.monsters if m.sheet.name.lower() == command.target.lower()), None)
-                if monster and command.condition in monster.state.conditions:
-                    monster.state.conditions.remove(command.condition)
-                    removed = True
+            entity = game_state.get_entity_by_id(command.entity_type, command.entity_id)
+            if not entity:
+                raise ValueError("Target entity not found")
+
+            if command.condition in entity.state.conditions:
+                entity.state.conditions.remove(command.condition)
+                removed = True
 
             self.game_service.save_game(game_state)
 
             result.data = RemoveConditionResult(
-                target=command.target,
+                target=getattr(entity, "display_name", "unknown"),
                 condition=command.condition,
                 removed=removed,
             )
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
-            logger.info(f"Condition Removed: {command.target} is no longer {command.condition}")
+            logger.info(
+                f"Condition Removed: {getattr(entity, 'display_name', 'unknown')} is no longer {command.condition}"
+            )
 
         elif isinstance(command, UpdateSpellSlotsCommand):
             character = game_state.character.state

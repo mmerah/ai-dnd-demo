@@ -6,15 +6,23 @@ import random
 from app.events.base import BaseCommand, CommandResult
 from app.events.commands.broadcast_commands import BroadcastGameUpdateCommand
 from app.events.commands.combat_commands import (
+    AddParticipantCommand,
+    EndCombatCommand,
+    NextTurnCommand,
+    RemoveParticipantCommand,
     SpawnMonstersCommand,
     StartCombatCommand,
     TriggerScenarioEncounterCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services import IGameService, IMonsterRepository, IScenarioService
+from app.interfaces.services import ICombatService, IGameService, IMonsterRepository, IScenarioService
 from app.models.combat import CombatParticipant
 from app.models.game_state import GameState
 from app.models.tool_results import (
+    AddParticipantResult,
+    EndCombatResult,
+    NextTurnResult,
+    RemoveParticipantResult,
     SpawnMonstersResult,
     StartCombatResult,
     TriggerEncounterResult,
@@ -31,15 +39,21 @@ class CombatHandler(BaseHandler):
         game_service: IGameService,
         scenario_service: IScenarioService,
         monster_repository: IMonsterRepository,
+        combat_service: ICombatService,
     ):
         super().__init__(game_service)
         self.scenario_service = scenario_service
         self.monster_repository = monster_repository
+        self.combat_service = combat_service
 
     supported_commands = (
         StartCombatCommand,
         TriggerScenarioEncounterCommand,
         SpawnMonstersCommand,
+        NextTurnCommand,
+        EndCombatCommand,
+        AddParticipantCommand,
+        RemoveParticipantCommand,
     )
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
@@ -53,27 +67,28 @@ class CombatHandler(BaseHandler):
 
             participants_added: list[CombatParticipant] = []
 
-            # Add NPCs to combat
+            # Add provided entities to combat (IDs required, fail fast on missing)
             for npc_def in command.npcs:
-                name = npc_def.name
-                # Roll initiative if not provided (d20 + dex modifier, assume +2 for now)
-                initiative = npc_def.initiative if npc_def.initiative is not None else random.randint(1, 20) + 2
-
-                if game_state.combat:
-                    game_state.combat.add_participant(name, initiative, is_player=False)
-                    participants_added.append(CombatParticipant(name=name, initiative=initiative, is_player=False))
+                entity_id = npc_def.entity_id
+                entity_type = npc_def.entity_type
+                if not entity_id:
+                    raise ValueError("StartCombat requires entity_id for each participant")
+                combat = game_state.combat
+                if not combat:
+                    raise RuntimeError("Combat state not initialized")
+                entity = game_state.get_entity_by_id(entity_type, entity_id)
+                if not entity:
+                    raise ValueError(f"Entity not found for id {entity_id}")
+                participant = self.combat_service.add_participant(combat, entity)
+                participants_added.append(participant)
 
             # Add player if not already in combat
             if game_state.combat and not any(p.is_player for p in game_state.combat.participants):
                 # Roll player initiative (d20 + dex modifier)
-                player_dex_mod = (game_state.character.state.abilities.DEX - 10) // 2
-                player_initiative = random.randint(1, 20) + player_dex_mod
-                game_state.combat.add_participant(game_state.character.sheet.name, player_initiative, is_player=True)
-                participants_added.append(
-                    CombatParticipant(
-                        name=game_state.character.sheet.name, initiative=player_initiative, is_player=True
-                    )
-                )
+                player_entity = game_state.character
+                combat = game_state.combat
+                participant = self.combat_service.add_participant(combat, player_entity)
+                participants_added.append(participant)
 
             # Save game state
             self.game_service.save_game(game_state)
@@ -134,19 +149,14 @@ class CombatHandler(BaseHandler):
                             inst = self.game_service.create_monster_instance(
                                 monster_data, game_state.scenario_instance.current_location_id
                             )
-                            name = game_state.add_monster_instance(inst)
-
-                            # Roll initiative
-                            dex_mod = (monster_data.abilities.DEX - 10) // 2
-                            initiative = random.randint(1, 20) + dex_mod
+                            _ = game_state.add_monster_instance(inst)
 
                             # Add to combat
-                            if game_state.combat:
-                                game_state.combat.add_participant(name, initiative, is_player=False)
-
-                            monsters_spawned.append(
-                                CombatParticipant(name=name, initiative=initiative, is_player=False)
-                            )
+                            combat = game_state.combat
+                            if combat:
+                                monster_entity = inst
+                                participant = self.combat_service.add_participant(combat, monster_entity)
+                                monsters_spawned.append(participant)
                     except KeyError as e:
                         logger.error(
                             f"Failed to spawn monster '{getattr(spawn, 'monster_name', '') or getattr(spawn, 'scenario_monster_id', '')}': {e}"
@@ -182,19 +192,14 @@ class CombatHandler(BaseHandler):
                             inst = self.game_service.create_monster_instance(
                                 monster_data, game_state.scenario_instance.current_location_id
                             )
-                            name = game_state.add_monster_instance(inst)
-
-                            # Roll initiative for the monster
-                            dex_mod = (monster_data.abilities.DEX - 10) // 2
-                            initiative = random.randint(1, 20) + dex_mod
+                            _ = game_state.add_monster_instance(inst)
 
                             # If in combat, add to combat
                             if game_state.combat:
-                                game_state.combat.add_participant(name, initiative, is_player=False)
-
-                            spawned_monsters.append(
-                                CombatParticipant(name=name, initiative=initiative, is_player=False)
-                            )
+                                monster_entity = inst
+                                combat = game_state.combat
+                                participant = self.combat_service.add_participant(combat, monster_entity)
+                                spawned_monsters.append(participant)
                     except KeyError as e:
                         logger.error(f"Failed to spawn monster '{monster_name}': {e}")
                         raise ValueError(f"Monster '{monster_name}' not found in database") from e
@@ -212,6 +217,53 @@ class CombatHandler(BaseHandler):
                 result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
             logger.info(f"Spawned {len(spawned_monsters)} monsters")
+
+        elif isinstance(command, NextTurnCommand):
+            if not game_state.combat or not game_state.combat.is_active:
+                result.data = NextTurnResult(round_number=0, current_turn=None, message="No active combat")
+                return result
+
+            # Advance turn
+            game_state.combat.next_turn()
+            current = game_state.combat.get_current_turn()
+
+            # Save and broadcast
+            self.game_service.save_game(game_state)
+            result.data = NextTurnResult(
+                round_number=game_state.combat.round_number,
+                current_turn=current,
+                message=f"Turn advanced to {current.name if current else 'N/A'} (Round {game_state.combat.round_number})",
+            )
+            result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
+
+        elif isinstance(command, EndCombatCommand):
+            if game_state.combat:
+                game_state.end_combat()
+                self.game_service.save_game(game_state)
+                result.data = EndCombatResult(message="Combat ended")
+                result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
+            else:
+                result.data = EndCombatResult(message="No active combat")
+
+        elif isinstance(command, AddParticipantCommand):
+            if not game_state.combat:
+                raise ValueError("Cannot add participant: no active combat. Use start_combat first.")
+            entity = game_state.get_entity_by_id(command.entity_type, command.entity_id)
+            if not entity:
+                raise ValueError("Entity not found")
+            combat = game_state.combat
+            participant = self.combat_service.add_participant(combat, entity)
+            self.game_service.save_game(game_state)
+            result.data = AddParticipantResult(participant=participant, message=f"Added {participant.name} to combat")
+            result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
+
+        elif isinstance(command, RemoveParticipantCommand):
+            if not game_state.combat:
+                raise ValueError("Cannot remove participant: no active combat")
+            game_state.combat.remove_participant_by_id(command.entity_id)
+            self.game_service.save_game(game_state)
+            result.data = RemoveParticipantResult(entity_id=command.entity_id, message="Removed from combat")
+            result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
         return result
 

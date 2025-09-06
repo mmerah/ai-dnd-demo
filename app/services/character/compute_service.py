@@ -168,7 +168,7 @@ class CharacterComputeService(ICharacterComputeService):
 
         return ac + shield_bonus
 
-    def compute_initiative(self, modifiers: AbilityModifiers) -> int:
+    def compute_initiative_bonus(self, modifiers: AbilityModifiers) -> int:
         return modifiers.DEX
 
     def compute_spell_numbers(
@@ -230,7 +230,7 @@ class CharacterComputeService(ICharacterComputeService):
         skills = self.compute_skills(sheet.class_index, selected_skills, modifiers, proficiency)
 
         armor_class = self.compute_armor_class(modifiers, state.inventory)
-        initiative = self.compute_initiative(modifiers)
+        initiative_bonus = self.compute_initiative_bonus(modifiers)
         speed = self.compute_speed(sheet.race, state.inventory)
 
         # HP and Hit Dice totals/types based on class and level
@@ -242,7 +242,7 @@ class CharacterComputeService(ICharacterComputeService):
         new_state.saving_throws = saving_throws
         new_state.skills = skills
         new_state.armor_class = armor_class
-        new_state.initiative = initiative
+        new_state.initiative_bonus = initiative_bonus
         new_state.speed = speed
         new_state.hit_points.maximum = max_hp
         new_state.hit_points.current = current_hp

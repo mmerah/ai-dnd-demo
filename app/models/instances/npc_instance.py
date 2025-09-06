@@ -36,3 +36,8 @@ class NPCInstance(BaseModel):
     def is_alive(self) -> bool:
         """NPC considered alive if embedded character has HP > 0."""
         return self.state.hit_points.current > 0
+
+    @property
+    def display_name(self) -> str:
+        """Human-readable name for UI/combat."""
+        return self.sheet.character.name

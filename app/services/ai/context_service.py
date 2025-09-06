@@ -6,6 +6,7 @@ from app.interfaces.services import (
     IScenarioService,
     ISpellRepository,
 )
+from app.models.entity import EntityType
 from app.models.game_state import GameState
 from app.models.quest import ObjectiveStatus
 from app.models.scenario import ScenarioSheet
@@ -51,6 +52,11 @@ class ContextService:
             npcs_context = self._build_npcs_at_location_context(game_state)
             if npcs_context:
                 context_parts.append(npcs_context)
+
+            # Add Monsters present at current location (runtime instances)
+            monsters_context = self._build_monsters_at_location_context(game_state)
+            if monsters_context:
+                context_parts.append(monsters_context)
 
             # Add quest context
             quest_context = self._build_quest_context(game_state, scenario)
@@ -163,6 +169,26 @@ class ContextService:
 
         return "\n".join(context_parts)
 
+    def _build_monsters_at_location_context(self, game_state: GameState) -> str | None:
+        """Build context for monsters present at current location (runtime instances)."""
+        if not game_state.scenario_instance.is_in_known_location():
+            return None
+
+        current_loc_id = game_state.scenario_instance.current_location_id
+        monsters_here = [m for m in game_state.monsters if m.current_location_id == current_loc_id and m.is_alive()]
+
+        if not monsters_here:
+            return None
+
+        lines = ["Monsters Present (use IDs for tools):"]
+        for m in monsters_here:
+            st = m.state
+            lines.append(
+                f"  • {m.sheet.name} [ID: {m.instance_id}]: HP {st.hit_points.current}/{st.hit_points.maximum}, AC {st.armor_class}"
+            )
+
+        return "\n".join(lines)
+
     def _build_npcs_at_location_context(self, game_state: GameState) -> str | None:
         """Build context for NPCs present at current location."""
         if not game_state.scenario_instance.is_in_known_location():
@@ -237,7 +263,10 @@ class ContextService:
             # Basic info
             npc_name = npc.sheet.character.name
             npc_state = npc.state
-            npc_info = f"  • {npc_name}: HP {npc_state.hit_points.current}/{npc_state.hit_points.maximum}, AC {npc_state.armor_class}"
+            npc_info = (
+                f"  • {npc_name} [ID: {npc.instance_id}]: "
+                f"HP {npc_state.hit_points.current}/{npc_state.hit_points.maximum}, AC {npc_state.armor_class}"
+            )
 
             # Add conditions if any
             if npc_state.conditions:
@@ -273,9 +302,39 @@ class ContextService:
             if participant.is_active:
                 marker = "→" if current_turn and participant.name == current_turn.name else " "
                 player_tag = " [PLAYER]" if participant.is_player else ""
-                context_parts.append(f"  {marker} {participant.initiative:2d}: {participant.name}{player_tag}")
+                context_parts.append(
+                    f"  {marker} {participant.initiative:2d}: {participant.name}{player_tag} (ID: {participant.entity_id})"
+                )
+
+        # Monsters in Combat (detailed)
+        monsters_block = self._build_monsters_in_combat_context(game_state)
+        if monsters_block:
+            context_parts.append("\n" + monsters_block)
 
         return "\n".join(context_parts)
+
+    def _build_monsters_in_combat_context(self, game_state: GameState) -> str | None:
+        """List monsters currently participating in combat with stats and initiative."""
+        if not game_state.combat:
+            return None
+        combat = game_state.combat
+        rows: list[str] = []
+        for p in combat.participants:
+            etype = p.entity_type.value if hasattr(p.entity_type, "value") else str(p.entity_type)
+            if etype != EntityType.MONSTER.value:
+                continue
+            monster = game_state.get_entity_by_id(EntityType.MONSTER, p.entity_id)
+            if not monster:
+                continue
+            st = monster.state
+            status = "ACTIVE" if p.is_active else "INACTIVE"
+            cond = f" [{', '.join(st.conditions)}]" if st.conditions else ""
+            rows.append(
+                f"  • {p.name} [ID: {p.entity_id}] — Init {p.initiative}, {status}; HP {st.hit_points.current}/{st.hit_points.maximum}, AC {st.armor_class}{cond}"
+            )
+        if not rows:
+            return None
+        return "Monsters in Combat:\n" + "\n".join(rows)
 
     def _build_spell_context(self, spells: list[str]) -> str | None:
         """Build spell context with descriptions if data service available."""

@@ -27,7 +27,7 @@ class EntityState(BaseModel):
     hit_points: HitPoints
     hit_dice: HitDice
     armor_class: int = Field(ge=1, default=10)
-    initiative: int = 0
+    initiative_bonus: int = 0
     speed: int = Field(ge=0, default=30)
     saving_throws: SavingThrows = Field(default_factory=SavingThrows)
     skills: list[SkillValue] = Field(default_factory=list)

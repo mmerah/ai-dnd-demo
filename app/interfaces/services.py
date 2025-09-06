@@ -12,6 +12,8 @@ from app.common.types import JSONSerializable
 from app.models.ai_response import AIResponse
 from app.models.attributes import Abilities, AbilityModifiers, AttackAction, SavingThrows, SkillValue
 from app.models.character import CharacterSheet
+from app.models.combat import CombatParticipant, CombatState
+from app.models.entity import ICombatEntity
 from app.models.game_state import GameEvent, GameEventType, GameState, Message, MessageRole
 from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.entity_state import EntityState
@@ -472,7 +474,7 @@ class ICharacterComputeService(ABC):
         pass
 
     @abstractmethod
-    def compute_initiative(self, modifiers: AbilityModifiers) -> int:
+    def compute_initiative_bonus(self, modifiers: AbilityModifiers) -> int:
         pass
 
     @abstractmethod
@@ -527,6 +529,20 @@ class ILevelProgressionService(ABC):
     @abstractmethod
     def level_up_character(self, character: CharacterInstance) -> None:
         """Increment level and adjust HP/Hit Dice, then recompute derived values."""
+        pass
+
+
+class ICombatService(ABC):
+    """Interface for combat-related computations and operations (SOLID/DRY)."""
+
+    @abstractmethod
+    def roll_initiative(self, entity: ICombatEntity) -> int:
+        """Roll initiative: d20 + entity's initiative modifier from state."""
+        pass
+
+    @abstractmethod
+    def add_participant(self, combat: CombatState, entity: ICombatEntity) -> CombatParticipant:
+        """Add an entity to combat, rolling initiative and inferring type."""
         pass
 
 
