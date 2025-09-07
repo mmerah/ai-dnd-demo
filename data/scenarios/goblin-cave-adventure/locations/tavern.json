@@ -7,7 +7,6 @@
     "return_visit": "The familiar warmth of the Rusty Tankard welcomes you back. The same fireplace crackles, and Tom the barkeep gives you a knowing nod.",
     "cleared": "The tavern feels more lively now that the goblin threat has been dealt with. Patrons laugh more freely, and even Tom seems more relaxed."
   },
-  "npc_ids": ["barkeep-tom"],
   "encounter_ids": [],
   "connections": [
     {

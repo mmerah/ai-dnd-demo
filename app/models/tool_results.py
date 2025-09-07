@@ -145,6 +145,15 @@ class UpdateLocationStateResult(BaseModel):
     message: str
 
 
+class MoveNPCResult(BaseModel):
+    type: str = "move_npc"
+    npc_id: str
+    npc_name: str
+    from_location_id: str
+    to_location_id: str
+    message: str
+
+
 class StartCombatResult(BaseModel):
     type: str = "start_combat"
     combat_started: bool
@@ -238,6 +247,7 @@ ToolResult = (
     | ChangeLocationResult
     | DiscoverSecretResult
     | UpdateLocationStateResult
+    | MoveNPCResult
     | StartCombatResult
     | TriggerEncounterResult
     | SpawnMonstersResult

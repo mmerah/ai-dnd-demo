@@ -66,8 +66,6 @@ class InitialNarrativeData(BaseSSEData):
     narrative: str
 
 
-# TODO: Verify ToolCallData vs ToolResultData vs ToolResult
-# TODO: Generally, those SSE events, are they useful ?
 class ToolCallData(BaseSSEData):
     """Data for tool call events."""
 

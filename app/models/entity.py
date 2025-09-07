@@ -1,8 +1,8 @@
-"""Unified entity protocol for combat and runtime operations.
+"""Unified entity protocol for runtime operations.
 
 Defines a minimal interface that runtime entities (player character,
-NPCs, and monsters) implement so systems like combat can treat them
-uniformly.
+NPCs, and monsters) implement so systems can treat them uniformly
+for all operations (combat, HP updates, conditions, inventory, etc).
 """
 
 from __future__ import annotations
@@ -22,8 +22,8 @@ class EntityType(str, Enum):
 
 
 @runtime_checkable
-class ICombatEntity(Protocol):
-    """Protocol that character, NPC, and monster instances implement."""
+class IEntity(Protocol):
+    """Protocol that character, NPC, and monster instances implement for all runtime operations."""
 
     @property
     def instance_id(self) -> str:  # stable per save

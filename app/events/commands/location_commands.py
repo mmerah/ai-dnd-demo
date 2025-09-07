@@ -39,3 +39,14 @@ class UpdateLocationStateCommand(BaseCommand):
 
     def get_handler_name(self) -> str:
         return "location"
+
+
+@dataclass
+class MoveNPCCommand(BaseCommand):
+    """Move an NPC instance to a specific scenario location by ID."""
+
+    npc_id: str = ""
+    to_location_id: str = ""
+
+    def get_handler_name(self) -> str:
+        return "location"

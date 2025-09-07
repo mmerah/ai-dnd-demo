@@ -426,7 +426,7 @@ class GameService(IGameService):
 
         # Single-entry model: adjust equipped_quantity by one
         if equipped:
-            # TODO: Future: move to a slot-based equipment system (typed slots, constraints)
+            # TODO(MVP2): move to a slot-based equipment system (typed slots, constraints)
             self._enforce_equip_constraints(inventory, item_def)
             if item.equipped_quantity < item.quantity:
                 item.equipped_quantity += 1

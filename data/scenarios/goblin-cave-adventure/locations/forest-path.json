@@ -7,7 +7,6 @@
     "return_visit": "The familiar forest path seems quieter now. You notice details you missed before - scratches on tree bark, small footprints in the mud.",
     "cleared": "The forest path feels safer now that the goblin threat has been dealt with. Birds sing in the branches above."
   },
-  "npc_ids": [],
   "encounter_ids": ["forest-ambush"],
   "connections": [
     {

@@ -98,6 +98,21 @@ class CombatState(BaseModel):
         """End the combat encounter."""
         self.is_active = False
 
+    def get_turn_order_display(self) -> str:
+        """Return a formatted turn order display string."""
+        if not self.participants:
+            return "No participants in combat"
+        current = self.get_current_turn()
+        lines = [f"Round {self.round_number} - Turn Order:"]
+        for p in self.participants:
+            if not p.is_active:
+                continue
+            marker = "→ " if current and p.entity_id == current.entity_id else "  "
+            tag = " [PLAYER]" if p.is_player else ""
+            init = p.initiative if p.initiative is not None else 0
+            lines.append(f"{marker}{init:2d}: {p.name}{tag} (ID: {p.entity_id})")
+        return "\n".join(lines)
+
 
 class MonsterSpawnInfo(BaseModel):
     """Information for spawning monsters from the database."""

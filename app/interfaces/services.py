@@ -13,7 +13,7 @@ from app.models.ai_response import AIResponse
 from app.models.attributes import Abilities, AbilityModifiers, AttackAction, SavingThrows, SkillValue
 from app.models.character import CharacterSheet
 from app.models.combat import CombatParticipant, CombatState
-from app.models.entity import ICombatEntity
+from app.models.entity import IEntity
 from app.models.game_state import GameEvent, GameEventType, GameState, Message, MessageRole
 from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.entity_state import EntityState
@@ -60,6 +60,13 @@ class IGameService(ABC):
 
     @abstractmethod
     def save_game(self, game_state: GameState) -> str:
+        """Save the game state and return the save path as a string.
+
+        Returns str (stringified Path) for consistency with other API methods
+        that return strings for paths, while ISaveManager returns Path objects
+        for internal use. This allows the service layer to remain decoupled
+        from specific path implementations.
+        """
         pass
 
     @abstractmethod
@@ -320,6 +327,11 @@ class IRepository(ABC, Generic[T]):
         """Check if a reference exists."""
         pass
 
+    @abstractmethod
+    def get_name_from_index(self, index: str) -> str | None:
+        """Resolve canonical name from an index/key (case-insensitive)."""
+        pass
+
 
 class IItemRepository(IRepository[ItemDefinition]):
     """Repository interface for item data."""
@@ -536,12 +548,12 @@ class ICombatService(ABC):
     """Interface for combat-related computations and operations (SOLID/DRY)."""
 
     @abstractmethod
-    def roll_initiative(self, entity: ICombatEntity) -> int:
+    def roll_initiative(self, entity: IEntity) -> int:
         """Roll initiative: d20 + entity's initiative modifier from state."""
         pass
 
     @abstractmethod
-    def add_participant(self, combat: CombatState, entity: ICombatEntity) -> CombatParticipant:
+    def add_participant(self, combat: CombatState, entity: IEntity) -> CombatParticipant:
         """Add an entity to combat, rolling initiative and inferring type."""
         pass
 

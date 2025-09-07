@@ -85,7 +85,7 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
                 encounters=encounter_map,
                 quests=quests,
                 progression=progression if progression else ScenarioProgression(acts=[]),
-                random_encounters=[],  # TODO: Load random encounters if needed
+                random_encounters=[],  # TODO(MVP2): Load random encounters if needed
                 treasure_guidelines=treasure_guidelines,
             )
 

@@ -9,6 +9,7 @@ from app.agents.core.dependencies import AgentDependencies
 from app.events.commands.location_commands import (
     ChangeLocationCommand,
     DiscoverSecretCommand,
+    MoveNPCCommand,
     UpdateLocationStateCommand,
 )
 from app.tools.decorators import tool_handler
@@ -54,26 +55,41 @@ async def discover_secret(ctx: RunContext[AgentDependencies], secret_id: str) ->
 async def update_location_state(
     ctx: RunContext[AgentDependencies],
     danger_level: str | None = None,
-    add_npc: str | None = None,
-    remove_npc: str | None = None,
     complete_encounter: str | None = None,
     add_effect: str | None = None,
 ) -> BaseModel:
     """Update the state of the current location.
 
-    Use this to reflect changes in the environment, such as clearing a room of enemies,
-    an NPC arriving or leaving, or a magical effect being applied to the area.
+    Use this to reflect changes in the environment, such as clearing a room of enemies
+    or a magical effect being applied to the area.
 
     Args:
         danger_level: New danger level (safe/low/moderate/high/extreme/cleared).
-        add_npc: The name of an NPC that has arrived at the location.
-        remove_npc: The name of an NPC that has left the location.
         complete_encounter: The ID of an encounter that has been resolved.
         add_effect: A new environmental effect to add (e.g., 'magical darkness', 'heavy fog').
 
     Examples:
         - After defeating enemies: danger_level="cleared", complete_encounter="goblin_guards"
-        - An ally arrives: add_npc="Elara"
         - A magical trap is sprung: add_effect="magical darkness"
+        - Area becomes safer: danger_level="low"
+    """
+    raise NotImplementedError("This is handled by the @tool_handler decorator")
+
+
+@tool_handler(MoveNPCCommand)
+async def move_npc_to_location(
+    ctx: RunContext[AgentDependencies],
+    npc_id: str,
+    to_location_id: str,
+) -> BaseModel:
+    """Move an NPC to a different scenario location by ID.
+
+    Args:
+        npc_id: The NPC instance ID to move.
+        to_location_id: The target location ID within the current scenario.
+
+    Examples:
+        - Move Tom the Barkeep to tavern: npc_id="<npc-instance-id>", to_location_id="tavern"
+        - Send guard to cave entrance: npc_id="<guard-id>", to_location_id="goblin-cave-entrance"
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")

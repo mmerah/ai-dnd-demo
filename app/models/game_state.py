@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 
 from app.common.types import JSONSerializable
 from app.models.combat import CombatState
-from app.models.entity import EntityType, ICombatEntity
+from app.models.entity import EntityType, IEntity
 from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.monster_instance import MonsterInstance
 from app.models.instances.npc_instance import NPCInstance
@@ -235,8 +235,12 @@ class GameState(BaseModel):
         """Get all NPCs that are still alive."""
         return [npc for npc in self.npcs if npc.is_alive()]
 
+    def get_npcs_at_location(self, location_id: str) -> list[NPCInstance]:
+        """Get all NPCs currently at the specified location."""
+        return [npc for npc in self.npcs if npc.current_location_id == location_id]
+
     # Unified entity helpers
-    def find_entity_by_name(self, name: str) -> tuple[EntityType, ICombatEntity] | None:
+    def find_entity_by_name(self, name: str) -> tuple[EntityType, IEntity] | None:
         """Find any entity by display name (case-insensitive)."""
         # Player
         if self.character.sheet.name.lower() == name.lower():
@@ -254,21 +258,49 @@ class GameState(BaseModel):
 
         return None
 
-    def get_entity_by_id(self, entity_type: EntityType | str, entity_id: str) -> ICombatEntity | None:
-        """Resolve an entity by type and instance id."""
-        etype = entity_type.value if isinstance(entity_type, EntityType) else entity_type
+    def get_entity_by_id(self, entity_type: EntityType, entity_id: str) -> IEntity | None:
+        """Resolve an entity by type and instance id for all operations (combat, HP, conditions, etc)."""
+        match entity_type:
+            case EntityType.PLAYER:
+                if self.character.instance_id == entity_id:
+                    return self.character
+            case EntityType.NPC:
+                for npc in self.npcs:
+                    if npc.instance_id == entity_id:
+                        return npc
+            case EntityType.MONSTER:
+                for mon in self.monsters:
+                    if mon.instance_id == entity_id:
+                        return mon
+        return None  # Entity with given ID not found
 
-        if etype == "player" and self.character.instance_id == entity_id:
-            return self.character
-        if etype == "npc":
-            for npc in self.npcs:
-                if npc.instance_id == entity_id:
-                    return npc
-        if etype == "monster":
-            for mon in self.monsters:
-                if mon.instance_id == entity_id:
-                    return mon
+    def get_npc_by_id(self, npc_id: str) -> NPCInstance | None:
+        """Resolve an NPC instance by id (location/state aware)."""
+        for npc in self.npcs:
+            if npc.instance_id == npc_id:
+                return npc
         return None
+
+    def move_npc(self, npc_id: str, to_location_id: str) -> NPCInstance:
+        """Move an NPC to a different location.
+
+        Args:
+            npc_id: The NPC instance ID to move
+            to_location_id: The target location ID
+
+        Returns:
+            The moved NPC instance
+
+        Raises:
+            ValueError: If NPC not found
+        """
+        npc = self.get_npc_by_id(npc_id)
+        if not npc:
+            raise ValueError(f"NPC with id '{npc_id}' not found")
+
+        npc.current_location_id = to_location_id
+        npc.touch()
+        return npc
 
     def start_combat(self) -> CombatState:
         """Initialize combat state."""

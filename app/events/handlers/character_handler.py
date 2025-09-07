@@ -50,7 +50,9 @@ class CharacterHandler(BaseHandler):
 
             entity = game_state.get_entity_by_id(command.entity_type, command.entity_id)
             if not entity:
-                raise ValueError("Target entity not found")
+                raise ValueError(
+                    f"Entity with ID '{command.entity_id}' of type '{command.entity_type.value}' not found"
+                )
 
             state = entity.state
             old_hp = state.hit_points.current
@@ -84,7 +86,9 @@ class CharacterHandler(BaseHandler):
         elif isinstance(command, UpdateConditionCommand) and command.action == "add":
             entity = game_state.get_entity_by_id(command.entity_type, command.entity_id)
             if not entity:
-                raise ValueError("Target entity not found")
+                raise ValueError(
+                    f"Entity with ID '{command.entity_id}' of type '{command.entity_type.value}' not found"
+                )
 
             if command.condition not in entity.state.conditions:
                 entity.state.conditions.append(command.condition)
@@ -106,7 +110,9 @@ class CharacterHandler(BaseHandler):
 
             entity = game_state.get_entity_by_id(command.entity_type, command.entity_id)
             if not entity:
-                raise ValueError("Target entity not found")
+                raise ValueError(
+                    f"Entity with ID '{command.entity_id}' of type '{command.entity_type.value}' not found"
+                )
 
             if command.condition in entity.state.conditions:
                 entity.state.conditions.remove(command.condition)

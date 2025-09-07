@@ -87,6 +87,7 @@ class NarrativeAgent(BaseAgent):
             location_tools.change_location,
             location_tools.discover_secret,
             location_tools.update_location_state,
+            location_tools.move_npc_to_location,
             combat_tools.start_combat,
             combat_tools.trigger_scenario_encounter,
             combat_tools.spawn_monsters,

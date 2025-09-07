@@ -95,7 +95,11 @@ class AgentFactory:
 
             narrative_agent = NarrativeAgent(
                 agent=agent,
-                context_service=ContextService(scenario_service, item_repository, monster_repository, spell_repository),
+                context_service=ContextService(
+                    item_repository=item_repository,
+                    monster_repository=monster_repository,
+                    spell_repository=spell_repository,
+                ),
                 message_converter=MessageConverterService(),
                 event_logger=EventLoggerService(game_id="", debug=debug),
                 metadata_service=metadata_service,

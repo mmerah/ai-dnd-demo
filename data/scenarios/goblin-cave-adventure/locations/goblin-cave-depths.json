@@ -7,7 +7,6 @@
     "return_visit": "You recognize the chamber. The goblins seem fewer now, but danger still lurks.",
     "cleared": "The once-busy goblin den lies empty. Only the stench remains."
   },
-  "npc_ids": [],
   "monster_ids": ["goblin-warrior"],
   "encounter_ids": ["deep-guards"],
   "connections": [

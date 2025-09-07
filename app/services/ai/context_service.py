@@ -3,7 +3,6 @@
 from app.interfaces.services import (
     IItemRepository,
     IMonsterRepository,
-    IScenarioService,
     ISpellRepository,
 )
 from app.models.entity import EntityType
@@ -11,20 +10,16 @@ from app.models.game_state import GameState
 from app.models.quest import ObjectiveStatus
 from app.models.scenario import ScenarioSheet
 
-# TODO: Could just deep-load GameState and Scenario no ? Does it need to be that complicated ?
-
 
 class ContextService:
     """Service for building AI context following Single Responsibility."""
 
     def __init__(
         self,
-        scenario_service: IScenarioService,
         item_repository: IItemRepository | None = None,
         monster_repository: IMonsterRepository | None = None,
         spell_repository: ISpellRepository | None = None,
     ):
-        self.scenario_service = scenario_service
         self.item_repository = item_repository
         self.monster_repository = monster_repository
         self.spell_repository = spell_repository
@@ -36,11 +31,14 @@ class ContextService:
         # Add scenario context if available and in known location
         if game_state.scenario_instance.is_in_known_location():
             scenario = game_state.scenario_instance.sheet
-            # Get base scenario context
-            scenario_context = self.scenario_service.get_scenario_context_for_ai(
-                scenario,
-                game_state.scenario_instance.current_location_id,
-            )
+            # Build base scenario context directly from embedded sheet
+            location_id = game_state.scenario_instance.current_location_id
+            location = scenario.get_location(location_id)
+            scenario_context = f"# {scenario.title}\n\n{scenario.description}\n\n"
+            if location:
+                scenario_context += f"## Current Location: {location.name}\n{location.description}\n\n"
+                if location.encounter_ids:
+                    scenario_context += f"Potential encounters: {len(location.encounter_ids)} available\n\n"
             context_parts.append(scenario_context)
 
             # Add enhanced location details
@@ -320,8 +318,7 @@ class ContextService:
         combat = game_state.combat
         rows: list[str] = []
         for p in combat.participants:
-            etype = p.entity_type.value if hasattr(p.entity_type, "value") else str(p.entity_type)
-            if etype != EntityType.MONSTER.value:
+            if p.entity_type != EntityType.MONSTER:
                 continue
             monster = game_state.get_entity_by_id(EntityType.MONSTER, p.entity_id)
             if not monster:

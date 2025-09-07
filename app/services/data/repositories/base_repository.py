@@ -3,12 +3,24 @@
 import json
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, Protocol, TypeVar, cast
 
 from pydantic import BaseModel
 
 from app.interfaces.services import IRepository
 
+
+class NamedModel(Protocol):
+    """Protocol for models that have a name attribute.
+
+    All repository items (ItemDefinition, MonsterSheet, SpellDefinition)
+    must implement this protocol.
+    """
+
+    name: str
+
+
+# Repository items must be Pydantic models
 T = TypeVar("T", bound=BaseModel)
 
 
@@ -79,6 +91,60 @@ class BaseRepository(IRepository[T], ABC, Generic[T]):
             return key in self._cache
 
         return self._check_key_exists(key)
+
+    def _extract_name(self, item: T) -> str:
+        """Extract name from a repository item.
+
+        All repository items must have a 'name' attribute by contract.
+        This helper method provides type-safe access.
+        """
+        if not hasattr(item, "name"):
+            raise AttributeError(f"Repository item {type(item).__name__} must have 'name' attribute")
+        return cast(NamedModel, item).name
+
+    def get_name_from_index(self, index: str) -> str | None:
+        """Resolve canonical name from an index/key (case-insensitive).
+
+        Default implementation for repositories. Searches cache first,
+        then falls back to loading the item to get its name attribute.
+
+        Args:
+            index: The index/key to resolve
+
+        Returns:
+            The item's display name if found, None otherwise
+        """
+        if not self._initialized:
+            self._initialize()
+
+        key_lower = index.lower()
+
+        # Try cache first (case-insensitive search)
+        if self.cache_enabled and self._cache:
+            # Direct hit
+            if index in self._cache:
+                item = self._cache[index]
+                return self._extract_name(item)
+
+            # Case-insensitive search
+            for k, v in self._cache.items():
+                item_name = self._extract_name(v)
+                if k.lower() == key_lower or item_name.lower() == key_lower:
+                    return item_name
+
+        # Fallback: try to load the item
+        loaded_item = self.get(index)
+        if loaded_item is not None:
+            return self._extract_name(loaded_item)
+
+        # Last resort: case-insensitive key search
+        for key in self.list_keys():
+            if key.lower() == key_lower:
+                key_item = self.get(key)
+                if key_item is not None:
+                    return self._extract_name(key_item)
+
+        return None
 
     def clear_cache(self) -> None:
         """Clear the in-memory cache."""

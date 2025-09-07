@@ -7,7 +7,6 @@
     "return_visit": "The treasure lies scattered where you left it. The throne stands empty.",
     "cleared": "Only dust and a few broken crates remain of the goblins' hoard."
   },
-  "npc_ids": [],
   "monster_ids": ["goblin-boss"],
   "encounter_ids": ["boss-fight"],
   "connections": [

@@ -283,7 +283,6 @@ class CharacterComputeService(ICharacterComputeService):
 
     def _text_index_from_name(self, name: str) -> str:
         # Normalize name to a simple index-like token (best-effort)
-        # TODO: Need a way to get name from index for ALL repositories
         return name.lower().replace(",", "").replace(" ", "-")
 
     def _is_proficient_with_weapon(self, class_index: str, race_index: str, idef: ItemDefinition) -> bool:

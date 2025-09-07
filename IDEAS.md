@@ -39,3 +39,10 @@ Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic 
 9.  Custom save names
 10. Agent Registry for multi-agent: Introduce a lightweight `AgentRegistry` to manage available agents (Narrative, Combat, Summarizer, Creator...). The orchestrator queries the registry to select an agent, enabling runtime toggles, environment-specific agent sets, and plug-in style extension without changing orchestrator code. Useful once we add Combat/Summarizer and want clean, declarative wiring.
 11. NPCs are not known at first
+12. Location traversal validation: Validate traversal from current location using scenario connections and requirements (connections/requirements already exist in location model)
+13. Equipment slot system: Move to a slot-based equipment system with typed slots and constraints (helmet, armor, shield, etc.)
+14. Random encounters: Load and use random encounters from scenarios for variety
+15. SSE events utility review: Audit frontend usage of SSE events and remove unused ones
+16. Consider ILocationService: Create a service to encapsulate location traversal validation and secret management to keep handlers small and focused
+17. Monster location tracking: Consider adding location-aware monsters that persist between encounters (wandering monsters)
+18. NPC population optimization: Currently all NPCs are loaded at game start - consider lazy loading based on location

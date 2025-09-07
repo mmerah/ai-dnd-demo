@@ -6,7 +6,7 @@ import random
 
 from app.interfaces.services import ICombatService
 from app.models.combat import CombatParticipant, CombatState
-from app.models.entity import EntityType, ICombatEntity
+from app.models.entity import EntityType, IEntity
 from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.monster_instance import MonsterInstance
 from app.models.instances.npc_instance import NPCInstance
@@ -15,11 +15,11 @@ from app.models.instances.npc_instance import NPCInstance
 class CombatService(ICombatService):
     """Default implementation of ICombatService."""
 
-    def roll_initiative(self, entity: ICombatEntity) -> int:
+    def roll_initiative(self, entity: IEntity) -> int:
         # d20 + initiative modifier from state
         return random.randint(1, 20) + int(entity.state.initiative_bonus or 0)
 
-    def _infer_entity_type(self, entity: ICombatEntity) -> EntityType:
+    def _infer_entity_type(self, entity: IEntity) -> EntityType:
         if isinstance(entity, CharacterInstance):
             return EntityType.PLAYER
         if isinstance(entity, NPCInstance):
@@ -28,7 +28,7 @@ class CombatService(ICombatService):
             return EntityType.MONSTER
         raise ValueError("Entity should be a player, NPC or monster")
 
-    def add_participant(self, combat: CombatState, entity: ICombatEntity) -> CombatParticipant:
+    def add_participant(self, combat: CombatState, entity: IEntity) -> CombatParticipant:
         etype = self._infer_entity_type(entity)
         final_init = self.roll_initiative(entity)
         is_pl = etype == EntityType.PLAYER

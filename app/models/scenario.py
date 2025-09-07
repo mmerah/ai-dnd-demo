@@ -190,11 +190,12 @@ class ScenarioSheet(BaseModel):
 
     def get_initial_narrative(self) -> str:
         """Generate initial narrative for scenario start."""
-        # TODO: Don't make it too formatted, otherwise the AI use it as inspiration for the rest of the messages
+        # Keep formatting light to avoid biasing the AI's style.
         start_loc = self.get_starting_location()
-
-        narrative = f"## {self.title}\n\n{self.description}\n\n"
-        narrative += f"### {start_loc.name}\n\n"
-        narrative += start_loc.get_description("first_visit")
-
-        return narrative
+        parts = [
+            f"{self.title}",
+            f"{self.description}",
+            f"{start_loc.name}",
+            start_loc.get_description("first_visit"),
+        ]
+        return "\n\n".join(parts)
