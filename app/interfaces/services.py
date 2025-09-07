@@ -19,6 +19,7 @@ from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.entity_state import EntityState
 from app.models.instances.monster_instance import MonsterInstance
 from app.models.item import InventoryItem, ItemDefinition, ItemRarity, ItemType
+from app.models.location import EncounterParticipantSpawn
 from app.models.monster import MonsterSheet
 from app.models.npc import NPCSheet
 from app.models.scenario import ScenarioLocation, ScenarioSheet
@@ -555,6 +556,23 @@ class ICombatService(ABC):
     @abstractmethod
     def add_participant(self, combat: CombatState, entity: IEntity) -> CombatParticipant:
         """Add an entity to combat, rolling initiative and inferring type."""
+        pass
+
+    @abstractmethod
+    def add_participants(self, combat: CombatState, entities: list[IEntity]) -> list[CombatParticipant]:
+        """Add multiple entities to combat, returning their participant records."""
+        pass
+
+    @abstractmethod
+    def realize_spawns(
+        self,
+        game_state: GameState,
+        spawns: list[EncounterParticipantSpawn],
+        scenario_service: IScenarioService,
+        monster_repository: IMonsterRepository,
+        game_service: IGameService,
+    ) -> list[IEntity]:
+        """Convert encounter spawns into concrete entities based on probabilities and data sources."""
         pass
 
 

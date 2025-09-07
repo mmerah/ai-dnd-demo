@@ -70,7 +70,3 @@ class BroadcastHandler(BaseHandler):
             logger.debug("Broadcast game state update")
 
         return result
-
-    def can_handle(self, command: BaseCommand) -> bool:
-        """Check if this handler can process the given command."""
-        return isinstance(command, self.supported_commands)

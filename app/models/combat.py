@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, Field
 
-from app.models.entity import EntityType
+from app.models.attributes import EntityType
 
 
 class CombatParticipant(BaseModel):

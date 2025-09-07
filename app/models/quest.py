@@ -21,7 +21,6 @@ class QuestObjective(BaseModel):
     description: str
     status: ObjectiveStatus = ObjectiveStatus.PENDING
     required: bool = True  # If false, objective is optional
-    metadata: dict[str, str] = Field(default_factory=dict)  # For tracking specific conditions
 
 
 class QuestStatus(str, Enum):

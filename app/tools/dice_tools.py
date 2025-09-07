@@ -46,6 +46,12 @@ def _prepare_roll_command_kwargs(
     }
     if kwargs.get("target") is not None:
         command_kwargs["target"] = kwargs.get("target")
+    if kwargs.get("apply_to_entity_id") is not None:
+        command_kwargs["apply_to_entity_id"] = kwargs.get("apply_to_entity_id")
+    if kwargs.get("apply_as_damage") is not None:
+        command_kwargs["apply_as_damage"] = kwargs.get("apply_as_damage")
+    if kwargs.get("apply_to_entity_type") is not None:
+        command_kwargs["apply_to_entity_type"] = kwargs.get("apply_to_entity_type")
 
     # Broadcast original inputs including purpose for UX clarity
     broadcast_kwargs: dict[str, JSONSerializable] = original
@@ -60,6 +66,9 @@ async def roll_dice(
     roll_type: Literal["ability_check", "saving_throw", "attack", "damage", "initiative"],
     purpose: str,
     target: str | None = None,
+    apply_to_entity_id: str | None = None,
+    apply_as_damage: bool = False,
+    apply_to_entity_type: Literal["player", "npc", "monster"] | None = None,
 ) -> BaseModel:
     # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Roll dice for any purpose in D&D 5e.
@@ -71,12 +80,15 @@ async def roll_dice(
         roll_type: The category of roll ('ability_check', 'saving_throw', 'attack', 'damage', 'initiative')
         purpose: A human-readable description of the roll (e.g., "Stealth Check", "Longsword Damage")
         target: The name of the character or NPC being targeted or making the roll
+        apply_to_entity_id: If roll_type is 'damage' and this is set, automatically apply damage to this entity
+        apply_as_damage: If True and roll_type is 'damage', automatically apply the rolled damage
 
     Examples:
         - Stealth check: dice="1d20+5", roll_type="ability_check", purpose="Stealth Check"
         - Constitution save: dice="1d20+2", roll_type="saving_throw", purpose="Poison Save"
         - Longsword attack: dice="1d20+7", roll_type="attack", purpose="Longsword Attack", target="Goblin"
         - Damage roll: dice="1d8+4", roll_type="damage", purpose="Longsword Damage"
+        - Auto-apply damage: dice="1d8+4", roll_type="damage", purpose="Longsword Damage", apply_to_entity_id="goblin-1", apply_to_entity_type="monster", apply_as_damage=True
         - Initiative: dice="1d20+3", roll_type="initiative", purpose="Combat Initiative"
         - Advantage roll: dice="2d20kh+5", roll_type="ability_check", purpose="Perception with Advantage"
     """

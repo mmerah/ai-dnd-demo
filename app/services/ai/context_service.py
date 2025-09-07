@@ -5,7 +5,7 @@ from app.interfaces.services import (
     IMonsterRepository,
     ISpellRepository,
 )
-from app.models.entity import EntityType
+from app.models.attributes import EntityType
 from app.models.game_state import GameState
 from app.models.quest import ObjectiveStatus
 from app.models.scenario import ScenarioSheet

@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, Field
 
-from app.models.location import DangerLevel, LocationConnection, LootEntry, MonsterSpawn
+from app.models.location import DangerLevel, EncounterParticipantSpawn, LocationConnection, LootEntry
 from app.models.monster import MonsterSheet
 from app.models.quest import Quest
 
@@ -23,7 +23,7 @@ class Encounter(BaseModel):
     type: str  # Combat, Skill Challenge, Trap, Roleplay, Environmental, etc.
     description: str
     difficulty: str | None = None  # Easy, Medium, Hard
-    monster_spawns: list[MonsterSpawn] = Field(default_factory=list)  # For combat encounters
+    participant_spawns: list[EncounterParticipantSpawn] = Field(default_factory=list)
     dc: int | None = None  # For skill challenges/traps
     rewards: list[str] = Field(default_factory=list)  # Description of rewards
 
@@ -94,7 +94,6 @@ class ScenarioAct(BaseModel):
     locations: list[str]  # Location IDs
     objectives: list[str]  # General objectives (for context)
     quests: list[str] = Field(default_factory=list)  # Quest IDs for this act
-    completion_requirements: list[str] = Field(default_factory=list)  # What must be done to progress
 
 
 class ScenarioProgression(BaseModel):
@@ -127,15 +126,6 @@ class ScenarioProgression(BaseModel):
         return False
 
 
-class TreasureGuidelines(BaseModel):
-    """Guidelines for treasure distribution."""
-
-    total_gold: str
-    magic_items: str
-    consumables: str
-    mundane_items: str
-
-
 class ScenarioSheet(BaseModel):
     """Complete enhanced scenario/adventure definition."""
 
@@ -148,7 +138,6 @@ class ScenarioSheet(BaseModel):
     quests: list[Quest] = Field(default_factory=list)  # All quests in scenario
     progression: ScenarioProgression
     random_encounters: list[Encounter] = Field(default_factory=list)  # Random encounter table
-    treasure_guidelines: TreasureGuidelines
 
     def get_location(self, location_id: str) -> ScenarioLocation | None:
         """Get a location by ID."""

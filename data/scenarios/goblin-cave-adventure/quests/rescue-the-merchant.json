@@ -7,25 +7,19 @@
       "id": "find-merchant",
       "description": "Locate Elena in the goblin cave",
       "status": "pending",
-      "required": true,
-      "metadata": {
-        "npc_name": "Elena",
-        "location": "goblin-cave-depths"
-      }
+      "required": true
     },
     {
       "id": "free-merchant",
       "description": "Free Elena from captivity",
       "status": "pending",
-      "required": true,
-      "metadata": {}
+      "required": true
     },
     {
       "id": "escort-to-safety",
       "description": "Escort Elena safely out of the cave",
       "status": "pending",
-      "required": true,
-      "metadata": {}
+      "required": true
     }
   ],
   "status": "not_started",

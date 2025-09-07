@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 
 from app.events.base import BaseCommand
-from app.models.entity import EntityType
+from app.models.attributes import EntityType
 
 
 @dataclass

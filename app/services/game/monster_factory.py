@@ -5,14 +5,13 @@ Keeps GameService lean and adheres to SRP/DI by centralizing mapping logic.
 
 from __future__ import annotations
 
-import uuid
-
 from app.interfaces.services import IMonsterFactory
 from app.models.attributes import AttackAction, SavingThrows
 from app.models.character import Currency
 from app.models.instances.entity_state import EntityState, HitDice, HitPoints
 from app.models.instances.monster_instance import MonsterInstance
 from app.models.monster import MonsterSheet
+from app.utils.id_generator import generate_instance_id
 
 
 class MonsterFactory(IMonsterFactory):
@@ -66,7 +65,7 @@ class MonsterFactory(IMonsterFactory):
             attacks = []
 
         return MonsterInstance(
-            instance_id=str(uuid.uuid4()),
+            instance_id=generate_instance_id(sheet.name),
             template_id=sheet.index,
             repository_name=sheet.index or sheet.name,
             sheet=sheet,

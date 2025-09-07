@@ -3,22 +3,22 @@
 from dataclasses import dataclass, field
 
 from app.events.base import BaseCommand
-from app.models.combat import CombatParticipant, MonsterSpawnInfo
-from app.models.entity import EntityType
+from app.models.attributes import EntityType
+from app.models.combat import MonsterSpawnInfo
 
 
 @dataclass
 class StartCombatCommand(BaseCommand):
-    """Command to start general combat."""
+    """Command to start combat with entity IDs."""
 
-    npcs: list[CombatParticipant] = field(default_factory=list)
+    entity_ids: list[str] = field(default_factory=list)
 
     def get_handler_name(self) -> str:
         return "combat"
 
 
 @dataclass
-class TriggerScenarioEncounterCommand(BaseCommand):
+class StartEncounterCombatCommand(BaseCommand):
     """Command to trigger a predefined scenario encounter."""
 
     encounter_id: str = ""

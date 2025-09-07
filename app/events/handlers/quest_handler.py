@@ -196,7 +196,3 @@ class QuestHandler(BaseHandler):
                 raise ValueError("No more acts to progress to")
 
         return result
-
-    def can_handle(self, command: BaseCommand) -> bool:
-        """Check if this handler can process the given command."""
-        return isinstance(command, self.supported_commands)

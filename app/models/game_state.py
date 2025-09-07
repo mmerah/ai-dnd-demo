@@ -6,8 +6,9 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 from app.common.types import JSONSerializable
+from app.models.attributes import EntityType
 from app.models.combat import CombatState
-from app.models.entity import EntityType, IEntity
+from app.models.entity import IEntity
 from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.monster_instance import MonsterInstance
 from app.models.instances.npc_instance import NPCInstance
@@ -278,6 +279,16 @@ class GameState(BaseModel):
         """Resolve an NPC instance by id (location/state aware)."""
         for npc in self.npcs:
             if npc.instance_id == npc_id:
+                return npc
+        return None
+
+    def get_npc_by_scenario_id(self, scenario_npc_id: str) -> NPCInstance | None:
+        """Resolve an NPC instance by its scenario NPC ID.
+
+        Useful when encounters reference scenario-defined NPC IDs rather than instance IDs.
+        """
+        for npc in self.npcs:
+            if npc.scenario_npc_id == scenario_npc_id:
                 return npc
         return None
 

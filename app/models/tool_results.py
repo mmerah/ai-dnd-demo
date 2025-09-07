@@ -161,7 +161,7 @@ class StartCombatResult(BaseModel):
     message: str
 
 
-class TriggerEncounterResult(BaseModel):
+class StartEncounterCombatResult(BaseModel):
     type: str = "trigger_encounter"
     encounter_id: str
     encounter_type: str
@@ -249,7 +249,7 @@ ToolResult = (
     | UpdateLocationStateResult
     | MoveNPCResult
     | StartCombatResult
-    | TriggerEncounterResult
+    | StartEncounterCombatResult
     | SpawnMonstersResult
     | NextTurnResult
     | EndCombatResult

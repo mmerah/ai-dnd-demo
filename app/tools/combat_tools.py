@@ -13,39 +13,35 @@ from app.events.commands.combat_commands import (
     RemoveParticipantCommand,
     SpawnMonstersCommand,
     StartCombatCommand,
-    TriggerScenarioEncounterCommand,
+    StartEncounterCombatCommand,
 )
-from app.models.combat import CombatParticipant, MonsterSpawnInfo
-from app.models.entity import EntityType
+from app.models.attributes import EntityType
+from app.models.combat import MonsterSpawnInfo
 from app.tools.decorators import tool_handler
 
 logger = logging.getLogger(__name__)
 
 
 @tool_handler(StartCombatCommand)
-async def start_combat(ctx: RunContext[AgentDependencies], npcs: list[CombatParticipant]) -> BaseModel:
-    """Initialize combat with specific entities by ID.
+async def start_combat(ctx: RunContext[AgentDependencies], entity_ids: list[str]) -> BaseModel:
+    """Start combat with existing entities by their instance IDs.
 
-    Use when combat begins with known enemies already present in the game state.
+    Use for unscripted fights with entities already present at the player's current location
+    (e.g., spawned earlier, notable monsters, or nearby NPCs).
 
     Args:
-        npcs: List of CombatParticipant with entity_id and entity_type set. Name is for display; initiative optional.
+        entity_ids: List of instance IDs to include in combat (monsters and/or NPCs).
 
     Examples:
-        - Ambush by goblins:
-            npcs=[CombatParticipant(entity_id="<id1>", entity_type="monster", name="Goblin"),
-                  CombatParticipant(entity_id="<id2>", entity_type="monster", name="Goblin")]
-        - Boss fight (pre-rolled initiative):
-            npcs=[CombatParticipant(entity_id="<boss-id>", entity_type="monster", name="Hobgoblin Boss", initiative=18)]
-        - Mixed enemies (include NPC ally):
-            npcs=[CombatParticipant(entity_id="<wolf-id>", entity_type="monster", name="Wolf"),
-                  CombatParticipant(entity_id="<npc-id>", entity_type="npc", name="Guard Captain")]
+        - Goblin skirmish: entity_ids=["goblin-1234", "goblin-5678"]
+        - Boss fight: entity_ids=["goblin-boss-9012"]
+        - Mixed: entity_ids=["wolf-7777", "guard-captain-8888"]
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 
-@tool_handler(TriggerScenarioEncounterCommand)
-async def trigger_scenario_encounter(ctx: RunContext[AgentDependencies], encounter_id: str) -> BaseModel:
+@tool_handler(StartEncounterCombatCommand)
+async def start_encounter_combat(ctx: RunContext[AgentDependencies], encounter_id: str) -> BaseModel:
     """Start a predefined encounter from the scenario.
 
     Use when triggering specific scenario encounters.
@@ -65,7 +61,7 @@ async def trigger_scenario_encounter(ctx: RunContext[AgentDependencies], encount
 async def spawn_monsters(ctx: RunContext[AgentDependencies], monsters: list[MonsterSpawnInfo]) -> BaseModel:
     """Spawn monsters from the database.
 
-    Use when adding monsters to the game from the monster database.
+    Use when adding monsters to the current location from the monster database.
 
     Args:
         monsters: List of MonsterSpawnInfo objects with monster_name and quantity

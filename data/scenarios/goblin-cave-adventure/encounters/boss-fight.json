@@ -3,9 +3,11 @@
   "type": "Combat",
   "description": "The Goblin Boss confronts intruders in his treasure room.",
   "difficulty": "Hard",
-  "monster_spawns": [
+  "participant_spawns": [
     {
-      "scenario_monster_id": "goblin-boss",
+      "entity_type": "monster",
+      "spawn_type": "scenario",
+      "entity_id": "goblin-boss",
       "quantity_min": 1,
       "quantity_max": 1,
       "probability": 1.0

@@ -10,8 +10,7 @@
         "Learn about the missing merchant",
         "Investigate the forest path"
       ],
-      "quests": ["find-the-artifact"],
-      "completion_requirements": ["Discover the location of the goblin cave"]
+      "quests": ["find-the-artifact"]
     },
     {
       "id": "act2",
@@ -23,8 +22,7 @@
         "Fight or sneak past the guards",
         "Explore the cave depths"
       ],
-      "quests": ["rescue-the-merchant"],
-      "completion_requirements": ["Reach the inner sanctum of the cave"]
+      "quests": ["rescue-the-merchant"]
     },
     {
       "id": "act3",
@@ -36,8 +34,7 @@
         "Defeat the boss in combat",
         "Retrieve the artifact and treasure"
       ],
-      "quests": ["defeat-the-goblin-boss"],
-      "completion_requirements": ["Defeat the goblin boss", "Retrieve the artifact"]
+      "quests": ["defeat-the-goblin-boss"]
     }
   ],
   "current_act_index": 0

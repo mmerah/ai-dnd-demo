@@ -4,6 +4,8 @@ from enum import Enum
 
 from pydantic import BaseModel, Field
 
+from app.models.attributes import EntityType
+
 
 class DangerLevel(str, Enum):
     """Danger level of a location."""
@@ -55,14 +57,22 @@ class LootEntry(BaseModel):
     dc_to_find: int | None = None  # Investigation DC if hidden
 
 
-class MonsterSpawn(BaseModel):
-    """Monster spawn definition for encounters."""
+class SpawnType(str, Enum):
+    """Type of entity to spawn. Repository is data/monsters, scenario data/scenarios/{id}/monsters."""
 
-    monster_name: str | None = None  # Repository monster name (optional)
-    scenario_monster_id: str | None = None  # Scenario-defined notable monster id (optional)
+    REPOSITORY = "repository"
+    SCENARIO = "scenario"
+
+
+class EncounterParticipantSpawn(BaseModel):
+    """Participant spawn definition for encounters (monsters or NPCs)."""
+
+    entity_type: EntityType
+    spawn_type: SpawnType
+    entity_id: str
     quantity_min: int = 1
     quantity_max: int = 1
-    probability: float = 1.0  # Chance to appear
+    probability: float = 1.0
 
 
 class LocationState(BaseModel):

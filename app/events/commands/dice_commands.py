@@ -17,5 +17,10 @@ class RollDiceCommand(BaseCommand):
     skill: str | None = None
     damage_type: str | None = None
 
+    # Optional field to directly apply a damage roll to an entity
+    apply_to_entity_id: str | None = None
+    apply_as_damage: bool = False
+    apply_to_entity_type: str | None = None
+
     def get_handler_name(self) -> str:
         return "dice"

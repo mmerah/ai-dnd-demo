@@ -4,23 +4,26 @@ Full D&D 5e functionality with scenario management, character management, functi
 
 ## Current Issues [CRITICAL]
 
+### Issue: `GameService` Responsibilities
 
+The `GameService` is a large class that orchestrates many different managers (`GameStateManager`, `MessageManager`, `EventManager`). While it correctly delegates work, its method list is extensive (`add_message`, `add_game_event`, etc.). Also CombatService, should it be a CombatManager ???
+*   **Issue:** `GameService` still acts as a "God Object" facade, even if its internal logic is delegated. Code that needs to add a message still calls `game_service.add_message()` instead of using the `message_manager` directly.
+*   **Proposed Fix:** This is a minor architectural point. The current design is valid as a Facade pattern. However, for stricter adherence to SRP, consider having services that need a specific manager (like `AIService` needing to add messages) depend on the specific manager interface (`IMessageManager`) instead of the monolithic `IGameService`. The `Container` already builds these managers, so changing the dependency signatures would be straightforward. This would make dependencies more granular and explicit.
 
 ## Ideas
 
-1. Review scenarios, acts, quests, location, npcs (game state does seem to properly populate the npcs of the area for example), and how game state and tools handle every possible case. Review the models to ensure no duplicates and clean/clear models. Avoid having optional stuff
-2. Handle how combat works -> untested so far
-3. Handle all the TODO comments in the code
-4. ContextService should just be the GameState + current Scenario ? Maybe a curated version but that would make ContextService MUCH easier to handle and scale
-5. Vulture, verify no TYPE_CHECKING, verify unused (including methods). Remove any getattr/hasattr (-> signs of bad type hints/safety !), enforce fail fast, some migration scripts need to add more data (like class which added commoner) ?
-6. Cleanup logger calls to minimum
-7. Review manually the code
-8. Re-organize the code ? (cut routes, review models, services all dependency inversion, ...), interfaces for services structured the same as app/services/...
-9.  Update CLAUDE.md
-10. Content pack management ? data/ contain scenarios, characters, SRD monsters/items/spells/classes/conditions/backgrounds/... But users can create new content packs ? Sandbox content pack gives AI ability to create on-the-fly, users can create custom packs, scenario are by default SRD. You can create sandbox, with SRD+custom_pack+sandbox, ... ? Each database .json probably needs a new {"content_pack" : "str"} field ?
-11. Inventory equip/unequip command: Add explicit equip/unequip actions to toggle InventoryItem.equipped and then recompute derived stats (AC/speed). Useful for MVP 1 once basic compute is stable.
-12. Add pre-commit
-13. Add unit-tests ? Or rather in MVP2 for faster iteration for now ?
+1. Review how game state and tools handle every possible case. Review the models to ensure no duplicates and clean/clear models. Avoid having optional stuff anywhere unless lazy loading
+2. Handle all the TODO comments in the code
+3. Refactor ContextService to be cleaner, more modular and easier to extend. It should only need the GameState to have all information after all
+4. Vulture, verify no TYPE_CHECKING, verify unused (including methods). Remove any getattr/hasattr (-> signs of bad type hints/safety !), enforce fail fast, some migration scripts need to add more data (like class which added commoner) ?
+5. Cleanup logger calls to minimum
+6. Review manually the code
+7. Re-organize the code ? (cut routes, review models, services all dependency inversion, ...), interfaces for services structured the same as app/services/...
+8. Update CLAUDE.md
+9. Content pack management ? data/ contain scenarios, characters, SRD monsters/items/spells/classes/conditions/backgrounds/... But users can create new content packs ? Sandbox content pack gives AI ability to create on-the-fly, users can create custom packs, scenario are by default SRD. You can create sandbox, with SRD+custom_pack+sandbox, ... ? Each database .json probably needs a new {"content_pack" : "str"} field ?
+10. Inventory equip/unequip command: Add explicit equip/unequip actions to toggle InventoryItem.equipped and then recompute derived stats (AC/speed). Useful for MVP 1 once basic compute is stable.
+11. Add pre-commit
+12. Add unit-tests ? Or rather in MVP2 for faster iteration for now ?
 
 # MVP 2
 

@@ -138,7 +138,3 @@ class InventoryHandler(BaseHandler):
             logger.info(f"Item Removed: {command.item_name} x{command.quantity}")
 
         return result
-
-    def can_handle(self, command: BaseCommand) -> bool:
-        """Check if this handler can process the given command."""
-        return isinstance(command, self.supported_commands)

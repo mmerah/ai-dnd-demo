@@ -1,7 +1,6 @@
 """Handler for combat commands."""
 
 import logging
-import random
 
 from app.events.base import BaseCommand, CommandResult
 from app.events.commands.broadcast_commands import BroadcastGameUpdateCommand
@@ -12,10 +11,11 @@ from app.events.commands.combat_commands import (
     RemoveParticipantCommand,
     SpawnMonstersCommand,
     StartCombatCommand,
-    TriggerScenarioEncounterCommand,
+    StartEncounterCombatCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.services import ICombatService, IGameService, IMonsterRepository, IScenarioService
+from app.models.attributes import EntityType
 from app.models.combat import CombatParticipant
 from app.models.game_state import GameState
 from app.models.tool_results import (
@@ -25,7 +25,7 @@ from app.models.tool_results import (
     RemoveParticipantResult,
     SpawnMonstersResult,
     StartCombatResult,
-    TriggerEncounterResult,
+    StartEncounterCombatResult,
 )
 
 logger = logging.getLogger(__name__)
@@ -48,7 +48,7 @@ class CombatHandler(BaseHandler):
 
     supported_commands = (
         StartCombatCommand,
-        TriggerScenarioEncounterCommand,
+        StartEncounterCombatCommand,
         SpawnMonstersCommand,
         NextTurnCommand,
         EndCombatCommand,
@@ -61,30 +61,26 @@ class CombatHandler(BaseHandler):
         result = CommandResult()
 
         if isinstance(command, StartCombatCommand):
-            # Initialize combat if not already active
             if not game_state.combat:
                 game_state.start_combat()
 
             participants_added: list[CombatParticipant] = []
+            for entity_id in command.entity_ids:
+                # Try to find entity as monster first, then as NPC
+                entity = game_state.get_entity_by_id(EntityType.MONSTER, entity_id)
+                if not entity:
+                    entity = game_state.get_entity_by_id(EntityType.NPC, entity_id)
+                if not entity:
+                    raise ValueError(f"Entity not found for id {entity_id}")
 
-            # Add provided entities to combat (IDs required, fail fast on missing)
-            for npc_def in command.npcs:
-                entity_id = npc_def.entity_id
-                entity_type = npc_def.entity_type
-                if not entity_id:
-                    raise ValueError("StartCombat requires entity_id for each participant")
                 combat = game_state.combat
                 if not combat:
                     raise RuntimeError("Combat state not initialized")
-                entity = game_state.get_entity_by_id(entity_type, entity_id)
-                if not entity:
-                    raise ValueError(f"Entity not found for id {entity_id}")
                 participant = self.combat_service.add_participant(combat, entity)
                 participants_added.append(participant)
 
             # Add player if not already in combat
             if game_state.combat and not any(p.is_player for p in game_state.combat.participants):
-                # Roll player initiative (d20 + dex modifier)
                 player_entity = game_state.character
                 combat = game_state.combat
                 participant = self.combat_service.add_participant(combat, player_entity)
@@ -101,81 +97,51 @@ class CombatHandler(BaseHandler):
 
             # Broadcast combat update
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
+            logger.info(f"Combat started with {len(participants_added)} participants (simplified)")
 
-            logger.info(f"Combat started with {len(participants_added)} participants")
-
-        elif isinstance(command, TriggerScenarioEncounterCommand):
-            # Get scenario from embedded sheet
-            scenario = game_state.scenario_instance.sheet if game_state.scenario_instance else None
-            if not scenario:
-                raise ValueError("No scenario loaded")
-
-            # Find encounter
+        elif isinstance(command, StartEncounterCombatCommand):
+            scenario = game_state.scenario_instance.sheet
             encounter = scenario.get_encounter_by_id(command.encounter_id)
             if not encounter:
                 raise ValueError(f"Encounter '{command.encounter_id}' not found")
 
-            # Initialize combat
-            if not game_state.combat:
-                game_state.start_combat()
-
-            monsters_spawned: list[CombatParticipant] = []
-
-            # Spawn monsters from encounter
-            for spawn in encounter.monster_spawns:
-                # Determine quantity
-                quantity = random.randint(spawn.quantity_min, spawn.quantity_max)
-
-                # Check probability
-                if random.random() > spawn.probability:
-                    continue
-
-                # Spawn each monster
-                for _ in range(quantity):
-                    try:
-                        monster_data = None
-                        # Prefer scenario-defined monster if provided
-                        monster_id = spawn.scenario_monster_id
-                        if monster_id and game_state.scenario_id:
-                            monster_data = self.scenario_service.get_scenario_monster(
-                                game_state.scenario_id, monster_id
-                            )
-                        # Fallback to repository by name
-                        repo_name = spawn.monster_name
-                        if not monster_data and repo_name:
-                            monster_data = self.monster_repository.get(repo_name)
-                        if monster_data:
-                            # Create runtime instance and add to game state (dedup name)
-                            inst = self.game_service.create_monster_instance(
-                                monster_data, game_state.scenario_instance.current_location_id
-                            )
-                            _ = game_state.add_monster_instance(inst)
-
-                            # Add to combat
-                            combat = game_state.combat
-                            if combat:
-                                monster_entity = inst
-                                participant = self.combat_service.add_participant(combat, monster_entity)
-                                monsters_spawned.append(participant)
-                    except KeyError as e:
-                        logger.error(
-                            f"Failed to spawn monster '{getattr(spawn, 'monster_name', '') or getattr(spawn, 'scenario_monster_id', '')}': {e}"
-                        )
-
-            # Save game state
-            self.game_service.save_game(game_state)
-
-            result.data = TriggerEncounterResult(
-                encounter_id=command.encounter_id,
-                encounter_type=encounter.type,
-                monsters_spawned=monsters_spawned,
-                message=f"Encounter triggered: {encounter.description}",
+            # Realize entities without starting combat yet
+            entities = self.combat_service.realize_spawns(
+                game_state,
+                encounter.participant_spawns,
+                self.scenario_service,
+                self.monster_repository,
+                self.game_service,
             )
+            encounter_participants: list[CombatParticipant] = []
+            if entities:
+                if not game_state.combat:
+                    game_state.start_combat()
+                combat = game_state.combat
+                if combat:
+                    encounter_participants = self.combat_service.add_participants(combat, entities)
+                self.game_service.save_game(game_state)
 
-            # Broadcast combat update
-            result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-
-            logger.info(f"Triggered encounter '{command.encounter_id}' with {len(monsters_spawned)} monsters")
+                result.data = StartEncounterCombatResult(
+                    encounter_id=command.encounter_id,
+                    encounter_type=encounter.type,
+                    monsters_spawned=encounter_participants,
+                    message=f"Encounter started: {encounter.description}",
+                )
+                result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
+                logger.info(
+                    f"Started encounter '{command.encounter_id}' with {len(encounter_participants)} participant(s)"
+                )
+            else:
+                # No participants spawned; no combat started
+                self.game_service.save_game(game_state)
+                result.data = StartEncounterCombatResult(
+                    encounter_id=command.encounter_id,
+                    encounter_type=encounter.type,
+                    monsters_spawned=[],
+                    message=f"Encounter '{command.encounter_id}' had no participants (probabilities)",
+                )
+                logger.info(f"Encounter '{command.encounter_id}' produced no participants; combat not started")
 
         elif isinstance(command, SpawnMonstersCommand):
             spawned_monsters: list[CombatParticipant] = []
@@ -266,7 +232,3 @@ class CombatHandler(BaseHandler):
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
         return result
-
-    def can_handle(self, command: BaseCommand) -> bool:
-        """Check if this handler can process the given command."""
-        return isinstance(command, self.supported_commands)

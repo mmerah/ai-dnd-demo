@@ -190,7 +190,3 @@ class CharacterHandler(BaseHandler):
             logger.info(f"Level Up: {old_level} -> {new_level}, HP {old_max_hp}->{new_max_hp}")
 
         return result
-
-    def can_handle(self, command: BaseCommand) -> bool:
-        """Check if this handler can process the given command."""
-        return isinstance(command, self.supported_commands)

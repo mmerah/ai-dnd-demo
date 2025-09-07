@@ -13,7 +13,7 @@ from app.events.commands.character_commands import (
     UpdateHPCommand,
     UpdateSpellSlotsCommand,
 )
-from app.models.entity import EntityType
+from app.models.attributes import EntityType
 from app.tools.decorators import tool_handler
 
 logger = logging.getLogger(__name__)

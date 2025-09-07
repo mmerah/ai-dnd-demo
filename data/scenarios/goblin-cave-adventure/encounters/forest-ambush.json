@@ -3,9 +3,11 @@
   "type": "Combat",
   "description": "Goblins leap from the underbrush to ambush travelers!",
   "difficulty": "Easy",
-  "monster_spawns": [
+  "participant_spawns": [
     {
-      "monster_name": "Goblin",
+      "entity_type": "monster",
+      "spawn_type": "repository",
+      "entity_id": "Goblin",
       "quantity_min": 2,
       "quantity_max": 3,
       "probability": 0.8

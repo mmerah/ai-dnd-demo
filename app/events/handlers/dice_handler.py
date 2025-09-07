@@ -3,9 +3,11 @@
 import logging
 
 from app.events.base import BaseCommand, CommandResult
+from app.events.commands.character_commands import UpdateHPCommand
 from app.events.commands.dice_commands import RollDiceCommand
 from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.services import IGameService
+from app.models.attributes import EntityType
 from app.models.dice import RollType
 from app.models.game_state import GameState
 from app.models.tool_results import RollDiceResult
@@ -65,12 +67,29 @@ class DiceHandler(BaseHandler):
             )
             result.data = dice_result
 
+            # If this is a damage roll and apply_as_damage is True, automatically apply the damage
+            if command.roll_type == "damage" and command.apply_as_damage and command.apply_to_entity_id:
+                # Create an UpdateHPCommand to apply the damage (negative amount)
+                # Infer entity type from provided string; default to MONSTER if unspecified
+                etype = EntityType.MONSTER
+                if command.apply_to_entity_type:
+                    try:
+                        etype = EntityType(command.apply_to_entity_type)
+                    except Exception:
+                        etype = EntityType.MONSTER
+
+                damage_command = UpdateHPCommand(
+                    game_id=command.game_id,
+                    entity_id=command.apply_to_entity_id,
+                    entity_type=etype,
+                    amount=-roll_result.total,  # Negative for damage
+                    damage_type=command.damage_type or "unspecified",
+                )
+                result.add_command(damage_command)
+                logger.info(f"Auto-applying {roll_result.total} damage to entity {command.apply_to_entity_id}")
+
             logger.info(
                 f"Dice Roll: {command.roll_type} - {formula} = {roll_result.total} (rolls: {roll_result.rolls})",
             )
 
         return result
-
-    def can_handle(self, command: BaseCommand) -> bool:
-        """Check if this handler can process the given command."""
-        return isinstance(command, self.supported_commands)

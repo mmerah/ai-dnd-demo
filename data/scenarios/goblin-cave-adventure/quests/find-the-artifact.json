@@ -7,25 +7,19 @@
       "id": "learn-about-artifact",
       "description": "Learn about the artifact from Tom or other sources",
       "status": "pending",
-      "required": true,
-      "metadata": {}
+      "required": true
     },
     {
       "id": "locate-goblin-lair",
       "description": "Find the goblin cave where the artifact might be hidden",
       "status": "pending",
-      "required": true,
-      "metadata": {}
+      "required": true
     },
     {
       "id": "retrieve-artifact",
       "description": "Retrieve the artifact from the goblin treasure room",
       "status": "pending",
-      "required": true,
-      "metadata": {
-        "item_name": "Ancient Amulet",
-        "location": "treasure-room"
-      }
+      "required": true
     }
   ],
   "status": "not_started",

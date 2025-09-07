@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from app.interfaces.services import IPathResolver
-from app.models.location import LocationConnection, LootEntry, MonsterSpawn
+from app.models.location import EncounterParticipantSpawn, LocationConnection, LootEntry
 from app.models.npc import NPCSheet
 from app.models.quest import ObjectiveStatus, Quest, QuestObjective, QuestStatus
 from app.models.scenario import (
@@ -18,7 +18,6 @@ from app.models.scenario import (
     ScenarioProgression,
     ScenarioSheet,
     Secret,
-    TreasureGuidelines,
 )
 from app.services.data.loaders.base_loader import BaseLoader
 
@@ -73,8 +72,6 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
             locations = self._load_locations(scenario_dir, data.get("locations", []), npc_map, monster_map)
             quests = self._load_quests(scenario_dir, data.get("quests", []))
             progression = self._load_progression(scenario_dir, data.get("progression", "acts"))
-            treasure_guidelines = self._parse_treasure_guidelines(data.get("treasure_guidelines", {}))
-
             # Create the scenario
             scenario = ScenarioSheet(
                 id=scenario_id,
@@ -86,7 +83,6 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
                 quests=quests,
                 progression=progression if progression else ScenarioProgression(acts=[]),
                 random_encounters=[],  # TODO(MVP2): Load random encounters if needed
-                treasure_guidelines=treasure_guidelines,
             )
 
             if self.validate_on_load:
@@ -258,6 +254,27 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
                 logger.warning(f"Failed to load scenario monster from {file_path}: {e}")
         return m_map
 
+    def _parse_participant_spawns(self, data: dict[str, Any]) -> list[EncounterParticipantSpawn]:
+        """Parse participant spawns from encounter JSON with backward compatibility.
+
+        Requires the 'participant_spawns' key. Raises ValueError on invalid
+        entries to fail fast during load/validation.
+        """
+        spawns: list[EncounterParticipantSpawn] = []
+        if "participant_spawns" not in data:
+            raise ValueError("Encounter must define 'participant_spawns'")
+        raw_list = data.get("participant_spawns")
+        if not isinstance(raw_list, list):
+            raise ValueError("participant_spawns must be a list")
+        for idx, spawn_data in enumerate(raw_list):
+            if not isinstance(spawn_data, dict):
+                raise ValueError(f"Invalid spawn entry at index {idx}: expected object")
+            try:
+                spawns.append(EncounterParticipantSpawn(**spawn_data))
+            except Exception as e:
+                raise ValueError(f"Invalid participant spawn at index {idx}: {e}") from e
+        return spawns
+
     def _load_scenario_encounters(self, scenario_dir: Path) -> dict[str, Encounter]:
         """Load all scenario encounters into a map by id."""
         encounters_dir = scenario_dir / "encounters"
@@ -270,17 +287,14 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
                 with open(file_path, encoding="utf-8") as f:
                     data = json.load(f)
 
-                # Parse monster spawns
-                monster_spawns = []
-                for spawn_data in data.get("monster_spawns", []):
-                    monster_spawns.append(MonsterSpawn(**spawn_data))
+                participant_spawns = self._parse_participant_spawns(data)
 
                 encounter = Encounter(
                     id=data["id"],
                     type=data.get("type", "combat"),
                     description=data.get("description", ""),
                     difficulty=data.get("difficulty"),
-                    monster_spawns=monster_spawns,
+                    participant_spawns=participant_spawns,
                     dc=data.get("dc"),
                     rewards=data.get("rewards", []),
                 )
@@ -338,7 +352,6 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
                     description=obj_data["description"],
                     status=ObjectiveStatus(obj_data.get("status", "pending")),
                     required=obj_data.get("required", True),
-                    metadata=obj_data.get("metadata", {}),
                 )
             )
 
@@ -385,7 +398,6 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
                         locations=act_data.get("locations", []),
                         objectives=act_data.get("objectives", []),
                         quests=act_data.get("quests", []),
-                        completion_requirements=act_data.get("completion_requirements", []),
                     )
                 )
 
@@ -397,23 +409,6 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
         except Exception as e:
             logger.warning(f"Failed to load progression: {e}")
             return None
-
-    def _parse_treasure_guidelines(self, data: dict[str, Any]) -> TreasureGuidelines:
-        # Any is necessary because treasure data from JSON can contain mixed types
-        """Parse treasure guidelines from data.
-
-        Args:
-            data: Raw treasure guidelines data
-
-        Returns:
-            TreasureGuidelines object
-        """
-        return TreasureGuidelines(
-            total_gold=data.get("total_gold", ""),
-            magic_items=data.get("magic_items", ""),
-            consumables=data.get("consumables", ""),
-            mundane_items=data.get("mundane_items", ""),
-        )
 
     def _prepare_for_save(self, data: ScenarioSheet) -> dict[str, Any]:
         # Any is necessary for JSON-serializable output

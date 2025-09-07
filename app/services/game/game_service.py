@@ -1,6 +1,5 @@
 """Game state management service for D&D 5e game sessions."""
 
-import uuid
 from datetime import datetime
 
 from app.common.types import JSONSerializable
@@ -33,6 +32,7 @@ from app.models.item import InventoryItem, ItemDefinition, ItemSubtype, ItemType
 from app.models.monster import MonsterSheet
 from app.models.quest import QuestStatus
 from app.models.scenario import ScenarioLocation, ScenarioMonster
+from app.utils.id_generator import generate_instance_id
 
 
 class GameService(IGameService):
@@ -153,8 +153,8 @@ class GameService(IGameService):
         """
         timestamp = datetime.now().strftime("%Y%m%d-%H%M")
         clean_name = character_name.lower().replace(" ", "-")
-        short_uuid = str(uuid.uuid4())[:8]
-        return f"{clean_name}-{timestamp}-{short_uuid}"
+        suffix = datetime.now().microsecond % 10000
+        return f"{clean_name}-{timestamp}-{suffix:04d}"
 
     def initialize_game(
         self,
@@ -214,14 +214,14 @@ class GameService(IGameService):
         # Create instances
         # Materialize character instance from template starting_* fields
         char_inst = CharacterInstance(
-            instance_id=str(uuid.uuid4()),
+            instance_id=generate_instance_id(character.name),
             template_id=character.id,
             sheet=character,
             state=self._build_entity_state_from_sheet(character),
         )
 
         scen_inst = ScenarioInstance(
-            instance_id=str(uuid.uuid4()),
+            instance_id=generate_instance_id(scenario.title),
             template_id=scenario_id,
             sheet=scenario,
             current_location_id=initial_location_id,
@@ -592,7 +592,7 @@ class GameService(IGameService):
         for npc_sheet in npc_sheets:
             # Create NPCInstance with initial location
             npc_instance = NPCInstance(
-                instance_id=str(uuid.uuid4()),
+                instance_id=generate_instance_id(npc_sheet.display_name),
                 scenario_npc_id=npc_sheet.id,
                 sheet=npc_sheet,
                 state=self._build_entity_state_from_sheet(npc_sheet.character),

@@ -7,18 +7,9 @@ for all operations (combat, HP updates, conditions, inventory, etc).
 
 from __future__ import annotations
 
-from enum import Enum
 from typing import Protocol, runtime_checkable
 
 from app.models.instances.entity_state import EntityState
-
-
-class EntityType(str, Enum):
-    """Allowed runtime entity categories used in combat and lookups."""
-
-    PLAYER = "player"
-    NPC = "npc"
-    MONSTER = "monster"
 
 
 @runtime_checkable

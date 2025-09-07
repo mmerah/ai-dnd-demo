@@ -1,6 +1,16 @@
 """Ability score models for D&D 5e."""
 
+from enum import Enum
+
 from pydantic import BaseModel, Field
+
+
+class EntityType(str, Enum):
+    """Allowed runtime entity categories used in combat and lookups."""
+
+    PLAYER = "player"
+    NPC = "npc"
+    MONSTER = "monster"
 
 
 class Abilities(BaseModel):

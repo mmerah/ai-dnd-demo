@@ -45,10 +45,24 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         # Trigger creation of all services on startup
         _ = container.game_service
         _ = container.ai_service
+
+        # Pre-cache and validate all game data
+        print("Pre-caching and validating all game data...")
+        _ = container.item_repository.list_keys()
+        _ = container.spell_repository.list_keys()
+        _ = container.monster_repository.list_keys()
+        # Character data is loaded via character_service
+        # For scenario service, validate default scenario
+        scenarios = container.scenario_service.list_scenarios()
+        if scenarios:
+            # Get first scenario to validate its structure
+            _ = container.scenario_service.get_scenario(scenarios[0].id)
+        print("Data validation successful!")
+
         print(f"Save directory: {settings.save_directory}")
         print(f"Using model: {settings.openrouter_model}")
     except Exception as e:
-        raise RuntimeError(f"Configuration error: {e}") from e
+        raise RuntimeError(f"Configuration or data validation error: {e}") from e
 
     print("Application started successfully!")
 

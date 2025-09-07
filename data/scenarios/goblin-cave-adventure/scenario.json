@@ -29,11 +29,5 @@
     "cave-entrance-guards",
     "boss-fight"
   ],
-  "progression": "acts",
-  "treasure_guidelines": {
-    "total_gold": "200-300gp total across all locations",
-    "magic_items": "1-2 minor items (potions, scrolls)",
-    "consumables": "3-5 healing potions, 1-2 antidotes",
-    "mundane_items": "Basic adventuring gear, goblin weapons"
-  }
+  "progression": "acts"
 }

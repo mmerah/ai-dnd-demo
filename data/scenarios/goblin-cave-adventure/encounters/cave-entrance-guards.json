@@ -3,15 +3,19 @@
   "type": "Combat",
   "description": "Goblin sentries guard the cave entrance",
   "difficulty": "Medium",
-  "monster_spawns": [
+  "participant_spawns": [
     {
-      "monster_name": "Goblin",
+      "entity_type": "monster",
+      "spawn_type": "repository",
+      "entity_id": "Goblin",
       "quantity_min": 2,
       "quantity_max": 2,
       "probability": 1.0
     },
     {
-      "monster_name": "Wolf",
+      "entity_type": "monster",
+      "spawn_type": "repository",
+      "entity_id": "Wolf",
       "quantity_min": 1,
       "quantity_max": 1,
       "probability": 0.5
