@@ -25,11 +25,11 @@ class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
     def __init__(
         self,
         path_resolver: IPathResolver,
+        language_repository: IRepository[Language],
+        condition_repository: IRepository[Condition],
+        alignment_repository: IRepository[Alignment],
+        skill_repository: IRepository[Skill],
         cache_enabled: bool = True,
-        language_repository: IRepository[Language] | None = None,
-        condition_repository: IRepository[Condition] | None = None,
-        alignment_repository: IRepository[Alignment] | None = None,
-        skill_repository: IRepository[Skill] | None = None,
     ):
         """Initialize the monster repository.
 
@@ -128,20 +128,15 @@ class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
 
         skills = []
         for skill_name, modifier in data.items():
-            # Validate skill if repository available
-            if self.skill_repository:
-                # Resolve to index via repo (by name or index)
-                skill_def = self.skill_repository.get(skill_name)
-                if not skill_def:
-                    normalized = skill_name.replace(" ", "-").lower()
-                    skill_def = self.skill_repository.get(normalized)
-                if not skill_def:
-                    logger.warning(f"Unknown skill: {skill_name}")
-                    continue
-                idx = skill_def.index
-            else:
-                idx = skill_name.replace(" ", "-").lower()
-
+            # Resolve to index via repo (by name or index)
+            skill_def = self.skill_repository.get(skill_name)
+            if not skill_def:
+                normalized = skill_name.replace(" ", "-").lower()
+                skill_def = self.skill_repository.get(normalized)
+            if not skill_def:
+                logger.warning(f"Unknown skill: {skill_name}")
+                continue
+            idx = skill_def.index
             skills.append(SkillValue(index=idx, value=modifier))
 
         return skills
@@ -184,20 +179,18 @@ class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
             monster = MonsterSheet(**data)
 
             # Validate alignment (fail-fast)
-            if self.alignment_repository and not self.alignment_repository.validate_reference(monster.alignment):
+            if not self.alignment_repository.validate_reference(monster.alignment):
                 raise ValueError(f"Monster {monster.name} has unknown alignment: {monster.alignment}")
 
             # Validate languages (fail-fast)
-            if self.language_repository:
-                for lang in monster.languages:
-                    if not self.language_repository.validate_reference(lang):
-                        raise ValueError(f"Monster {monster.name} has unknown language: {lang}")
+            for lang in monster.languages:
+                if not self.language_repository.validate_reference(lang):
+                    raise ValueError(f"Monster {monster.name} has unknown language: {lang}")
 
             # Validate condition immunities (fail-fast)
-            if self.condition_repository:
-                for cond in monster.condition_immunities:
-                    if not self.condition_repository.validate_reference(cond):
-                        raise ValueError(f"Monster {monster.name} has unknown condition immunity: {cond}")
+            for cond in monster.condition_immunities:
+                if not self.condition_repository.validate_reference(cond):
+                    raise ValueError(f"Monster {monster.name} has unknown condition immunity: {cond}")
 
             return monster
         except Exception as e:

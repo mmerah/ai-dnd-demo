@@ -132,7 +132,6 @@ function initializeElements() {
     elements.gameInterface = document.getElementById('gameInterface');
     elements.characterList = document.getElementById('characterList');
     elements.scenarioList = document.getElementById('scenarioList');
-    elements.premise = document.getElementById('premise');
     elements.startGameBtn = document.getElementById('startGame');
     elements.saveGameBtn = document.getElementById('saveGame');
     elements.chatMessages = document.getElementById('chatMessages');
@@ -200,14 +199,6 @@ function setupEventListeners() {
     // Save game button
     elements.saveGameBtn.addEventListener('click', saveGame);
     
-    // Custom premise input clears scenario selection
-    elements.premise.addEventListener('input', () => {
-        if (elements.premise.value.trim()) {
-            document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('selected'));
-            selectedScenario = null;
-            console.log('[UI] Custom premise entered, cleared scenario selection');
-        }
-    });
     
     console.log('[INIT] Event listeners setup complete');
 }
@@ -424,7 +415,8 @@ function createScenarioCard(scenario) {
         document.querySelectorAll('.scenario-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         selectedScenario = scenario.id;
-        elements.premise.value = ''; // Clear custom premise
+        // Only enable start button if both character and scenario are selected
+        elements.startGameBtn.disabled = !selectedCharacter;
         console.log(`[UI] Selected scenario: ${scenario.title} (${scenario.id})`);
     });
     
@@ -467,7 +459,8 @@ function createCharacterCard(character) {
         document.querySelectorAll('.character-card').forEach(c => c.classList.remove('selected'));
         card.classList.add('selected');
         selectedCharacter = character.id;
-        elements.startGameBtn.disabled = false;
+        // Only enable start button if both character and scenario are selected
+        elements.startGameBtn.disabled = !selectedScenario;
         console.log(`[UI] Selected character: ${character.name} (${character.id})`);
     });
     
@@ -481,10 +474,14 @@ async function startGame() {
         return;
     }
     
+    if (!selectedScenario) {
+        console.warn('[UI] No scenario selected');
+        return;
+    }
+    
     console.log('[GAME] Starting new game...');
     console.log(`[GAME] Character: ${selectedCharacter}`);
-    console.log(`[GAME] Scenario: ${selectedScenario || 'custom'}`);
-    console.log(`[GAME] Custom premise: ${elements.premise.value || 'none'}`);
+    console.log(`[GAME] Scenario: ${selectedScenario}`);
     
     elements.startGameBtn.disabled = true;
     elements.startGameBtn.textContent = 'Starting...';
@@ -492,8 +489,7 @@ async function startGame() {
     try {
         const requestBody = {
             character_id: selectedCharacter,
-            premise: elements.premise.value || null,
-            scenario_id: selectedScenario || null
+            scenario_id: selectedScenario
         };
         
         console.log('[API] Sending game creation request:', requestBody);

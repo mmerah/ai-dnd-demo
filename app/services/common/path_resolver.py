@@ -67,18 +67,6 @@ class PathResolver(IPathResolver):
         scenario_dir = self.data_dir / "scenarios" / scenario_id
         return scenario_dir
 
-    def get_character_file(self, character_id: str) -> Path:
-        """Get path to a character file.
-
-        Args:
-            character_id: ID of the character
-
-        Returns:
-            Path to character JSON file
-        """
-        self._validate_id(character_id, "character")
-        return self.data_dir / "characters" / f"{character_id}.json"
-
     def get_save_dir(self, scenario_id: str, game_id: str, create: bool = False) -> Path:
         """Get directory for a saved game.
 
@@ -96,27 +84,6 @@ class PathResolver(IPathResolver):
         if create:
             save_dir.mkdir(parents=True, exist_ok=True)
         return save_dir
-
-    def resolve_scenario_component(self, scenario_id: str, component: str, item_id: str) -> Path:
-        """Resolve path to a scenario component file.
-
-        Args:
-            scenario_id: ID of the scenario
-            component: Component type (locations, npcs, quests, encounters)
-            item_id: ID of the specific item
-
-        Returns:
-            Path to component JSON file
-        """
-        self._validate_id(scenario_id, "scenario")
-        self._validate_id(item_id, "item")
-        # Also validate component is from allowed set
-        allowed_components = {"locations", "npcs", "quests", "encounters", "progression"}
-        if component not in allowed_components:
-            raise ValueError(f"Invalid component type '{component}'")
-        scenario_dir = self.get_scenario_dir(scenario_id)
-        component_dir = scenario_dir / component
-        return component_dir / f"{item_id}.json"
 
     def get_shared_data_file(self, data_type: str) -> Path:
         """Get path to a shared data file.

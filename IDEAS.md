@@ -9,16 +9,15 @@ None
 ## Ideas
 
 1. Review how game state and tools handle every possible case. Review the models to ensure no duplicates and clean/clear models. Avoid having optional stuff anywhere unless lazy loading
-2. Handle all the TODO comments in the code
-3. Vulture, verify no TYPE_CHECKING, verify unused (including methods). Remove any getattr/hasattr (-> signs of bad type hints/safety !), enforce fail fast, some migration scripts need to add more data (like class which added commoner) ?
-4. Cleanup logger calls to minimum
-5. Review manually the code
-6. Re-organize the code ? (cut routes, review models, services all dependency inversion, ...), interfaces for services structured the same as app/services/...
-7. Update CLAUDE.md
-8. Content pack management ? data/ contain scenarios, characters, SRD monsters/items/spells/classes/conditions/backgrounds/... But users can create new content packs ? Sandbox content pack gives AI ability to create on-the-fly, users can create custom packs, scenario are by default SRD. You can create sandbox, with SRD+custom_pack+sandbox, ... ? Each database .json probably needs a new {"content_pack" : "str"} field ?
-9. Inventory equip/unequip command: Add explicit equip/unequip actions to toggle InventoryItem.equipped and then recompute derived stats (AC/speed). Useful for MVP 1 once basic compute is stable.
-10. Add pre-commit
-11. Add unit-tests ? Or rather in MVP2 for faster iteration for now ?
+2. Vulture, verify unused (including methods), enforce fail fast ?
+3. Cleanup logger calls to minimum
+4. Review manually the code
+5. Re-organize the code ? (review models, services all dependency inversion, ...)
+6. Update CLAUDE.md
+7. Content pack management ? data/ contain scenarios, characters, SRD monsters/items/spells/classes/conditions/backgrounds/... But users can create new content packs ? Sandbox content pack gives AI ability to create on-the-fly, users can create custom packs, scenario are by default SRD. You can create sandbox, with SRD+custom_pack+sandbox, ... ? Each database .json probably needs a new {"content_pack" : "str"} field ?
+8. Inventory equip/unequip command: Add explicit equip/unequip actions to toggle InventoryItem.equipped and then recompute derived stats (AC/speed). Useful for MVP 1 once basic compute is stable.
+9. Add pre-commit
+10. Add unit-tests ? Or rather in MVP2 for faster iteration for now ?
 
 # MVP 2
 
@@ -44,3 +43,4 @@ Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic 
 16. Consider ILocationService: Create a service to encapsulate location traversal validation and secret management to keep handlers small and focused
 17. Monster location tracking: Consider adding location-aware monsters that persist between encounters (wandering monsters)
 18. NPC population optimization: Currently all NPCs are loaded at game start - consider lazy loading based on location
+19. TODO(MVP2): Solve all those todos

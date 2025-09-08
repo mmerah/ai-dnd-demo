@@ -49,30 +49,3 @@ class MessageManager(IMessageManager):
 
         game_state.add_message(message)
         return message
-
-    def get_recent_messages(self, game_state: GameState, limit: int = 10) -> list[Message]:
-        """Get recent messages from conversation history.
-
-        Args:
-            game_state: Game state to read from
-            limit: Maximum number of messages to return
-
-        Returns:
-            List of recent messages (most recent last)
-        """
-        if limit <= 0:
-            return []
-
-        return game_state.conversation_history[-limit:]
-
-    def clear_old_messages(self, game_state: GameState, keep_recent: int = 100) -> None:
-        """Clear old messages keeping only recent ones.
-
-        Args:
-            game_state: Game state to update
-            keep_recent: Number of recent messages to keep
-        """
-        if keep_recent <= 0:
-            game_state.conversation_history = []
-        else:
-            game_state.conversation_history = game_state.conversation_history[-keep_recent:]

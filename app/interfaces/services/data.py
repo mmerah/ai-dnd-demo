@@ -18,11 +18,6 @@ class ILoader(ABC, Generic[T]):
         """Load data from a file."""
         pass
 
-    @abstractmethod
-    def save(self, path: Path, data: T) -> None:
-        """Save data to a file."""
-        pass
-
 
 class IRepository(ABC, Generic[T]):
     """Base interface for data repositories."""

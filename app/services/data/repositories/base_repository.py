@@ -146,10 +146,6 @@ class BaseRepository(IRepository[T], ABC, Generic[T]):
 
         return None
 
-    def clear_cache(self) -> None:
-        """Clear the in-memory cache."""
-        self._cache.clear()
-
     @abstractmethod
     def _initialize(self) -> None:
         """Initialize the repository, loading data if cache is enabled."""
@@ -215,21 +211,3 @@ class BaseRepository(IRepository[T], ABC, Generic[T]):
             raise RuntimeError(f"Failed to parse JSON from {path}: {e}") from e
         except Exception as e:
             raise RuntimeError(f"Failed to load file {path}: {e}") from e
-
-    def _save_json_file(self, path: Path, data: dict[str, Any] | list[Any]) -> None:
-        # Any is necessary here because we're saving arbitrary JSON-serializable data
-        """Helper method to save JSON to a file.
-
-        Args:
-            path: Path to save the JSON file
-            data: Data to save
-
-        Raises:
-            RuntimeError: If saving fails
-        """
-        try:
-            path.parent.mkdir(parents=True, exist_ok=True)
-            with open(path, "w", encoding="utf-8") as f:
-                json.dump(data, f, indent=2, ensure_ascii=False)
-        except Exception as e:
-            raise RuntimeError(f"Failed to save file {path}: {e}") from e

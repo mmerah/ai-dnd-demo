@@ -47,11 +47,6 @@ class IPathResolver(ABC):
         pass
 
     @abstractmethod
-    def get_character_file(self, character_id: str) -> Path:
-        """Get path to a character file."""
-        pass
-
-    @abstractmethod
     def get_save_dir(self, scenario_id: str, game_id: str, create: bool = False) -> Path:
         """Get directory for a saved game.
 
@@ -60,11 +55,6 @@ class IPathResolver(ABC):
             game_id: ID of the game
             create: If True, create the directory if it doesn't exist
         """
-        pass
-
-    @abstractmethod
-    def resolve_scenario_component(self, scenario_id: str, component: str, item_id: str) -> Path:
-        """Resolve path to a scenario component file."""
         pass
 
     @abstractmethod

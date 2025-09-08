@@ -102,11 +102,3 @@ class LocationState(BaseModel):
         """Mark a secret as discovered."""
         if secret_id not in self.discovered_secrets:
             self.discovered_secrets.append(secret_id)
-
-    def get_description_variant(self) -> str:
-        """Get description variant based on state."""
-        if self.times_visited == 0:
-            return "first_visit"
-        if self.danger_level == DangerLevel.CLEARED:
-            return "cleared"
-        return "return_visit"

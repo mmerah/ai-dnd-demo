@@ -15,7 +15,6 @@ from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.monster_instance import MonsterInstance
 from app.models.instances.npc_instance import NPCInstance
 from app.models.instances.scenario_instance import ScenarioInstance
-from app.models.quest import Quest
 
 logger = logging.getLogger(__name__)
 
@@ -285,16 +284,6 @@ class SaveManager(ISaveManager):
             file_path = monsters_dir / f"{monster.instance_id}.json"
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(monster.model_dump_json(indent=2))
-
-    def _save_quests(self, save_dir: Path, quests: list[Quest]) -> None:
-        """Save active quests."""
-        quests_dir = save_dir / "quests"
-        quests_dir.mkdir(exist_ok=True)
-
-        for quest in quests:
-            file_path = quests_dir / f"{quest.id}.json"
-            with open(file_path, "w", encoding="utf-8") as f:
-                f.write(quest.model_dump_json(indent=2))
 
     def _save_combat(self, save_dir: Path, combat: CombatState) -> None:
         """Save combat state."""

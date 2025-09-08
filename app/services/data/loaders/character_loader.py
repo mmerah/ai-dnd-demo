@@ -49,14 +49,3 @@ class CharacterLoader(BaseLoader[CharacterSheet]):
             JSON-serializable dictionary
         """
         return data.model_dump(mode="json")
-
-    def load_all_characters(self, directory: Path) -> dict[str, CharacterSheet]:
-        """Load all character files from a directory.
-
-        Args:
-            directory: Directory containing character JSON files
-
-        Returns:
-            Dictionary mapping character IDs to CharacterSheet objects
-        """
-        return self.load_multiple(directory, "*.json")

@@ -22,7 +22,7 @@ class Encounter(BaseModel):
     id: str  # Unique identifier for tracking
     type: str  # Combat, Skill Challenge, Trap, Roleplay, Environmental, etc.
     description: str
-    difficulty: str | None = None  # Easy, Medium, Hard
+    difficulty: str  # Easy, Medium, Hard
     participant_spawns: list[EncounterParticipantSpawn] = Field(default_factory=list)
     dc: int | None = None  # For skill challenges/traps
     rewards: list[str] = Field(default_factory=list)  # Description of rewards

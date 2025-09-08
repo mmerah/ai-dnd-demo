@@ -9,7 +9,7 @@ from app.interfaces.services.scenario import IScenarioService
 from app.models.character import CharacterSheet
 from app.models.combat import CombatParticipant, CombatState
 from app.models.entity import IEntity
-from app.models.game_state import GameEvent, GameEventType, GameState, Message, MessageRole
+from app.models.game_state import GameEventType, GameState, Message, MessageRole
 from app.models.instances.monster_instance import MonsterInstance
 from app.models.location import EncounterParticipantSpawn
 from app.models.monster import MonsterSheet
@@ -23,8 +23,7 @@ class IGameService(ABC):
     def initialize_game(
         self,
         character: CharacterSheet,
-        premise: str | None = None,
-        scenario_id: str | None = None,
+        scenario_id: str,
     ) -> GameState:
         pass
 
@@ -60,7 +59,7 @@ class IGameService(ABC):
         pass
 
     @abstractmethod
-    def create_monster_instance(self, sheet: MonsterSheet, current_location_id: str | None) -> MonsterInstance:
+    def create_monster_instance(self, sheet: MonsterSheet, current_location_id: str) -> MonsterInstance:
         """Create a MonsterInstance from a MonsterSheet template."""
         pass
 
@@ -264,29 +263,6 @@ class IMessageManager(ABC):
         """
         pass
 
-    @abstractmethod
-    def get_recent_messages(self, game_state: GameState, limit: int = 10) -> list[Message]:
-        """Get recent messages from conversation history.
-
-        Args:
-            game_state: Game state to read from
-            limit: Maximum number of messages
-
-        Returns:
-            List of recent messages
-        """
-        pass
-
-    @abstractmethod
-    def clear_old_messages(self, game_state: GameState, keep_recent: int = 100) -> None:
-        """Clear old messages keeping only recent ones.
-
-        Args:
-            game_state: Game state to update
-            keep_recent: Number of recent messages to keep
-        """
-        pass
-
 
 class IEventManager(ABC):
     """Interface for managing game events."""
@@ -296,10 +272,9 @@ class IEventManager(ABC):
         self,
         game_state: GameState,
         event_type: GameEventType,
-        tool_name: str | None = None,
+        tool_name: str,
         parameters: dict[str, JSONSerializable] | None = None,
         result: dict[str, JSONSerializable] | None = None,
-        metadata: dict[str, JSONSerializable] | None = None,
     ) -> None:
         """Add a game event.
 
@@ -309,33 +284,6 @@ class IEventManager(ABC):
             tool_name: Tool that generated the event
             parameters: Event parameters
             result: Event result
-            metadata: Additional metadata
-        """
-        pass
-
-    @abstractmethod
-    def get_recent_events(self, game_state: GameState, limit: int = 50) -> list[GameEvent]:
-        """Get recent game events.
-
-        Args:
-            game_state: Game state to read from
-            limit: Maximum number of events
-
-        Returns:
-            List of recent events
-        """
-        pass
-
-    @abstractmethod
-    def get_events_by_type(self, game_state: GameState, event_type: GameEventType) -> list[GameEvent]:
-        """Get events of a specific type.
-
-        Args:
-            game_state: Game state to read from
-            event_type: Type of events to retrieve (GameEventType enum)
-
-        Returns:
-            List of matching events
         """
         pass
 
@@ -357,28 +305,14 @@ class IMetadataService(ABC):
         pass
 
     @abstractmethod
-    def extract_location(self, content: str, current_location: str | None) -> str | None:
-        """Extract location from content.
+    def get_current_location(self, game_state: GameState) -> str | None:
+        """Get the current location
 
         Args:
-            content: Message content to analyze
-            current_location: Current location for context
+            game_state: Current game state
 
         Returns:
-            Extracted location or None
-        """
-        pass
-
-    @abstractmethod
-    def extract_combat_round(self, content: str, in_combat: bool) -> int | None:
-        """Extract combat round from content.
-
-        Args:
-            content: Message content to analyze
-            in_combat: Whether currently in combat
-
-        Returns:
-            Combat round number or None
+            Current location or None if not available
         """
         pass
 
@@ -399,6 +333,6 @@ class IMonsterFactory(ABC):
     """Factory for creating MonsterInstance objects from templates."""
 
     @abstractmethod
-    def create(self, sheet: MonsterSheet, current_location_id: str | None) -> MonsterInstance:
+    def create(self, sheet: MonsterSheet, current_location_id: str) -> MonsterInstance:
         """Map MonsterSheet → MonsterInstance with a proper EntityState."""
         pass

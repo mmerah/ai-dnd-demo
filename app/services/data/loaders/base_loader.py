@@ -52,55 +52,6 @@ class BaseLoader(ILoader[T], ABC, Generic[T]):
 
         return self._parse_data(data, path)
 
-    def save(self, path: Path, data: T) -> None:
-        """Save data to a file.
-
-        Args:
-            path: Path to save the file
-            data: Data to save
-
-        Raises:
-            RuntimeError: If saving fails
-        """
-        try:
-            # Ensure parent directory exists
-            path.parent.mkdir(parents=True, exist_ok=True)
-
-            # Convert to JSON-serializable dict
-            json_data = self._prepare_for_save(data)
-
-            # Save to file
-            with open(path, "w", encoding="utf-8") as f:
-                json.dump(json_data, f, indent=2, ensure_ascii=False)
-
-        except Exception as e:
-            raise RuntimeError(f"Failed to save file {path}: {e}") from e
-
-    def load_multiple(self, directory: Path, pattern: str = "*.json") -> dict[str, T]:
-        """Load multiple files from a directory.
-
-        Args:
-            directory: Directory to load from
-            pattern: Glob pattern for files to load
-
-        Returns:
-            Dictionary mapping file stems to loaded data
-        """
-        if not directory.exists():
-            return {}
-
-        result = {}
-        for file_path in directory.glob(pattern):
-            if file_path.is_file():
-                try:
-                    data = self.load(file_path)
-                    result[file_path.stem] = data
-                except Exception:
-                    # Skip files that fail to load
-                    continue
-
-        return result
-
     @abstractmethod
     def _parse_data(self, data: dict[str, Any] | list[Any], source_path: Path) -> T:
         # Any is necessary here because raw JSON data can contain mixed types

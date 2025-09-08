@@ -423,24 +423,3 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
         # For scenarios, we would need to split the data back into components
         # This is complex and might not be needed for the MVP
         return data.model_dump(mode="json")
-
-    def load_scenario(self, scenario_id: str) -> ScenarioSheet | None:
-        """Load a complete scenario by ID.
-
-        Args:
-            scenario_id: ID of the scenario to load
-
-        Returns:
-            Loaded Scenario or None if not found
-        """
-        scenario_dir = self.path_resolver.get_scenario_dir(scenario_id)
-        scenario_file = scenario_dir / "scenario.json"
-
-        if not scenario_file.exists():
-            return None
-
-        try:
-            return self.load(scenario_file)
-        except Exception as e:
-            logger.error(f"Failed to load scenario {scenario_id}: {e}")
-            return None

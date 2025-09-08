@@ -14,21 +14,12 @@ class CombatContextBuilder(ContextBuilder):
             return None
 
         combat = game_state.combat
-        current_turn = combat.get_current_turn()
-        context_parts: list[str] = [f"Combat Status - Round {combat.round_number}:"]
+        context_parts: list[str] = ["Combat Status:"]
 
-        if current_turn:
-            context_parts.append(f"Current Turn: {current_turn.name}")
+        # Use the built-in turn order display method
+        context_parts.append(combat.get_turn_order_display())
 
-        context_parts.append("\nInitiative Order:")
-        for participant in combat.participants:
-            if participant.is_active:
-                marker = "→" if current_turn and participant.name == current_turn.name else " "
-                player_tag = " [PLAYER]" if participant.is_player else ""
-                context_parts.append(
-                    f"  {marker} {participant.initiative:2d}: {participant.name}{player_tag} (ID: {participant.entity_id})"
-                )
-
+        # Add monster details if available
         monsters_block = self.monsters_in_combat_builder.build(game_state)
         if monsters_block:
             context_parts.append("\n" + monsters_block)

@@ -17,7 +17,7 @@ from app.utils.id_generator import generate_instance_id
 class MonsterFactory(IMonsterFactory):
     """Default implementation for creating MonsterInstance objects."""
 
-    def create(self, sheet: MonsterSheet, current_location_id: str | None) -> MonsterInstance:
+    def create(self, sheet: MonsterSheet, current_location_id: str) -> MonsterInstance:
         # Parse hit dice like "2d8+2" best-effort for totals/type
         hd_text = sheet.hit_dice or ""
         hd_total = 0

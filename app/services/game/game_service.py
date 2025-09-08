@@ -137,16 +137,14 @@ class GameService(IGameService):
     def initialize_game(
         self,
         character: CharacterSheet,
-        premise: str | None = None,
-        scenario_id: str | None = None,
+        scenario_id: str,
     ) -> GameState:
         """
         Initialize a new game state.
 
         Args:
             character: The player's character sheet
-            premise: Optional game premise or scenario
-            scenario_id: Optional specific scenario to load
+            scenario_id: Scenario to load
 
         Returns:
             Initialized GameState object
@@ -159,19 +157,14 @@ class GameService(IGameService):
             minute=0,
         )
 
-        # Load scenario if available
-        scenario = None
-        if scenario_id:
-            scenario = self.scenario_service.get_scenario(scenario_id)
-        if not scenario:
-            scenario = self.scenario_service.get_default_scenario()
-
-        # Set initial location and message based on scenario
+        # Load scenario
+        scenario = self.scenario_service.get_scenario(scenario_id)
         if not scenario:
             raise RuntimeError(
                 "No scenario available for game initialization. At least one scenario must be available."
             )
 
+        # Set initial location and message based on scenario
         starting_loc = scenario.get_starting_location()
         initial_location = starting_loc.name
         initial_location_id = scenario.starting_location
@@ -342,7 +335,7 @@ class GameService(IGameService):
         # Already sorted by last_saved from save_manager
         return games
 
-    def create_monster_instance(self, sheet: MonsterSheet, current_location_id: str | None) -> MonsterInstance:
+    def create_monster_instance(self, sheet: MonsterSheet, current_location_id: str) -> MonsterInstance:
         """Create a MonsterInstance from a MonsterSheet (delegates to factory)."""
         return self.monster_factory.create(sheet, current_location_id)
 

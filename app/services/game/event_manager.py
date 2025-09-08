@@ -15,10 +15,9 @@ class EventManager(IEventManager):
         self,
         game_state: GameState,
         event_type: GameEventType,
-        tool_name: str | None = None,
+        tool_name: str,
         parameters: dict[str, JSONSerializable] | None = None,
         result: dict[str, JSONSerializable] | None = None,
-        metadata: dict[str, JSONSerializable] | None = None,
     ) -> None:
         """Add a game event to the history.
 
@@ -28,40 +27,11 @@ class EventManager(IEventManager):
             tool_name: Name of the tool that generated the event
             parameters: Tool parameters
             result: Tool result
-            metadata: Additional metadata
         """
         event = GameEvent(
             event_type=event_type,
             tool_name=tool_name,
             parameters=parameters,
             result=result,
-            metadata=metadata,
         )
         game_state.add_game_event(event)
-
-    def get_recent_events(self, game_state: GameState, limit: int = 50) -> list[GameEvent]:
-        """Get recent game events.
-
-        Args:
-            game_state: Game state to read from
-            limit: Maximum number of events to return
-
-        Returns:
-            List of recent events (most recent last)
-        """
-        if limit <= 0:
-            return []
-
-        return game_state.game_events[-limit:]
-
-    def get_events_by_type(self, game_state: GameState, event_type: GameEventType) -> list[GameEvent]:
-        """Get events of a specific type.
-
-        Args:
-            game_state: Game state to read from
-            event_type: Type of events to retrieve (GameEventType enum)
-
-        Returns:
-            List of matching events
-        """
-        return [event for event in game_state.game_events if event.event_type == event_type]

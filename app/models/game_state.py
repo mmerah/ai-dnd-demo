@@ -43,19 +43,16 @@ class GameEventType(str, Enum):
 
     TOOL_CALL = "tool_call"
     TOOL_RESULT = "tool_result"
-    DICE_ROLL = "dice_roll"
-    STATE_CHANGE = "state_change"
 
 
 class GameEvent(BaseModel):
-    """Game mechanics event - separate from narrative."""
+    """Game mechanics event that update the GameState."""
 
     event_type: GameEventType
     timestamp: datetime = Field(default_factory=datetime.now)
-    tool_name: str | None = None
+    tool_name: str
     parameters: dict[str, JSONSerializable] | None = None  # Tool parameters for storage
     result: dict[str, JSONSerializable] | None = None  # Tool result for storage
-    metadata: dict[str, JSONSerializable] | None = None  # Additional context
 
 
 class GameTime(BaseModel):
@@ -320,10 +317,6 @@ class GameState(BaseModel):
         self.location = new_location_name
         self.description = description
         self.add_story_note(f"Moved to {new_location_name}")
-
-    def get_recent_messages(self, count: int = 10) -> list[Message]:
-        """Get the most recent messages from history."""
-        return self.conversation_history[-count:] if self.conversation_history else []
 
     def get_messages_for_agent(self, agent_type: AgentType) -> list[Message]:
         """Get conversation history filtered for a specific agent."""

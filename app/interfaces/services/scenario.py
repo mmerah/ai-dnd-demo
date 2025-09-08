@@ -17,14 +17,6 @@ class IScenarioService(ABC):
         pass
 
     @abstractmethod
-    def get_default_scenario(self) -> ScenarioSheet | None:
-        pass
-
-    @abstractmethod
-    def get_scenario_context_for_ai(self, scenario: ScenarioSheet, current_location_id: str) -> str:
-        pass
-
-    @abstractmethod
     def get_scenario_npc(self, scenario_id: str, npc_id: str) -> NPCSheet | None:
         """Resolve a scenario NPC by id to an NPCSheet."""
         pass

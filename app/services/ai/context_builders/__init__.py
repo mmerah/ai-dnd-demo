@@ -9,10 +9,12 @@ from .npc_detail_builder import NPCDetailContextBuilder
 from .npc_items_builder import NPCItemsContextBuilder
 from .npcs_location_builder import NPCsAtLocationContextBuilder
 from .quest_builder import QuestContextBuilder
+from .scenario_builder import ScenarioContextBuilder
 from .spell_builder import SpellContextBuilder
 
 __all__ = [
     "ContextBuilder",
+    "ScenarioContextBuilder",
     "LocationContextBuilder",
     "NPCsAtLocationContextBuilder",
     "MonstersAtLocationContextBuilder",

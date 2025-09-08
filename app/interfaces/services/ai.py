@@ -60,8 +60,8 @@ class IMessageService(ABC):
         self,
         game_id: str,
         game_state: GameState,
-        scenario: ScenarioSheet | None = None,
-        available_scenarios: list[ScenarioSheet] | None = None,
+        scenario: ScenarioSheet,
+        available_scenarios: list[ScenarioSheet],
     ) -> AsyncGenerator[dict[str, str], None]:
         pass
 

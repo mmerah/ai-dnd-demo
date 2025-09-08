@@ -65,7 +65,7 @@ class CharacterHandler(BaseHandler):
             self.game_service.save_game(game_state)
 
             result.data = UpdateHPResult(
-                target=getattr(entity, "display_name", "unknown"),
+                target=entity.display_name,
                 old_hp=old_hp,
                 new_hp=new_hp,
                 max_hp=max_hp,
@@ -79,7 +79,7 @@ class CharacterHandler(BaseHandler):
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
             logger.info(
-                f"HP Update: {getattr(entity, 'display_name', 'unknown')} "
+                f"HP Update: {entity.display_name} "
                 f"{'healed' if command.amount > 0 else 'took'} "
                 f"{abs(command.amount)} {command.damage_type} - HP: {old_hp} → {new_hp}/{max_hp}",
             )
@@ -97,14 +97,14 @@ class CharacterHandler(BaseHandler):
             self.game_service.save_game(game_state)
 
             result.data = AddConditionResult(
-                target=getattr(entity, "display_name", "unknown"),
+                target=entity.display_name,
                 condition=command.condition,
                 duration=command.duration,
             )
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
-            logger.info(f"Condition Added: {getattr(entity, 'display_name', 'unknown')} is now {command.condition}")
+            logger.info(f"Condition Added: {entity.display_name} is now {command.condition}")
 
         elif isinstance(command, UpdateConditionCommand) and command.action == "remove":
             removed = False
@@ -122,16 +122,14 @@ class CharacterHandler(BaseHandler):
             self.game_service.save_game(game_state)
 
             result.data = RemoveConditionResult(
-                target=getattr(entity, "display_name", "unknown"),
+                target=entity.display_name,
                 condition=command.condition,
                 removed=removed,
             )
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
-            logger.info(
-                f"Condition Removed: {getattr(entity, 'display_name', 'unknown')} is no longer {command.condition}"
-            )
+            logger.info(f"Condition Removed: {entity.display_name} is no longer {command.condition}")
 
         elif isinstance(command, UpdateSpellSlotsCommand):
             character = game_state.character.state

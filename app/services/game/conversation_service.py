@@ -34,10 +34,10 @@ class ConversationService(IConversationService):
             npcs_mentioned = self.metadata_service.extract_npcs_mentioned(content, known_npcs)
 
         if location is None:
-            location = self.metadata_service.extract_location(content, game_state.location)
+            location = self.metadata_service.get_current_location(game_state)
 
         if combat_round is None and game_state.combat:
-            combat_round = self.metadata_service.extract_combat_round(content, True)
+            combat_round = self.metadata_service.get_combat_round(game_state)
 
         # Add message and persist
         message = self.message_manager.add_message(

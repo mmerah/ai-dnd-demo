@@ -27,15 +27,15 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
     def __init__(
         self,
         path_resolver: IPathResolver,
+        magic_school_repository: IRepository[MagicSchool],
         cache_enabled: bool = True,
-        magic_school_repository: IRepository[MagicSchool] | None = None,
     ):
         """Initialize the spell repository.
 
         Args:
             path_resolver: Service for resolving file paths
-            cache_enabled: Whether to cache spells in memory
             magic_school_repository: Repository for validating magic school references
+            cache_enabled: Whether to cache spells in memory
         """
         super().__init__(cache_enabled)
         self.path_resolver = path_resolver
@@ -183,7 +183,7 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
 
             # Validate school if repository available (fail-fast)
             school = str(data.get("school", "")).lower()
-            if self.magic_school_repository and school and not self.magic_school_repository.validate_reference(school):
+            if school and not self.magic_school_repository.validate_reference(school):
                 raise ValueError(f"Unknown magic school: {school}")
 
             return SpellDefinition(

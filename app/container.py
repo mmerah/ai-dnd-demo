@@ -142,6 +142,7 @@ class Container:
             language_repository=self.language_repository,
             condition_repository=self.condition_repository,
             alignment_repository=self.alignment_repository,
+            skill_repository=self.skill_repository,
         )
 
     @cached_property

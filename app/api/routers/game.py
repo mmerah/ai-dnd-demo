@@ -46,7 +46,6 @@ async def create_new_game(request: NewGameRequest) -> NewGameResponse:
 
         game_state = game_service.initialize_game(
             character=character,
-            premise=request.premise,
             scenario_id=request.scenario_id,
         )
 

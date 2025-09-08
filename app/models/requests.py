@@ -5,8 +5,7 @@ class NewGameRequest(BaseModel):
     """Request model for creating a new game."""
 
     character_id: str = Field(..., description="ID of the character to play")
-    premise: str | None = Field(None, description="Optional custom premise for the adventure")
-    scenario_id: str | None = Field(None, description="ID of the scenario to play")
+    scenario_id: str = Field(..., description="ID of the scenario to play")
 
 
 class NewGameResponse(BaseModel):

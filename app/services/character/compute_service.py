@@ -267,12 +267,6 @@ class CharacterComputeService(ICharacterComputeService):
 
         return new_state
 
-    def _weapon_uses_dex(self, idef: ItemDefinition) -> bool:
-        if idef.subtype == ItemSubtype.RANGED:
-            return True
-        props = set(idef.properties or [])
-        return "Finesse" in props or "Ammunition" in props
-
     def _choose_attack_mod(self, idef: ItemDefinition, modifiers: AbilityModifiers) -> int:
         # Finesse: choose the higher of STR/DEX
         if idef.subtype == ItemSubtype.RANGED or "Ammunition" in (idef.properties or []):

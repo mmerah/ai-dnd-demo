@@ -116,21 +116,6 @@ class ScenarioService(IScenarioService):
             logger.error(f"Failed to load NPC {npc_id} from scenario {scenario_id}: {e}")
             raise
 
-    def get_default_scenario(self) -> ScenarioSheet | None:
-        """
-        Get the default scenario (first available).
-
-        Returns:
-            First available Scenario or None if no scenarios loaded
-        """
-        if self._scenarios:
-            # Prefer goblin-cave-adventure if available
-            if "goblin-cave-adventure" in self._scenarios:
-                return self._scenarios["goblin-cave-adventure"]
-            # Otherwise return the first scenario
-            return next(iter(self._scenarios.values()))
-        return None
-
     def get_scenario_monster(self, scenario_id: str, monster_id: str) -> MonsterSheet | None:
         """Load a scenario-defined monster by id and return its MonsterSheet model.
 
@@ -176,26 +161,3 @@ class ScenarioService(IScenarioService):
         except Exception as e:
             logger.error(f"Failed to list NPCs for scenario {scenario_id}: {e}")
             return []
-
-    def get_scenario_context_for_ai(self, scenario: ScenarioSheet, current_location_id: str) -> str:
-        """
-        Get scenario context string for AI.
-
-        Args:
-            scenario: The scenario
-            current_location_id: Current location ID
-
-        Returns:
-            Context string for AI
-        """
-        context = f"# {scenario.title}\n\n{scenario.description}\n\n"
-
-        # Add current location context if available
-        location = scenario.get_location(current_location_id)
-        if location:
-            context += f"## Current Location: {location.name}\n{location.description}\n\n"
-
-            if location.encounter_ids:
-                context += f"Potential encounters: {len(location.encounter_ids)} available\n\n"
-
-        return context

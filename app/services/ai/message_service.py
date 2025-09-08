@@ -117,8 +117,8 @@ class MessageService(IMessageService):
         self,
         game_id: str,
         game_state: GameState,
-        scenario: ScenarioSheet | None = None,
-        available_scenarios: list[ScenarioSheet] | None = None,
+        scenario: ScenarioSheet,
+        available_scenarios: list[ScenarioSheet],
     ) -> AsyncGenerator[dict[str, str], None]:
         """
         Generate SSE events for a client connection.
@@ -129,7 +129,7 @@ class MessageService(IMessageService):
         Args:
             game_id: Game identifier
             game_state: Current game state
-            scenario: Current scenario if available
+            scenario: Current scenario
             available_scenarios: List of available scenarios
 
         Yields:
@@ -155,16 +155,15 @@ class MessageService(IMessageService):
         )
         yield game_update_event.to_sse_format()
 
-        # Send scenario info if available
-        if scenario and available_scenarios:
-            scenario_event = SSEEvent(
-                event=SSEEventType.SCENARIO_INFO,
-                data=ScenarioInfoData(
-                    current_scenario=scenario,
-                    available_scenarios=available_scenarios,
-                ),
-            )
-            yield scenario_event.to_sse_format()
+        # Send scenario info
+        scenario_event = SSEEvent(
+            event=SSEEventType.SCENARIO_INFO,
+            data=ScenarioInfoData(
+                current_scenario=scenario,
+                available_scenarios=available_scenarios,
+            ),
+        )
+        yield scenario_event.to_sse_format()
 
         # Subscribe to ongoing events
         async for event_data in self.broadcast_service.subscribe(game_id):

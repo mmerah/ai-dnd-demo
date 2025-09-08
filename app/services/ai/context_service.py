@@ -15,6 +15,7 @@ from .context_builders import (
     NPCItemsContextBuilder,
     NPCsAtLocationContextBuilder,
     QuestContextBuilder,
+    ScenarioContextBuilder,
     SpellContextBuilder,
 )
 
@@ -35,6 +36,7 @@ class ContextService(IContextService):
         # Instantiate builders with explicit dependencies
         monsters_in_combat = MonstersInCombatContextBuilder()
         self.builders = [
+            ScenarioContextBuilder(),
             LocationContextBuilder(item_repository=self.item_repository),
             NPCsAtLocationContextBuilder(),
             MonstersAtLocationContextBuilder(),
@@ -51,19 +53,7 @@ class ContextService(IContextService):
         """Build enhanced context string from game state using strategy builders."""
         context_parts: list[str] = []
 
-        # Add scenario header and current location description if available
-        if game_state.scenario_instance.is_in_known_location():
-            scenario = game_state.scenario_instance.sheet
-            location_id = game_state.scenario_instance.current_location_id
-            location = scenario.get_location(location_id)
-            scenario_context = f"# {scenario.title}\n\n{scenario.description}\n\n"
-            if location:
-                scenario_context += f"## Current Location: {location.name}\n{location.description}\n\n"
-                if location.encounter_ids:
-                    scenario_context += f"Potential encounters: {len(location.encounter_ids)} available\n\n"
-            context_parts.append(scenario_context)
-
-        # Compose the rest from builders
+        # Compose from builders
         for builder in self.builders:
             part = builder.build(game_state)
             if part:

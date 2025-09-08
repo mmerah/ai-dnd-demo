@@ -31,8 +31,8 @@ class MonsterInstance(BaseModel):
     # Runtime state
     state: EntityState
 
-    # Optional location tracking for wandering monsters
-    current_location_id: str | None = None
+    # Location tracking
+    current_location_id: str
 
     def touch(self) -> None:
         self.updated_at = datetime.now()
