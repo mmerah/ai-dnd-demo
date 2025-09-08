@@ -1,6 +1,6 @@
 """Minimal character level-up progression service."""
 
-from app.interfaces.services import ICharacterComputeService, ILevelProgressionService
+from app.interfaces.services.character import ICharacterComputeService, ILevelProgressionService
 from app.models.instances.character_instance import CharacterInstance
 
 

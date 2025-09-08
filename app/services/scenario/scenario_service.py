@@ -3,7 +3,10 @@
 import json
 import logging
 
-from app.interfaces.services import ICharacterService, ILoader, IMonsterRepository, IPathResolver, IScenarioService
+from app.interfaces.services.character import ICharacterService
+from app.interfaces.services.common import IPathResolver
+from app.interfaces.services.data import ILoader, IMonsterRepository
+from app.interfaces.services.scenario import IScenarioService
 from app.models.monster import MonsterSheet
 from app.models.npc import NPCSheet
 from app.models.scenario import ScenarioMonster, ScenarioSheet

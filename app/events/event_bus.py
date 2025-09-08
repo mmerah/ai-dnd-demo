@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from app.events.base import BaseCommand
 from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.events import IEventBus
-from app.interfaces.services import IGameService
+from app.interfaces.services.game import IGameService
 
 logger = logging.getLogger(__name__)
 

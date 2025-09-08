@@ -5,7 +5,9 @@ from __future__ import annotations
 import logging
 import random
 
-from app.interfaces.services import ICombatService, IGameService, IMonsterRepository, IScenarioService
+from app.interfaces.services.data import IMonsterRepository
+from app.interfaces.services.game import ICombatService, IGameService
+from app.interfaces.services.scenario import IScenarioService
 from app.models.attributes import EntityType
 from app.models.combat import CombatParticipant, CombatState
 from app.models.entity import IEntity

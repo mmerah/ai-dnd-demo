@@ -4,7 +4,8 @@ import logging
 from collections.abc import AsyncGenerator
 
 from app.common.types import JSONSerializable
-from app.interfaces.services import IBroadcastService, IMessageService
+from app.interfaces.services.ai import IMessageService
+from app.interfaces.services.common import IBroadcastService
 from app.models.game_state import GameState
 from app.models.scenario import ScenarioSheet
 from app.models.sse_events import (

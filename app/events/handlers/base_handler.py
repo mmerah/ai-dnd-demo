@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 
 from app.events.base import BaseCommand, CommandResult
-from app.interfaces.services import IGameService
+from app.interfaces.services.game import IGameService
 from app.models.game_state import GameState
 
 

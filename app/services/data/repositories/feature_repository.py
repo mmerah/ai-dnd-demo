@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from app.interfaces.services import IPathResolver
+from app.interfaces.services.common import IPathResolver
 from app.models.feature import FeatureDefinition, FeatureGrantedBy
 from app.services.data.repositories.base_repository import BaseRepository
 

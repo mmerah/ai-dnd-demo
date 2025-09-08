@@ -9,7 +9,8 @@ from app.events.commands.inventory_commands import (
     ModifyInventoryCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services import IGameService, IItemRepository
+from app.interfaces.services.data import IItemRepository
+from app.interfaces.services.game import IGameService
 from app.models.game_state import GameState
 from app.models.item import InventoryItem
 from app.models.tool_results import (

@@ -5,7 +5,7 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from app.interfaces.services import IPathResolver
+from app.interfaces.services.common import IPathResolver
 from app.models.location import EncounterParticipantSpawn, LocationConnection, LootEntry
 from app.models.npc import NPCSheet
 from app.models.quest import ObjectiveStatus, Quest, QuestObjective, QuestStatus

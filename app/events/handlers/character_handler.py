@@ -11,7 +11,8 @@ from app.events.commands.character_commands import (
     UpdateSpellSlotsCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services import IGameService, ILevelProgressionService
+from app.interfaces.services.character import ILevelProgressionService
+from app.interfaces.services.game import IGameService
 from app.models.game_state import GameState
 from app.models.tool_results import (
     AddConditionResult,

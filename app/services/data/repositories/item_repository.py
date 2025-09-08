@@ -3,7 +3,8 @@
 import logging
 from typing import Any
 
-from app.interfaces.services import IItemRepository, IPathResolver
+from app.interfaces.services.common import IPathResolver
+from app.interfaces.services.data import IItemRepository
 from app.models.item import ItemDefinition, ItemRarity, ItemSubtype, ItemType
 from app.services.data.repositories.base_repository import BaseRepository
 

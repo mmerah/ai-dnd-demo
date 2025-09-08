@@ -3,7 +3,7 @@
 from datetime import datetime
 
 from app.agents.core.types import AgentType
-from app.interfaces.services import IMessageManager
+from app.interfaces.services.game import IMessageManager
 from app.models.game_state import GameState, Message, MessageRole
 
 

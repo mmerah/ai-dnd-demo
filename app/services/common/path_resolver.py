@@ -3,7 +3,7 @@
 import re
 from pathlib import Path
 
-from app.interfaces.services import IPathResolver
+from app.interfaces.services.common import IPathResolver
 
 
 class PathResolver(IPathResolver):

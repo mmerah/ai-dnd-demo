@@ -3,10 +3,11 @@
 import random
 import re
 
+from app.interfaces.services.common import IDiceService
 from app.models.dice import DiceRoll, RollType
 
 
-class DiceService:
+class DiceService(IDiceService):
     """Service for handling all dice rolling mechanics."""
 
     DICE_PATTERN = re.compile(r"(\d+)d(\d+)([+-]\d+)?")

@@ -4,7 +4,7 @@ import logging
 from collections.abc import AsyncIterator
 
 from app.config import get_settings
-from app.interfaces.services import IAIService
+from app.interfaces.services.ai import IAIService
 from app.models.ai_response import (
     AIResponse,
     CompleteResponse,

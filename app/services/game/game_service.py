@@ -3,15 +3,10 @@
 from datetime import datetime
 
 from app.agents.core.types import AgentType
-from app.interfaces.services import (
-    ICharacterComputeService,
-    IGameService,
-    IGameStateManager,
-    IItemRepository,
-    IMonsterFactory,
-    ISaveManager,
-    IScenarioService,
-)
+from app.interfaces.services.character import ICharacterComputeService
+from app.interfaces.services.data import IItemRepository
+from app.interfaces.services.game import IGameService, IGameStateManager, IMonsterFactory, ISaveManager
+from app.interfaces.services.scenario import IScenarioService
 from app.models.character import CharacterSheet
 from app.models.game_state import GameState, GameTime, Message, MessageRole
 from app.models.instances.character_instance import CharacterInstance

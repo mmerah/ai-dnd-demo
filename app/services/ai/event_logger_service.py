@@ -3,15 +3,20 @@
 import logging
 from typing import Any
 
+from app.interfaces.services.ai import IEventLoggerService
+
 logger = logging.getLogger(__name__)
 
 
-class EventLoggerService:
+class EventLoggerService(IEventLoggerService):
     """Service for logging agent events following Single Responsibility."""
 
     def __init__(self, game_id: str = "", debug: bool = False):
         self.game_id = game_id
         self.debug = debug
+
+    def set_game_id(self, game_id: str) -> None:
+        self.game_id = game_id
 
     def log_tool_call(self, tool_name: str, args: dict[str, Any]) -> None:
         logger.info(f"[TOOL_CALL] {tool_name}: {args}")

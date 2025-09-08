@@ -3,7 +3,8 @@
 import logging
 from typing import Any
 
-from app.interfaces.services import IMonsterRepository, IPathResolver, IRepository
+from app.interfaces.services.common import IPathResolver
+from app.interfaces.services.data import IMonsterRepository, IRepository
 from app.models.alignment import Alignment
 from app.models.attributes import SkillValue
 from app.models.condition import Condition

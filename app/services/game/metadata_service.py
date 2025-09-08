@@ -3,7 +3,7 @@
 import logging
 import re
 
-from app.interfaces.services import IMetadataService
+from app.interfaces.services.game import IMetadataService
 from app.models.game_state import GameState
 
 logger = logging.getLogger(__name__)

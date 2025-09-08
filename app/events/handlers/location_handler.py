@@ -11,12 +11,9 @@ from app.events.commands.location_commands import (
     UpdateLocationStateCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services import (
-    IGameService,
-    IItemRepository,
-    IMonsterRepository,
-    IScenarioService,
-)
+from app.interfaces.services.data import IItemRepository, IMonsterRepository
+from app.interfaces.services.game import IGameService
+from app.interfaces.services.scenario import IScenarioService
 from app.models.game_state import GameState
 from app.models.location import DangerLevel
 from app.models.tool_results import (

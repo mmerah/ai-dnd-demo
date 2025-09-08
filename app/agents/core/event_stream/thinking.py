@@ -5,7 +5,7 @@ import logging
 from pydantic_ai.messages import PartDeltaEvent, PartStartEvent, ThinkingPart, ThinkingPartDelta
 
 from app.agents.core.event_stream.base import EventContext, EventHandler
-from app.services.ai.event_logger_service import EventLoggerService
+from app.interfaces.services.ai import IEventLoggerService
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class ThinkingHandler(EventHandler):
     """Handles thinking/reasoning events from the AI."""
 
-    def __init__(self, event_logger: EventLoggerService | None = None):
+    def __init__(self, event_logger: IEventLoggerService):
         self.event_logger = event_logger
 
     async def can_handle(self, event: object) -> bool:
@@ -27,7 +27,7 @@ class ThinkingHandler(EventHandler):
     async def handle(self, event: object, context: EventContext) -> None:
         """Process thinking event."""
         content = self._extract_thinking_content(event)
-        if content and self.event_logger:
+        if content:
             self.event_logger.log_thinking(content)
 
     def _extract_thinking_content(self, event: object) -> str | None:

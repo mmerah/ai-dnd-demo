@@ -6,12 +6,12 @@ from app.events.base import BaseCommand, CommandResult
 from app.events.commands.character_commands import UpdateHPCommand
 from app.events.commands.dice_commands import RollDiceCommand
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services import IGameService
+from app.interfaces.services.common import IDiceService
+from app.interfaces.services.game import IGameService
 from app.models.attributes import EntityType
 from app.models.dice import RollType
 from app.models.game_state import GameState
 from app.models.tool_results import RollDiceResult
-from app.services.common.dice_service import DiceService
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 class DiceHandler(BaseHandler):
     """Handler for dice-related commands."""
 
-    def __init__(self, game_service: IGameService, dice_service: DiceService) -> None:
+    def __init__(self, game_service: IGameService, dice_service: IDiceService) -> None:
         super().__init__(game_service)
         self.dice_service = dice_service
 

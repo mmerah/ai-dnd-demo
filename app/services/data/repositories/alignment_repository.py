@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from app.interfaces.services import IPathResolver
+from app.interfaces.services.common import IPathResolver
 from app.models.alignment import Alignment
 from app.services.data.repositories.base_repository import BaseRepository
 

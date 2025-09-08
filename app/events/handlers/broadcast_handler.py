@@ -10,7 +10,8 @@ from app.events.commands.broadcast_commands import (
     BroadcastToolResultCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services import IGameService, IMessageService
+from app.interfaces.services.ai import IMessageService
+from app.interfaces.services.game import IGameService
 from app.models.game_state import GameState
 
 logger = logging.getLogger(__name__)

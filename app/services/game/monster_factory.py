@@ -5,7 +5,7 @@ Keeps GameService lean and adheres to SRP/DI by centralizing mapping logic.
 
 from __future__ import annotations
 
-from app.interfaces.services import IMonsterFactory
+from app.interfaces.services.game import IMonsterFactory
 from app.models.attributes import AttackAction, SavingThrows
 from app.models.character import Currency
 from app.models.instances.entity_state import EntityState, HitDice, HitPoints

@@ -7,7 +7,8 @@ from pathlib import Path
 from typing import Any
 
 from app.agents.core.types import AgentType
-from app.interfaces.services import IPathResolver, ISaveManager
+from app.interfaces.services.common import IPathResolver
+from app.interfaces.services.game import ISaveManager
 from app.models.combat import CombatState
 from app.models.game_state import GameEvent, GameState, GameTime, Message
 from app.models.instances.character_instance import CharacterInstance
@@ -48,8 +49,7 @@ class SaveManager(ISaveManager):
             |   └── monsters/
             │       └── [monster-instance-id].json
             ├── conversation_history.json
-            ├── game_events.json
-            └── (optional legacy folders not used in new format)
+            └── game_events.json
 
         Args:
             game_state: Game state to save

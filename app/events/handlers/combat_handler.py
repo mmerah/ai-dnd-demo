@@ -14,7 +14,9 @@ from app.events.commands.combat_commands import (
     StartEncounterCombatCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services import ICombatService, IGameService, IMonsterRepository, IScenarioService
+from app.interfaces.services.data import IMonsterRepository
+from app.interfaces.services.game import ICombatService, IGameService
+from app.interfaces.services.scenario import IScenarioService
 from app.models.attributes import EntityType
 from app.models.combat import CombatParticipant
 from app.models.game_state import GameState

@@ -7,7 +7,7 @@ from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel
 
-from app.interfaces.services import ILoader
+from app.interfaces.services.data import ILoader
 
 T = TypeVar("T", bound=BaseModel)
 

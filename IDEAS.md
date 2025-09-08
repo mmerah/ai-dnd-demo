@@ -10,16 +10,15 @@ None
 
 1. Review how game state and tools handle every possible case. Review the models to ensure no duplicates and clean/clear models. Avoid having optional stuff anywhere unless lazy loading
 2. Handle all the TODO comments in the code
-3. Refactor ContextService to be cleaner, more modular and easier to extend. It should only need the GameState to have all information after all
-4. Vulture, verify no TYPE_CHECKING, verify unused (including methods). Remove any getattr/hasattr (-> signs of bad type hints/safety !), enforce fail fast, some migration scripts need to add more data (like class which added commoner) ?
-5. Cleanup logger calls to minimum
-6. Review manually the code
-7. Re-organize the code ? (cut routes, review models, services all dependency inversion, ...), interfaces for services structured the same as app/services/...
-8. Update CLAUDE.md
-9. Content pack management ? data/ contain scenarios, characters, SRD monsters/items/spells/classes/conditions/backgrounds/... But users can create new content packs ? Sandbox content pack gives AI ability to create on-the-fly, users can create custom packs, scenario are by default SRD. You can create sandbox, with SRD+custom_pack+sandbox, ... ? Each database .json probably needs a new {"content_pack" : "str"} field ?
-10. Inventory equip/unequip command: Add explicit equip/unequip actions to toggle InventoryItem.equipped and then recompute derived stats (AC/speed). Useful for MVP 1 once basic compute is stable.
-11. Add pre-commit
-12. Add unit-tests ? Or rather in MVP2 for faster iteration for now ?
+3. Vulture, verify no TYPE_CHECKING, verify unused (including methods). Remove any getattr/hasattr (-> signs of bad type hints/safety !), enforce fail fast, some migration scripts need to add more data (like class which added commoner) ?
+4. Cleanup logger calls to minimum
+5. Review manually the code
+6. Re-organize the code ? (cut routes, review models, services all dependency inversion, ...), interfaces for services structured the same as app/services/...
+7. Update CLAUDE.md
+8. Content pack management ? data/ contain scenarios, characters, SRD monsters/items/spells/classes/conditions/backgrounds/... But users can create new content packs ? Sandbox content pack gives AI ability to create on-the-fly, users can create custom packs, scenario are by default SRD. You can create sandbox, with SRD+custom_pack+sandbox, ... ? Each database .json probably needs a new {"content_pack" : "str"} field ?
+9. Inventory equip/unequip command: Add explicit equip/unequip actions to toggle InventoryItem.equipped and then recompute derived stats (AC/speed). Useful for MVP 1 once basic compute is stable.
+10. Add pre-commit
+11. Add unit-tests ? Or rather in MVP2 for faster iteration for now ?
 
 # MVP 2
 

@@ -14,7 +14,7 @@ from pydantic_ai.messages import (
 
 from app.agents.core.event_stream.base import EventContext, EventHandler
 from app.common.types import JSONSerializable
-from app.services.ai.event_logger_service import EventLoggerService
+from app.interfaces.services.ai import IEventLoggerService
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class ToolCallHandler(EventHandler):
     """Handles tool call events from the stream (capture + log only)."""
 
-    def __init__(self, event_logger: EventLoggerService | None = None):
+    def __init__(self, event_logger: IEventLoggerService):
         self.event_logger = event_logger
 
     async def can_handle(self, event: object) -> bool:
@@ -50,9 +50,7 @@ class ToolCallHandler(EventHandler):
             context.processed_tool_calls.add(tool_call_id)
             context.tool_calls_by_id[tool_call_id] = tool_name
 
-        if self.event_logger:
-            self.event_logger.log_tool_call(tool_name, processed_args)
-
+        self.event_logger.log_tool_call(tool_name, processed_args)
         logger.debug(f"Tool call captured (log only): {tool_name} with args: {processed_args}")
 
     def _extract_tool_info(self, event: object) -> tuple[str | None, str | None, Any]:
@@ -99,7 +97,7 @@ class ToolCallHandler(EventHandler):
 class ToolResultHandler(EventHandler):
     """Handles tool result events from the stream (capture + log only)."""
 
-    def __init__(self, event_logger: EventLoggerService | None = None):
+    def __init__(self, event_logger: IEventLoggerService):
         self.event_logger = event_logger
 
     async def can_handle(self, event: object) -> bool:
@@ -118,8 +116,7 @@ class ToolResultHandler(EventHandler):
 
         tool_name = context.tool_calls_by_id[result.tool_call_id]
         result_str = self._get_result_string(result)
-        if self.event_logger:
-            self.event_logger.log_tool_result(tool_name, result_str)
+        self.event_logger.log_tool_result(tool_name, result_str)
         logger.debug(f"Tool result processed: {tool_name} -> {result_str[:100]}")
 
     def _get_result_string(self, result: Any) -> str:
@@ -131,7 +128,7 @@ class ToolResultHandler(EventHandler):
 class ToolEventHandler:
     """Composite for tool call and result handlers (capture + log only)."""
 
-    def __init__(self, event_logger: EventLoggerService | None = None):
+    def __init__(self, event_logger: IEventLoggerService):
         self.tool_call_handler = ToolCallHandler(event_logger)
         self.tool_result_handler = ToolResultHandler(event_logger)
 

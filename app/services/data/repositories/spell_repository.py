@@ -3,7 +3,8 @@
 import logging
 from typing import Any
 
-from app.interfaces.services import IPathResolver, IRepository, ISpellRepository
+from app.interfaces.services.common import IPathResolver
+from app.interfaces.services.data import IRepository, ISpellRepository
 from app.models.magic_school import MagicSchool
 from app.models.spell import (
     SpellDamageAtLevel,

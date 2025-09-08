@@ -14,21 +14,18 @@ from app.agents.core.event_stream.tools import ToolEventHandler
 from app.agents.core.types import AgentType
 from app.events.commands.broadcast_commands import BroadcastNarrativeCommand
 from app.interfaces.events import IEventBus
-from app.interfaces.services import (
+from app.interfaces.services.ai import IContextService, IEventLoggerService
+from app.interfaces.services.data import IItemRepository, IMonsterRepository, ISpellRepository
+from app.interfaces.services.game import (
     IConversationService,
     IEventManager,
-    IItemRepository,
     IMessageManager,
     IMetadataService,
-    IMonsterRepository,
     ISaveManager,
-    IScenarioService,
-    ISpellRepository,
 )
+from app.interfaces.services.scenario import IScenarioService
 from app.models.ai_response import NarrativeResponse, StreamEvent, StreamEventType
 from app.models.game_state import GameState, MessageRole
-from app.services.ai.context_service import ContextService
-from app.services.ai.event_logger_service import EventLoggerService
 from app.services.ai.message_converter_service import MessageConverterService
 from app.tools import (
     character_tools,
@@ -48,9 +45,9 @@ class NarrativeAgent(BaseAgent):
     """Agent that handles all narrative D&D gameplay."""
 
     agent: Agent[AgentDependencies, str]
-    context_service: ContextService
+    context_service: IContextService
     message_converter: MessageConverterService
-    event_logger: EventLoggerService
+    event_logger: IEventLoggerService
     metadata_service: IMetadataService
     event_bus: IEventBus
     scenario_service: IScenarioService
@@ -135,7 +132,7 @@ class NarrativeAgent(BaseAgent):
             self.event_processor.context.clear()
             self.event_processor.context.game_id = game_state.game_id
 
-        self.event_logger.game_id = game_state.game_id
+        self.event_logger.set_game_id(game_state.game_id)
 
         deps = AgentDependencies(
             game_state=game_state,

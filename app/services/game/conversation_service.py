@@ -1,7 +1,7 @@
 """Conversation service to record narrative messages (SOLID/DRY)."""
 
 from app.agents.core.types import AgentType
-from app.interfaces.services import IConversationService, IMessageManager, IMetadataService, ISaveManager
+from app.interfaces.services.game import IConversationService, IMessageManager, IMetadataService, ISaveManager
 from app.models.game_state import GameState, Message, MessageRole
 
 

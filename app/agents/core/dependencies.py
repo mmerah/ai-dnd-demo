@@ -3,16 +3,9 @@
 from dataclasses import dataclass
 
 from app.interfaces.events import IEventBus
-from app.interfaces.services import (
-    IEventManager,
-    IItemRepository,
-    IMessageManager,
-    IMetadataService,
-    IMonsterRepository,
-    ISaveManager,
-    IScenarioService,
-    ISpellRepository,
-)
+from app.interfaces.services.data import IItemRepository, IMonsterRepository, ISpellRepository
+from app.interfaces.services.game import IEventManager, IMessageManager, IMetadataService, ISaveManager
+from app.interfaces.services.scenario import IScenarioService
 from app.models.game_state import GameState
 
 

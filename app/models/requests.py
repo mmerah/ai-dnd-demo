@@ -15,6 +15,13 @@ class NewGameResponse(BaseModel):
     game_id: str = Field(..., description="Unique identifier for the game")
 
 
+class ResumeGameResponse(BaseModel):
+    """Response model for resuming a saved game."""
+
+    game_id: str = Field(..., description="Unique identifier for the resumed game")
+    status: str = Field(..., description="Resume status, typically 'resumed'")
+
+
 class PlayerActionRequest(BaseModel):
     """Request model for player actions."""
 

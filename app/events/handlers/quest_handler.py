@@ -11,7 +11,9 @@ from app.events.commands.quest_commands import (
     StartQuestCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services import IGameService, IItemRepository, IScenarioService
+from app.interfaces.services.data import IItemRepository
+from app.interfaces.services.game import IGameService
+from app.interfaces.services.scenario import IScenarioService
 from app.models.game_state import GameState
 from app.models.quest import ObjectiveStatus, QuestStatus
 from app.models.tool_results import (

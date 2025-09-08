@@ -7,7 +7,7 @@ from typing import Any, Generic, Protocol, TypeVar, cast
 
 from pydantic import BaseModel
 
-from app.interfaces.services import IRepository
+from app.interfaces.services.data import IRepository
 
 
 class NamedModel(Protocol):

@@ -1,6 +1,6 @@
 """Game state manager for managing active games in memory."""
 
-from app.interfaces.services import IGameStateManager
+from app.interfaces.services.game import IGameStateManager
 from app.models.game_state import GameState
 
 

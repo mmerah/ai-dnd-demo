@@ -3,13 +3,9 @@
 import logging
 from pathlib import Path
 
-from app.interfaces.services import (
-    ICharacterService,
-    IItemRepository,
-    ILoader,
-    IPathResolver,
-    ISpellRepository,
-)
+from app.interfaces.services.character import ICharacterService
+from app.interfaces.services.common import IPathResolver
+from app.interfaces.services.data import IItemRepository, ILoader, ISpellRepository
 from app.models.character import CharacterSheet
 from app.services.data.repositories.alignment_repository import AlignmentRepository
 from app.services.data.repositories.background_repository import BackgroundRepository

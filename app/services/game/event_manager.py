@@ -1,7 +1,7 @@
 """Event manager for handling game events."""
 
 from app.common.types import JSONSerializable
-from app.interfaces.services import IEventManager
+from app.interfaces.services.game import IEventManager
 from app.models.game_state import GameEvent, GameEventType, GameState
 
 

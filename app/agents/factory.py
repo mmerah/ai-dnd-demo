@@ -15,18 +15,17 @@ from app.agents.core.types import AgentType
 from app.agents.narrative.agent import NarrativeAgent
 from app.config import get_settings
 from app.interfaces.events import IEventBus
-from app.interfaces.services import (
+from app.interfaces.services.ai import IContextService, IEventLoggerService
+from app.interfaces.services.data import IItemRepository, IMonsterRepository, ISpellRepository
+from app.interfaces.services.game import (
     IConversationService,
     IEventManager,
-    IItemRepository,
     IMessageManager,
     IMetadataService,
-    IMonsterRepository,
     ISaveManager,
-    IScenarioService,
-    ISpellRepository,
 )
-from app.services.ai import ContextService, EventLoggerService, MessageConverterService
+from app.interfaces.services.scenario import IScenarioService
+from app.services.ai import MessageConverterService
 
 logger = logging.getLogger(__name__)
 
@@ -75,6 +74,8 @@ class AgentFactory:
         event_manager: IEventManager,
         save_manager: ISaveManager,
         conversation_service: IConversationService,
+        context_service: IContextService,
+        event_logger_service: IEventLoggerService,
         debug: bool = False,
     ) -> BaseAgent:
         """Create a specialized agent based on type."""
@@ -93,13 +94,9 @@ class AgentFactory:
 
             narrative_agent = NarrativeAgent(
                 agent=agent,
-                context_service=ContextService(
-                    item_repository=item_repository,
-                    monster_repository=monster_repository,
-                    spell_repository=spell_repository,
-                ),
+                context_service=context_service,
                 message_converter=MessageConverterService(),
-                event_logger=EventLoggerService(game_id="", debug=debug),
+                event_logger=event_logger_service,
                 metadata_service=metadata_service,
                 event_bus=event_bus,
                 scenario_service=scenario_service,

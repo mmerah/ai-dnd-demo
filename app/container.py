@@ -15,32 +15,27 @@ from app.events.handlers.location_handler import LocationHandler
 from app.events.handlers.quest_handler import QuestHandler
 from app.events.handlers.time_handler import TimeHandler
 from app.interfaces.events import IEventBus
-from app.interfaces.services import (
-    IAIService,
-    IBroadcastService,
-    ICharacterComputeService,
-    ICharacterService,
+from app.interfaces.services.ai import IAIService, IContextService, IEventLoggerService, IMessageService
+from app.interfaces.services.character import ICharacterComputeService, ICharacterService, ILevelProgressionService
+from app.interfaces.services.common import IBroadcastService, IDiceService, IPathResolver
+from app.interfaces.services.data import IItemRepository, ILoader, IMonsterRepository, ISpellRepository
+from app.interfaces.services.game import (
     ICombatService,
     IConversationService,
     IEventManager,
     IGameService,
     IGameStateManager,
-    IItemRepository,
-    ILevelProgressionService,
-    ILoader,
     IMessageManager,
-    IMessageService,
     IMetadataService,
     IMonsterFactory,
-    IMonsterRepository,
-    IPathResolver,
     ISaveManager,
-    IScenarioService,
-    ISpellRepository,
 )
+from app.interfaces.services.scenario import IScenarioService
 from app.models.character import CharacterSheet
 from app.models.scenario import ScenarioSheet
 from app.services.ai import AIService, MessageService
+from app.services.ai.context_service import ContextService
+from app.services.ai.event_logger_service import EventLoggerService
 from app.services.ai.orchestrator_service import AgentOrchestrator
 from app.services.character import CharacterService
 from app.services.character.compute_service import CharacterComputeService
@@ -129,7 +124,7 @@ class Container:
         )
 
     @cached_property
-    def dice_service(self) -> DiceService:
+    def dice_service(self) -> IDiceService:
         return DiceService()
 
     @cached_property
@@ -306,6 +301,8 @@ class Container:
             event_manager=self.event_manager,
             save_manager=self.save_manager,
             conversation_service=self.conversation_service,
+            context_service=self.context_service,
+            event_logger_service=self.event_logger_service,
             debug=settings.debug_ai,
         )
         orchestrator = AgentOrchestrator(narrative_agent)
@@ -330,6 +327,19 @@ class Container:
             metadata_service=self.metadata_service,
             save_manager=self.save_manager,
         )
+
+    @cached_property
+    def context_service(self) -> IContextService:
+        return ContextService(
+            item_repository=self.item_repository,
+            monster_repository=self.monster_repository,
+            spell_repository=self.spell_repository,
+        )
+
+    @cached_property
+    def event_logger_service(self) -> IEventLoggerService:
+        settings = get_settings()
+        return EventLoggerService(game_id="", debug=settings.debug_ai)
 
 
 # Singleton instance of the container

@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from app.interfaces.services import ICharacterComputeService, IItemRepository, IRepository, ISpellRepository
+from app.interfaces.services.character import ICharacterComputeService
+from app.interfaces.services.data import IItemRepository, IRepository, ISpellRepository
 from app.models.attributes import Abilities, AbilityModifiers, AttackAction, SavingThrows, SkillValue
 from app.models.character import CharacterSheet
 from app.models.class_definitions import ClassDefinition

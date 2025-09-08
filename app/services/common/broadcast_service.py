@@ -10,7 +10,7 @@ from typing import cast
 
 from pydantic import BaseModel
 
-from app.interfaces.services import IBroadcastService
+from app.interfaces.services.common import IBroadcastService
 from app.models.sse_events import SSEData, SSEEvent, SSEEventType
 
 logger = logging.getLogger(__name__)
