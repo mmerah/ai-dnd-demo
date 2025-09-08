@@ -2,27 +2,18 @@
 
 from datetime import datetime
 
-from app.common.types import JSONSerializable
+from app.agents.core.types import AgentType
 from app.interfaces.services import (
     ICharacterComputeService,
-    IEventManager,
     IGameService,
     IGameStateManager,
     IItemRepository,
-    IMessageManager,
-    IMetadataService,
     IMonsterFactory,
     ISaveManager,
     IScenarioService,
 )
 from app.models.character import CharacterSheet
-from app.models.game_state import (
-    GameEventType,
-    GameState,
-    GameTime,
-    Message,
-    MessageRole,
-)
+from app.models.game_state import GameState, GameTime, Message, MessageRole
 from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.entity_state import EntityState, HitDice, HitPoints
 from app.models.instances.monster_instance import MonsterInstance
@@ -47,9 +38,6 @@ class GameService(IGameService):
         scenario_service: IScenarioService,
         save_manager: ISaveManager,
         game_state_manager: IGameStateManager,
-        message_manager: IMessageManager,
-        event_manager: IEventManager,
-        metadata_service: IMetadataService,
         compute_service: ICharacterComputeService,
         item_repository: IItemRepository,
         monster_factory: IMonsterFactory,
@@ -61,18 +49,13 @@ class GameService(IGameService):
             scenario_service: Service for managing scenarios
             save_manager: Service for managing saves
             game_state_manager: Manager for active game states
-            message_manager: Manager for conversation history
-            event_manager: Manager for game events
-            metadata_service: Service for extracting metadata
             compute_service: Service for computing derived character values
             item_repository: Repository for all items of the game
+            monster_factory: Factory to MonsterInstance from a MonsterSheet
         """
         self.scenario_service = scenario_service
         self.save_manager = save_manager
         self.game_state_manager = game_state_manager
-        self.message_manager = message_manager
-        self.event_manager = event_manager
-        self.metadata_service = metadata_service
         self.compute_service = compute_service
         self.item_repository = item_repository
         self.monster_factory = monster_factory
@@ -205,7 +188,7 @@ class GameService(IGameService):
             role=MessageRole.DM,
             content=initial_narrative,
             timestamp=datetime.now(),
-            agent_type="narrative",
+            agent_type=AgentType.NARRATIVE,
             location=initial_location,
             npcs_mentioned=[],
             combat_round=None,
@@ -470,105 +453,6 @@ class GameService(IGameService):
                 current_def = self.item_repository.get(it.name)
                 if current_def and self._is_body_armor(current_def):
                     raise ValueError("Already wearing body armor; unequip it first")
-
-    def add_game_event(
-        self,
-        game_id: str,
-        event_type: GameEventType,
-        tool_name: str | None = None,
-        parameters: dict[str, JSONSerializable] | None = None,
-        result: dict[str, JSONSerializable] | None = None,
-        metadata: dict[str, JSONSerializable] | None = None,
-    ) -> GameState:
-        """
-        Add a game event to the history.
-
-        Args:
-            game_id: Game ID
-            event_type: Type of event (GameEventType enum)
-            tool_name: Name of the tool
-            parameters: Tool parameters
-            result: Tool result
-            metadata: Additional metadata
-
-        Returns:
-            Updated GameState
-        """
-        game_state = self.get_game(game_id)
-        if not game_state:
-            raise ValueError(f"Game {game_id} not found")
-
-        # Delegate to event manager
-        self.event_manager.add_event(
-            game_state=game_state,
-            event_type=event_type,
-            tool_name=tool_name,
-            parameters=parameters,
-            result=result,
-            metadata=metadata,
-        )
-        self.save_game(game_state)
-        return game_state
-
-    def add_message(
-        self,
-        game_id: str,
-        role: MessageRole,
-        content: str,
-        agent_type: str = "narrative",
-        location: str | None = None,
-        npcs_mentioned: list[str] | None = None,
-        combat_round: int | None = None,
-    ) -> GameState:
-        """
-        Add a message to conversation history with metadata.
-
-        Args:
-            game_id: Game ID
-            role: Message role (player/dm)
-            content: Message content
-            agent_type: Which agent generated this message
-            location: Where this message occurred
-            npcs_mentioned: NPCs referenced in the message
-            combat_round: Combat round if in combat
-
-        Returns:
-            Updated GameState
-
-        Raises:
-            ValueError: If game not found
-        """
-        game_state = self.get_game(game_id)
-        if not game_state:
-            raise ValueError(f"Game {game_id} not found")
-
-        # Extract metadata if not provided
-        if npcs_mentioned is None:
-            # Get all NPC names from the game state (both sheet name and display name)
-            known_npcs = []
-            for npc in game_state.npcs:
-                known_npcs.append(npc.sheet.character.name)
-
-            npcs_mentioned = self.metadata_service.extract_npcs_mentioned(content, known_npcs)
-
-        if location is None:
-            location = self.metadata_service.extract_location(content, game_state.location)
-
-        if combat_round is None and game_state.combat:
-            combat_round = self.metadata_service.extract_combat_round(content, True)
-
-        # Delegate to message manager
-        self.message_manager.add_message(
-            game_state=game_state,
-            role=role,
-            content=content,
-            agent_type=agent_type,
-            location=location,
-            npcs_mentioned=npcs_mentioned,
-            combat_round=combat_round,
-        )
-        self.save_game(game_state)
-        return game_state
 
     def initialize_all_npcs(self, game_state: GameState) -> None:
         """

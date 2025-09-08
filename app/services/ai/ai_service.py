@@ -4,7 +4,7 @@ import logging
 from collections.abc import AsyncIterator
 
 from app.config import get_settings
-from app.interfaces.services import IAIService, IGameService
+from app.interfaces.services import IAIService
 from app.models.ai_response import (
     AIResponse,
     CompleteResponse,
@@ -21,18 +21,16 @@ logger = logging.getLogger(__name__)
 class AIService(IAIService):
     """Main AI Service that coordinates specialized agents."""
 
-    def __init__(self, game_service: IGameService, orchestrator: AgentOrchestrator) -> None:
+    def __init__(self, orchestrator: AgentOrchestrator) -> None:
         """Initialize AI Service with agent orchestrator."""
         settings = get_settings()
         self.debug_mode = settings.debug_ai
-        self.game_service = game_service
         self.orchestrator = orchestrator
 
     async def generate_response(
         self,
         user_message: str,
         game_state: GameState,
-        game_service: IGameService,
         stream: bool = True,
     ) -> AsyncIterator[AIResponse]:
         """
@@ -41,7 +39,6 @@ class AIService(IAIService):
         Args:
             user_message: The player's input
             game_state: Current game state
-            game_service: Game service instance
             stream: Whether to stream the response
 
         Yields:
@@ -51,7 +48,7 @@ class AIService(IAIService):
         try:
             # Route through the orchestrator (e.g., narrative vs combat)
             event_count = 0
-            async for event in self.orchestrator.process(user_message, game_state, game_service, stream):
+            async for event in self.orchestrator.process(user_message, game_state, stream):
                 event_count += 1
                 logger.debug(f"AIService received event {event_count}: type={event.type}")
 

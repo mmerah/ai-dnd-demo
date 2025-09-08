@@ -57,12 +57,13 @@ dungeon-master-5e/
 
 ## Key Architecture Components
 
-### AI Service with Native Tools
-The AI service uses PydanticAI's native tool registration system:
+### AI Service + Native Tools
+The AI stack uses PydanticAI's native tool registration system:
 - Tools are defined as async functions in domain-specific modules
 - Each tool has comprehensive docstrings with examples
 - Tools are registered with `@agent.tool` decorator
 - The AI agent returns natural text responses while tools execute transparently
+- The agent is decoupled from `IGameService`; it receives the active `GameState` and uses granular services (EventBus, ConversationService, repositories) for side effects
 
 ### Tool Organization (SOLID Principles)
 Tools are organized by domain following Single Responsibility Principle:
@@ -133,6 +134,11 @@ class GameState(BaseModel):
 - Tool execution is handled internally by PydanticAI
 - No manual queue processing or validation needed
 - Tools can access game state through context dependencies
+
+### Conversation and Events
+- ConversationService: Records narrative messages (player and DM) by extracting metadata (NPCs/location/round) and persisting after each message.
+- EventManager: Persists tool call/result events; tools save after each event via the common decorator.
+- GameService focuses on orchestration (init/load/save, compute, scenario init) and is not used by the agent for message/event recording.
 
 ### OpenRouter Configuration
 - Model: `openai/gpt-oss-120b`

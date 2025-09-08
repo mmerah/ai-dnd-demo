@@ -4,11 +4,7 @@ Full D&D 5e functionality with scenario management, character management, functi
 
 ## Current Issues [CRITICAL]
 
-### Issue: `GameService` Responsibilities
-
-The `GameService` is a large class that orchestrates many different managers (`GameStateManager`, `MessageManager`, `EventManager`). While it correctly delegates work, its method list is extensive (`add_message`, `add_game_event`, etc.). Also CombatService, should it be a CombatManager ???
-*   **Issue:** `GameService` still acts as a "God Object" facade, even if its internal logic is delegated. Code that needs to add a message still calls `game_service.add_message()` instead of using the `message_manager` directly.
-*   **Proposed Fix:** This is a minor architectural point. The current design is valid as a Facade pattern. However, for stricter adherence to SRP, consider having services that need a specific manager (like `AIService` needing to add messages) depend on the specific manager interface (`IMessageManager`) instead of the monolithic `IGameService`. The `Container` already builds these managers, so changing the dependency signatures would be straightforward. This would make dependencies more granular and explicit.
+None
 
 ## Ideas
 

@@ -30,13 +30,14 @@ class EventManager(IEventManager):
             result: Tool result
             metadata: Additional metadata
         """
-        game_state.add_game_event(
+        event = GameEvent(
             event_type=event_type,
             tool_name=tool_name,
             parameters=parameters,
             result=result,
             metadata=metadata,
         )
+        game_state.add_game_event(event)
 
     def get_recent_events(self, game_state: GameState, limit: int = 50) -> list[GameEvent]:
         """Get recent game events.

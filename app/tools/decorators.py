@@ -50,7 +50,6 @@ def tool_handler(
         @wraps(func)
         async def wrapper(ctx: RunContext[AgentDependencies], **kwargs: Any) -> BaseModel:
             game_state = ctx.deps.game_state
-            game_service = ctx.deps.game_service
             event_bus = ctx.deps.event_bus
             tool_name = func.__name__
 
@@ -80,12 +79,13 @@ def tool_handler(
 
             # 2. Persist TOOL_CALL event
             try:
-                game_service.add_game_event(
-                    game_id=game_state.game_id,
+                ctx.deps.event_manager.add_event(
+                    game_state=game_state,
                     event_type=GameEventType.TOOL_CALL,
                     tool_name=tool_name,
                     parameters=broadcast_kwargs,
                 )
+                ctx.deps.save_manager.save_game(game_state)
             except Exception as e:
                 # Do not fail tool execution if event persistence fails
                 logger.error(
@@ -125,12 +125,13 @@ def tool_handler(
                 )
 
                 try:
-                    game_service.add_game_event(
-                        game_id=game_state.game_id,
+                    ctx.deps.event_manager.add_event(
+                        game_state=game_state,
                         event_type=GameEventType.TOOL_RESULT,
                         tool_name=tool_name,
                         result=tool_result.model_dump(mode="json"),
                     )
+                    ctx.deps.save_manager.save_game(game_state)
                 except Exception as e:
                     logger.error(
                         f"Failed to persist TOOL_RESULT for {tool_name}: {e}",

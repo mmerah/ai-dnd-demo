@@ -2,6 +2,7 @@
 
 from datetime import datetime
 
+from app.agents.core.types import AgentType
 from app.interfaces.services import IMessageManager
 from app.models.game_state import GameState, Message, MessageRole
 
@@ -17,7 +18,7 @@ class MessageManager(IMessageManager):
         game_state: GameState,
         role: MessageRole,
         content: str,
-        agent_type: str = "narrative",
+        agent_type: AgentType = AgentType.NARRATIVE,
         location: str | None = None,
         npcs_mentioned: list[str] | None = None,
         combat_round: int | None = None,
@@ -46,7 +47,7 @@ class MessageManager(IMessageManager):
             combat_round=combat_round,
         )
 
-        game_state.conversation_history.append(message)
+        game_state.add_message(message)
         return message
 
     def get_recent_messages(self, game_state: GameState, limit: int = 10) -> list[Message]:

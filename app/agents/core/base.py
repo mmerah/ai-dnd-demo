@@ -6,7 +6,6 @@ from typing import TypeAlias
 
 from pydantic import BaseModel
 
-from app.interfaces.services import IGameService
 from app.models.ai_response import StreamEvent
 from app.models.game_state import GameState
 
@@ -28,7 +27,6 @@ class BaseAgent(ABC):
         self,
         prompt: str,
         game_state: GameState,
-        game_service: IGameService,
         stream: bool = True,
     ) -> AsyncIterator[StreamEvent]:
         """Process a prompt and yield stream events."""

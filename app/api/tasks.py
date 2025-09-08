@@ -35,7 +35,6 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
         async for chunk in ai_service.generate_response(
             user_message=message,
             game_state=game_state,
-            game_service=game_service,
             stream=False,
         ):
             logger.debug(f"Received response: type={chunk.type}")

@@ -8,6 +8,7 @@ from typing import Generic, TypeVar
 
 from pydantic import BaseModel
 
+from app.agents.core.types import AgentType
 from app.common.types import JSONSerializable
 from app.models.ai_response import AIResponse
 from app.models.attributes import Abilities, AbilityModifiers, AttackAction, SavingThrows, SkillValue
@@ -79,31 +80,6 @@ class IGameService(ABC):
         pass
 
     @abstractmethod
-    def add_message(
-        self,
-        game_id: str,
-        role: MessageRole,
-        content: str,
-        agent_type: str = "narrative",
-        location: str | None = None,
-        npcs_mentioned: list[str] | None = None,
-        combat_round: int | None = None,
-    ) -> GameState:
-        pass
-
-    @abstractmethod
-    def add_game_event(
-        self,
-        game_id: str,
-        event_type: GameEventType,
-        tool_name: str | None = None,
-        parameters: dict[str, JSONSerializable] | None = None,
-        result: dict[str, JSONSerializable] | None = None,
-        metadata: dict[str, JSONSerializable] | None = None,
-    ) -> GameState:
-        pass
-
-    @abstractmethod
     def list_saved_games(self) -> list[GameState]:
         pass
 
@@ -158,7 +134,6 @@ class IAIService(ABC):
         self,
         user_message: str,
         game_state: GameState,
-        game_service: IGameService,
         stream: bool = True,
     ) -> AsyncIterator[AIResponse]:
         pass
@@ -628,7 +603,7 @@ class IMessageManager(ABC):
         game_state: GameState,
         role: MessageRole,
         content: str,
-        agent_type: str = "narrative",
+        agent_type: AgentType = AgentType.NARRATIVE,
         location: str | None = None,
         npcs_mentioned: list[str] | None = None,
         combat_round: int | None = None,
@@ -721,6 +696,27 @@ class IEventManager(ABC):
 
         Returns:
             List of matching events
+        """
+        pass
+
+
+class IConversationService(ABC):
+    """Interface for recording narrative messages with metadata and persistence."""
+
+    @abstractmethod
+    def record_message(
+        self,
+        game_state: GameState,
+        role: MessageRole,
+        content: str,
+        agent_type: AgentType = AgentType.NARRATIVE,
+        location: str | None = None,
+        npcs_mentioned: list[str] | None = None,
+        combat_round: int | None = None,
+    ) -> Message:
+        """Add a message to the conversation, auto-extract missing metadata, and save.
+
+        Returns the created Message.
         """
         pass
 

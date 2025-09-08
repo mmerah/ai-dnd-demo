@@ -8,6 +8,7 @@ from pydantic_ai.messages import (
     UserPromptPart,
 )
 
+from app.agents.core.types import AgentType
 from app.models.game_state import Message, MessageRole
 
 
@@ -15,7 +16,7 @@ class MessageConverterService:
     """Service for converting between message formats following Single Responsibility."""
 
     @staticmethod
-    def to_pydantic_messages(messages: list[Message], agent_type: str | None = None) -> list[ModelMessage]:
+    def to_pydantic_messages(messages: list[Message], agent_type: AgentType) -> list[ModelMessage]:
         """
         Convert internal Message format to PydanticAI's ModelMessage format.
 
@@ -30,7 +31,7 @@ class MessageConverterService:
 
         for msg in messages:
             # Filter by agent type if specified
-            if agent_type and msg.agent_type != agent_type:
+            if msg.agent_type != agent_type:
                 continue
 
             if msg.role == MessageRole.PLAYER:

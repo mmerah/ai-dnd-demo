@@ -3,7 +3,6 @@
 from collections.abc import AsyncIterator
 
 from app.agents.core.base import BaseAgent
-from app.interfaces.services import IGameService
 from app.models.ai_response import StreamEvent
 from app.models.game_state import GameState
 
@@ -23,9 +22,8 @@ class AgentOrchestrator:
         self,
         user_message: str,
         game_state: GameState,
-        game_service: IGameService,
         stream: bool = True,
     ) -> AsyncIterator[StreamEvent]:
         agent = self._select_agent(game_state)
-        async for event in agent.process(user_message, game_state, game_service, stream=stream):
+        async for event in agent.process(user_message, game_state, stream=stream):
             yield event

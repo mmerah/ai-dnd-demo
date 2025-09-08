@@ -6,6 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+from app.agents.core.types import AgentType
 from app.interfaces.services import IPathResolver, ISaveManager
 from app.models.combat import CombatState
 from app.models.game_state import GameEvent, GameState, GameTime, Message
@@ -108,6 +109,11 @@ class SaveManager(ISaveManager):
                     "This save is incompatible with the current version."
                 )
 
+            # Fail fast: active_agent must be present and valid
+            if "active_agent" not in metadata:
+                raise ValueError(f"Missing 'active_agent' in metadata for save {scenario_id}/{game_id}")
+            active_agent = AgentType(str(metadata["active_agent"]))
+
             # Create base game state from metadata with proper type casting
             game_state = GameState(
                 game_id=str(metadata["game_id"]),
@@ -119,7 +125,7 @@ class SaveManager(ISaveManager):
                 description=str(metadata.get("description", "")),
                 game_time=GameTime(**dict(metadata.get("game_time", {}))),
                 story_notes=list(metadata.get("story_notes", [])),
-                active_agent=str(metadata.get("active_agent", "narrative")),
+                active_agent=active_agent,
                 session_number=int(metadata.get("session_number", 1)),
                 total_play_time_minutes=int(metadata.get("total_play_time_minutes", 0)),
                 # Core required fields
@@ -230,7 +236,7 @@ class SaveManager(ISaveManager):
             "description": game_state.description,
             "game_time": game_state.game_time.model_dump(),
             "story_notes": game_state.story_notes,
-            "active_agent": game_state.active_agent,
+            "active_agent": game_state.active_agent.value,
             "session_number": game_state.session_number,
             "total_play_time_minutes": game_state.total_play_time_minutes,
         }

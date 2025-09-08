@@ -5,6 +5,7 @@ from enum import Enum
 
 from pydantic import BaseModel, Field
 
+from app.agents.core.types import AgentType
 from app.common.types import JSONSerializable
 from app.models.attributes import EntityType
 from app.models.combat import CombatState
@@ -31,7 +32,7 @@ class Message(BaseModel):
     role: MessageRole
     content: str
     timestamp: datetime = Field(default_factory=datetime.now)
-    agent_type: str = "narrative"
+    agent_type: AgentType = AgentType.NARRATIVE
     location: str | None = None
     npcs_mentioned: list[str] = Field(default_factory=list)
     combat_round: int | None = None
@@ -131,48 +132,18 @@ class GameState(BaseModel):
     game_events: list[GameEvent] = Field(default_factory=list)
 
     # Agent tracking for multi-agent support
-    active_agent: str = "narrative"
+    active_agent: AgentType = AgentType.NARRATIVE
 
     # Session metadata
     session_number: int = Field(ge=1, default=1)
     total_play_time_minutes: int = Field(ge=0, default=0)
 
-    def add_message(
-        self,
-        role: MessageRole,
-        content: str,
-        agent_type: str = "narrative",
-        location: str | None = None,
-        npcs_mentioned: list[str] | None = None,
-        combat_round: int | None = None,
-    ) -> None:
-        """Add a narrative message to conversation history with metadata."""
-        message = Message(
-            role=role,
-            content=content,
-            agent_type=agent_type,
-            location=location,
-            npcs_mentioned=npcs_mentioned if npcs_mentioned is not None else [],
-            combat_round=combat_round,
-        )
+    def add_message(self, message: Message) -> None:
+        """Add a message to conversation history with metadata."""
         self.conversation_history.append(message)
 
-    def add_game_event(
-        self,
-        event_type: GameEventType,
-        tool_name: str | None = None,
-        parameters: dict[str, JSONSerializable] | None = None,
-        result: dict[str, JSONSerializable] | None = None,
-        metadata: dict[str, JSONSerializable] | None = None,
-    ) -> None:
+    def add_game_event(self, event: GameEvent) -> None:
         """Add a game mechanics event."""
-        event = GameEvent(
-            event_type=event_type,
-            tool_name=tool_name,
-            parameters=parameters,
-            result=result,
-            metadata=metadata,
-        )
         self.game_events.append(event)
 
     def add_npc(self, npc: NPCInstance) -> None:
@@ -185,7 +156,6 @@ class GameState(BaseModel):
             while f"{base_name} {counter}" in existing_names:
                 counter += 1
             npc.sheet.character.name = f"{base_name} {counter}"
-
         self.npcs.append(npc)
 
     def remove_npc(self, name: str) -> bool:
@@ -240,7 +210,6 @@ class GameState(BaseModel):
         """Get all NPCs currently at the specified location."""
         return [npc for npc in self.npcs if npc.current_location_id == location_id]
 
-    # Unified entity helpers
     def find_entity_by_name(self, name: str) -> tuple[EntityType, IEntity] | None:
         """Find any entity by display name (case-insensitive)."""
         # Player
@@ -356,7 +325,7 @@ class GameState(BaseModel):
         """Get the most recent messages from history."""
         return self.conversation_history[-count:] if self.conversation_history else []
 
-    def get_messages_for_agent(self, agent_type: str) -> list[Message]:
+    def get_messages_for_agent(self, agent_type: AgentType) -> list[Message]:
         """Get conversation history filtered for a specific agent."""
         return [msg for msg in self.conversation_history if msg.agent_type == agent_type]
 

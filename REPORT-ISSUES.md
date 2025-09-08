@@ -111,10 +111,11 @@ This approach makes the `ContextService` much cleaner, easier to test, and exten
           ├── ai.py             # IAIService, IMessageService
           ├── character.py      # ICharacterService, ICharacterComputeService
           ├── common.py         # IPathResolver, IBroadcastService
+          ├── conversation.py   # IConversationService, IMessageManager, IEventManager
           ├── game.py           # IGameService, IGameStateManager, ISaveManager, etc.
           └── repositories.py   # IRepository, IItemRepository, etc.
       ```
-    *   Move each interface definition into the corresponding new file.
+    *   Move each interface definition into the corresponding new file (note: AI path does not depend on IGameService; agent uses ConversationService + EventBus).
     *   Update all import paths across the application to reflect the new locations. This is a mechanical but necessary change for long-term maintainability.
 
 This reorganization will make the project structure highly intuitive and scalable, aligning the interfaces directly with their implementations.

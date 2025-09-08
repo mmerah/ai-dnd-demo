@@ -11,13 +11,17 @@ from app.agents.core.dependencies import AgentDependencies
 from app.agents.core.event_stream.base import EventContext, EventStreamProcessor
 from app.agents.core.event_stream.thinking import ThinkingHandler
 from app.agents.core.event_stream.tools import ToolEventHandler
+from app.agents.core.types import AgentType
 from app.events.commands.broadcast_commands import BroadcastNarrativeCommand
 from app.interfaces.events import IEventBus
 from app.interfaces.services import (
-    IGameService,
+    IConversationService,
+    IEventManager,
     IItemRepository,
+    IMessageManager,
     IMetadataService,
     IMonsterRepository,
+    ISaveManager,
     IScenarioService,
     ISpellRepository,
 )
@@ -53,6 +57,10 @@ class NarrativeAgent(BaseAgent):
     item_repository: IItemRepository
     monster_repository: IMonsterRepository
     spell_repository: ISpellRepository
+    message_manager: IMessageManager
+    save_manager: ISaveManager
+    event_manager: IEventManager
+    conversation_service: IConversationService
     _event_processor: EventStreamProcessor | None = None
 
     @property
@@ -120,7 +128,6 @@ class NarrativeAgent(BaseAgent):
         self,
         prompt: str,
         game_state: GameState,
-        game_service: IGameService,
         stream: bool = True,
     ) -> AsyncIterator[StreamEvent]:
         """Process a prompt and yield stream events."""
@@ -132,18 +139,21 @@ class NarrativeAgent(BaseAgent):
 
         deps = AgentDependencies(
             game_state=game_state,
-            game_service=game_service,
             event_bus=self.event_bus,
             scenario_service=self.scenario_service,
             item_repository=self.item_repository,
             monster_repository=self.monster_repository,
             spell_repository=self.spell_repository,
+            message_manager=self.message_manager,
+            event_manager=self.event_manager,
+            metadata_service=self.metadata_service,
+            save_manager=self.save_manager,
         )
 
         context = self.context_service.build_context(game_state)
         message_history = self.message_converter.to_pydantic_messages(
             game_state.conversation_history,
-            agent_type="narrative",
+            agent_type=AgentType.NARRATIVE,
         )
 
         full_prompt = f"\n\n{context}\n\nPlayer: {prompt}"
@@ -170,9 +180,9 @@ class NarrativeAgent(BaseAgent):
                 ],
             )
 
-            # Record messages (let GameService extract metadata)
-            game_service.add_message(game_state.game_id, MessageRole.PLAYER, prompt, agent_type="narrative")
-            game_service.add_message(game_state.game_id, MessageRole.DM, result.output, agent_type="narrative")
+            # Record messages
+            self.conversation_service.record_message(game_state, MessageRole.PLAYER, prompt, AgentType.NARRATIVE)
+            self.conversation_service.record_message(game_state, MessageRole.DM, result.output, AgentType.NARRATIVE)
 
             yield StreamEvent(
                 type=StreamEventType.COMPLETE,

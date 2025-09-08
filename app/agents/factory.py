@@ -16,9 +16,13 @@ from app.agents.narrative.agent import NarrativeAgent
 from app.config import get_settings
 from app.interfaces.events import IEventBus
 from app.interfaces.services import (
+    IConversationService,
+    IEventManager,
     IItemRepository,
+    IMessageManager,
     IMetadataService,
     IMonsterRepository,
+    ISaveManager,
     IScenarioService,
     ISpellRepository,
 )
@@ -61,12 +65,16 @@ class AgentFactory:
     def create_agent(
         cls,
         agent_type: AgentType,
-        event_bus: IEventBus | None = None,
-        scenario_service: IScenarioService | None = None,
-        item_repository: IItemRepository | None = None,
-        monster_repository: IMonsterRepository | None = None,
-        spell_repository: ISpellRepository | None = None,
-        metadata_service: IMetadataService | None = None,
+        event_bus: IEventBus,
+        scenario_service: IScenarioService,
+        item_repository: IItemRepository,
+        monster_repository: IMonsterRepository,
+        spell_repository: ISpellRepository,
+        metadata_service: IMetadataService,
+        message_manager: IMessageManager,
+        event_manager: IEventManager,
+        save_manager: ISaveManager,
+        conversation_service: IConversationService,
         debug: bool = False,
     ) -> BaseAgent:
         """Create a specialized agent based on type."""
@@ -83,16 +91,6 @@ class AgentFactory:
                 retries=settings.max_retries,
             )
 
-            # Create narrative agent instance
-            if not event_bus:
-                raise ValueError("Event bus is required for narrative agent")
-            if not scenario_service:
-                raise ValueError("ScenarioService is required for NarrativeAgent")
-            if not item_repository or not monster_repository or not spell_repository:
-                raise ValueError("Repositories are required for NarrativeAgent")
-            if not metadata_service:
-                raise ValueError("MetadataService is required for NarrativeAgent")
-
             narrative_agent = NarrativeAgent(
                 agent=agent,
                 context_service=ContextService(
@@ -108,6 +106,10 @@ class AgentFactory:
                 item_repository=item_repository,
                 monster_repository=monster_repository,
                 spell_repository=spell_repository,
+                message_manager=message_manager,
+                save_manager=save_manager,
+                event_manager=event_manager,
+                conversation_service=conversation_service,
             )
 
             # Register its required tools

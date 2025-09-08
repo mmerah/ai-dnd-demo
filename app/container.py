@@ -21,6 +21,7 @@ from app.interfaces.services import (
     ICharacterComputeService,
     ICharacterService,
     ICombatService,
+    IConversationService,
     IEventManager,
     IGameService,
     IGameStateManager,
@@ -67,6 +68,7 @@ from app.services.data.repositories.trait_repository import TraitRepository
 from app.services.data.repositories.weapon_property_repository import WeaponPropertyRepository
 from app.services.game import GameService
 from app.services.game.combat_service import CombatService
+from app.services.game.conversation_service import ConversationService
 from app.services.game.event_manager import EventManager
 from app.services.game.game_state_manager import GameStateManager
 from app.services.game.message_manager import MessageManager as GameMessageManager
@@ -89,9 +91,6 @@ class Container:
             scenario_service=self.scenario_service,
             save_manager=self.save_manager,
             game_state_manager=self.game_state_manager,
-            message_manager=self.game_message_manager,
-            event_manager=self.event_manager,
-            metadata_service=self.metadata_service,
             compute_service=self.character_compute_service,
             item_repository=self.item_repository,
             monster_factory=self.monster_factory,
@@ -303,10 +302,14 @@ class Container:
             monster_repository=self.monster_repository,
             spell_repository=self.spell_repository,
             metadata_service=self.metadata_service,
+            message_manager=self.game_message_manager,
+            event_manager=self.event_manager,
+            save_manager=self.save_manager,
+            conversation_service=self.conversation_service,
             debug=settings.debug_ai,
         )
         orchestrator = AgentOrchestrator(narrative_agent)
-        return AIService(self.game_service, orchestrator)
+        return AIService(orchestrator)
 
     @cached_property
     def message_service(self) -> IMessageService:
@@ -319,6 +322,14 @@ class Container:
     @cached_property
     def combat_service(self) -> ICombatService:
         return CombatService()
+
+    @cached_property
+    def conversation_service(self) -> IConversationService:
+        return ConversationService(
+            message_manager=self.game_message_manager,
+            metadata_service=self.metadata_service,
+            save_manager=self.save_manager,
+        )
 
 
 # Singleton instance of the container
