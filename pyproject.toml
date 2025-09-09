@@ -18,6 +18,7 @@ warn_unreachable = true
 strict_equality = true
 ignore_missing_imports = true
 plugins = ["pydantic.mypy"]
+enable_error_code = ["truthy-bool", "truthy-iterable"]
 
 [tool.pydantic-mypy]
 init_forbid_extra = true

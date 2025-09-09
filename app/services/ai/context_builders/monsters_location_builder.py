@@ -7,7 +7,7 @@ class MonstersAtLocationContextBuilder(ContextBuilder):
     """Build context for monsters present at the current location (runtime instances)."""
 
     def build(self, game_state: GameState) -> str | None:
-        if not game_state.scenario_instance or not game_state.scenario_instance.is_in_known_location():
+        if not game_state.scenario_instance.is_in_known_location():
             return None
 
         current_loc_id = game_state.scenario_instance.current_location_id

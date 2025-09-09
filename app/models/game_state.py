@@ -116,8 +116,8 @@ class GameState(BaseModel):
     description: str = ""
     game_time: GameTime = Field(default_factory=GameTime)
 
-    # Combat state (optional)
-    combat: CombatState | None = None
+    # Combat state
+    combat: CombatState = Field(default_factory=CombatState)
 
     # Story tracking
     story_notes: list[str] = Field(default_factory=list)
@@ -281,16 +281,20 @@ class GameState(BaseModel):
 
     def start_combat(self) -> CombatState:
         """Initialize combat state."""
-        self.combat = CombatState()
+        self.combat = CombatState(is_active=True)
         return self.combat
 
     def end_combat(self) -> None:
         """End current combat encounter."""
-        if self.combat:
+        if self.combat.is_active:
             self.combat.end_combat()
             # Remove dead monsters
             self.monsters = [m for m in self.monsters if m.is_alive()]
-            self.combat = None
+            # Set combat to inactive and clear participants
+            self.combat.is_active = False
+            self.combat.participants.clear()
+            self.combat.round_number = 1
+            self.combat.turn_index = 0
 
     def set_quest_flag(self, flag_name: str, value: JSONSerializable = True) -> None:
         """Set a quest flag."""

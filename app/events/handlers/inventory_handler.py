@@ -2,19 +2,23 @@
 
 import logging
 
+from app.common.exceptions import RepositoryNotFoundError
 from app.events.base import BaseCommand, CommandResult
 from app.events.commands.broadcast_commands import BroadcastGameUpdateCommand
 from app.events.commands.inventory_commands import (
+    EquipItemCommand,
     ModifyCurrencyCommand,
     ModifyInventoryCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
+from app.interfaces.services.character import ICharacterComputeService
 from app.interfaces.services.data import IItemRepository
 from app.interfaces.services.game import IGameService
 from app.models.game_state import GameState
 from app.models.item import InventoryItem
 from app.models.tool_results import (
     AddItemResult,
+    EquipItemResult,
     ModifyCurrencyResult,
     RemoveItemResult,
 )
@@ -25,13 +29,17 @@ logger = logging.getLogger(__name__)
 class InventoryHandler(BaseHandler):
     """Handler for inventory-related commands."""
 
-    def __init__(self, game_service: IGameService, item_repository: IItemRepository):
+    def __init__(
+        self, game_service: IGameService, item_repository: IItemRepository, compute_service: ICharacterComputeService
+    ):
         super().__init__(game_service)
         self.item_repository = item_repository
+        self.compute_service = compute_service
 
     supported_commands = (
         ModifyCurrencyCommand,
         ModifyInventoryCommand,
+        EquipItemCommand,
     )
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
@@ -87,12 +95,12 @@ class InventoryHandler(BaseHandler):
                     raise ValueError(f"Unknown item: {command.item_name}")
 
                 # Get item definition and create properly
-                item_def = self.item_repository.get(command.item_name)
-                if not item_def:
-                    raise ValueError(f"Failed to load item definition: {command.item_name}")
-
-                new_item = InventoryItem.from_definition(item_def, quantity=command.quantity, equipped_quantity=0)
-                character.inventory.append(new_item)
+                try:
+                    item_def = self.item_repository.get(command.item_name)
+                    new_item = InventoryItem.from_definition(item_def, quantity=command.quantity, equipped_quantity=0)
+                    character.inventory.append(new_item)
+                except RepositoryNotFoundError as e:
+                    raise ValueError(f"Failed to load item definition: {command.item_name}") from e
 
             self.game_service.save_game(game_state)
 
@@ -137,5 +145,35 @@ class InventoryHandler(BaseHandler):
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
             logger.info(f"Item Removed: {command.item_name} x{command.quantity}")
+
+        elif isinstance(command, EquipItemCommand):
+            try:
+                game_state.character.state = self.compute_service.set_item_equipped(
+                    game_state.character.state, command.item_name, command.equipped
+                )
+
+                # Find the item to get equipped quantity
+                item = next(
+                    (it for it in game_state.character.state.inventory if it.name.lower() == command.item_name.lower()),
+                    None,
+                )
+                equipped_qty = item.equipped_quantity if item else 0
+
+                # Recompute derived values
+                self.game_service.recompute_character_state(game_state)
+                self.game_service.save_game(game_state)
+
+                result.data = EquipItemResult(
+                    item_name=item.name if item else command.item_name,
+                    equipped=command.equipped,
+                    equipped_quantity=equipped_qty,
+                    message=f"{'Equipped' if command.equipped else 'Unequipped'} {command.item_name}",
+                )
+
+                result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
+                logger.info(f"Item {'Equipped' if command.equipped else 'Unequipped'}: {command.item_name}")
+
+            except ValueError as e:
+                raise ValueError(f"Failed to equip/unequip item: {e}") from e
 
         return result

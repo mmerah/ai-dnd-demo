@@ -128,9 +128,8 @@ class NarrativeAgent(BaseAgent):
         stream: bool = True,
     ) -> AsyncIterator[StreamEvent]:
         """Process a prompt and yield stream events."""
-        if self.event_processor:
-            self.event_processor.context.clear()
-            self.event_processor.context.game_id = game_state.game_id
+        self.event_processor.context.clear()
+        self.event_processor.context.game_id = game_state.game_id
 
         self.event_logger.set_game_id(game_state.game_id)
 

@@ -10,11 +10,9 @@ from app.interfaces.services.scenario import IScenarioService
 from app.models.character import CharacterSheet
 from app.models.game_state import GameState, GameTime, Message, MessageRole
 from app.models.instances.character_instance import CharacterInstance
-from app.models.instances.entity_state import EntityState, HitDice, HitPoints
 from app.models.instances.monster_instance import MonsterInstance
 from app.models.instances.npc_instance import NPCInstance
 from app.models.instances.scenario_instance import ScenarioInstance
-from app.models.item import InventoryItem, ItemDefinition, ItemSubtype, ItemType
 from app.models.monster import MonsterSheet
 from app.models.quest import QuestStatus
 from app.models.scenario import ScenarioLocation, ScenarioMonster
@@ -54,70 +52,6 @@ class GameService(IGameService):
         self.compute_service = compute_service
         self.item_repository = item_repository
         self.monster_factory = monster_factory
-
-    def _build_entity_state_from_sheet(self, character: CharacterSheet) -> EntityState:
-        """Create an EntityState from a CharacterSheet's starting_* fields using compute layer."""
-        # Base inputs
-        abilities = character.starting_abilities
-        level = character.starting_level
-
-        # Derived basics
-        modifiers = self.compute_service.compute_ability_modifiers(abilities)
-        proficiency = self.compute_service.compute_proficiency_bonus(level)
-        saving_throws = self.compute_service.compute_saving_throws(character.class_index, modifiers, proficiency)
-        skills = self.compute_service.compute_skills(
-            character.class_index,
-            selected_skills=character.starting_skill_indexes,
-            modifiers=modifiers,
-            proficiency_bonus=proficiency,
-        )
-        armor_class = self.compute_service.compute_armor_class(modifiers, character.starting_inventory)
-        initiative_bonus = self.compute_service.compute_initiative_bonus(modifiers)
-
-        # HP / Hit Dice
-        max_hp, hit_dice_total, hit_die_type = self.compute_service.compute_hit_points_and_dice(
-            character.class_index, level, modifiers.CON
-        )
-
-        # Spellcasting copy with computed numbers
-        spellcasting = None
-        if character.starting_spellcasting is not None:
-            sc = character.starting_spellcasting.model_copy(deep=True)
-            dc, atk = self.compute_service.compute_spell_numbers(character.class_index, modifiers, proficiency)
-            sc.spell_save_dc = dc
-            sc.spell_attack_bonus = atk
-            spellcasting = sc
-
-        # Speed from race (minimal rule)
-        speed = self.compute_service.compute_speed(character.race, character.starting_inventory)
-
-        attacks = self.compute_service.compute_attacks(
-            character.class_index,
-            character.race,
-            character.starting_inventory,
-            modifiers,
-            proficiency,
-        )
-
-        return EntityState(
-            abilities=abilities,
-            level=level,
-            experience_points=character.starting_experience_points,
-            hit_points=HitPoints(current=max_hp, maximum=max_hp, temporary=0),
-            hit_dice=HitDice(total=hit_dice_total, current=hit_dice_total, type=hit_die_type),
-            armor_class=armor_class,
-            initiative_bonus=initiative_bonus,
-            speed=speed,
-            saving_throws=saving_throws,
-            skills=skills,
-            attacks=attacks,
-            conditions=[],
-            exhaustion_level=0,
-            inspiration=False,
-            inventory=character.starting_inventory,
-            currency=character.starting_currency,
-            spellcasting=spellcasting,
-        )
 
     def generate_game_id(self, character_name: str) -> str:
         """
@@ -188,7 +122,7 @@ class GameService(IGameService):
             instance_id=generate_instance_id(character.name),
             template_id=character.id,
             sheet=character,
-            state=self._build_entity_state_from_sheet(character),
+            state=self.compute_service.initialize_entity_state(character),
         )
 
         scen_inst = ScenarioInstance(
@@ -196,7 +130,7 @@ class GameService(IGameService):
             template_id=scenario_id,
             sheet=scenario,
             current_location_id=initial_location_id,
-            current_act_id=scenario.progression.acts[0].id if scenario and scenario.progression.acts else None,
+            current_act_id=scenario.progression.acts[0].id,
         )
 
         game_state = GameState(
@@ -208,12 +142,11 @@ class GameService(IGameService):
             scenario_title=scenario_title,
             scenario_instance=scen_inst,
             game_time=initial_time,
-            combat=None,
             conversation_history=[initial_message],
         )
 
         # Initialize quests from scenario
-        if scenario and scenario.quests:
+        if scenario.quests:
             # Add the first act's quests as active
             first_act = scenario.progression.get_current_act()
             if first_act:
@@ -227,7 +160,7 @@ class GameService(IGameService):
         self.initialize_all_npcs(game_state)
 
         # Initialize starting location
-        if scenario and initial_location_id:
+        if initial_location_id:
             location = scenario.get_location(initial_location_id)
             if location:
                 # Player starts here, so initialize and mark as visited
@@ -371,77 +304,6 @@ class GameService(IGameService):
         char.state = new_state
         char.touch()
 
-    def set_item_equipped(self, game_id: str, item_name: str, equipped: bool) -> GameState:
-        """Equip/unequip a single unit of the named item and persist changes.
-
-        Splits/merges stacks for equippable items and recomputes derived stats.
-        """
-        game_state = self.get_game(game_id)
-        if not game_state:
-            raise ValueError(f"Game {game_id} not found")
-
-        inventory = game_state.character.state.inventory
-        # Locate item by name (case-insensitive fallback)
-        item = next((it for it in inventory if it.name == item_name), None)
-        if not item:
-            item = next((it for it in inventory if it.name.lower() == item_name.lower()), None)
-        if not item:
-            raise ValueError(f"Item '{item_name}' not found in inventory")
-
-        # Validate using item repository
-        item_def = self.item_repository.get(item.name)
-        if not item_def:
-            raise ValueError(f"Unknown item definition for '{item.name}'")
-        if item_def.type not in (ItemType.WEAPON, ItemType.ARMOR):
-            raise ValueError(f"Item '{item.name}' is not equippable")
-
-        # Single-entry model: adjust equipped_quantity by one
-        if equipped:
-            # TODO(MVP2): move to a slot-based equipment system (typed slots, constraints)
-            self._enforce_equip_constraints(inventory, item_def)
-            if item.equipped_quantity < item.quantity:
-                item.equipped_quantity += 1
-        else:
-            if item.equipped_quantity > 0:
-                item.equipped_quantity -= 1
-
-        # Recompute and save
-        self.recompute_character_state(game_state)
-        self.save_game(game_state)
-        return game_state
-
-    def _is_shield(self, idef: ItemDefinition) -> bool:
-        return idef.type == ItemType.ARMOR and idef.subtype == ItemSubtype.SHIELD
-
-    def _is_body_armor(self, idef: ItemDefinition) -> bool:
-        return idef.type == ItemType.ARMOR and idef.subtype in (
-            ItemSubtype.LIGHT,
-            ItemSubtype.MEDIUM,
-            ItemSubtype.HEAVY,
-        )
-
-    def _enforce_equip_constraints(self, inventory: list[InventoryItem], equipping_def: ItemDefinition) -> None:
-        """
-        Enforce simple equipment constraints.
-
-        - Only one shield may be equipped
-        - Only one body armor (light/medium/heavy) may be equipped
-        """
-        if self._is_shield(equipping_def):
-            for it in inventory:
-                if (it.equipped_quantity or 0) <= 0:
-                    continue
-                current_def = self.item_repository.get(it.name)
-                if current_def and self._is_shield(current_def):
-                    raise ValueError("Cannot equip more than one shield at a time")
-        elif self._is_body_armor(equipping_def):
-            for it in inventory:
-                if (it.equipped_quantity or 0) <= 0:
-                    continue
-                current_def = self.item_repository.get(it.name)
-                if current_def and self._is_body_armor(current_def):
-                    raise ValueError("Already wearing body armor; unequip it first")
-
     def initialize_all_npcs(self, game_state: GameState) -> None:
         """
         Initialize all NPCInstances from the scenario at game start.
@@ -460,14 +322,14 @@ class GameService(IGameService):
 
         # Create an instance for each NPC in the scenario
         # NOTE: For MVP1, all NPCs are loaded at game start regardless of location.
-        # Future enhancement could implement lazy loading based on location proximity.
+        # TODO(MVP2): Future enhancement could implement lazy loading based on location proximity.
         for npc_sheet in npc_sheets:
             # Create NPCInstance with initial location
             npc_instance = NPCInstance(
                 instance_id=generate_instance_id(npc_sheet.display_name),
                 scenario_npc_id=npc_sheet.id,
                 sheet=npc_sheet,
-                state=self._build_entity_state_from_sheet(npc_sheet.character),
+                state=self.compute_service.initialize_entity_state(npc_sheet.character),
                 current_location_id=npc_sheet.initial_location_id,
                 attitude=npc_sheet.initial_attitude,
                 notes=list(npc_sheet.initial_notes) if npc_sheet.initial_notes else [],

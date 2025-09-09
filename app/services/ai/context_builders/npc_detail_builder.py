@@ -7,7 +7,7 @@ class NPCDetailContextBuilder(ContextBuilder):
     """Build detailed NPC context with abilities for NPCs at the current location."""
 
     def build(self, game_state: GameState) -> str | None:
-        if not game_state.scenario_instance or not game_state.scenario_instance.is_in_known_location():
+        if not game_state.scenario_instance.is_in_known_location():
             return None
 
         current_loc_id = game_state.scenario_instance.current_location_id

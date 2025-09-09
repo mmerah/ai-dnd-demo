@@ -52,23 +52,20 @@ class ScenarioService(IScenarioService):
                     if scenario_file.exists():
                         try:
                             scenario = self.scenario_loader.load(scenario_file)
+                            self._scenarios[scenario.id] = scenario
                         except Exception as e:
-                            logger.error(f"Failed to load scenario {scenario_id}: {e}")
-                            scenario = None
-                    else:
-                        scenario = None
-                    if scenario:
-                        self._scenarios[scenario.id] = scenario
+                            logger.error(f"Failed to load critical scenario data from {scenario_file}: {e}")
+                            raise RuntimeError(f"Critical data validation failed for scenario {scenario_id}") from e
 
         # Also check for legacy single scenario.json file
         scenario_path = self.path_resolver.get_data_dir() / "scenario.json"
         if scenario_path.exists():
             try:
                 scenario = self.scenario_loader.load(scenario_path)
-                if scenario:
-                    self._scenarios[scenario.id] = scenario
+                self._scenarios[scenario.id] = scenario
             except Exception as e:
-                logger.error(f"Failed to load legacy scenario: {e}")
+                logger.error(f"Failed to load critical scenario data from {scenario_path}: {e}")
+                raise RuntimeError("Critical data validation failed for legacy scenario") from e
 
     def get_scenario(self, scenario_id: str) -> ScenarioSheet | None:
         """

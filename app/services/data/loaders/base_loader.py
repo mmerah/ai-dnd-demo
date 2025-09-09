@@ -69,19 +69,6 @@ class BaseLoader(ILoader[T], ABC, Generic[T]):
         """
         pass
 
-    @abstractmethod
-    def _prepare_for_save(self, data: T) -> dict[str, Any] | list[Any]:
-        # Any is necessary for JSON-serializable output that can contain mixed types
-        """Prepare model data for JSON serialization.
-
-        Args:
-            data: Model instance to prepare
-
-        Returns:
-            JSON-serializable dictionary or list
-        """
-        pass
-
     def _validate_data(self, data: T) -> None:
         """Validate loaded data.
 

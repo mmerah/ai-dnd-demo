@@ -26,3 +26,14 @@ class ModifyInventoryCommand(BaseCommand):
 
     def get_handler_name(self) -> str:
         return "inventory"
+
+
+@dataclass
+class EquipItemCommand(BaseCommand):
+    """Command to equip or unequip an item."""
+
+    item_name: str = ""
+    equipped: bool = True
+
+    def get_handler_name(self) -> str:
+        return "inventory"

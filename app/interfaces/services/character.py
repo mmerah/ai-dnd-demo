@@ -90,6 +90,11 @@ class ICharacterComputeService(ABC):
         pass
 
     @abstractmethod
+    def initialize_entity_state(self, sheet: CharacterSheet) -> EntityState:
+        """Create an EntityState from a CharacterSheet's starting_* fields."""
+        pass
+
+    @abstractmethod
     def recompute_entity_state(self, sheet: CharacterSheet, state: EntityState) -> EntityState:
         """Recompute derived fields on EntityState from sheet + current state.
 
@@ -110,6 +115,31 @@ class ICharacterComputeService(ABC):
 
         Uses simple proficiency heuristics (class/race proficiencies) and weapon properties
         to select the attack ability (STR/DEX) and to-hit/damage values.
+        """
+        pass
+
+    @abstractmethod
+    def set_item_equipped(self, state: EntityState, item_name: str, equipped: bool) -> EntityState:
+        """Equip or unequip an inventory item by name.
+
+        Validates equippability against the item repository, performs stack split/merge
+        for multi-quantity items, and returns the updated EntityState.
+
+        Constraints (enforced):
+        - Only one shield may be equipped at a time
+        - Only one body armor (light/medium/heavy) may be equipped at a time
+        - Operation equips/unequips exactly one unit per call
+
+        Args:
+            state: Current entity state
+            item_name: Name of the item to equip/unequip
+            equipped: True to equip, False to unequip
+
+        Returns:
+            Updated EntityState with item equipped/unequipped
+
+        Raises:
+            ValueError: If item not found, not equippable, or constraints violated
         """
         pass
 

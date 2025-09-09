@@ -2,11 +2,15 @@
 
 import logging
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from pydantic import BaseModel
 from sse_starlette.sse import EventSourceResponse
 
+from app.api.dependencies import get_game_state_from_path
+from app.api.player_actions import execute_player_action
 from app.api.tasks import process_ai_and_broadcast
 from app.container import container
+from app.events.commands.inventory_commands import EquipItemCommand
 from app.models.game_state import GameState
 from app.models.requests import (
     EquipItemRequest,
@@ -16,6 +20,7 @@ from app.models.requests import (
     PlayerActionRequest,
     ResumeGameResponse,
 )
+from app.models.tool_results import EquipItemResult
 
 logger = logging.getLogger(__name__)
 
@@ -77,89 +82,53 @@ async def list_saved_games() -> list[GameState]:
 
 
 @router.get("/game/{game_id}", response_model=GameState)
-async def get_game_state(game_id: str) -> GameState:
+async def get_game_state(game_state: GameState = Depends(get_game_state_from_path)) -> GameState:
     """
     Get the complete game state for a session.
 
     Args:
-        game_id: Unique game identifier
+        game_state: The game state loaded via dependency injection
 
     Returns:
         Complete game state including character, NPCs, location, etc.
-
-    Raises:
-        HTTPException: If game not found
     """
-    game_service = container.game_service
-    try:
-        game_state = game_service.load_game(game_id)
-        return game_state
-    except FileNotFoundError:
-        raise HTTPException(status_code=404, detail=f"Game with ID '{game_id}' not found") from None
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=f"Invalid game data: {e!s}") from e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to load game: {e!s}") from e
+    return game_state
 
 
 @router.post("/game/{game_id}/resume", response_model=ResumeGameResponse)
-async def resume_game(game_id: str) -> ResumeGameResponse:
+async def resume_game(game_state: GameState = Depends(get_game_state_from_path)) -> ResumeGameResponse:
     """
     Resume a saved game session.
 
     Args:
-        game_id: Unique game identifier
+        game_state: The game state loaded via dependency injection
 
     Returns:
         Confirmation with game_id
-
-    Raises:
-        HTTPException: If game not found
     """
-    game_service = container.game_service
-    try:
-        game_state = game_service.load_game(game_id)
-        if not game_state:
-            raise HTTPException(status_code=404, detail=f"Game with ID '{game_id}' not found")
-        return ResumeGameResponse(game_id=game_id, status="resumed")
-    except FileNotFoundError as e:
-        raise HTTPException(status_code=404, detail=f"Game with ID '{game_id}' not found") from e
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to resume game: {e!s}") from e
+    return ResumeGameResponse(game_id=game_state.game_id, status="resumed")
 
 
 @router.post("/game/{game_id}/action")
 async def process_player_action(
-    game_id: str,
     request: PlayerActionRequest,
     background_tasks: BackgroundTasks,
+    game_state: GameState = Depends(get_game_state_from_path),
 ) -> dict[str, str]:
     """
     Process a player action and trigger AI response processing.
 
     Args:
-        game_id: Unique game identifier
         request: Player's message/action
         background_tasks: FastAPI background tasks for async processing
+        game_state: The game state loaded via dependency injection
 
     Returns:
         Status acknowledgment
-
-    Raises:
-        HTTPException: If game not found
     """
-    game_service = container.game_service
-    try:
-        game_state = game_service.load_game(game_id)
-        if not game_state:
-            raise HTTPException(status_code=404, detail=f"Game with ID '{game_id}' not found")
-        logger.info(f"Processing action for game {game_id}: {request.message[:50]}...")
-        background_tasks.add_task(process_ai_and_broadcast, game_id, request.message)
-        return {"status": "action received"}
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to process action: {e!s}") from e
+    logger.info(f"Processing action for game {game_state.game_id}: {request.message[:50]}...")
+    background_tasks.add_task(process_ai_and_broadcast, game_state.game_id, request.message)
+    return {"status": "action received"}
 
 
 @router.post("/game/{game_id}/equip", response_model=EquipItemResponse)
@@ -178,25 +147,38 @@ async def equip_item(game_id: str, request: EquipItemRequest) -> EquipItemRespon
         - Constraints enforced: at most one shield equipped and at most one body armor equipped at a time
     """
     game_service = container.game_service
-    message_service = container.message_service
+    event_bus = container.event_bus
+    event_manager = container.event_manager
+    save_manager = container.save_manager
+
     try:
-        updated_state = game_service.set_item_equipped(game_id, request.item_name, request.equipped)
-        await message_service.send_game_update(game_id, updated_state)
-        item = next(
-            (it for it in updated_state.character.state.inventory if it.name.lower() == request.item_name.lower()),
-            None,
+        # Get the game state
+        game_state = game_service.get_game(game_id)
+        if not game_state:
+            raise HTTPException(status_code=404, detail=f"Game {game_id} not found")
+
+        # Create command
+        command = EquipItemCommand(game_id=game_id, item_name=request.item_name, equipped=request.equipped)
+
+        # Execute with event tracking (treating this as a player "tool")
+        result: BaseModel = await execute_player_action(
+            command=command,
+            tool_name="equip_item",
+            game_state=game_state,
+            event_bus=event_bus,
+            event_manager=event_manager,
+            save_manager=save_manager,
         )
-        final_name = item.name if item else request.item_name
-        eq_item = next(
-            (it for it in updated_state.character.state.inventory if it.name.lower() == final_name.lower()),
-            None,
-        )
-        equipped_qty = eq_item.equipped_quantity if eq_item else 0
+
+        # Extract the result data
+        if not isinstance(result, EquipItemResult):
+            raise ValueError("Failed to equip item - invalid result type")
+
         return EquipItemResponse(
             game_id=game_id,
-            item_name=final_name,
-            equipped_quantity=equipped_qty,
-            new_armor_class=updated_state.character.state.armor_class,
+            item_name=result.item_name,
+            equipped_quantity=result.equipped_quantity,
+            new_armor_class=game_state.character.state.armor_class,
         )
     except HTTPException:
         raise
@@ -205,7 +187,7 @@ async def equip_item(game_id: str, request: EquipItemRequest) -> EquipItemRespon
 
 
 @router.get("/game/{game_id}/sse")
-async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
+async def game_sse_endpoint(game_state: GameState = Depends(get_game_state_from_path)) -> EventSourceResponse:
     """
     SSE endpoint for real-time game updates.
 
@@ -213,33 +195,20 @@ async def game_sse_endpoint(game_id: str) -> EventSourceResponse:
     game state updates, dice roll results, and other events.
 
     Args:
-        game_id: Unique game identifier
+        game_state: The game state loaded via dependency injection
 
     Returns:
         SSE stream for real-time updates
-
-    Raises:
-        HTTPException: If game not found
     """
-    game_service = container.game_service
-    try:
-        game_state = game_service.load_game(game_id)
-        if not game_state:
-            raise HTTPException(status_code=404, detail=f"Game with ID '{game_id}' not found")
-
-        message_service = container.message_service
-        scenario_service = container.scenario_service
-        scenario = game_state.scenario_instance.sheet
-        available_scenarios = scenario_service.list_scenarios()
-        return EventSourceResponse(
-            message_service.generate_sse_events(
-                game_id,
-                game_state,
-                scenario,
-                available_scenarios,
-            )
+    message_service = container.message_service
+    scenario_service = container.scenario_service
+    scenario = game_state.scenario_instance.sheet
+    available_scenarios = scenario_service.list_scenarios()
+    return EventSourceResponse(
+        message_service.generate_sse_events(
+            game_state.game_id,
+            game_state,
+            scenario,
+            available_scenarios,
         )
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to establish SSE connection: {e!s}") from e
+    )

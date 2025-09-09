@@ -23,10 +23,6 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
     try:
         # Load game state
         game_state = game_service.load_game(game_id)
-        if not game_state:
-            logger.error(f"Game {game_id} not found")
-            await message_service.send_error(game_id, f"Game with ID '{game_id}' not found")
-            return
 
         logger.info(f"Requesting AI response for game {game_id}")
         narrative = None

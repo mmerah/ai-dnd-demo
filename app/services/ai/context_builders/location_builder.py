@@ -1,8 +1,12 @@
+import logging
+
 from app.interfaces.services.data import IItemRepository
 from app.models.game_state import GameState
 from app.models.scenario import ScenarioSheet
 
 from .base import ContextBuilder
+
+logger = logging.getLogger(__name__)
 
 
 class LocationContextBuilder(ContextBuilder):
@@ -12,7 +16,7 @@ class LocationContextBuilder(ContextBuilder):
         self.item_repository = item_repository
 
     def build(self, game_state: GameState) -> str | None:
-        if not game_state.scenario_instance or not game_state.scenario_instance.is_in_known_location():
+        if not game_state.scenario_instance.is_in_known_location():
             return None
 
         scenario: ScenarioSheet = game_state.scenario_instance.sheet
@@ -64,10 +68,14 @@ class LocationContextBuilder(ContextBuilder):
             if available_loot:
                 context_parts.append("\nPotential Items (not yet found):")
                 for loot in available_loot[:3]:
-                    if not loot.hidden:
-                        if self.item_repository and self.item_repository.validate_reference(loot.item_name):
-                            context_parts.append(f"  - {loot.item_name} (use exact name: '{loot.item_name}')")
-                        else:
-                            context_parts.append(f"  - {loot.item_name}")
+                    # AI game master should see all items including hidden ones
+                    # Only show items that exist in the repository
+                    if self.item_repository.validate_reference(loot.item_name):
+                        hidden_marker = " [HIDDEN]" if loot.hidden else ""
+                        context_parts.append(
+                            f"  - {loot.item_name} (use exact name: '{loot.item_name}'){hidden_marker}"
+                        )
+                    else:
+                        logger.warning(f"Item '{loot.item_name}' in location loot table not found in item repository")
 
         return "\n".join(context_parts)

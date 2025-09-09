@@ -10,7 +10,7 @@ class CombatContextBuilder(ContextBuilder):
         self.monsters_in_combat_builder = monsters_in_combat_builder
 
     def build(self, game_state: GameState) -> str | None:
-        if not game_state.combat:
+        if not game_state.combat.is_active:
             return None
 
         combat = game_state.combat

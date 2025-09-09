@@ -228,6 +228,14 @@ class LevelUpResult(BaseModel):
     message: str
 
 
+class EquipItemResult(BaseModel):
+    type: str = "equip_item"
+    item_name: str
+    equipped: bool
+    equipped_quantity: int
+    message: str
+
+
 # Union type representing any possible successful result from a tool
 ToolResult = (
     UpdateHPResult
@@ -257,4 +265,5 @@ ToolResult = (
     | RemoveParticipantResult
     | RollDiceResult
     | LevelUpResult
+    | EquipItemResult
 )

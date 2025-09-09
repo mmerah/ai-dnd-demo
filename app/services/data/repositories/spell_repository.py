@@ -3,6 +3,7 @@
 import logging
 from typing import Any
 
+from app.common.exceptions import RepositoryNotFoundError
 from app.interfaces.services.common import IPathResolver
 from app.interfaces.services.data import IRepository, ISpellRepository
 from app.models.magic_school import MagicSchool
@@ -212,7 +213,7 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
         except Exception as e:
             raise ValueError(f"Failed to parse spell data: {e}") from e
 
-    def get(self, key: str) -> SpellDefinition | None:
+    def get(self, key: str) -> SpellDefinition:
         """Get a spell by name, supporting case-insensitive lookup.
 
         Override base implementation to support case-insensitive matching.
@@ -237,7 +238,10 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
                     return spell
 
         # Load from file if not cached
-        return self._load_item(key)
+        item = self._load_item(key)
+        if item:
+            return item
+        raise RepositoryNotFoundError(f"Spell with key '{key}' not found")
 
     def get_by_level(self, level: int) -> list[SpellDefinition]:
         """Get all spells of a specific level.

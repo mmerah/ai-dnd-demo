@@ -7,6 +7,7 @@ from pydantic_ai import RunContext
 
 from app.agents.core.dependencies import AgentDependencies
 from app.events.commands.inventory_commands import (
+    EquipItemCommand,
     ModifyCurrencyCommand,
     ModifyInventoryCommand,
 )
@@ -56,5 +57,23 @@ async def modify_inventory(ctx: RunContext[AgentDependencies], item_name: str, q
         - Give rope away: item_name="Rope, hempen (50 feet)", quantity=-1
         - Loot arrows: item_name="Arrows", quantity=20
         - Shoot arrows: item_name="Arrows", quantity=-2
+    """
+    raise NotImplementedError("This is handled by the @tool_handler decorator")
+
+
+@tool_handler(EquipItemCommand)
+async def equip_item(ctx: RunContext[AgentDependencies], item_name: str, equipped: bool = True) -> BaseModel:
+    # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
+    """Equip or unequip an item in the player's inventory.
+
+    Args:
+        item_name: The name of the item to equip/unequip
+        equipped: True to equip, False to unequip
+
+    Examples:
+        - Equip a sword: item_name="Longsword", equipped=True
+        - Unequip armor: item_name="Leather Armor", equipped=False
+        - Put on a shield: item_name="Shield", equipped=True
+        - Take off a helmet: item_name="Helmet", equipped=False
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")

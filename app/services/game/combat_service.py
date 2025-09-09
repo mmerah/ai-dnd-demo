@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import random
 
+from app.common.exceptions import RepositoryNotFoundError
 from app.interfaces.services.data import IMonsterRepository
 from app.interfaces.services.game import ICombatService, IGameService
 from app.interfaces.services.scenario import IScenarioService
@@ -124,7 +125,6 @@ class CombatService(ICombatService):
                         entity = npc_inst
                     else:
                         # Monsters: scenario-defined or repository
-                        monster_sheet = None
                         if spawn.spawn_type == SpawnType.SCENARIO:
                             monster_sheet = scenario_service.get_scenario_monster(
                                 game_state.scenario_id, spawn.entity_id
@@ -134,19 +134,20 @@ class CombatService(ICombatService):
                                     f"Scenario monster not found: id={spawn.entity_id} in scenario {game_state.scenario_id}"
                                 )
                                 continue
-                        elif spawn.spawn_type == SpawnType.REPOSITORY:
-                            monster_sheet = monster_repository.get(spawn.entity_id)
-                            if not monster_sheet:
-                                logger.warning(f"Monster not found in repository: '{spawn.entity_id}'")
-                                continue
-
-                        if monster_sheet:
                             inst = game_service.create_monster_instance(monster_sheet, current_loc)
                             _ = game_state.add_monster_instance(inst)
                             entity = inst
+                        elif spawn.spawn_type == SpawnType.REPOSITORY:
+                            try:
+                                monster_sheet = monster_repository.get(spawn.entity_id)
+                                inst = game_service.create_monster_instance(monster_sheet, current_loc)
+                                _ = game_state.add_monster_instance(inst)
+                                entity = inst
+                            except RepositoryNotFoundError:
+                                logger.warning(f"Monster not found in repository: '{spawn.entity_id}'")
+                                continue
 
-                    if entity:
-                        realized.append(entity)
+                    realized.append(entity)
                 except Exception as e:
                     logger.warning(
                         f"Failed to realize spawn for entity_id={spawn.entity_id} ({spawn.spawn_type}/{spawn.entity_type}): {e}"

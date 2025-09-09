@@ -53,6 +53,6 @@ class MetadataService(IMetadataService):
         Returns:
             Current combat round number or None if not in combat
         """
-        if game_state.combat and game_state.combat.is_active:
+        if game_state.combat.is_active:
             return game_state.combat.round_number
         return None

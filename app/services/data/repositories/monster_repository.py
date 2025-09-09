@@ -3,6 +3,7 @@
 import logging
 from typing import Any
 
+from app.common.exceptions import RepositoryNotFoundError
 from app.interfaces.services.common import IPathResolver
 from app.interfaces.services.data import IMonsterRepository, IRepository
 from app.models.alignment import Alignment
@@ -61,8 +62,7 @@ class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
         for monster_data in data.get("monsters", []):
             try:
                 monster = self._parse_monster_data(monster_data)
-                key = str(monster_data.get("index") or monster.name)
-                self._cache[key] = monster
+                self._cache[monster.index] = monster
             except Exception as e:
                 # Log error but continue loading other monsters
                 logger.warning(f"Failed to load monster {monster_data.get('name', 'unknown')}: {e}")
@@ -82,12 +82,7 @@ class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
 
         for monster_data in data.get("monsters", []):
             idx = str(monster_data.get("index", ""))
-            if (
-                idx == key
-                or (idx and idx.lower() == key.lower())
-                or monster_data.get("name") == key
-                or str(monster_data.get("name", "")).lower() == key.lower()
-            ):
+            if idx.lower() == key.lower():
                 try:
                     return self._parse_monster_data(monster_data)
                 except Exception:
@@ -103,9 +98,9 @@ class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
 
         keys: list[str] = []
         for monster in data.get("monsters", []):
-            k = monster.get("index") or monster.get("name", "")
-            if k:
-                keys.append(str(k))
+            # Use index as primary key since it's now mandatory
+            if "index" in monster:
+                keys.append(str(monster["index"]))
         return sorted(keys)
 
     def _check_key_exists(self, key: str) -> bool:
@@ -116,8 +111,7 @@ class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
 
         for m in data.get("monsters", []):
             idx = str(m.get("index", ""))
-            nm = str(m.get("name", ""))
-            if idx == key or (idx and idx.lower() == key.lower()) or nm == key or nm.lower() == key.lower():
+            if idx.lower() == key.lower():
                 return True
         return False
 
@@ -129,13 +123,15 @@ class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
         skills = []
         for skill_name, modifier in data.items():
             # Resolve to index via repo (by name or index)
-            skill_def = self.skill_repository.get(skill_name)
-            if not skill_def:
+            try:
+                skill_def = self.skill_repository.get(skill_name)
+            except RepositoryNotFoundError:
                 normalized = skill_name.replace(" ", "-").lower()
-                skill_def = self.skill_repository.get(normalized)
-            if not skill_def:
-                logger.warning(f"Unknown skill: {skill_name}")
-                continue
+                try:
+                    skill_def = self.skill_repository.get(normalized)
+                except RepositoryNotFoundError:
+                    logger.warning(f"Unknown skill: {skill_name}")
+                    continue
             idx = skill_def.index
             skills.append(SkillValue(index=idx, value=modifier))
 
@@ -196,7 +192,7 @@ class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
         except Exception as e:
             raise ValueError(f"Failed to parse monster data: {e}") from e
 
-    def get(self, key: str) -> MonsterSheet | None:
+    def get(self, key: str) -> MonsterSheet:
         """Get a monster by name, returning a deep copy.
 
         Override base implementation to return deep copies to avoid
@@ -206,13 +202,14 @@ class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
             key: Monster name to get
 
         Returns:
-            Deep copy of MonsterSheet or None if not found
+            Deep copy of MonsterSheet
+
+        Raises:
+            RepositoryNotFoundError: If the monster is not found
         """
         monster = super().get(key)
-        if monster:
-            # Return a deep copy to avoid modifying the cached version
-            return monster.model_copy(deep=True)
-        return None
+        # Return a deep copy to avoid modifying the cached version
+        return monster.model_copy(deep=True)
 
     def get_by_challenge_rating(self, min_cr: float, max_cr: float) -> list[MonsterSheet]:
         """Get all monsters within a challenge rating range.

@@ -2,15 +2,21 @@
 
 from __future__ import annotations
 
+import logging
+
+from app.common.exceptions import RepositoryNotFoundError
 from app.interfaces.services.character import ICharacterComputeService
 from app.interfaces.services.data import IItemRepository, IRepository, ISpellRepository
 from app.models.attributes import Abilities, AbilityModifiers, AttackAction, SavingThrows, SkillValue
 from app.models.character import CharacterSheet
 from app.models.class_definitions import ClassDefinition
-from app.models.instances.entity_state import EntityState
+from app.models.instances.entity_state import EntityState, HitDice, HitPoints
 from app.models.item import InventoryItem, ItemDefinition, ItemSubtype, ItemType
 from app.models.race import RaceDefinition
 from app.models.skill import Skill
+from app.utils.ability_utils import ALL_ABILITY_CODES, get_ability_modifier, normalize_ability_name, set_ability_value
+
+logger = logging.getLogger(__name__)
 
 
 class CharacterComputeService(ICharacterComputeService):
@@ -65,27 +71,19 @@ class CharacterComputeService(ICharacterComputeService):
     ) -> SavingThrows:
         out = SavingThrows()
         cls_def = self.class_repository.get(class_index)
-        proficient = set(cls_def.saving_throws or []) if cls_def else set()
-        for ability in ("STR", "DEX", "CON", "INT", "WIS", "CHA"):
-            base = getattr(modifiers, ability)
-            value = base + (proficiency_bonus if ability.lower() in proficient or ability in proficient else 0)
-            setattr(out, ability, value)
+        proficient = set(cls_def.saving_throws)
+        for ability_code in ALL_ABILITY_CODES:
+            base = get_ability_modifier(modifiers, ability_code)
+            value = base + (
+                proficiency_bonus if ability_code.lower() in proficient or ability_code in proficient else 0
+            )
+            set_ability_value(out, ability_code, value)
         return out
 
     def _skill_base_mod(self, skill_index: str, modifiers: AbilityModifiers) -> int:
         skill = self.skill_repository.get(skill_index)
-        if not skill:
-            return 0
-        ability_map = {
-            "strength": "STR",
-            "dexterity": "DEX",
-            "constitution": "CON",
-            "intelligence": "INT",
-            "wisdom": "WIS",
-            "charisma": "CHA",
-        }
-        key = ability_map.get(skill.ability.lower())
-        return getattr(modifiers, key) if key else 0
+        ability_code = normalize_ability_name(skill.ability)
+        return get_ability_modifier(modifiers, ability_code) if ability_code else 0
 
     def compute_skills(
         self,
@@ -99,7 +97,7 @@ class CharacterComputeService(ICharacterComputeService):
         chosen: list[str] = list(selected_skills)
         if not chosen:
             cls_def = self.class_repository.get(class_index)
-            if cls_def and cls_def.proficiency_choices:
+            if cls_def.proficiency_choices:
                 for choice in cls_def.proficiency_choices:
                     to_choose = int(choice.choose)
                     # Filter to skill-* entries and strip prefix
@@ -126,16 +124,18 @@ class CharacterComputeService(ICharacterComputeService):
     def compute_armor_class(self, modifiers: AbilityModifiers, inventory: list[InventoryItem]) -> int:
         # Minimal equipment handling: pick best equipped armor; add one shield if equipped
         base_unarmored = 10 + modifiers.DEX
-        if not self.item_repository:
-            return base_unarmored
+        # Item repository is always provided in the constructor
 
         equipped_defs: list[tuple[InventoryItem, ItemDefinition]] = []
         for it in inventory:
             if (it.equipped_quantity or 0) <= 0:
                 continue
-            item_def = self.item_repository.get(it.name)
-            if item_def:
+            try:
+                item_def = self.item_repository.get(it.name)
                 equipped_defs.append((it, item_def))
+            except RepositoryNotFoundError:
+                logger.warning(f"Can't compute new armor class as {it.name} not found in ItemRepository")
+                continue
 
         # Separate shields and body armor
         best_body_ac: int | None = None
@@ -175,21 +175,16 @@ class CharacterComputeService(ICharacterComputeService):
     def compute_spell_numbers(
         self, class_index: str, modifiers: AbilityModifiers, proficiency_bonus: int
     ) -> tuple[int | None, int | None]:
-        cls_def = self.class_repository.get(class_index)
-        if not cls_def or not cls_def.spellcasting_ability:
+        try:
+            cls_def = self.class_repository.get(class_index)
+        except RepositoryNotFoundError:
             return None, None
-        ability_map = {
-            "strength": "STR",
-            "dexterity": "DEX",
-            "constitution": "CON",
-            "intelligence": "INT",
-            "wisdom": "WIS",
-            "charisma": "CHA",
-        }
-        key = ability_map.get(cls_def.spellcasting_ability.lower())
-        if not key:
+        if not cls_def.spellcasting_ability:
             return None, None
-        ability_mod = getattr(modifiers, key)
+        ability_code = normalize_ability_name(cls_def.spellcasting_ability)
+        if not ability_code:
+            return None, None
+        ability_mod = get_ability_modifier(modifiers, ability_code)
         dc = 8 + proficiency_bonus + ability_mod
         atk = proficiency_bonus + ability_mod
         return dc, atk
@@ -200,8 +195,11 @@ class CharacterComputeService(ICharacterComputeService):
         - Level 1 HP = hit_die + CON mod
         - Each subsequent level adds average (hit_die//2 + 1) + CON mod, with a minimum of 1 HP per level
         """
-        cls_def = self.class_repository.get(class_index)
-        hit_die = cls_def.hit_die if cls_def and cls_def.hit_die else 8
+        try:
+            cls_def = self.class_repository.get(class_index)
+            hit_die = cls_def.hit_die if cls_def.hit_die else 8
+        except RepositoryNotFoundError:
+            hit_die = 8
         # Level 1
         max_hp = max(1, hit_die + con_modifier)
         # Levels 2..N use average + CON mod, at least 1 per level
@@ -214,11 +212,74 @@ class CharacterComputeService(ICharacterComputeService):
 
     def compute_speed(self, race_index: str, inventory: list[InventoryItem]) -> int:
         # Minimal rule: base speed from race; ignore armor penalties
-        if self.race_repository:
+        # Race repository is always provided in the constructor
+        try:
             race = self.race_repository.get(race_index)
-            if race:
-                return race.speed
-        return 30
+            return race.speed
+        except RepositoryNotFoundError:
+            return 30
+
+    def initialize_entity_state(self, sheet: CharacterSheet) -> EntityState:
+        """Create an EntityState from a CharacterSheet's starting_* fields using compute layer."""
+        # Base inputs
+        abilities = sheet.starting_abilities
+        level = sheet.starting_level
+
+        # Derived basics
+        modifiers = self.compute_ability_modifiers(abilities)
+        proficiency = self.compute_proficiency_bonus(level)
+        saving_throws = self.compute_saving_throws(sheet.class_index, modifiers, proficiency)
+        skills = self.compute_skills(
+            sheet.class_index,
+            selected_skills=sheet.starting_skill_indexes,
+            modifiers=modifiers,
+            proficiency_bonus=proficiency,
+        )
+        armor_class = self.compute_armor_class(modifiers, sheet.starting_inventory)
+        initiative_bonus = self.compute_initiative_bonus(modifiers)
+
+        # HP / Hit Dice
+        max_hp, hit_dice_total, hit_die_type = self.compute_hit_points_and_dice(sheet.class_index, level, modifiers.CON)
+
+        # Spellcasting copy with computed numbers
+        spellcasting = None
+        if sheet.starting_spellcasting is not None:
+            sc = sheet.starting_spellcasting.model_copy(deep=True)
+            dc, atk = self.compute_spell_numbers(sheet.class_index, modifiers, proficiency)
+            sc.spell_save_dc = dc
+            sc.spell_attack_bonus = atk
+            spellcasting = sc
+
+        # Speed from race (minimal rule)
+        speed = self.compute_speed(sheet.race, sheet.starting_inventory)
+
+        attacks = self.compute_attacks(
+            sheet.class_index,
+            sheet.race,
+            sheet.starting_inventory,
+            modifiers,
+            proficiency,
+        )
+
+        return EntityState(
+            abilities=abilities,
+            level=level,
+            experience_points=sheet.starting_experience_points,
+            hit_points=HitPoints(current=max_hp, maximum=max_hp, temporary=0),
+            hit_dice=HitDice(total=hit_dice_total, current=hit_dice_total, type=hit_die_type),
+            armor_class=armor_class,
+            initiative_bonus=initiative_bonus,
+            speed=speed,
+            saving_throws=saving_throws,
+            skills=skills,
+            attacks=attacks,
+            conditions=[],
+            exhaustion_level=0,
+            inspiration=False,
+            inventory=sheet.starting_inventory,
+            currency=sheet.starting_currency,
+            spellcasting=spellcasting,
+        )
 
     def recompute_entity_state(self, sheet: CharacterSheet, state: EntityState) -> EntityState:
         # Compute all derived fields based on current state + sheet
@@ -281,11 +342,17 @@ class CharacterComputeService(ICharacterComputeService):
         return name.lower().replace(",", "").replace(" ", "-")
 
     def _is_proficient_with_weapon(self, class_index: str, race_index: str, idef: ItemDefinition) -> bool:
-        cls_def = self.class_repository.get(class_index)
-        race_def = self.race_repository.get(race_index) if self.race_repository else None
-        # Broad categories
-        profs = set(cls_def.proficiencies or []) if cls_def else set()
-        race_profs = set(race_def.weapon_proficiencies or []) if race_def and race_def.weapon_proficiencies else set()
+        try:
+            cls_def = self.class_repository.get(class_index)
+            profs = set(cls_def.proficiencies or [])
+        except RepositoryNotFoundError:
+            profs = set()
+
+        try:
+            race_def = self.race_repository.get(race_index)
+            race_profs = set(race_def.weapon_proficiencies or []) if race_def.weapon_proficiencies else set()
+        except RepositoryNotFoundError:
+            race_profs = set()
         all_profs = profs | race_profs
         if "simple-weapons" in all_profs or "martial-weapons" in all_profs:
             return True
@@ -314,8 +381,12 @@ class CharacterComputeService(ICharacterComputeService):
         for inv in inventory:
             if (inv.equipped_quantity or 0) <= 0:
                 continue
-            idef = self.item_repository.get(inv.name)
-            if not idef or idef.type != ItemType.WEAPON:
+            try:
+                idef = self.item_repository.get(inv.name)
+            except RepositoryNotFoundError:
+                logger.warning(f"Can't compute attacks as {inv.name} not found in ItemRepository")
+                continue
+            if idef.type != ItemType.WEAPON:
                 continue
 
             ability_mod = self._choose_attack_mod(idef, modifiers)
@@ -347,3 +418,69 @@ class CharacterComputeService(ICharacterComputeService):
             )
 
         return attacks
+
+    def _is_shield(self, idef: ItemDefinition) -> bool:
+        return idef.type == ItemType.ARMOR and idef.subtype == ItemSubtype.SHIELD
+
+    def _is_body_armor(self, idef: ItemDefinition) -> bool:
+        return idef.type == ItemType.ARMOR and idef.subtype in (
+            ItemSubtype.LIGHT,
+            ItemSubtype.MEDIUM,
+            ItemSubtype.HEAVY,
+        )
+
+    def _enforce_equip_constraints(self, inventory: list[InventoryItem], equipping_def: ItemDefinition) -> None:
+        """
+        Enforce simple equipment constraints.
+
+        - Only one shield may be equipped
+        - Only one body armor (light/medium/heavy) may be equipped
+        """
+        if self._is_shield(equipping_def):
+            for it in inventory:
+                if (it.equipped_quantity or 0) <= 0:
+                    continue
+                current_def = self.item_repository.get(it.name)
+                if self._is_shield(current_def):
+                    raise ValueError("Cannot equip more than one shield at a time")
+        elif self._is_body_armor(equipping_def):
+            for it in inventory:
+                if (it.equipped_quantity or 0) <= 0:
+                    continue
+                current_def = self.item_repository.get(it.name)
+                if self._is_body_armor(current_def):
+                    raise ValueError("Already wearing body armor; unequip it first")
+
+    def set_item_equipped(self, state: EntityState, item_name: str, equipped: bool) -> EntityState:
+        """Equip/unequip a single unit of the named item.
+
+        Splits/merges stacks for equippable items and recomputes derived stats.
+        """
+        inventory = state.inventory
+        # Locate item by name (case-insensitive fallback)
+        item = next((it for it in inventory if it.name == item_name), None)
+        if not item:
+            item = next((it for it in inventory if it.name.lower() == item_name.lower()), None)
+        if not item:
+            raise ValueError(f"Item '{item_name}' not found in inventory")
+
+        # Validate using item repository
+        try:
+            item_def = self.item_repository.get(item.name)
+        except RepositoryNotFoundError as e:
+            raise ValueError(f"Unknown item definition for '{item.name}'") from e
+        if item_def.type not in (ItemType.WEAPON, ItemType.ARMOR):
+            raise ValueError(f"Item '{item.name}' is not equippable")
+
+        # Single-entry model: adjust equipped_quantity by one
+        if equipped:
+            # TODO(MVP2): move to a slot-based equipment system (typed slots, constraints)
+            self._enforce_equip_constraints(inventory, item_def)
+            if item.equipped_quantity < item.quantity:
+                item.equipped_quantity += 1
+        else:
+            if item.equipped_quantity > 0:
+                item.equipped_quantity -= 1
+
+        # Return updated state (caller is responsible for recomputing if needed)
+        return state

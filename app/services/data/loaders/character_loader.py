@@ -37,15 +37,3 @@ class CharacterLoader(BaseLoader[CharacterSheet]):
             return character
         except Exception as e:
             raise RuntimeError(f"Failed to parse character from {source_path}: {e}") from e
-
-    def _prepare_for_save(self, data: CharacterSheet) -> dict[str, Any]:
-        # Any is necessary for JSON-serializable output
-        """Prepare character data for JSON serialization.
-
-        Args:
-            data: CharacterSheet to save
-
-        Returns:
-            JSON-serializable dictionary
-        """
-        return data.model_dump(mode="json")

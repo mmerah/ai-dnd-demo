@@ -1,6 +1,6 @@
 """Scenario models for D&D adventure content."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from app.models.location import DangerLevel, EncounterParticipantSpawn, LocationConnection, LootEntry
 from app.models.monster import MonsterSheet
@@ -101,6 +101,13 @@ class ScenarioProgression(BaseModel):
 
     acts: list[ScenarioAct]
     current_act_index: int = 0
+
+    @model_validator(mode="after")
+    def check_has_at_least_one_act(self) -> "ScenarioProgression":
+        """Ensure the scenario has at least one act."""
+        if not self.acts:
+            raise ValueError("ScenarioProgression must have at least one act")
+        return self
 
     def get_current_act(self) -> ScenarioAct | None:
         """Get the current act."""

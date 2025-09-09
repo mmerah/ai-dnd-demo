@@ -409,17 +409,3 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
         except Exception as e:
             logger.warning(f"Failed to load progression: {e}")
             return None
-
-    def _prepare_for_save(self, data: ScenarioSheet) -> dict[str, Any]:
-        # Any is necessary for JSON-serializable output
-        """Prepare scenario data for JSON serialization.
-
-        Args:
-            data: Scenario to save
-
-        Returns:
-            JSON-serializable dictionary
-        """
-        # For scenarios, we would need to split the data back into components
-        # This is complex and might not be needed for the MVP
-        return data.model_dump(mode="json")

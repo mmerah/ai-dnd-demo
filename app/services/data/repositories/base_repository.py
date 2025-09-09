@@ -7,6 +7,7 @@ from typing import Any, Generic, Protocol, TypeVar, cast
 
 from pydantic import BaseModel
 
+from app.common.exceptions import RepositoryNotFoundError
 from app.interfaces.services.data import IRepository
 
 
@@ -40,14 +41,17 @@ class BaseRepository(IRepository[T], ABC, Generic[T]):
         self._cache: dict[str, T] = {}
         self._initialized = False
 
-    def get(self, key: str) -> T | None:
+    def get(self, key: str) -> T:
         """Get an item by its key.
 
         Args:
             key: The key to look up
 
         Returns:
-            The item if found, None otherwise
+            The item if found
+
+        Raises:
+            RepositoryNotFoundError: If the item is not found
         """
         if not self._initialized:
             self._initialize()
@@ -56,10 +60,12 @@ class BaseRepository(IRepository[T], ABC, Generic[T]):
             return self._cache[key]
 
         item = self._load_item(key)
-        if item and self.cache_enabled:
-            self._cache[key] = item
+        if item:
+            if self.cache_enabled:
+                self._cache[key] = item
+            return item
 
-        return item
+        raise RepositoryNotFoundError(f"Item with key '{key}' not found")
 
     def list_keys(self) -> list[str]:
         """List all available keys.
@@ -133,16 +139,20 @@ class BaseRepository(IRepository[T], ABC, Generic[T]):
                     return item_name
 
         # Fallback: try to load the item
-        loaded_item = self.get(index)
-        if loaded_item is not None:
+        try:
+            loaded_item = self.get(index)
             return self._extract_name(loaded_item)
+        except RepositoryNotFoundError:
+            pass
 
         # Last resort: case-insensitive key search
         for key in self.list_keys():
             if key.lower() == key_lower:
-                key_item = self.get(key)
-                if key_item is not None:
+                try:
+                    key_item = self.get(key)
                     return self._extract_name(key_item)
+                except RepositoryNotFoundError:
+                    pass
 
         return None
 

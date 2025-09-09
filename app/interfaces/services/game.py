@@ -68,21 +68,6 @@ class IGameService(ABC):
         """Recompute derived values for the player character from sheet + state."""
         pass
 
-    @abstractmethod
-    def set_item_equipped(self, game_id: str, item_name: str, equipped: bool) -> GameState:
-        """Equip or unequip a player's inventory item by name and persist changes.
-
-        Validates equippability against the item repository, performs stack split/merge
-        for multi-quantity items, recomputes derived values, saves to disk, and returns
-        the updated GameState.
-
-        Constraints (enforced):
-        - Only one shield may be equipped at a time
-        - Only one body armor (light/medium/heavy) may be equipped at a time
-        - Operation equips/unequips exactly one unit per call
-        """
-        pass
-
 
 class ICombatService(ABC):
     """Interface for combat-related computations and operations (SOLID/DRY)."""

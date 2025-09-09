@@ -21,13 +21,11 @@ class MonsterSheet(BaseModel):
     """Minimal monster stat block (template)."""
 
     # Basic Information
+    index: str
     name: str
     type: str
     size: str = Field(pattern="^(Tiny|Small|Medium|Large|Huge|Gargantuan)$")
     alignment: str  # alignment index (e.g., 'neutral-evil', 'unaligned')
-
-    # Optional stable index (preferred primary key if present)
-    index: str | None = None
 
     # Combat Stats
     armor_class: int = Field(ge=1)

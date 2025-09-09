@@ -25,11 +25,11 @@ class MultiClassingInfo(BaseModel):
 class ClassDefinition(BaseModel):
     index: str
     name: str
-    hit_die: int | None = None
-    saving_throws: list[str] | None = None
-    proficiencies: list[str] | None = None
+    hit_die: int
+    saving_throws: list[str]
+    proficiencies: list[str]
     spellcasting_ability: str | None = None
-    description: str | None = None
+    description: str
     proficiency_choices: list[ClassProficiencyChoice] | None = None
     starting_equipment: list[ClassStartingEquipment] | None = None
     starting_equipment_options_desc: list[str] | None = None

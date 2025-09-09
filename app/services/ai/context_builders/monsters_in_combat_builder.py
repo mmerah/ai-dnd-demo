@@ -8,7 +8,7 @@ class MonstersInCombatContextBuilder(ContextBuilder):
     """List monsters currently participating in combat with stats and initiative."""
 
     def build(self, game_state: GameState) -> str | None:
-        if not game_state.combat:
+        if not game_state.combat.is_active:
             return None
 
         combat = game_state.combat

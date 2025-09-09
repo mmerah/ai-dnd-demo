@@ -262,7 +262,9 @@ class Container:
         # Register all handlers
         event_bus.register_handler("character", CharacterHandler(self.game_service, self.level_progression_service))
         event_bus.register_handler("dice", DiceHandler(self.game_service, self.dice_service))
-        event_bus.register_handler("inventory", InventoryHandler(self.game_service, self.item_repository))
+        event_bus.register_handler(
+            "inventory", InventoryHandler(self.game_service, self.item_repository, self.character_compute_service)
+        )
         event_bus.register_handler("time", TimeHandler(self.game_service))
         event_bus.register_handler("broadcast", BroadcastHandler(self.game_service, self.message_service))
         event_bus.register_handler(

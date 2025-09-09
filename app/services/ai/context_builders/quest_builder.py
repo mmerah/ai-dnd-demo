@@ -8,7 +8,7 @@ class QuestContextBuilder(ContextBuilder):
     """Build quest context with active quests and available new quests."""
 
     def build(self, game_state: GameState) -> str | None:
-        if not game_state.scenario_instance or not game_state.scenario_instance.active_quests:
+        if not game_state.scenario_instance.active_quests:
             return None
 
         scenario = game_state.scenario_instance.sheet

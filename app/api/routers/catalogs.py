@@ -2,6 +2,7 @@
 
 from fastapi import APIRouter, HTTPException
 
+from app.common.exceptions import RepositoryNotFoundError
 from app.container import container
 from app.models.alignment import Alignment
 from app.models.background import BackgroundDefinition
@@ -34,19 +35,17 @@ async def list_items(keys_only: bool = False) -> list[ItemDefinition] | list[str
         return keys
     result: list[ItemDefinition] = []
     for k in keys:
-        item = repo.get(k)
-        if item is not None:
-            result.append(item)
+        result.append(repo.get(k))
     return result
 
 
 @router.get("/catalogs/items/{index}")
 async def get_item(index: str) -> ItemDefinition:
     repo = container.item_repository
-    item = repo.get(index)
-    if not item:
-        raise HTTPException(status_code=404, detail=f"Item '{index}' not found")
-    return item
+    try:
+        return repo.get(index)
+    except RepositoryNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Item '{index}' not found") from e
 
 
 # Spells
@@ -59,19 +58,17 @@ async def list_spells(keys_only: bool = False) -> list[SpellDefinition] | list[s
         return keys
     result: list[SpellDefinition] = []
     for k in keys:
-        item = repo.get(k)
-        if item is not None:
-            result.append(item)
+        result.append(repo.get(k))
     return result
 
 
 @router.get("/catalogs/spells/{index}")
 async def get_spell(index: str) -> SpellDefinition:
     repo = container.spell_repository
-    spell = repo.get(index)
-    if not spell:
-        raise HTTPException(status_code=404, detail=f"Spell '{index}' not found")
-    return spell
+    try:
+        return repo.get(index)
+    except RepositoryNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Spell '{index}' not found") from e
 
 
 # Monsters
@@ -84,19 +81,17 @@ async def list_monsters(keys_only: bool = False) -> list[MonsterSheet] | list[st
         return keys
     result: list[MonsterSheet] = []
     for k in keys:
-        item = repo.get(k)
-        if item is not None:
-            result.append(item)
+        result.append(repo.get(k))
     return result
 
 
 @router.get("/catalogs/monsters/{index}")
 async def get_monster(index: str) -> MonsterSheet:
     repo = container.monster_repository
-    monster = repo.get(index)
-    if not monster:
-        raise HTTPException(status_code=404, detail=f"Monster '{index}' not found")
-    return monster
+    try:
+        return repo.get(index)
+    except RepositoryNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Monster '{index}' not found") from e
 
 
 # Magic Schools
@@ -108,19 +103,17 @@ async def list_magic_schools(keys_only: bool = False) -> list[MagicSchool] | lis
         return keys
     result: list[MagicSchool] = []
     for k in keys:
-        item = repo.get(k)
-        if item is not None:
-            result.append(item)
+        result.append(repo.get(k))
     return result
 
 
 @router.get("/catalogs/magic_schools/{index}")
 async def get_magic_school(index: str) -> MagicSchool:
     repo = container.magic_school_repository
-    ms = repo.get(index)
-    if not ms:
-        raise HTTPException(status_code=404, detail=f"Magic school '{index}' not found")
-    return ms
+    try:
+        return repo.get(index)
+    except RepositoryNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Magic school '{index}' not found") from e
 
 
 # Alignment
@@ -132,19 +125,17 @@ async def list_alignments(keys_only: bool = False) -> list[Alignment] | list[str
         return keys
     out: list[Alignment] = []
     for k in keys:
-        item = repo.get(k)
-        if item is not None:
-            out.append(item)
+        out.append(repo.get(k))
     return out
 
 
 @router.get("/catalogs/alignments/{index}")
 async def get_alignment(index: str) -> Alignment:
     repo = container.alignment_repository
-    item = repo.get(index)
-    if not item:
-        raise HTTPException(status_code=404, detail=f"Alignment '{index}' not found")
-    return item
+    try:
+        return repo.get(index)
+    except RepositoryNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Alignment '{index}' not found") from e
 
 
 # Classes
@@ -156,19 +147,17 @@ async def list_classes(keys_only: bool = False) -> list[ClassDefinition] | list[
         return keys
     out: list[ClassDefinition] = []
     for k in keys:
-        item = repo.get(k)
-        if item is not None:
-            out.append(item)
+        out.append(repo.get(k))
     return out
 
 
 @router.get("/catalogs/classes/{index}")
 async def get_class(index: str) -> ClassDefinition:
     repo = container.class_repository
-    item = repo.get(index)
-    if not item:
-        raise HTTPException(status_code=404, detail=f"Class '{index}' not found")
-    return item
+    try:
+        return repo.get(index)
+    except RepositoryNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Class '{index}' not found") from e
 
 
 # Subclasses
@@ -180,19 +169,17 @@ async def list_subclasses(keys_only: bool = False) -> list[SubclassDefinition] |
         return keys
     out: list[SubclassDefinition] = []
     for k in keys:
-        item = repo.get(k)
-        if item is not None:
-            out.append(item)
+        out.append(repo.get(k))
     return out
 
 
 @router.get("/catalogs/subclasses/{index}")
 async def get_subclass(index: str) -> SubclassDefinition:
     repo = container.subclass_repository
-    item = repo.get(index)
-    if not item:
-        raise HTTPException(status_code=404, detail=f"Subclass '{index}' not found")
-    return item
+    try:
+        return repo.get(index)
+    except RepositoryNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Subclass '{index}' not found") from e
 
 
 # Languages
@@ -204,19 +191,17 @@ async def list_languages(keys_only: bool = False) -> list[Language] | list[str]:
         return keys
     out: list[Language] = []
     for k in keys:
-        item = repo.get(k)
-        if item is not None:
-            out.append(item)
+        out.append(repo.get(k))
     return out
 
 
 @router.get("/catalogs/languages/{index}")
 async def get_language(index: str) -> Language:
     repo = container.language_repository
-    item = repo.get(index)
-    if not item:
-        raise HTTPException(status_code=404, detail=f"Language '{index}' not found")
-    return item
+    try:
+        return repo.get(index)
+    except RepositoryNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Language '{index}' not found") from e
 
 
 # Conditions
@@ -228,19 +213,17 @@ async def list_conditions(keys_only: bool = False) -> list[Condition] | list[str
         return keys
     out: list[Condition] = []
     for k in keys:
-        item = repo.get(k)
-        if item is not None:
-            out.append(item)
+        out.append(repo.get(k))
     return out
 
 
 @router.get("/catalogs/conditions/{index}")
 async def get_condition(index: str) -> Condition:
     repo = container.condition_repository
-    item = repo.get(index)
-    if not item:
-        raise HTTPException(status_code=404, detail=f"Condition '{index}' not found")
-    return item
+    try:
+        return repo.get(index)
+    except RepositoryNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Condition '{index}' not found") from e
 
 
 # Races
@@ -252,19 +235,17 @@ async def list_races(keys_only: bool = False) -> list[RaceDefinition] | list[str
         return keys
     out: list[RaceDefinition] = []
     for k in keys:
-        item = repo.get(k)
-        if item is not None:
-            out.append(item)
+        out.append(repo.get(k))
     return out
 
 
 @router.get("/catalogs/races/{index}")
 async def get_race(index: str) -> RaceDefinition:
     repo = container.race_repository
-    item = repo.get(index)
-    if not item:
-        raise HTTPException(status_code=404, detail=f"Race '{index}' not found")
-    return item
+    try:
+        return repo.get(index)
+    except RepositoryNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Race '{index}' not found") from e
 
 
 # Subraces
@@ -276,19 +257,17 @@ async def list_race_subraces(keys_only: bool = False) -> list[RaceSubraceDefinit
         return keys
     out: list[RaceSubraceDefinition] = []
     for k in keys:
-        item = repo.get(k)
-        if item is not None:
-            out.append(item)
+        out.append(repo.get(k))
     return out
 
 
 @router.get("/catalogs/race_subraces/{index}")
 async def get_race_subrace(index: str) -> RaceSubraceDefinition:
     repo = container.race_subrace_repository
-    item = repo.get(index)
-    if not item:
-        raise HTTPException(status_code=404, detail=f"Race subrace '{index}' not found")
-    return item
+    try:
+        return repo.get(index)
+    except RepositoryNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Race subrace '{index}' not found") from e
 
 
 # Backgrounds
@@ -300,19 +279,17 @@ async def list_backgrounds(keys_only: bool = False) -> list[BackgroundDefinition
         return keys
     out: list[BackgroundDefinition] = []
     for k in keys:
-        item = repo.get(k)
-        if item is not None:
-            out.append(item)
+        out.append(repo.get(k))
     return out
 
 
 @router.get("/catalogs/backgrounds/{index}")
 async def get_background(index: str) -> BackgroundDefinition:
     repo = container.background_repository
-    item = repo.get(index)
-    if not item:
-        raise HTTPException(status_code=404, detail=f"Background '{index}' not found")
-    return item
+    try:
+        return repo.get(index)
+    except RepositoryNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Background '{index}' not found") from e
 
 
 # Traits
@@ -324,19 +301,17 @@ async def list_traits(keys_only: bool = False) -> list[TraitDef] | list[str]:
         return keys
     out: list[TraitDef] = []
     for k in keys:
-        item = repo.get(k)
-        if item is not None:
-            out.append(item)
+        out.append(repo.get(k))
     return out
 
 
 @router.get("/catalogs/traits/{index}")
 async def get_trait(index: str) -> TraitDef:
     repo = container.trait_repository
-    item = repo.get(index)
-    if not item:
-        raise HTTPException(status_code=404, detail=f"Trait '{index}' not found")
-    return item
+    try:
+        return repo.get(index)
+    except RepositoryNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Trait '{index}' not found") from e
 
 
 # Features
@@ -348,19 +323,17 @@ async def list_features(keys_only: bool = False) -> list[FeatureDef] | list[str]
         return keys
     out: list[FeatureDef] = []
     for k in keys:
-        item = repo.get(k)
-        if item is not None:
-            out.append(item)
+        out.append(repo.get(k))
     return out
 
 
 @router.get("/catalogs/features/{index}")
 async def get_feature(index: str) -> FeatureDef:
     repo = container.feature_repository
-    item = repo.get(index)
-    if not item:
-        raise HTTPException(status_code=404, detail=f"Feature '{index}' not found")
-    return item
+    try:
+        return repo.get(index)
+    except RepositoryNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Feature '{index}' not found") from e
 
 
 # Feats
@@ -372,19 +345,17 @@ async def list_feats(keys_only: bool = False) -> list[FeatDef] | list[str]:
         return keys
     out: list[FeatDef] = []
     for k in keys:
-        item = repo.get(k)
-        if item is not None:
-            out.append(item)
+        out.append(repo.get(k))
     return out
 
 
 @router.get("/catalogs/feats/{index}")
 async def get_feat(index: str) -> FeatDef:
     repo = container.feat_repository
-    item = repo.get(index)
-    if not item:
-        raise HTTPException(status_code=404, detail=f"Feat '{index}' not found")
-    return item
+    try:
+        return repo.get(index)
+    except RepositoryNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Feat '{index}' not found") from e
 
 
 # Skills
@@ -396,19 +367,17 @@ async def list_skills(keys_only: bool = False) -> list[Skill] | list[str]:
         return keys
     result: list[Skill] = []
     for k in keys:
-        item = repo.get(k)
-        if item is not None:
-            result.append(item)
+        result.append(repo.get(k))
     return result
 
 
 @router.get("/catalogs/skills/{index}")
 async def get_skill(index: str) -> Skill:
     repo = container.skill_repository
-    item = repo.get(index)
-    if not item:
-        raise HTTPException(status_code=404, detail=f"Skill '{index}' not found")
-    return item
+    try:
+        return repo.get(index)
+    except RepositoryNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Skill '{index}' not found") from e
 
 
 # Weapon Properties
@@ -420,19 +389,17 @@ async def list_weapon_properties(keys_only: bool = False) -> list[WeaponProperty
         return keys
     result: list[WeaponProperty] = []
     for k in keys:
-        item = repo.get(k)
-        if item is not None:
-            result.append(item)
+        result.append(repo.get(k))
     return result
 
 
 @router.get("/catalogs/weapon_properties/{index}")
 async def get_weapon_property(index: str) -> WeaponProperty:
     repo = container.weapon_property_repository
-    item = repo.get(index)
-    if not item:
-        raise HTTPException(status_code=404, detail=f"Weapon property '{index}' not found")
-    return item
+    try:
+        return repo.get(index)
+    except RepositoryNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Weapon property '{index}' not found") from e
 
 
 # Damage Types
@@ -444,16 +411,14 @@ async def list_damage_types(keys_only: bool = False) -> list[DamageType] | list[
         return keys
     result: list[DamageType] = []
     for k in keys:
-        item = repo.get(k)
-        if item is not None:
-            result.append(item)
+        result.append(repo.get(k))
     return result
 
 
 @router.get("/catalogs/damage_types/{index}")
 async def get_damage_type(index: str) -> DamageType:
     repo = container.damage_type_repository
-    item = repo.get(index)
-    if not item:
-        raise HTTPException(status_code=404, detail=f"Damage type '{index}' not found")
-    return item
+    try:
+        return repo.get(index)
+    except RepositoryNotFoundError as e:
+        raise HTTPException(status_code=404, detail=f"Damage type '{index}' not found") from e

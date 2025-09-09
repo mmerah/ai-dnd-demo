@@ -26,7 +26,7 @@ class ScenarioInstance(BaseModel):
 
     # Progression (use sentinel "unknown-location" instead of None for type safety)
     current_location_id: str = "unknown-location"
-    current_act_id: str | None = None
+    current_act_id: str
 
     # Location and quests state
     location_states: dict[str, LocationState] = Field(default_factory=dict)

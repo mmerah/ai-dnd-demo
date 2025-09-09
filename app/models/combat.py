@@ -25,7 +25,7 @@ class CombatState(BaseModel):
     round_number: int = Field(ge=1, default=1)
     turn_index: int = Field(ge=0, default=0)
     participants: list[CombatParticipant] = Field(default_factory=list)
-    is_active: bool = True
+    is_active: bool = False
 
     def add_participant(
         self,
@@ -77,15 +77,6 @@ class CombatState(BaseModel):
         if self.turn_index >= len(active_participants):
             self.turn_index = 0
             self.round_number += 1
-
-    def remove_participant(self, name: str) -> None:
-        """Remove a participant from combat."""
-        self.participants = [p for p in self.participants if p.name != name]
-
-        # Adjust turn index if needed
-        active_participants = [p for p in self.participants if p.is_active]
-        if self.turn_index >= len(active_participants):
-            self.turn_index = 0
 
     def remove_participant_by_id(self, entity_id: str) -> None:
         """Remove a participant by entity instance ID."""

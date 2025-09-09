@@ -2,6 +2,7 @@
 
 import logging
 
+from app.common.exceptions import RepositoryNotFoundError
 from app.events.base import BaseCommand, CommandResult
 from app.events.commands.broadcast_commands import BroadcastGameUpdateCommand
 from app.events.commands.combat_commands import (
@@ -63,7 +64,7 @@ class CombatHandler(BaseHandler):
         result = CommandResult()
 
         if isinstance(command, StartCombatCommand):
-            if not game_state.combat:
+            if not game_state.combat.is_active:
                 game_state.start_combat()
 
             participants_added: list[CombatParticipant] = []
@@ -76,13 +77,11 @@ class CombatHandler(BaseHandler):
                     raise ValueError(f"Entity not found for id {entity_id}")
 
                 combat = game_state.combat
-                if not combat:
-                    raise RuntimeError("Combat state not initialized")
                 participant = self.combat_service.add_participant(combat, entity)
                 participants_added.append(participant)
 
             # Add player if not already in combat
-            if game_state.combat and not any(p.is_player for p in game_state.combat.participants):
+            if game_state.combat.is_active and not any(p.is_player for p in game_state.combat.participants):
                 player_entity = game_state.character
                 combat = game_state.combat
                 participant = self.combat_service.add_participant(combat, player_entity)
@@ -117,11 +116,10 @@ class CombatHandler(BaseHandler):
             )
             encounter_participants: list[CombatParticipant] = []
             if entities:
-                if not game_state.combat:
+                if not game_state.combat.is_active:
                     game_state.start_combat()
                 combat = game_state.combat
-                if combat:
-                    encounter_participants = self.combat_service.add_participants(combat, entities)
+                encounter_participants = self.combat_service.add_participants(combat, entities)
                 self.game_service.save_game(game_state)
 
                 result.data = StartEncounterCombatResult(
@@ -155,20 +153,19 @@ class CombatHandler(BaseHandler):
                 for _ in range(quantity):
                     try:
                         monster_data = self.monster_repository.get(monster_name)
-                        if monster_data:
-                            # Create runtime instance and add to game state (dedup name)
-                            inst = self.game_service.create_monster_instance(
-                                monster_data, game_state.scenario_instance.current_location_id
-                            )
-                            _ = game_state.add_monster_instance(inst)
+                        # Create runtime instance and add to game state (dedup name)
+                        inst = self.game_service.create_monster_instance(
+                            monster_data, game_state.scenario_instance.current_location_id
+                        )
+                        _ = game_state.add_monster_instance(inst)
 
-                            # If in combat, add to combat
-                            if game_state.combat:
-                                monster_entity = inst
-                                combat = game_state.combat
-                                participant = self.combat_service.add_participant(combat, monster_entity)
-                                spawned_monsters.append(participant)
-                    except KeyError as e:
+                        # If in combat, add to combat
+                        if game_state.combat.is_active:
+                            monster_entity = inst
+                            combat = game_state.combat
+                            participant = self.combat_service.add_participant(combat, monster_entity)
+                            spawned_monsters.append(participant)
+                    except (KeyError, RepositoryNotFoundError) as e:
                         logger.error(f"Failed to spawn monster '{monster_name}': {e}")
                         raise ValueError(f"Monster '{monster_name}' not found in database") from e
 
@@ -181,13 +178,13 @@ class CombatHandler(BaseHandler):
             )
 
             # Broadcast update
-            if game_state.combat:
+            if game_state.combat.is_active:
                 result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
             logger.info(f"Spawned {len(spawned_monsters)} monsters")
 
         elif isinstance(command, NextTurnCommand):
-            if not game_state.combat or not game_state.combat.is_active:
+            if not game_state.combat.is_active:
                 result.data = NextTurnResult(round_number=0, current_turn=None, message="No active combat")
                 return result
 
@@ -205,7 +202,7 @@ class CombatHandler(BaseHandler):
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
         elif isinstance(command, EndCombatCommand):
-            if game_state.combat:
+            if game_state.combat.is_active:
                 game_state.end_combat()
                 self.game_service.save_game(game_state)
                 result.data = EndCombatResult(message="Combat ended")
@@ -214,7 +211,7 @@ class CombatHandler(BaseHandler):
                 result.data = EndCombatResult(message="No active combat")
 
         elif isinstance(command, AddParticipantCommand):
-            if not game_state.combat:
+            if not game_state.combat.is_active:
                 raise ValueError("Cannot add participant: no active combat. Use start_combat first.")
             entity = game_state.get_entity_by_id(command.entity_type, command.entity_id)
             if not entity:
@@ -226,7 +223,7 @@ class CombatHandler(BaseHandler):
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
         elif isinstance(command, RemoveParticipantCommand):
-            if not game_state.combat:
+            if not game_state.combat.is_active:
                 raise ValueError("Cannot remove participant: no active combat")
             game_state.combat.remove_participant_by_id(command.entity_id)
             self.game_service.save_game(game_state)

@@ -190,8 +190,8 @@ class CharacterService(ICharacterService):
             else:
                 # Ensure subclass parent matches class_index if both available
                 if character.class_index:
-                    sc = self.subclass_repository.get(character.subclass)
-                    if sc and sc.parent_class != character.class_index:
+                    subclass_def = self.subclass_repository.get(character.subclass)
+                    if subclass_def.parent_class != character.class_index:
                         errors.append(
                             f"Subclass '{character.subclass}' does not belong to class '{character.class_index}'"
                         )
@@ -210,8 +210,8 @@ class CharacterService(ICharacterService):
                 errors.append(f"Unknown subrace index: {character.subrace}")
             else:
                 if character.race:
-                    sr = self.race_subrace_repository.get(character.subrace)
-                    if sr and sr.parent_race != character.race:
+                    subrace_def = self.race_subrace_repository.get(character.subrace)
+                    if subrace_def.parent_race != character.race:
                         errors.append(f"Subrace '{character.subrace}' does not belong to race '{character.race}'")
 
         # Validate background

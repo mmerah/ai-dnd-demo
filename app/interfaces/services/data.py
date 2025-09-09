@@ -23,8 +23,8 @@ class IRepository(ABC, Generic[T]):
     """Base interface for data repositories."""
 
     @abstractmethod
-    def get(self, key: str) -> T | None:
-        """Get an item by its key."""
+    def get(self, key: str) -> T:
+        """Get an item by its key. Raises RepositoryNotFoundError if not found."""
         pass
 
     @abstractmethod

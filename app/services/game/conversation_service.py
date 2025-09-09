@@ -36,7 +36,7 @@ class ConversationService(IConversationService):
         if location is None:
             location = self.metadata_service.get_current_location(game_state)
 
-        if combat_round is None and game_state.combat:
+        if combat_round is None and game_state.combat.is_active:
             combat_round = self.metadata_service.get_combat_round(game_state)
 
         # Add message and persist

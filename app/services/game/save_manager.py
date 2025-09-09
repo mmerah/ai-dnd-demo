@@ -6,11 +6,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from app.agents.core.types import AgentType
 from app.interfaces.services.common import IPathResolver
 from app.interfaces.services.game import ISaveManager
 from app.models.combat import CombatState
-from app.models.game_state import GameEvent, GameState, GameTime, Message
+from app.models.game_state import GameEvent, GameState, Message
 from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.monster_instance import MonsterInstance
 from app.models.instances.npc_instance import NPCInstance
@@ -71,7 +70,7 @@ class SaveManager(ISaveManager):
         self._save_monster_instances(save_dir, game_state.monsters)
 
         # Save combat state if active
-        if game_state.combat:
+        if game_state.combat.is_active:
             self._save_combat(save_dir, game_state.combat)
 
         return save_dir
@@ -99,7 +98,7 @@ class SaveManager(ISaveManager):
             # Load metadata first
             metadata = self._load_metadata(save_dir)
 
-            # Load instances
+            # Load instances and other components
             character = self._load_character_instance(save_dir)
             scenario_instance = self._load_scenario_instance(save_dir)
             if scenario_instance is None:
@@ -108,33 +107,20 @@ class SaveManager(ISaveManager):
                     "This save is incompatible with the current version."
                 )
 
-            # Fail fast: active_agent must be present and valid
-            if "active_agent" not in metadata:
-                raise ValueError(f"Missing 'active_agent' in metadata for save {scenario_id}/{game_id}")
-            active_agent = AgentType(str(metadata["active_agent"]))
+            # Remove convenience fields that were added for UI
+            metadata.pop("current_location_id", None)
+            metadata.pop("current_act_id", None)
 
-            # Create base game state from metadata with proper type casting
+            # Reconstruct GameState from the loaded parts
             game_state = GameState(
-                game_id=str(metadata["game_id"]),
-                created_at=datetime.fromisoformat(str(metadata["created_at"])),
-                last_saved=datetime.fromisoformat(str(metadata["last_saved"])),
-                scenario_id=str(metadata["scenario_id"]),
-                scenario_title=str(metadata["scenario_title"]),
-                location=str(metadata.get("location", "Unknown")),
-                description=str(metadata.get("description", "")),
-                game_time=GameTime(**dict(metadata.get("game_time", {}))),
-                story_notes=list(metadata.get("story_notes", [])),
-                active_agent=active_agent,
-                session_number=int(metadata.get("session_number", 1)),
-                total_play_time_minutes=int(metadata.get("total_play_time_minutes", 0)),
-                # Core required fields
+                **metadata,  # Unpack all metadata fields automatically
                 character=character,
                 scenario_instance=scenario_instance,
-                # These will be loaded separately
-                conversation_history=[],
-                game_events=[],
-                npcs=[],
-                combat=None,
+                conversation_history=[],  # Will be loaded separately
+                game_events=[],  # Will be loaded separately
+                npcs=[],  # Will be loaded separately
+                monsters=[],  # Will be loaded separately
+                # Combat is always present, will be updated if save exists
             )
 
             # Load remaining components
@@ -221,27 +207,27 @@ class SaveManager(ISaveManager):
     # Component save methods
 
     def _save_metadata(self, save_dir: Path, game_state: GameState) -> None:
-        """Save game metadata."""
-        metadata = {
-            "game_id": game_state.game_id,
-            "created_at": game_state.created_at.isoformat(),
-            "last_saved": game_state.last_saved.isoformat(),
-            "scenario_id": game_state.scenario_id,
-            "scenario_title": game_state.scenario_title,
-            # convenience for quick access in UIs
-            "current_location_id": game_state.scenario_instance.current_location_id,
-            "current_act_id": game_state.scenario_instance.current_act_id,
-            "location": game_state.location,
-            "description": game_state.description,
-            "game_time": game_state.game_time.model_dump(),
-            "story_notes": game_state.story_notes,
-            "active_agent": game_state.active_agent.value,
-            "session_number": game_state.session_number,
-            "total_play_time_minutes": game_state.total_play_time_minutes,
-        }
+        """Save game metadata by serializing the GameState model directly."""
+        # Exclude large lists that are saved in separate files.
+        metadata_dump = game_state.model_dump(
+            exclude={
+                "character",
+                "npcs",
+                "monsters",
+                "scenario_instance",
+                "conversation_history",
+                "game_events",
+                "combat",
+            },
+            mode="json",
+        )
+
+        # Add convenience fields for UI access
+        metadata_dump["current_location_id"] = game_state.scenario_instance.current_location_id
+        metadata_dump["current_act_id"] = game_state.scenario_instance.current_act_id
 
         with open(save_dir / "metadata.json", "w", encoding="utf-8") as f:
-            json.dump(metadata, f, indent=2)
+            json.dump(metadata_dump, f, indent=2, default=str)  # Use default=str for any remaining datetime objects
 
     def _save_instances(self, save_dir: Path, game_state: GameState) -> None:
         """Save instances (character, scenario, npcs)."""
@@ -365,11 +351,11 @@ class SaveManager(ISaveManager):
             monsters.append(MonsterInstance(**data))
         return monsters
 
-    def _load_combat(self, save_dir: Path) -> CombatState | None:
+    def _load_combat(self, save_dir: Path) -> CombatState:
         """Load combat state."""
         file_path = save_dir / "combat.json"
         if not file_path.exists():
-            return None
+            return CombatState()
 
         with open(file_path, encoding="utf-8") as f:
             data = json.load(f)
