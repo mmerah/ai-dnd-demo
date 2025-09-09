@@ -15,16 +15,18 @@ class DangerLevel(str, Enum):
     MODERATE = "moderate"
     HIGH = "high"
     EXTREME = "extreme"
-    CLEARED = "cleared"  # Was dangerous, now safe
+    CLEARED = "cleared"
 
 
 class ConnectionRequirement(BaseModel):
     """Requirement to traverse a connection."""
 
-    type: str  # "key", "quest", "skill_check", "combat", etc.
+    type: str
     description: str
-    requirement_id: str | None = None  # Item ID for keys, quest ID for quests
-    dc: int | None = None  # For skill checks
+    # Item ID for keys, quest ID for quests
+    requirement_id: str | None = None
+    # Skill checks
+    dc: int | None = None
     is_met: bool = False
 
 
@@ -32,11 +34,11 @@ class LocationConnection(BaseModel):
     """Connection between locations."""
 
     to_location_id: str
-    description: str  # "A dark tunnel leads north"
-    direction: str | None = None  # "north", "south", etc.
+    description: str
+    direction: str | None = None
     requirements: list[ConnectionRequirement] = Field(default_factory=list)
-    is_visible: bool = True  # Can be hidden until discovered
-    is_accessible: bool = True  # Can be blocked
+    is_visible: bool = True
+    is_accessible: bool = True
 
     def can_traverse(self) -> bool:
         """Check if connection can be traversed."""
@@ -48,13 +50,13 @@ class LocationConnection(BaseModel):
 class LootEntry(BaseModel):
     """Loot table entry for a location."""
 
-    item_name: str  # Must match items.json
+    item_name: str
     quantity_min: int = 1
     quantity_max: int = 1
-    probability: float = 1.0  # 0.0 to 1.0
-    found: bool = False  # Track if already looted
-    hidden: bool = False  # Requires search to find
-    dc_to_find: int | None = None  # Investigation DC if hidden
+    probability: float = 1.0
+    found: bool = False
+    hidden: bool = False
+    dc_to_find: int | None = None
 
 
 class SpawnType(str, Enum):
@@ -82,11 +84,11 @@ class LocationState(BaseModel):
     visited: bool = False
     times_visited: int = 0
     danger_level: DangerLevel = DangerLevel.MODERATE
-    completed_encounters: list[str] = Field(default_factory=list)  # Encounter IDs completed
-    discovered_secrets: list[str] = Field(default_factory=list)  # Secret IDs found
-    looted_items: list[str] = Field(default_factory=list)  # Track which loot was taken
-    active_effects: list[str] = Field(default_factory=list)  # Environmental effects
-    notes: list[str] = Field(default_factory=list)  # DM notes about what happened here
+    completed_encounters: list[str] = Field(default_factory=list)
+    discovered_secrets: list[str] = Field(default_factory=list)
+    looted_items: list[str] = Field(default_factory=list)
+    active_effects: list[str] = Field(default_factory=list)
+    notes: list[str] = Field(default_factory=list)
 
     def mark_visited(self) -> None:
         """Mark location as visited."""

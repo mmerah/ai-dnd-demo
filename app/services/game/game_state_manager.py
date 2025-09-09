@@ -40,11 +40,3 @@ class GameStateManager(IGameStateManager):
             game_id: ID of the game to remove
         """
         self._active_games.pop(game_id, None)
-
-    def list_active_games(self) -> list[str]:
-        """List all active game IDs.
-
-        Returns:
-            List of game IDs currently in memory
-        """
-        return list(self._active_games.keys())

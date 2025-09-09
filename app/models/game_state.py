@@ -86,12 +86,6 @@ class GameTime(BaseModel):
         """Advance time for a long rest (8 hours)."""
         self.advance_hours(8)
 
-    def to_string(self) -> str:
-        """Get human-readable time string."""
-        hour_12 = self.hour % 12 if self.hour % 12 != 0 else 12
-        am_pm = "AM" if self.hour < 12 else "PM"
-        return f"Day {self.day}, {hour_12}:{self.minute:02d} {am_pm}"
-
 
 class GameState(BaseModel):
     """Complete game state for a D&D session."""
@@ -143,26 +137,6 @@ class GameState(BaseModel):
         """Add a game mechanics event."""
         self.game_events.append(event)
 
-    def add_npc(self, npc: NPCInstance) -> None:
-        """Add an NPC to the game."""
-        # Check for duplicate names and rename if necessary
-        existing_names = [n.sheet.character.name for n in self.npcs]
-        if npc.sheet.character.name in existing_names:
-            counter = 2
-            base_name = npc.sheet.character.name
-            while f"{base_name} {counter}" in existing_names:
-                counter += 1
-            npc.sheet.character.name = f"{base_name} {counter}"
-        self.npcs.append(npc)
-
-    def remove_npc(self, name: str) -> bool:
-        """Remove an NPC by name. Returns True if found and removed."""
-        for i, npc in enumerate(self.npcs):
-            if npc.sheet.character.name == name:
-                del self.npcs[i]
-                return True
-        return False
-
     def add_monster_instance(self, monster: MonsterInstance) -> str:
         """Add a MonsterInstance to the game and ensure unique display name.
 
@@ -175,55 +149,6 @@ class GameState(BaseModel):
 
         self.monsters.append(monster)
         return final_name
-
-    def remove_monster(self, name: str) -> bool:
-        for i, m in enumerate(self.monsters):
-            if m.sheet.name == name:
-                del self.monsters[i]
-                return True
-        return False
-
-    def get_monster(self, name: str) -> MonsterInstance | None:
-        for m in self.monsters:
-            if m.sheet.name == name:
-                return m
-        return None
-
-    def get_active_monsters(self) -> list[MonsterInstance]:
-        return [m for m in self.monsters if m.is_alive()]
-
-    def get_npc(self, name: str) -> NPCInstance | None:
-        """Get an NPC by name."""
-        for npc in self.npcs:
-            if npc.sheet.character.name == name:
-                return npc
-        return None
-
-    def get_active_npcs(self) -> list[NPCInstance]:
-        """Get all NPCs that are still alive."""
-        return [npc for npc in self.npcs if npc.is_alive()]
-
-    def get_npcs_at_location(self, location_id: str) -> list[NPCInstance]:
-        """Get all NPCs currently at the specified location."""
-        return [npc for npc in self.npcs if npc.current_location_id == location_id]
-
-    def find_entity_by_name(self, name: str) -> tuple[EntityType, IEntity] | None:
-        """Find any entity by display name (case-insensitive)."""
-        # Player
-        if self.character.sheet.name.lower() == name.lower():
-            return (EntityType.PLAYER, self.character)
-
-        # NPCs
-        for npc in self.npcs:
-            if npc.sheet.character.name.lower() == name.lower():
-                return (EntityType.NPC, npc)
-
-        # Monsters
-        for mon in self.monsters:
-            if mon.sheet.name.lower() == name.lower():
-                return (EntityType.MONSTER, mon)
-
-        return None
 
     def get_entity_by_id(self, entity_type: EntityType, entity_id: str) -> IEntity | None:
         """Resolve an entity by type and instance id for all operations (combat, HP, conditions, etc)."""
@@ -295,15 +220,6 @@ class GameState(BaseModel):
             self.combat.participants.clear()
             self.combat.round_number = 1
             self.combat.turn_index = 0
-
-    def set_quest_flag(self, flag_name: str, value: JSONSerializable = True) -> None:
-        """Set a quest flag."""
-        self.scenario_instance.quest_flags[flag_name] = value
-
-    def check_quest_flag(self, flag_name: str) -> bool:
-        """Check if a quest flag is set."""
-        value = self.scenario_instance.quest_flags.get(flag_name, False)
-        return bool(value)
 
     def add_story_note(self, note: str) -> None:
         """Add a note to the story log."""

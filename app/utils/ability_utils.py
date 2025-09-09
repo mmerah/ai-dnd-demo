@@ -1,21 +1,8 @@
 """Utility functions for ability score mappings and conversions."""
 
-from enum import Enum
 from typing import Literal
 
 from app.models.attributes import Abilities, AbilityModifiers
-
-
-class AbilityType(str, Enum):
-    """Standard D&D 5e ability types."""
-
-    STRENGTH = "STR"
-    DEXTERITY = "DEX"
-    CONSTITUTION = "CON"
-    INTELLIGENCE = "INT"
-    WISDOM = "WIS"
-    CHARISMA = "CHA"
-
 
 AbilityName = Literal["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"]
 AbilityCode = Literal["STR", "DEX", "CON", "INT", "WIS", "CHA"]

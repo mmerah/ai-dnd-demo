@@ -130,15 +130,6 @@ class CharacterService(ICharacterService):
         """
         return self._characters.get(character_id)
 
-    def list_characters(self) -> list[CharacterSheet]:
-        """
-        List all available characters.
-
-        Returns:
-            List of CharacterSheet objects
-        """
-        return list(self._characters.values())
-
     def get_all_characters(self) -> list[CharacterSheet]:
         """
         Get all loaded characters.

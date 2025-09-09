@@ -15,10 +15,6 @@ class ICharacterService(ABC):
         pass
 
     @abstractmethod
-    def list_characters(self) -> list[CharacterSheet]:
-        pass
-
-    @abstractmethod
     def get_all_characters(self) -> list[CharacterSheet]:
         pass
 

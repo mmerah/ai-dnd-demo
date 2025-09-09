@@ -18,6 +18,7 @@ from app.models.requests import (
     NewGameRequest,
     NewGameResponse,
     PlayerActionRequest,
+    RemoveGameResponse,
     ResumeGameResponse,
 )
 from app.models.tool_results import EquipItemResult
@@ -107,6 +108,29 @@ async def resume_game(game_state: GameState = Depends(get_game_state_from_path))
         Confirmation with game_id
     """
     return ResumeGameResponse(game_id=game_state.game_id, status="resumed")
+
+
+@router.delete("/game/{game_id}", response_model=RemoveGameResponse)
+async def remove_game(game_id: str) -> RemoveGameResponse:
+    """
+    Remove a game from memory.
+
+    Args:
+        game_id: Unique game identifier
+
+    Returns:
+        Confirmation with game_id and status
+
+    Raises:
+        HTTPException: If removal fails
+    """
+    game_service = container.game_service
+
+    try:
+        game_service.remove_game(game_id)
+        return RemoveGameResponse(game_id=game_id, status="removed")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to remove game: {e!s}") from e
 
 
 @router.post("/game/{game_id}/action")

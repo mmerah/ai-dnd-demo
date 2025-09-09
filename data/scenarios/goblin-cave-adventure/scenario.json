@@ -2,7 +2,7 @@
   "id": "goblin-cave-adventure",
   "title": "The Goblin Cave Adventure",
   "description": "A band of goblins has been terrorizing travelers on the road between villages. Track them to their lair and put an end to their raids.",
-  "starting_location": "tavern",
+  "starting_location_id": "tavern",
   "locations": [
     "tavern",
     "forest-path",

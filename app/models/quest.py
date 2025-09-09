@@ -20,7 +20,7 @@ class QuestObjective(BaseModel):
     id: str
     description: str
     status: ObjectiveStatus = ObjectiveStatus.PENDING
-    required: bool = True  # If false, objective is optional
+    required: bool = True
 
 
 class QuestStatus(str, Enum):
@@ -40,9 +40,10 @@ class Quest(BaseModel):
     description: str
     objectives: list[QuestObjective]
     status: QuestStatus = QuestStatus.NOT_STARTED
-    rewards_description: str  # Narrative description of rewards
-    prerequisites: list[str] = Field(default_factory=list)  # Quest IDs that must be completed first
-    act: str | None = None  # Which act this quest belongs to
+    rewards_description: str
+    # Quest IDs that must be completed first
+    prerequisites: list[str] = Field(default_factory=list)
+    act: str | None = None
 
     def is_available(self, completed_quests: list[str]) -> bool:
         """Check if quest is available based on prerequisites."""

@@ -14,7 +14,7 @@ class CombatParticipant(BaseModel):
 
     # Display information
     name: str
-    initiative: int | None = None  # Optional for when it needs to be rolled
+    initiative: int | None = None
     is_player: bool = False
     is_active: bool = True
 

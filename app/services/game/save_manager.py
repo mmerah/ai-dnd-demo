@@ -191,21 +191,6 @@ class SaveManager(ISaveManager):
         games.sort(key=lambda x: x[2], reverse=True)
         return games
 
-    def game_exists(self, scenario_id: str, game_id: str) -> bool:
-        """Check if a saved game exists.
-
-        Args:
-            scenario_id: ID of the scenario
-            game_id: ID of the game
-
-        Returns:
-            True if save exists
-        """
-        save_dir = self.path_resolver.get_save_dir(scenario_id, game_id, create=False)
-        return (save_dir / "metadata.json").exists()
-
-    # Component save methods
-
     def _save_metadata(self, save_dir: Path, game_state: GameState) -> None:
         """Save game metadata by serializing the GameState model directly."""
         # Exclude large lists that are saved in separate files.

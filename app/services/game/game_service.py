@@ -109,7 +109,7 @@ class GameService(IGameService):
         # Set initial location and message based on scenario
         starting_loc = scenario.get_starting_location()
         initial_location = starting_loc.name
-        initial_location_id = scenario.starting_location
+        initial_location_id = scenario.starting_location_id
         initial_narrative = scenario.get_initial_narrative()
         scenario_title = scenario.title
         scenario_id = scenario.id
@@ -275,6 +275,15 @@ class GameService(IGameService):
 
         # Already sorted by last_saved from save_manager
         return games
+
+    def remove_game(self, game_id: str) -> None:
+        """
+        Remove a game from memory.
+
+        Args:
+            game_id: ID of the game to remove
+        """
+        self.game_state_manager.remove_game(game_id)
 
     def create_monster_instance(self, sheet: MonsterSheet, current_location_id: str) -> MonsterInstance:
         """Create a MonsterInstance from a MonsterSheet (delegates to factory)."""

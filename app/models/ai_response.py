@@ -49,10 +49,8 @@ class NarrativeResponse(BaseModel):
     usage: dict[str, JSONSerializable] | None = None
 
 
-StreamEventContent = (
-    str  # For narrative chunks and error messages
-    | NarrativeResponse  # For the complete response
-)
+# Chunks are str, complete responses are NarrativeResponse
+StreamEventContent = str | NarrativeResponse
 
 
 class StreamEvent(BaseModel):

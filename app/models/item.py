@@ -49,7 +49,7 @@ class ItemDefinition(BaseModel):
     type: ItemType
     rarity: ItemRarity
     weight: float = Field(ge=0, default=0.0)
-    value: float = Field(ge=0, default=0)  # Value in gold pieces
+    value: float = Field(ge=0, default=0)
     description: str
 
     # Optional fields for different item types
@@ -58,7 +58,7 @@ class ItemDefinition(BaseModel):
     # Weapon properties. Empty if not weapon
     damage: str = ""
     damage_type: str = ""
-    properties: list[str] = Field(default_factory=list)  # e.g., ["Finesse", "Light"]
+    properties: list[str] = Field(default_factory=list)
 
     # Armor properties. 0/False if not armore
     armor_class: int = 0
@@ -198,11 +198,3 @@ class InventoryItem(BaseModel):
             self.equipped_quantity = 0
         if self.equipped_quantity > self.quantity:
             self.equipped_quantity = self.quantity
-
-    def get_total_weight(self) -> float:
-        """Calculate total weight for stacked items."""
-        return self.weight * self.quantity
-
-    def get_total_value(self) -> float:
-        """Calculate total value for stacked items."""
-        return self.value * self.quantity

@@ -89,9 +89,9 @@ class SpellDefinition(BaseModel):
     ritual: bool = False
     concentration: bool = False
 
-    # References
-    classes: list[str] = Field(default_factory=list)  # class indexes
-    subclasses: list[str] = Field(default_factory=list)  # subclass indexes
+    # Indexes
+    classes: list[str] = Field(default_factory=list)
+    subclasses: list[str] = Field(default_factory=list)
 
     # Optional mechanics
     area_of_effect: SpellAreaOfEffect | None = None
@@ -162,11 +162,12 @@ class Spellcasting(BaseModel):
     spell_save_dc: int | None = Field(ge=1, default=None)
     spell_attack_bonus: int | None = None
     spells_known: list[str]
-    spell_slots: dict[int, SpellSlot]  # Key is spell level (1-9)
+    # Key is spell level (1-9)
+    spell_slots: dict[int, SpellSlot]
 
     # Optional tracking
-    spells_prepared: list[str] = Field(default_factory=list)  # For prepared casters
-    ritual_spells: list[str] = Field(default_factory=list)  # Known ritual spells
+    spells_prepared: list[str] = Field(default_factory=list)
+    ritual_spells: list[str] = Field(default_factory=list)
 
     def get_slot(self, level: int) -> SpellSlot | None:
         """Get spell slot for a specific level."""

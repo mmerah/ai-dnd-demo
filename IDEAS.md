@@ -8,7 +8,7 @@ None
 
 ## Ideas
 
-1. Vulture, verify unused (including methods), enforce fail fast ?
+1. Enforce fail fast ?
 2. Cleanup logger calls to minimum
 3. Review manually the code
 4. Re-organize the code ? (review models, services all dependency inversion, ...)

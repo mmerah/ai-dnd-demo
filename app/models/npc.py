@@ -6,10 +6,7 @@ from app.models.character import CharacterSheet
 
 
 class NPCSheet(BaseModel):
-    """NPC wrapper embedding a full CharacterSheet plus scenario metadata (template-only).
-
-    Initialization-only fields use `initial_*` prefix; NPCInstance holds runtime state.
-    """
+    """NPC wrapper embedding a full CharacterSheet plus scenario metadata (template-only)."""
 
     # Scenario identity (stable within scenario)
     id: str
@@ -20,7 +17,7 @@ class NPCSheet(BaseModel):
 
     # Scenario presentation seeds (initial values)
     initial_dialogue_hints: list[str] = Field(default_factory=list)
-    initial_attitude: str | None = None  # friendly, hostile, neutral, etc.
+    initial_attitude: str | None = None
     initial_notes: list[str] = Field(default_factory=list)
 
     # Embedded character template

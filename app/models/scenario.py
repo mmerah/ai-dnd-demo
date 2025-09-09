@@ -19,13 +19,15 @@ class ScenarioMonster(BaseModel):
 class Encounter(BaseModel):
     """Encounter definition for a location."""
 
-    id: str  # Unique identifier for tracking
-    type: str  # Combat, Skill Challenge, Trap, Roleplay, Environmental, etc.
+    id: str
+    # Combat, Skill Challenge, Trap, Roleplay, Environmental, etc.
+    type: str
     description: str
-    difficulty: str  # Easy, Medium, Hard
+    difficulty: str
     participant_spawns: list[EncounterParticipantSpawn] = Field(default_factory=list)
-    dc: int | None = None  # For skill challenges/traps
-    rewards: list[str] = Field(default_factory=list)  # Description of rewards
+    # For skill challenges/traps
+    dc: int | None = None
+    rewards: list[str] = Field(default_factory=list)
 
 
 class Secret(BaseModel):
@@ -33,9 +35,11 @@ class Secret(BaseModel):
 
     id: str
     description: str
-    discovery_method: str  # "search", "specific_action", "dialogue", etc.
-    dc: int | None = None  # Investigation/Perception DC if applicable
-    reward: str | None = None  # What's gained from discovering
+    # "search", "specific_action", "dialogue", etc.
+    discovery_method: str
+    # Investigation/Perception DC if applicable
+    dc: int | None = None
+    reward: str | None = None
 
 
 class LocationDescriptions(BaseModel):
@@ -43,8 +47,9 @@ class LocationDescriptions(BaseModel):
 
     first_visit: str
     return_visit: str | None = None
-    cleared: str | None = None  # After danger is cleared
-    special_conditions: dict[str, str] = Field(default_factory=dict)  # Conditional descriptions
+    cleared: str | None = None
+    # Conditional descriptions
+    special_conditions: dict[str, str] = Field(default_factory=dict)
 
 
 class ScenarioLocation(BaseModel):
@@ -52,16 +57,16 @@ class ScenarioLocation(BaseModel):
 
     id: str
     name: str
-    description: str  # Default description
-    descriptions: LocationDescriptions | None = None  # Multiple variants
+    description: str
+    descriptions: LocationDescriptions | None = None
     notable_monsters: list[ScenarioMonster] = Field(default_factory=list)
-    encounter_ids: list[str] = Field(default_factory=list)  # References to encounter definitions
-    monster_ids: list[str] = Field(default_factory=list)  # References to monster definitions
-    connections: list[LocationConnection] = Field(default_factory=list)  # Enhanced connections
+    encounter_ids: list[str] = Field(default_factory=list)
+    monster_ids: list[str] = Field(default_factory=list)
+    connections: list[LocationConnection] = Field(default_factory=list)
     events: list[str] = Field(default_factory=list)
     environmental_features: list[str] = Field(default_factory=list)
-    secrets: list[Secret] = Field(default_factory=list)  # Enhanced secrets
-    loot_table: list[LootEntry] = Field(default_factory=list)  # Structured loot
+    secrets: list[Secret] = Field(default_factory=list)
+    loot_table: list[LootEntry] = Field(default_factory=list)
     victory_conditions: list[str] = Field(default_factory=list)
     danger_level: DangerLevel = DangerLevel.MODERATE
 
@@ -81,19 +86,15 @@ class ScenarioLocation(BaseModel):
 
         return self.description
 
-    def get_available_connections(self) -> list[LocationConnection]:
-        """Get visible connections from this location."""
-        return [conn for conn in self.connections if conn.is_visible]
-
 
 class ScenarioAct(BaseModel):
     """Act/Chapter in scenario progression."""
 
     id: str
     name: str
-    locations: list[str]  # Location IDs
-    objectives: list[str]  # General objectives (for context)
-    quests: list[str] = Field(default_factory=list)  # Quest IDs for this act
+    locations: list[str]
+    objectives: list[str]
+    quests: list[str] = Field(default_factory=list)
 
 
 class ScenarioProgression(BaseModel):
@@ -139,12 +140,12 @@ class ScenarioSheet(BaseModel):
     id: str = Field(default="default")
     title: str
     description: str
-    starting_location: str  # Location ID
+    starting_location_id: str
     locations: list[ScenarioLocation]
-    encounters: dict[str, Encounter] = Field(default_factory=dict)  # All encounters by ID
-    quests: list[Quest] = Field(default_factory=list)  # All quests in scenario
+    encounters: dict[str, Encounter] = Field(default_factory=dict)
+    quests: list[Quest] = Field(default_factory=list)
     progression: ScenarioProgression
-    random_encounters: list[Encounter] = Field(default_factory=list)  # Random encounter table
+    random_encounters: list[Encounter] = Field(default_factory=list)
 
     def get_location(self, location_id: str) -> ScenarioLocation | None:
         """Get a location by ID."""
@@ -155,9 +156,9 @@ class ScenarioSheet(BaseModel):
 
     def get_starting_location(self) -> ScenarioLocation:
         """Get the starting location."""
-        location = self.get_location(self.starting_location)
+        location = self.get_location(self.starting_location_id)
         if not location:
-            raise ValueError(f"Starting location '{self.starting_location}' not found in scenario '{self.id}'")
+            raise ValueError(f"Starting location '{self.starting_location_id}' not found in scenario '{self.id}'")
         return location
 
     def get_quest(self, quest_id: str) -> Quest | None:
@@ -166,10 +167,6 @@ class ScenarioSheet(BaseModel):
             if quest.id == quest_id:
                 return quest
         return None
-
-    def get_quests_for_act(self, act_id: str) -> list[Quest]:
-        """Get all quests for a specific act."""
-        return [q for q in self.quests if q.act == act_id]
 
     def get_encounter_by_id(self, encounter_id: str) -> Encounter | None:
         """Find an encounter by ID."""

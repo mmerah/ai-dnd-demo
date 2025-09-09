@@ -21,6 +21,13 @@ class ResumeGameResponse(BaseModel):
     status: str = Field(..., description="Resume status, typically 'resumed'")
 
 
+class RemoveGameResponse(BaseModel):
+    """Response model for removing a game."""
+
+    game_id: str = Field(..., description="ID of the removed game")
+    status: str = Field(..., description="Removal status, typically 'removed'")
+
+
 class PlayerActionRequest(BaseModel):
     """Request model for player actions."""
 

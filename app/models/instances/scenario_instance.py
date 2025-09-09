@@ -17,7 +17,7 @@ class ScenarioInstance(BaseModel):
 
     # Identity
     instance_id: str
-    template_id: str  # scenario id
+    template_id: str
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 

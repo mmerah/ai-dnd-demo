@@ -1,8 +1,4 @@
-"""Monster sheet models for D&D 5e stat blocks.
-
-Represents the static/template data for a monster. Runtime state belongs to
-MonsterInstance (see app/models/instances/monster_instance.py).
-"""
+"""Monster sheet models for D&D 5e stat blocks."""
 
 from __future__ import annotations
 
@@ -27,7 +23,7 @@ class MonsterSheet(BaseModel):
     name: str
     type: str
     size: str = Field(pattern="^(Tiny|Small|Medium|Large|Huge|Gargantuan)$")
-    alignment: str  # alignment index (e.g., 'neutral-evil', 'unaligned')
+    alignment: str
 
     # Combat Stats
     armor_class: int = Field(ge=1)
@@ -46,7 +42,7 @@ class MonsterSheet(BaseModel):
 
     # Senses & Languages
     senses: str
-    languages: list[str] = Field(default_factory=list)  # language indexes
+    languages: list[str] = Field(default_factory=list)
 
     # Attacks
     attacks: list[AttackAction]
@@ -59,14 +55,6 @@ class MonsterSheet(BaseModel):
     damage_resistances: list[str] = Field(default_factory=list)
     damage_immunities: list[str] = Field(default_factory=list)
     condition_immunities: list[str] = Field(default_factory=list)
-
-    def calculate_modifier(self, ability_score: int) -> int:
-        """Calculate ability modifier from score."""
-        return (ability_score - 10) // 2
-
-    def get_initiative_modifier(self) -> int:
-        """Get initiative modifier (DEX modifier)."""
-        return self.calculate_modifier(self.abilities.DEX)
 
     def has_multiattack(self) -> bool:
         """Check if this monster has multiattack ability."""

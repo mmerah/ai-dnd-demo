@@ -64,6 +64,7 @@ class DiceHandler(BaseHandler):
                 ability=command.ability,
                 skill=command.skill,
                 damage_type=command.damage_type,
+                critical=roll_result.is_critical_failure or roll_result.is_critical_success,
             )
             result.data = dice_result
 

@@ -160,13 +160,3 @@ class SSEEvent(BaseModel):
     def create_heartbeat(cls) -> "SSEEvent":
         """Create a heartbeat event."""
         return cls(event=SSEEventType.HEARTBEAT, data=HeartbeatData())
-
-    @classmethod
-    def create_error(cls, error: str, error_type: str | None = None) -> "SSEEvent":
-        """Create an error event."""
-        return cls(event=SSEEventType.ERROR, data=ErrorData(error=error, type=error_type))
-
-    @classmethod
-    def create_complete(cls, status: Literal["success", "error"] = "success") -> "SSEEvent":
-        """Create a completion event."""
-        return cls(event=SSEEventType.COMPLETE, data=CompleteData(status=status))

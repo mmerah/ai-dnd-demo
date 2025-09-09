@@ -51,6 +51,10 @@ class IGameService(ABC):
         pass
 
     @abstractmethod
+    def remove_game(self, game_id: str) -> None:
+        pass
+
+    @abstractmethod
     def initialize_location_from_scenario(
         self,
         game_state: GameState,
@@ -133,15 +137,6 @@ class IGameStateManager(ABC):
         """
         pass
 
-    @abstractmethod
-    def list_active_games(self) -> list[str]:
-        """List all active game IDs.
-
-        Returns:
-            List of game IDs currently in memory
-        """
-        pass
-
 
 class ISaveManager(ABC):
     """Interface for managing game save operations."""
@@ -180,19 +175,6 @@ class ISaveManager(ABC):
 
         Returns:
             List of (scenario_id, game_id, last_saved) tuples
-        """
-        pass
-
-    @abstractmethod
-    def game_exists(self, scenario_id: str, game_id: str) -> bool:
-        """Check if a saved game exists.
-
-        Args:
-            scenario_id: ID of the scenario
-            game_id: ID of the game
-
-        Returns:
-            True if save exists
         """
         pass
 

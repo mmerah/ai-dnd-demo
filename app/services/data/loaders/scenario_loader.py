@@ -77,7 +77,7 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
                 id=scenario_id,
                 title=data.get("title", "Unknown Adventure"),
                 description=data.get("description", ""),
-                starting_location=data.get("starting_location", ""),
+                starting_location_id=data.get("starting_location_id", ""),
                 locations=locations,
                 encounters=encounter_map,
                 quests=quests,
