@@ -5,7 +5,13 @@ from datetime import datetime
 from app.agents.core.types import AgentType
 from app.interfaces.services.character import ICharacterComputeService
 from app.interfaces.services.data import IItemRepository
-from app.interfaces.services.game import IGameService, IGameStateManager, IMonsterFactory, ISaveManager
+from app.interfaces.services.game import (
+    IGameService,
+    IGameStateManager,
+    ILocationService,
+    IMonsterFactory,
+    ISaveManager,
+)
 from app.interfaces.services.scenario import IScenarioService
 from app.models.character import CharacterSheet
 from app.models.game_state import GameState, GameTime, Message, MessageRole
@@ -15,7 +21,7 @@ from app.models.instances.npc_instance import NPCInstance
 from app.models.instances.scenario_instance import ScenarioInstance
 from app.models.monster import MonsterSheet
 from app.models.quest import QuestStatus
-from app.models.scenario import ScenarioLocation, ScenarioMonster
+from app.models.scenario import ScenarioLocation
 from app.utils.id_generator import generate_instance_id
 
 
@@ -34,6 +40,7 @@ class GameService(IGameService):
         compute_service: ICharacterComputeService,
         item_repository: IItemRepository,
         monster_factory: IMonsterFactory,
+        location_service: ILocationService,
     ) -> None:
         """
         Initialize the game service.
@@ -52,6 +59,7 @@ class GameService(IGameService):
         self.compute_service = compute_service
         self.item_repository = item_repository
         self.monster_factory = monster_factory
+        self.location_service = location_service
 
     def generate_game_id(self, character_name: str) -> str:
         """
@@ -273,29 +281,8 @@ class GameService(IGameService):
         return self.monster_factory.create(sheet, current_location_id)
 
     def initialize_location_from_scenario(self, game_state: GameState, scenario_location: ScenarioLocation) -> None:
-        """
-        Initialize a location's state from scenario data on first visit.
-
-        This method copies static scenario data to the dynamic LocationState.
-        Should only be called when a location is first encountered.
-
-        Args:
-            game_state: The game state containing location states
-            scenario_location: The scenario location definition to copy from
-        """
-        location_state = game_state.get_location_state(scenario_location.id)
-        if not location_state.visited:
-            location_state.danger_level = scenario_location.danger_level
-
-            # Materialize notable monsters present at this location
-            if scenario_location.notable_monsters:
-                for sm in scenario_location.notable_monsters:
-                    if isinstance(sm, ScenarioMonster):
-                        inst = self.create_monster_instance(
-                            sm.monster.model_copy(deep=True),
-                            current_location_id=scenario_location.id,
-                        )
-                        game_state.add_monster_instance(inst)
+        """Delegate to LocationService for first-visit initialization."""
+        self.location_service.initialize_location_from_scenario(game_state, scenario_location)
 
     def recompute_character_state(self, game_state: GameState) -> None:
         """Recompute derived values for the player character using the compute service."""

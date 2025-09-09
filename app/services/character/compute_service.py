@@ -360,13 +360,25 @@ class CharacterComputeService(ICharacterComputeService):
         weapon_idx = self._text_index_from_name(idef.name)
         return any(weapon_idx in p for p in all_profs)
 
-    def _format_damage_with_mod(self, base_damage: str | None, mod: int) -> str | None:
-        if not base_damage:
-            return None
+    def _format_damage_with_mod(self, base_damage: str, mod: int) -> str:
         if mod == 0:
             return base_damage
         sign = "+" if mod > 0 else "-"
         return f"{base_damage}{sign}{abs(mod)}"
+
+    def _determine_attack_range(self, idef: ItemDefinition) -> str:
+        """Determine attack range from weapon subtype."""
+        if not idef.subtype:
+            logger.warning(f"Weapon '{idef.name}' has no subtype, defaulting to melee range")
+            return "melee"
+
+        if idef.subtype == ItemSubtype.RANGED:
+            return "ranged"
+        elif idef.subtype == ItemSubtype.MELEE:
+            return "melee"
+        else:
+            logger.warning(f"Weapon '{idef.name}' has unexpected subtype '{idef.subtype}', defaulting to melee range")
+            return "melee"
 
     def compute_attacks(
         self,
@@ -393,14 +405,14 @@ class CharacterComputeService(ICharacterComputeService):
             prof = self._is_proficient_with_weapon(class_index, race_index, idef)
             attack_roll_bonus = ability_mod + (proficiency_bonus if prof else 0)
             dmg = self._format_damage_with_mod(idef.damage, ability_mod)
-            rng = None  # data lacks exact ranges; omit for now
+            attack_range = self._determine_attack_range(idef)
             attacks.append(
                 AttackAction(
                     name=idef.name,
                     attack_roll_bonus=attack_roll_bonus,
                     damage=dmg,
                     damage_type=idef.damage_type,
-                    range=rng,
+                    range=attack_range,
                     properties=list(idef.properties or []),
                 )
             )
@@ -408,12 +420,16 @@ class CharacterComputeService(ICharacterComputeService):
         # Fallback: unarmed strike
         if not attacks:
             str_mod = modifiers.STR
-            attack_roll_bonus = str_mod + proficiency_bonus  # assume basic proficiency
+            attack_roll_bonus = str_mod + proficiency_bonus
             base = "1"
             dmg = self._format_damage_with_mod(base, str_mod)
             attacks.append(
                 AttackAction(
-                    name="Unarmed Strike", attack_roll_bonus=attack_roll_bonus, damage=dmg, damage_type="Bludgeoning"
+                    name="Unarmed Strike",
+                    attack_roll_bonus=attack_roll_bonus,
+                    damage=dmg,
+                    damage_type="bludgeoning",
+                    range="melee",
                 )
             )
 

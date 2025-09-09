@@ -12,7 +12,7 @@ from app.events.commands.location_commands import (
 )
 from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.services.data import IItemRepository, IMonsterRepository
-from app.interfaces.services.game import IGameService
+from app.interfaces.services.game import IGameService, ILocationService
 from app.interfaces.services.scenario import IScenarioService
 from app.models.game_state import GameState
 from app.models.location import DangerLevel
@@ -35,11 +35,13 @@ class LocationHandler(BaseHandler):
         scenario_service: IScenarioService,
         monster_repository: IMonsterRepository,
         item_repository: IItemRepository,
+        location_service: ILocationService,
     ):
         super().__init__(game_service)
         self.scenario_service = scenario_service
         self.monster_repository = monster_repository
         self.item_repository = item_repository
+        self.location_service = location_service
 
     supported_commands = (
         ChangeLocationCommand,
@@ -57,56 +59,30 @@ class LocationHandler(BaseHandler):
             if not command.location_id:
                 raise ValueError("Location ID cannot be empty")
 
-            # Get location from scenario to compute name and description
-            if game_state.scenario_id:
-                scenario = game_state.scenario_instance.sheet
-                target_location = scenario.get_location(command.location_id)
-                if not target_location:
-                    raise ValueError(f"Location '{command.location_id}' not found in scenario '{scenario.id}'")
-
-                # Compute location_name and description from scenario if not provided
-                location_name = command.location_name or target_location.name
-                description = command.description or target_location.get_description("first_visit")
-            else:
-                # Non-scenario location, require name and description
-                if not command.location_name:
-                    raise ValueError("Location name cannot be empty for non-scenario location")
-                if not command.description:
-                    raise ValueError("Location description cannot be empty for non-scenario location")
-                location_name = command.location_name
-                description = command.description
-
             # TODO(MVP2): Validate traversal from current location using scenario connections
 
-            # Update game state location
-            game_state.change_location(
-                new_location_id=command.location_id,
-                new_location_name=location_name,
-                description=description,
+            # Delegate to LocationService for location change + initialization (auto-resolves name/description)
+            self.location_service.change_location(
+                game_state,
+                location_id=command.location_id,
+                location_name=command.location_name,
+                description=command.description,
             )
-
-            # Initialize location state with NPCs from scenario if available
-            if game_state.scenario_id:
-                scenario = game_state.scenario_instance.sheet
-                location = scenario.get_location(command.location_id)
-                if location:
-                    # Initialize from scenario only if not yet visited
-                    self.game_service.initialize_location_from_scenario(game_state, location)
 
             # Save game state
             self.game_service.save_game(game_state)
 
             result.data = ChangeLocationResult(
                 location_id=command.location_id,
-                location_name=location_name,
-                description=description,
-                message=f"Moved to {location_name}",
+                location_name=game_state.location,
+                description=game_state.description,
+                message=f"Moved to {game_state.location}",
             )
 
             # Broadcast update
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
-            logger.info(f"Location changed to: {location_name}")
+            logger.info(f"Location changed to: {command.location_name}")
 
         elif isinstance(command, DiscoverSecretCommand):
             # Validate secret ID
@@ -174,11 +150,9 @@ class LocationHandler(BaseHandler):
             logger.info(f"Moved NPC {npc.display_name} to {target.name}")
 
         elif isinstance(command, UpdateLocationStateCommand):
-            # Use current location if not specified, but validate it's known
-            location_id = command.location_id or game_state.scenario_instance.current_location_id
-            if not location_id or location_id == "unknown-location":
-                raise ValueError("Cannot update state for unknown or unspecified location")
-            location_state = game_state.get_location_state(location_id)
+            if not command.location_id:
+                raise ValueError("Location ID cannot be empty")
+            location_state = game_state.get_location_state(command.location_id)
             updates = []
 
             # Update danger level
@@ -203,9 +177,9 @@ class LocationHandler(BaseHandler):
             self.game_service.save_game(game_state)
 
             result.data = UpdateLocationStateResult(
-                location_id=location_id,
+                location_id=command.location_id,
                 updates=updates,
-                message=f"Location state updated: {', '.join(updates)}",
+                message=f"Location (ID: {command.location_id}) state updated: {', '.join(updates)}",
             )
 
             # Broadcast update

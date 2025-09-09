@@ -4,7 +4,9 @@ Represents the static/template data for a monster. Runtime state belongs to
 MonsterInstance (see app/models/instances/monster_instance.py).
 """
 
-from pydantic import BaseModel, Field
+from __future__ import annotations
+
+from pydantic import BaseModel, Field, field_validator
 
 from app.models.attributes import Abilities, AttackAction, SkillValue
 from app.models.instances.entity_state import HitPoints
@@ -76,3 +78,20 @@ class MonsterSheet(BaseModel):
             if ability.name.lower() == "multiattack":
                 return ability.description
         return None
+
+    @field_validator("languages", mode="before")
+    @classmethod
+    def _normalize_languages(cls, v: list[str] | str | None) -> list[str] | str | None:
+        if v is None:
+            return []
+        if isinstance(v, str):
+            parts = [p.strip() for p in v.split(",") if p and p.strip().lower() != "none"]
+            return [p.lower().replace(" ", "-") for p in parts]
+        return v
+
+    @field_validator("hit_points", mode="before")
+    @classmethod
+    def _normalize_hit_points(cls, v: int | dict[str, int] | HitPoints) -> dict[str, int] | HitPoints:
+        if isinstance(v, int):
+            return {"current": v, "maximum": v, "temporary": 0}
+        return v

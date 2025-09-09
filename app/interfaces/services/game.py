@@ -207,12 +207,10 @@ class IConversationService(ABC):
         role: MessageRole,
         content: str,
         agent_type: AgentType = AgentType.NARRATIVE,
-        location: str | None = None,
-        npcs_mentioned: list[str] | None = None,
-        combat_round: int | None = None,
     ) -> Message:
-        """Add a message to the conversation, auto-extract missing metadata, and save.
+        """Add a message to the conversation, auto-extract metadata from game state, and save.
 
+        Metadata (location, NPCs mentioned, combat round) is extracted from the game state.
         Returns the created Message.
         """
         pass
@@ -227,10 +225,10 @@ class IMessageManager(ABC):
         game_state: GameState,
         role: MessageRole,
         content: str,
-        agent_type: AgentType = AgentType.NARRATIVE,
-        location: str | None = None,
-        npcs_mentioned: list[str] | None = None,
-        combat_round: int | None = None,
+        agent_type: AgentType,
+        location: str,
+        npcs_mentioned: list[str],
+        combat_round: int,
     ) -> Message:
         """Add a message to conversation history.
 
@@ -320,4 +318,28 @@ class IMonsterFactory(ABC):
     @abstractmethod
     def create(self, sheet: MonsterSheet, current_location_id: str) -> MonsterInstance:
         """Map MonsterSheet → MonsterInstance with a proper EntityState."""
+        pass
+
+
+class ILocationService(ABC):
+    """Location-specific operations and initialization logic."""
+
+    @abstractmethod
+    def change_location(
+        self,
+        game_state: GameState,
+        location_id: str,
+        location_name: str | None,
+        description: str | None,
+    ) -> None:
+        """Change current location and initialize scenario state if defined."""
+        pass
+
+    @abstractmethod
+    def initialize_location_from_scenario(
+        self,
+        game_state: GameState,
+        scenario_location: ScenarioLocation,
+    ) -> None:
+        """First-visit initialization from ScenarioLocation definition."""
         pass

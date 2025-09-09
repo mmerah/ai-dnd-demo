@@ -18,10 +18,10 @@ class MessageManager(IMessageManager):
         game_state: GameState,
         role: MessageRole,
         content: str,
-        agent_type: AgentType = AgentType.NARRATIVE,
-        location: str | None = None,
-        npcs_mentioned: list[str] | None = None,
-        combat_round: int | None = None,
+        agent_type: AgentType,
+        location: str,
+        npcs_mentioned: list[str],
+        combat_round: int,
     ) -> Message:
         """Add a message to conversation history.
 
@@ -32,7 +32,7 @@ class MessageManager(IMessageManager):
             agent_type: Which agent generated this message
             location: Where this message occurred
             npcs_mentioned: NPCs referenced in the message
-            combat_round: Combat round if in combat
+            combat_round: Combat round if in combat (0 if not in combat)
 
         Returns:
             Created message
@@ -43,8 +43,8 @@ class MessageManager(IMessageManager):
             timestamp=datetime.now(),
             agent_type=agent_type,
             location=location,
-            npcs_mentioned=npcs_mentioned if npcs_mentioned is not None else [],
-            combat_round=combat_round,
+            npcs_mentioned=npcs_mentioned,
+            combat_round=combat_round if combat_round > 0 else None,
         )
 
         game_state.add_message(message)

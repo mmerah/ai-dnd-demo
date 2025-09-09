@@ -10,8 +10,8 @@ class ChangeLocationCommand(BaseCommand):
     """Command to change the current location."""
 
     location_id: str = ""
-    location_name: str = ""
-    description: str = ""
+    location_name: str | None = None
+    description: str | None = None
 
     def get_handler_name(self) -> str:
         return "location"

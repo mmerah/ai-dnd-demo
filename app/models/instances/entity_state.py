@@ -11,12 +11,12 @@ from app.models.spell import Spellcasting
 class HitPoints(BaseModel):
     current: int
     maximum: int
-    temporary: int | None = None
+    temporary: int = 0
 
 
 class HitDice(BaseModel):
     total: int
-    current: int | None = None
+    current: int
     type: str
 
 

@@ -996,7 +996,7 @@ function updateAttacks(attacks) {
         const parts = [];
         if (toHitVal) parts.push(`Attack Roll ${toHitVal}`);
         if (dmgStr) parts.push(`Damage ${dmgStr}`);
-        if (rangeStr) parts.push(`Range ${rangeStr}`);
+        if (rangeStr) parts.push(`${rangeStr}`);
         right.textContent = parts.join(' • ');
 
         row.appendChild(left);

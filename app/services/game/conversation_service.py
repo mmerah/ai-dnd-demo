@@ -24,20 +24,11 @@ class ConversationService(IConversationService):
         role: MessageRole,
         content: str,
         agent_type: AgentType = AgentType.NARRATIVE,
-        location: str | None = None,
-        npcs_mentioned: list[str] | None = None,
-        combat_round: int | None = None,
     ) -> Message:
-        # Extract metadata when not provided
-        if npcs_mentioned is None:
-            known_npcs = [npc.sheet.character.name for npc in game_state.npcs]
-            npcs_mentioned = self.metadata_service.extract_npcs_mentioned(content, known_npcs)
-
-        if location is None:
-            location = self.metadata_service.get_current_location(game_state)
-
-        if combat_round is None and game_state.combat.is_active:
-            combat_round = self.metadata_service.get_combat_round(game_state)
+        known_npcs = [npc.sheet.character.name for npc in game_state.npcs]
+        npcs_mentioned = self.metadata_service.extract_npcs_mentioned(content, known_npcs)
+        location = self.metadata_service.get_current_location(game_state) or "Unknown"
+        combat_round = self.metadata_service.get_combat_round(game_state) or 0
 
         # Add message and persist
         message = self.message_manager.add_message(

@@ -14,7 +14,7 @@ from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.monster_instance import MonsterInstance
 from app.models.instances.npc_instance import NPCInstance
 from app.models.instances.scenario_instance import ScenarioInstance
-from app.models.location import DangerLevel, LocationState
+from app.models.location import LocationState
 from app.models.quest import Quest
 from app.utils.names import dedupe_display_name
 
@@ -51,8 +51,8 @@ class GameEvent(BaseModel):
     event_type: GameEventType
     timestamp: datetime = Field(default_factory=datetime.now)
     tool_name: str
-    parameters: dict[str, JSONSerializable] | None = None  # Tool parameters for storage
-    result: dict[str, JSONSerializable] | None = None  # Tool result for storage
+    parameters: dict[str, JSONSerializable] = Field(default_factory=dict)
+    result: dict[str, JSONSerializable] = Field(default_factory=dict)
 
 
 class GameTime(BaseModel):
@@ -107,7 +107,7 @@ class GameState(BaseModel):
     monsters: list[MonsterInstance] = Field(default_factory=list)
 
     # Scenario information
-    scenario_id: str  # convenience alias of scenario_instance.template_id
+    scenario_id: str
     scenario_title: str
     scenario_instance: ScenarioInstance
 
@@ -331,21 +331,7 @@ class GameState(BaseModel):
         self.last_saved = datetime.now()
 
     def get_location_state(self, location_id: str) -> LocationState:
-        """Get or create location state from scenario_instance.
-
-        Special handling for 'unknown-location' sentinel - returns ephemeral state
-        that is not persisted to avoid polluting saved games.
-        """
-        # Handle sentinel value for unknown/transitional locations
-        if location_id == "unknown-location":
-            # Return ephemeral state, not stored in location_states
-            return LocationState(
-                location_id="unknown-location",
-                danger_level=DangerLevel.MODERATE,
-                notes=["Transitional or undefined location"],
-            )
-
-        # Normal path: get or create persistent location state
+        """Get or create location state from scenario_instance."""
         if location_id not in self.scenario_instance.location_states:
             self.scenario_instance.location_states[location_id] = LocationState(location_id=location_id)
         return self.scenario_instance.location_states[location_id]

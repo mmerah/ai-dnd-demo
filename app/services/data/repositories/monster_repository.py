@@ -151,27 +151,10 @@ class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
             ValueError: If parsing fails
         """
         try:
-            # Convert hit_points to proper format if needed
-            if isinstance(data.get("hit_points"), int):
-                data["hit_points"] = {
-                    "current": data["hit_points"],
-                    "maximum": data["hit_points"],
-                    "temporary": 0,
-                }
-
-            # Normalize languages to list of indexes
-            langs = data.get("languages")
-            if isinstance(langs, str):
-                # Split by comma and normalize
-                parts = [p.strip() for p in langs.split(",") if p and p.strip().lower() != "none"]
-                data["languages"] = [p.lower().replace(" ", "-") for p in parts]
-            elif langs is None:
-                data["languages"] = []
-
             # Parse skills to list of SkillValue
             data["skills"] = self._parse_skills(data.get("skills"))
 
-            # Create MonsterSheet from data
+            # Create MonsterSheet from data (model validators normalize attacks/languages/HP)
             monster = MonsterSheet(**data)
 
             # Validate alignment (fail-fast)

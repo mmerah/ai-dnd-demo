@@ -18,18 +18,31 @@ logger = logging.getLogger(__name__)
 
 
 @tool_handler(ChangeLocationCommand)
-async def change_location(ctx: RunContext[AgentDependencies], location_id: str) -> BaseModel:
-    """Move to a connected location.
+async def change_location(
+    ctx: RunContext[AgentDependencies],
+    location_id: str,
+    location_name: str | None = None,
+    description: str | None = None,
+) -> BaseModel:
+    """Move the party to a new location.
 
-    Use when the player travels to a new area.
+    Use when the player travels to any new area - scenario-defined, transitional, or custom.
+
+    Location ID conventions:
+    - Scenario locations: Use the exact ID from scenario (e.g., "tavern", "goblin-cave-entrance")
+    - Transitional areas: Use descriptive IDs (e.g., "path-tavern-forest", "riverbank-crossing")
+    - Custom locations: Use any meaningful ID (e.g., "hidden-grove", "abandoned-camp")
 
     Args:
-        location_id: ID of the location to move to (must be connected)
+        location_id: Unique identifier for the location
+        location_name: Optional display name. Omit for scenario locations to use the scenario name.
+        description: Optional description. Omit for scenario locations to use the scenario description.
 
     Examples:
-        - Travel to forest: location_id="forest_path"
-        - Enter cave: location_id="cave_entrance"
-        - Return to tavern: location_id="tavern"
+        - Scenario location (auto): location_id="tavern"
+        - Scenario location (override): location_id="tavern", description="You arrive from the back alley..."
+        - Transitional: location_id="path-tavern-forest", location_name="Winding Path", description="You follow the dirt road..."
+        - Custom: location_id="mysterious-clearing", location_name="Mysterious Clearing", description="You stumble upon..."
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 

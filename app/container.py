@@ -25,6 +25,7 @@ from app.interfaces.services.game import (
     IEventManager,
     IGameService,
     IGameStateManager,
+    ILocationService,
     IMessageManager,
     IMetadataService,
     IMonsterFactory,
@@ -89,6 +90,7 @@ class Container:
             compute_service=self.character_compute_service,
             item_repository=self.item_repository,
             monster_factory=self.monster_factory,
+            location_service=self.location_service,
         )
 
     @cached_property
@@ -148,6 +150,12 @@ class Container:
     @cached_property
     def monster_factory(self) -> IMonsterFactory:
         return MonsterFactory()
+
+    @cached_property
+    def location_service(self) -> ILocationService:
+        from app.services.game.location_service import LocationService
+
+        return LocationService(monster_factory=self.monster_factory)
 
     @cached_property
     def spell_repository(self) -> ISpellRepository:
@@ -269,7 +277,13 @@ class Container:
         event_bus.register_handler("broadcast", BroadcastHandler(self.game_service, self.message_service))
         event_bus.register_handler(
             "location",
-            LocationHandler(self.game_service, self.scenario_service, self.monster_repository, self.item_repository),
+            LocationHandler(
+                self.game_service,
+                self.scenario_service,
+                self.monster_repository,
+                self.item_repository,
+                self.location_service,
+            ),
         )
         event_bus.register_handler(
             "combat",

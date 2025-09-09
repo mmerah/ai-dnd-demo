@@ -191,13 +191,17 @@ class CombatHandler(BaseHandler):
             # Advance turn
             game_state.combat.next_turn()
             current = game_state.combat.get_current_turn()
+            if current:
+                message = f"Turn advanced to {current.name} (Round {game_state.combat.round_number})"
+            else:
+                message = "No active participants in combat"
 
             # Save and broadcast
             self.game_service.save_game(game_state)
             result.data = NextTurnResult(
                 round_number=game_state.combat.round_number,
                 current_turn=current,
-                message=f"Turn advanced to {current.name if current else 'N/A'} (Round {game_state.combat.round_number})",
+                message=message,
             )
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 

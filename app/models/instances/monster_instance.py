@@ -19,9 +19,7 @@ class MonsterInstance(BaseModel):
 
     # Identity
     instance_id: str
-    # Optional references for provenance
-    template_id: str | None = None  # for scenario monsters
-    repository_name: str | None = None  # for repository monsters
+    template_id: str
     created_at: datetime = Field(default_factory=datetime.now)
     updated_at: datetime = Field(default_factory=datetime.now)
 

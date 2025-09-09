@@ -56,7 +56,7 @@ class SaveManager(ISaveManager):
             Path to the save directory
         """
         # Get save directory
-        scenario_id = game_state.scenario_id or "unknown"
+        scenario_id = game_state.scenario_id
         save_dir = self.path_resolver.get_save_dir(scenario_id, game_state.game_id, create=True)
 
         # Update save timestamp

@@ -25,13 +25,13 @@ class EventManager(IEventManager):
             game_state: Game state to update
             event_type: Type of event (GameEventType enum)
             tool_name: Name of the tool that generated the event
-            parameters: Tool parameters
-            result: Tool result
+            parameters: Tool parameters (default: empty dict)
+            result: Tool result (default: empty dict)
         """
         event = GameEvent(
             event_type=event_type,
             tool_name=tool_name,
-            parameters=parameters,
-            result=result,
+            parameters=parameters or {},
+            result=result or {},
         )
         game_state.add_game_event(event)

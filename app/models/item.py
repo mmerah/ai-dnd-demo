@@ -1,8 +1,9 @@
 """Item models for D&D 5e inventory system."""
 
 from enum import Enum
+from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class ItemType(str, Enum):
@@ -54,20 +55,113 @@ class ItemDefinition(BaseModel):
     # Optional fields for different item types
     subtype: ItemSubtype | None = None
 
-    # Weapon properties
-    damage: str | None = None  # e.g., "1d8"
-    damage_type: str | None = None  # e.g., "Piercing"
+    # Weapon properties. Empty if not weapon
+    damage: str = ""
+    damage_type: str = ""
     properties: list[str] = Field(default_factory=list)  # e.g., ["Finesse", "Light"]
 
-    # Armor properties
-    armor_class: int | None = None
-    dex_bonus: bool | None = None
+    # Armor properties. 0/False if not armore
+    armor_class: int = 0
+    dex_bonus: bool = False
 
     # Equipment pack contents
     contents: list[str] = Field(default_factory=list)
 
-    # Shop/availability
-    quantity_available: int | None = None  # For shops
+    # Shop/availability. -1 for unlimited
+    quantity_available: int = -1
+
+    # --- Normalization validators for legacy/loose item inputs ---
+    @field_validator("description", mode="before")
+    @classmethod
+    def _normalize_description(cls, v: str | None) -> str:
+        return v or ""
+
+    @field_validator("damage", mode="before")
+    @classmethod
+    def _normalize_damage(cls, v: str | None) -> str:
+        return v or ""
+
+    @field_validator("damage_type", mode="before")
+    @classmethod
+    def _normalize_damage_type(cls, v: str | None) -> str:
+        return v or ""
+
+    @field_validator("properties", mode="before")
+    @classmethod
+    def _normalize_properties(cls, v: Any) -> list[str]:
+        return v or []
+
+    @field_validator("armor_class", mode="before")
+    @classmethod
+    def _normalize_armor_class(cls, v: Any) -> int:
+        if v is None:
+            return 0
+        if isinstance(v, bool):
+            return 1 if v else 0
+        if isinstance(v, int | float):
+            return int(v)
+        try:
+            return int(str(v))
+        except Exception:
+            return 0
+
+    @field_validator("dex_bonus", mode="before")
+    @classmethod
+    def _normalize_dex_bonus(cls, v: Any) -> bool:
+        if v is None:
+            return False
+        if isinstance(v, bool):
+            return v
+        if isinstance(v, int | float):
+            return v != 0
+        if isinstance(v, str):
+            val = v.strip().lower()
+            if val in ("true", "yes", "y", "1"):
+                return True
+            if val in ("false", "no", "n", "0", ""):
+                return False
+        return False
+
+    @field_validator("contents", mode="before")
+    @classmethod
+    def _normalize_contents(cls, v: Any) -> list[str]:
+        return v or []
+
+    @field_validator("weight", mode="before")
+    @classmethod
+    def _normalize_weight(cls, v: Any) -> float:
+        if v is None:
+            return 0.0
+        if isinstance(v, int | float):
+            return float(v)
+        try:
+            return float(str(v))
+        except Exception:
+            return 0.0
+
+    @field_validator("value", mode="before")
+    @classmethod
+    def _normalize_value(cls, v: Any) -> float:
+        if v is None:
+            return 0.0
+        if isinstance(v, int | float):
+            return float(v)
+        try:
+            return float(str(v))
+        except Exception:
+            return 0.0
+
+    @field_validator("quantity_available", mode="before")
+    @classmethod
+    def _normalize_quantity_available(cls, v: Any) -> int:
+        if v is None:
+            return -1
+        if isinstance(v, int | float):
+            return int(v)
+        try:
+            return int(str(v))
+        except Exception:
+            return -1
 
 
 class InventoryItem(BaseModel):
@@ -79,9 +173,9 @@ class InventoryItem(BaseModel):
 
     # These can be populated from ItemDefinition when needed
     weight: float = Field(ge=0, default=0.0)
-    value: float = Field(ge=0, default=0)  # Value in gold pieces
+    value: float = Field(ge=0, default=0)
     description: str = ""
-    item_type: ItemType | None = None
+    item_type: ItemType = ItemType.ADVENTURING_GEAR
 
     @classmethod
     def from_definition(

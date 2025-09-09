@@ -122,21 +122,33 @@ class ItemRepository(BaseRepository[ItemDefinition], IItemRepository):
             rarity = ItemRarity(data["rarity"])
             subtype = ItemSubtype(data["subtype"]) if data.get("subtype") else None
 
+            # Provide typed values for mypy while model validators handle legacy inputs
+            weight: float = float(data.get("weight") or 0.0)
+            value: float = float(data.get("value") or 0.0)
+            description: str = data.get("description") or ""
+            damage: str = data.get("damage") or ""
+            damage_type: str = data.get("damage_type") or ""
+            properties: list[str] = list(data.get("properties") or [])
+            armor_class: int = int(data.get("armor_class") or 0)
+            dex_bonus: bool = bool(data.get("dex_bonus") or False)
+            contents: list[str] = list(data.get("contents") or [])
+            quantity_available: int = int(data.get("quantity_available") or -1)
+
             return ItemDefinition(
                 name=data["name"],
                 type=item_type,
                 rarity=rarity,
-                weight=data.get("weight", 0.0),
-                value=data.get("value", 0),
-                description=data.get("description", ""),
+                weight=weight,
+                value=value,
+                description=description,
                 subtype=subtype,
-                damage=data.get("damage"),
-                damage_type=data.get("damage_type"),
-                properties=data.get("properties", []),
-                armor_class=data.get("armor_class"),
-                dex_bonus=data.get("dex_bonus"),
-                contents=data.get("contents", []),
-                quantity_available=data.get("quantity_available"),
+                damage=damage,
+                damage_type=damage_type,
+                properties=properties,
+                armor_class=armor_class,
+                dex_bonus=dex_bonus,
+                contents=contents,
+                quantity_available=quantity_available,
             )
         except Exception as e:
             raise ValueError(f"Failed to parse item data: {e}") from e

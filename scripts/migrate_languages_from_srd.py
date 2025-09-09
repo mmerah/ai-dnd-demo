@@ -69,6 +69,13 @@ def main() -> None:
             "description": "Can speak any six languages.",
         },
         {
+            "index": "common-plus-up-to-five-other-languages",
+            "name": "Common Plus Up To Five Other Languages",
+            "type": "Standard",
+            "script": None,
+            "description": "Speak Common and up-to-five other languages",
+        },
+        {
             "index": "all",
             "name": "All Languages",
             "type": "Standard",

@@ -67,7 +67,6 @@ class MonsterFactory(IMonsterFactory):
         return MonsterInstance(
             instance_id=generate_instance_id(sheet.name),
             template_id=sheet.index,
-            repository_name=sheet.index or sheet.name,
             sheet=sheet,
             state=EntityState(
                 abilities=sheet.abilities,
