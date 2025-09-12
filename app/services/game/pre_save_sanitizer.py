@@ -9,12 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class PreSaveSanitizer(IPreSaveSanitizer):
-    """Sanitize game state before persistence.
-
-    Responsibilities:
-    - Remove dead monsters from game_state to avoid persisting stale entities.
-    - Future: normalize/clean transient fields prior to save.
-    """
+    """Sanitize game state before persistence."""
 
     def sanitize(self, game_state: GameState) -> None:
         initial_monster_count = len(game_state.monsters)

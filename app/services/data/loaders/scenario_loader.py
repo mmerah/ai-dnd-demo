@@ -25,11 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class ScenarioLoader(BaseLoader[ScenarioSheet]):
-    """Loader for scenario data with modular components.
-
-    Follows Single Responsibility Principle: only handles scenario file operations.
-    Loads scenario metadata and all associated components from the modular structure.
-    """
+    """Loader for scenario data with modular components."""
 
     def __init__(self, path_resolver: IPathResolver, validate_on_load: bool = True):
         """Initialize scenario loader.
@@ -43,21 +39,6 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
 
     def _parse_data(self, data: dict[str, Any] | list[Any], source_path: Path) -> ScenarioSheet:
         # Any is necessary because raw JSON data can contain mixed types
-        """Parse raw JSON data into Scenario model.
-
-        This method loads the scenario metadata and then loads all
-        components from their respective directories.
-
-        Args:
-            data: Raw JSON data from scenario.json
-            source_path: Path the data was loaded from
-
-        Returns:
-            Fully loaded Scenario with all components
-
-        Raises:
-            RuntimeError: If parsing fails
-        """
         if not isinstance(data, dict):
             raise RuntimeError(f"Expected dict for scenario data, got {type(data).__name__} from {source_path}")
 

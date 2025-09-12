@@ -1,4 +1,4 @@
-"""Main AI Service orchestrator following Single Responsibility."""
+"""Main AI Service orchestrator."""
 
 import logging
 from collections.abc import AsyncIterator
@@ -33,17 +33,6 @@ class AIService(IAIService):
         game_state: GameState,
         stream: bool = True,
     ) -> AsyncIterator[AIResponse]:
-        """
-        Generate AI response with streaming support.
-
-        Args:
-            user_message: The player's input
-            game_state: Current game state
-            stream: Whether to stream the response
-
-        Yields:
-            Dict with response chunks or complete response
-        """
         logger.info(f"AIService.generate_response called with stream={stream}")
         try:
             # Route through the orchestrator (e.g., narrative vs combat)
@@ -57,7 +46,6 @@ class AIService(IAIService):
                     if isinstance(event.content, str):
                         logger.debug(f"Yielding narrative_chunk: '{event.content[:30]}...'")
                         # Currently we don't forward chunks; SSE is the source of truth
-                        # Keep interface compatibility without emitting chunks
                         pass
                 elif event.type == StreamEventType.COMPLETE:
                     if isinstance(event.content, NarrativeResponse):

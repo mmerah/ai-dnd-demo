@@ -19,11 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class SaveManager(ISaveManager):
-    """Manages save/load operations with modular file structure.
-
-    Follows Single Responsibility Principle: only handles save orchestration.
-    Delegates component-specific operations to dedicated methods.
-    """
+    """Manages save/load operations with modular file structure."""
 
     def __init__(self, path_resolver: IPathResolver):
         """Initialize save manager.
@@ -34,27 +30,6 @@ class SaveManager(ISaveManager):
         self.path_resolver = path_resolver
 
     def save_game(self, game_state: GameState) -> Path:
-        """Save complete game state to modular structure.
-
-        Creates the following structure:
-        saves/[scenario-id]/[game-id]/
-            ├── metadata.json
-            ├── instances/
-            │   ├── character.json
-            │   ├── scenario.json
-            │   ├── npcs/
-            │   │    └── [npc-instance-id].json
-            |   └── monsters/
-            │       └── [monster-instance-id].json
-            ├── conversation_history.json
-            └── game_events.json
-
-        Args:
-            game_state: Game state to save
-
-        Returns:
-            Path to the save directory
-        """
         # Get save directory
         scenario_id = game_state.scenario_id
         save_dir = self.path_resolver.get_save_dir(scenario_id, game_state.game_id, create=True)
@@ -68,7 +43,7 @@ class SaveManager(ISaveManager):
         self._save_conversation_history(save_dir, game_state.conversation_history)
         self._save_game_events(save_dir, game_state.game_events)
 
-        # Save only alive monsters (redundant check but ensures consistency)
+        # Save only alive monsters (redundant but ensures consistency)
         alive_monsters = [m for m in game_state.monsters if m.is_alive()]
         self._save_monster_instances(save_dir, alive_monsters)
 
@@ -84,19 +59,6 @@ class SaveManager(ISaveManager):
         return save_dir
 
     def load_game(self, scenario_id: str, game_id: str) -> GameState:
-        """Load complete game state from modular structure.
-
-        Args:
-            scenario_id: ID of the scenario
-            game_id: ID of the game
-
-        Returns:
-            Loaded game state
-
-        Raises:
-            FileNotFoundError: If save doesn't exist
-            RuntimeError: If loading fails
-        """
         save_dir = self.path_resolver.get_save_dir(scenario_id, game_id, create=False)
 
         if not (save_dir / "metadata.json").exists():
@@ -119,16 +81,15 @@ class SaveManager(ISaveManager):
             metadata.pop("current_location_id", None)
             metadata.pop("current_act_id", None)
 
-            # Reconstruct GameState from the loaded parts
+            # Reconstruct GameState from the loaded parts. Metadata are unpacked automatically. Rest is separately loaded
             game_state = GameState(
                 **metadata,  # Unpack all metadata fields automatically
                 character=character,
                 scenario_instance=scenario_instance,
-                conversation_history=[],  # Will be loaded separately
-                game_events=[],  # Will be loaded separately
-                npcs=[],  # Will be loaded separately
-                monsters=[],  # Will be loaded separately
-                # Combat is always present, will be updated if save exists
+                conversation_history=[],
+                game_events=[],
+                npcs=[],
+                monsters=[],
             )
 
             # Load remaining components
@@ -147,14 +108,6 @@ class SaveManager(ISaveManager):
             raise RuntimeError(f"Failed to load game {scenario_id}/{game_id}: {e}") from e
 
     def list_saved_games(self, scenario_id: str | None = None) -> list[tuple[str, str, datetime]]:
-        """List all saved games.
-
-        Args:
-            scenario_id: Optional filter by scenario
-
-        Returns:
-            List of (scenario_id, game_id, last_saved) tuples
-        """
         saves_dir = self.path_resolver.get_saves_dir()
         games = []
 
@@ -220,7 +173,7 @@ class SaveManager(ISaveManager):
         metadata_dump["current_act_id"] = game_state.scenario_instance.current_act_id
 
         with open(save_dir / "metadata.json", "w", encoding="utf-8") as f:
-            json.dump(metadata_dump, f, indent=2, default=str)  # Use default=str for any remaining datetime objects
+            json.dump(metadata_dump, f, indent=2, default=str)
 
     def _save_instances(self, save_dir: Path, game_state: GameState) -> None:
         """Save instances (character, scenario, npcs)."""
@@ -228,15 +181,12 @@ class SaveManager(ISaveManager):
         npcs_dir = inst_dir / "npcs"
         npcs_dir.mkdir(parents=True, exist_ok=True)
 
-        # Character instance
         with open(inst_dir / "character.json", "w", encoding="utf-8") as f:
             f.write(game_state.character.model_dump_json(indent=2))
 
-        # Scenario instance
         with open(inst_dir / "scenario.json", "w", encoding="utf-8") as f:
             f.write(game_state.scenario_instance.model_dump_json(indent=2))
 
-        # NPC instances
         for npc in game_state.npcs:
             file_path = npcs_dir / f"{npc.instance_id}.json"
             with open(file_path, "w", encoding="utf-8") as f:
@@ -282,8 +232,6 @@ class SaveManager(ISaveManager):
         """Save combat state."""
         with open(save_dir / "combat.json", "w", encoding="utf-8") as f:
             f.write(combat.model_dump_json(indent=2))
-
-    # Component load methods
 
     def _load_metadata(self, save_dir: Path) -> dict[str, Any]:
         """Load game metadata.

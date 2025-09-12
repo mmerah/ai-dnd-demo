@@ -190,11 +190,6 @@ class CharacterComputeService(ICharacterComputeService):
         return dc, atk
 
     def compute_hit_points_and_dice(self, class_index: str, level: int, con_modifier: int) -> tuple[int, int, str]:
-        """Compute base HP and hit dice from class and level.
-
-        - Level 1 HP = hit_die + CON mod
-        - Each subsequent level adds average (hit_die//2 + 1) + CON mod, with a minimum of 1 HP per level
-        """
         try:
             cls_def = self.class_repository.get(class_index)
             hit_die = cls_def.hit_die if cls_def.hit_die else 8
@@ -212,7 +207,6 @@ class CharacterComputeService(ICharacterComputeService):
 
     def compute_speed(self, race_index: str, inventory: list[InventoryItem]) -> int:
         # Minimal rule: base speed from race; ignore armor penalties
-        # Race repository is always provided in the constructor
         try:
             race = self.race_repository.get(race_index)
             return race.speed
@@ -220,8 +214,6 @@ class CharacterComputeService(ICharacterComputeService):
             return 30
 
     def initialize_entity_state(self, sheet: CharacterSheet) -> EntityState:
-        """Create an EntityState from a CharacterSheet's starting_* fields using compute layer."""
-        # Base inputs
         abilities = sheet.starting_abilities
         level = sheet.starting_level
 
@@ -468,10 +460,6 @@ class CharacterComputeService(ICharacterComputeService):
                     raise ValueError("Already wearing body armor; unequip it first")
 
     def set_item_equipped(self, state: EntityState, item_name: str, equipped: bool) -> EntityState:
-        """Equip/unequip a single unit of the named item.
-
-        Splits/merges stacks for equippable items and recomputes derived stats.
-        """
         inventory = state.inventory
         # Locate item by name (case-insensitive fallback)
         item = next((it for it in inventory if it.name == item_name), None)
@@ -498,5 +486,5 @@ class CharacterComputeService(ICharacterComputeService):
             if item.equipped_quantity > 0:
                 item.equipped_quantity -= 1
 
-        # Return updated state (caller is responsible for recomputing if needed)
+        # Return updated state
         return state

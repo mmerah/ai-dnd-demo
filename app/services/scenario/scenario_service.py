@@ -31,6 +31,7 @@ class ScenarioService(IScenarioService):
             path_resolver: Service for resolving file paths
             scenario_loader: Loader for scenario data
             monster_repository: Repository for validating monster references
+            character_service: Service for character validation
         """
         self.path_resolver = path_resolver
         self.scenario_loader = scenario_loader
@@ -57,42 +58,13 @@ class ScenarioService(IScenarioService):
                             logger.error(f"Failed to load critical scenario data from {scenario_file}: {e}")
                             raise RuntimeError(f"Critical data validation failed for scenario {scenario_id}") from e
 
-        # Also check for legacy single scenario.json file
-        scenario_path = self.path_resolver.get_data_dir() / "scenario.json"
-        if scenario_path.exists():
-            try:
-                scenario = self.scenario_loader.load(scenario_path)
-                self._scenarios[scenario.id] = scenario
-            except Exception as e:
-                logger.error(f"Failed to load critical scenario data from {scenario_path}: {e}")
-                raise RuntimeError("Critical data validation failed for legacy scenario") from e
-
     def get_scenario(self, scenario_id: str) -> ScenarioSheet | None:
-        """
-        Get a scenario by ID.
-
-        Args:
-            scenario_id: ID of the scenario to retrieve
-
-        Returns:
-            Scenario object or None if not found
-        """
         return self._scenarios.get(scenario_id)
 
     def list_scenarios(self) -> list[ScenarioSheet]:
-        """
-        List all available scenarios.
-
-        Returns:
-            List of Scenario objects
-        """
         return list(self._scenarios.values())
 
     def get_scenario_npc(self, scenario_id: str, npc_id: str) -> NPCSheet | None:
-        """Load a specific scenario NPC by id from disk.
-
-        This avoids duplicating data in memory and keeps scenario NPCs normalized.
-        """
         try:
             npc_path = self.path_resolver.get_scenario_dir(scenario_id) / "npcs" / f"{npc_id}.json"
             if not npc_path.exists():
@@ -103,7 +75,6 @@ class ScenarioService(IScenarioService):
                 data = json.load(f)
             npc = NPCSheet(**data)
 
-            # Validate NPC character sheet if character service available (fail-fast)
             errors = self.character_service.validate_character_references(npc.character)
             if errors:
                 raise ValueError(f"NPC {npc.id} has invalid references: {', '.join(errors)}")
@@ -114,10 +85,6 @@ class ScenarioService(IScenarioService):
             raise
 
     def get_scenario_monster(self, scenario_id: str, monster_id: str) -> MonsterSheet | None:
-        """Load a scenario-defined monster by id and return its MonsterSheet model.
-
-        Returns None if not found or invalid.
-        """
         try:
             m_path = self.path_resolver.get_scenario_dir(scenario_id) / "monsters" / f"{monster_id}.json"
             if not m_path.exists():
@@ -130,7 +97,6 @@ class ScenarioService(IScenarioService):
             return None
 
     def list_scenario_npcs(self, scenario_id: str) -> list[NPCSheet]:
-        """List all NPCSheets defined in a scenario."""
         npcs: list[NPCSheet] = []
         try:
             npcs_dir = self.path_resolver.get_scenario_dir(scenario_id) / "npcs"
@@ -143,7 +109,6 @@ class ScenarioService(IScenarioService):
                         data = json.load(f)
                     npc = NPCSheet(**data)
 
-                    # Validate NPC character sheet if character service available (fail-fast)
                     errors = self.character_service.validate_character_references(npc.character)
                     if errors:
                         logger.warning(f"NPC {npc.id} has invalid references: {', '.join(errors)}")

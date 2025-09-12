@@ -18,18 +18,6 @@ class DiceService(IDiceService):
             random.seed(seed)
 
     def parse_dice_formula(self, formula: str) -> tuple[int, int, int]:
-        """
-        Parse a dice formula string (e.g., "2d6+3") into components.
-
-        Args:
-            formula: Dice formula string in XdY+Z format
-
-        Returns:
-            Tuple of (dice_count, dice_sides, modifier)
-
-        Raises:
-            ValueError: If formula is invalid
-        """
         formula = formula.replace(" ", "")
         match = self.DICE_PATTERN.match(formula)
 
@@ -48,16 +36,6 @@ class DiceService(IDiceService):
         return dice_count, dice_sides, modifier
 
     def roll_dice(self, formula: str, roll_type: RollType = RollType.NORMAL) -> DiceRoll:
-        """
-        Roll dice based on formula with optional advantage/disadvantage.
-
-        Args:
-            formula: Dice formula (e.g., "1d20+5")
-            roll_type: Type of roll (normal, advantage, disadvantage)
-
-        Returns:
-            DiceRoll result object
-        """
         dice_count, dice_sides, modifier = self.parse_dice_formula(formula)
 
         # For d20 rolls with advantage/disadvantage

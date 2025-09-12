@@ -66,16 +66,6 @@ class GameService(IGameService):
         character: CharacterSheet,
         scenario_id: str,
     ) -> GameState:
-        """
-        Initialize a new game state.
-
-        Args:
-            character: The player's character sheet
-            scenario_id: Scenario to load
-
-        Returns:
-            Initialized GameState object
-        """
         # Delegate initialization to the factory
         game_state = self.game_factory.initialize_game(character, scenario_id)
 
@@ -86,18 +76,6 @@ class GameService(IGameService):
         return game_state
 
     def save_game(self, game_state: GameState) -> str:
-        """
-        Save game state using modular save system.
-
-        Args:
-            game_state: Current game state to save
-
-        Returns:
-            Path to saved directory
-
-        Raises:
-            IOError: If save fails
-        """
         try:
             # Pre-save sanitization step to avoid SaveManager mutating state inline
             self.pre_save_sanitizer.sanitize(game_state)
@@ -107,19 +85,6 @@ class GameService(IGameService):
             raise OSError(f"Failed to save game {game_state.game_id}: {e}") from e
 
     def load_game(self, game_id: str) -> GameState:
-        """
-        Load game state from modular save structure.
-
-        Args:
-            game_id: ID of the game to load
-
-        Returns:
-            Loaded GameState object
-
-        Raises:
-            FileNotFoundError: If save file doesn't exist
-            ValueError: If save file is corrupted
-        """
         # First, try to find the game by searching through saved games
         saved_games = self.save_manager.list_saved_games()
 
@@ -141,19 +106,6 @@ class GameService(IGameService):
             raise ValueError(f"Failed to load game {game_id}: {e}") from e
 
     def get_game(self, game_id: str) -> GameState:
-        """
-        Get active game state from memory or load from disk.
-
-        Args:
-            game_id: ID of the game
-
-        Returns:
-            GameState object
-
-        Raises:
-            FileNotFoundError: If the saved game does not exist
-            ValueError: If the saved game is corrupted
-        """
         # Check in-memory storage first
         game_state = self.game_state_manager.get_game(game_id)
         if game_state:
@@ -163,12 +115,6 @@ class GameService(IGameService):
         return self.load_game(game_id)
 
     def list_saved_games(self) -> list[GameState]:
-        """
-        List all saved games.
-
-        Returns:
-            List of GameState objects for all saved games
-        """
         games = []
         saved_games = self.save_manager.list_saved_games()
 
@@ -184,24 +130,15 @@ class GameService(IGameService):
         return games
 
     def remove_game(self, game_id: str) -> None:
-        """
-        Remove a game from memory.
-
-        Args:
-            game_id: ID of the game to remove
-        """
         self.game_state_manager.remove_game(game_id)
 
     def create_monster_instance(self, sheet: MonsterSheet, current_location_id: str) -> MonsterInstance:
-        """Create a MonsterInstance from a MonsterSheet (delegates to factory)."""
         return self.monster_factory.create(sheet, current_location_id)
 
     def initialize_location_from_scenario(self, game_state: GameState, scenario_location: ScenarioLocation) -> None:
-        """Delegate to LocationService for first-visit initialization."""
         self.location_service.initialize_location_from_scenario(game_state, scenario_location)
 
     def recompute_character_state(self, game_state: GameState) -> None:
-        """Recompute derived values for the player character using the compute service."""
         char = game_state.character
         new_state = self.compute_service.recompute_entity_state(char.sheet, char.state)
         char.state = new_state

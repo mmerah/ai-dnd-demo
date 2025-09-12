@@ -32,23 +32,18 @@ class EventBus(IEventBus):
         self._handlers[handler_name] = handler
 
     async def submit_command(self, command: BaseCommand) -> None:
-        """Submit a command to the queue for processing."""
         # Priority queue item: (priority_value, insertion_order, command)
         # Lower priority value = higher priority
         await self.command_queue.put((command.priority.value, command.timestamp, command))
         logger.debug(f"Command submitted: {type(command).__name__} with priority {command.priority.name}")
-
-        # Start processing if not already running
         if not self.processing:
             self.processing_task = asyncio.create_task(self._process_queue())
 
     async def execute_command(self, command: BaseCommand) -> BaseModel | None:
-        """Execute a command synchronously and return its result data (BaseModel)."""
         result = await self._run_command(command)
         return result.data
 
     async def submit_commands(self, commands: list[BaseCommand]) -> None:
-        """Submit multiple commands to the queue."""
         for command in commands:
             await self.submit_command(command)
 
@@ -110,27 +105,16 @@ class EventBus(IEventBus):
         return result
 
     async def wait_for_completion(self) -> None:
-        """Wait for all queued commands to complete."""
         if self.processing_task:
             await self.processing_task
 
     async def submit_and_wait(self, commands: list[BaseCommand]) -> None:
-        """Submit a batch of commands and wait until processed.
-
-        Convenience to avoid manual submit + wait at call sites.
-        """
         await self.submit_commands(commands)
         await self.wait_for_completion()
 
     # Verification utilities
     def verify_handlers(self) -> None:
-        """Verify that all commands have a registered handler that can handle them.
-
-        This introspects known command modules and ensures that for each
-        BaseCommand subclass:
-        - A handler is registered for its domain (get_handler_name).
-        - The handler's can_handle(command) returns True.
-        """
+        """Verify that all commands have a registered handler that can handle them."""
         # List of command modules to introspect
         modules = [
             "app.events.commands.character_commands",

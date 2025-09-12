@@ -12,10 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class ItemRepository(BaseRepository[ItemDefinition], IItemRepository):
-    """Repository for loading and managing item data.
-
-    Follows Single Responsibility Principle: only manages item data access.
-    """
+    """Repository for loading and managing item data."""
 
     def __init__(self, path_resolver: IPathResolver, cache_enabled: bool = True):
         """Initialize the item repository.
@@ -154,14 +151,6 @@ class ItemRepository(BaseRepository[ItemDefinition], IItemRepository):
             raise ValueError(f"Failed to parse item data: {e}") from e
 
     def get_by_type(self, item_type: ItemType) -> list[ItemDefinition]:
-        """Get all items of a specific type.
-
-        Args:
-            item_type: Type of items to retrieve
-
-        Returns:
-            List of items matching the type
-        """
         if not self._initialized:
             self._initialize()
 
@@ -183,14 +172,6 @@ class ItemRepository(BaseRepository[ItemDefinition], IItemRepository):
         return all_items
 
     def get_by_rarity(self, rarity: ItemRarity) -> list[ItemDefinition]:
-        """Get all items of a specific rarity.
-
-        Args:
-            rarity: Rarity level to filter by
-
-        Returns:
-            List of items matching the rarity
-        """
         if not self._initialized:
             self._initialize()
 

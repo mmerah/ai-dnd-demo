@@ -1,4 +1,4 @@
-"""Service for converting between message formats following Single Responsibility."""
+"""Service for converting between message formats."""
 
 from pydantic_ai.messages import (
     ModelMessage,
@@ -13,7 +13,7 @@ from app.models.game_state import Message, MessageRole
 
 
 class MessageConverterService:
-    """Service for converting between message formats following Single Responsibility."""
+    """Service for converting between message formats."""
 
     @staticmethod
     def to_pydantic_messages(messages: list[Message], agent_type: AgentType) -> list[ModelMessage]:

@@ -80,7 +80,6 @@ class CharacterService(ICharacterService):
 
     def _load_all_characters(self) -> None:
         """Load all available characters from data directory."""
-        # Load from individual character files in characters directory
         characters_dir = self.path_resolver.get_data_dir() / "characters"
         if characters_dir.exists() and characters_dir.is_dir():
             for character_file in characters_dir.glob("*.json"):
@@ -96,12 +95,10 @@ class CharacterService(ICharacterService):
         try:
             character = self.character_loader.load(file_path)
 
-            # Ensure character has a non-empty ID
             # CharacterSheet model always has an id field
             if not character.id:
                 character.id = file_path.stem
 
-            # Always validate references (fail-fast)
             errors = self.validate_character_references(character)
             if errors:
                 error_msg = f"Character '{character.id}' has invalid references:\n"
@@ -112,43 +109,17 @@ class CharacterService(ICharacterService):
             self._characters[character.id] = character
 
         except (ValueError, TypeError) as e:
-            # Re-raise validation errors with character context
             raise ValueError(f"Failed to load character from {file_path}: {e}") from e
         except Exception as e:
-            # Only catch truly unexpected errors (file IO, JSON parsing)
             raise RuntimeError(f"Failed to load character from {file_path}: {e}") from e
 
     def get_character(self, character_id: str) -> CharacterSheet | None:
-        """
-        Get a character by ID.
-
-        Args:
-            character_id: ID of the character to retrieve
-
-        Returns:
-            CharacterSheet object or None if not found
-        """
         return self._characters.get(character_id)
 
     def get_all_characters(self) -> list[CharacterSheet]:
-        """
-        Get all loaded characters.
-
-        Returns:
-            List of all CharacterSheet objects
-        """
         return list(self._characters.values())
 
     def validate_character_references(self, character: CharacterSheet) -> list[str]:
-        """
-        Validate that all item and spell references in the character exist.
-
-        Args:
-            character: Character to validate
-
-        Returns:
-            List of validation error messages
-        """
         errors = []
 
         # Validate starting inventory items

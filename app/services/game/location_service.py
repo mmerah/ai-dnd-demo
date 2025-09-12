@@ -1,7 +1,4 @@
-"""LocationService: encapsulates location transitions and initialization.
-
-Keeps GameService lean by delegating location-specific responsibilities.
-"""
+"""LocationService: encapsulates location transitions and initialization."""
 
 from __future__ import annotations
 
@@ -70,7 +67,6 @@ class LocationService(ILocationService):
         )
 
     def initialize_location_from_scenario(self, game_state: GameState, scenario_location: ScenarioLocation) -> None:
-        """Initialize a location's state from scenario data on first visit."""
         location_state = game_state.get_location_state(scenario_location.id)
         if not location_state.visited:
             location_state.danger_level = scenario_location.danger_level

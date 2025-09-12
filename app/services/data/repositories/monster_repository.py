@@ -18,10 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
-    """Repository for loading and managing monster data.
-
-    Follows Single Responsibility Principle: only manages monster data access.
-    """
+    """Repository for loading and managing monster data."""
 
     def __init__(
         self,
@@ -157,16 +154,16 @@ class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
             # Create MonsterSheet from data (model validators normalize attacks/languages/HP)
             monster = MonsterSheet(**data)
 
-            # Validate alignment (fail-fast)
+            # Validate alignment
             if not self.alignment_repository.validate_reference(monster.alignment):
                 raise ValueError(f"Monster {monster.name} has unknown alignment: {monster.alignment}")
 
-            # Validate languages (fail-fast)
+            # Validate languages
             for lang in monster.languages:
                 if not self.language_repository.validate_reference(lang):
                     raise ValueError(f"Monster {monster.name} has unknown language: {lang}")
 
-            # Validate condition immunities (fail-fast)
+            # Validate condition immunities
             for cond in monster.condition_immunities:
                 if not self.condition_repository.validate_reference(cond):
                     raise ValueError(f"Monster {monster.name} has unknown condition immunity: {cond}")
@@ -195,15 +192,6 @@ class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
         return monster.model_copy(deep=True)
 
     def get_by_challenge_rating(self, min_cr: float, max_cr: float) -> list[MonsterSheet]:
-        """Get all monsters within a challenge rating range.
-
-        Args:
-            min_cr: Minimum challenge rating (inclusive)
-            max_cr: Maximum challenge rating (inclusive)
-
-        Returns:
-            List of monsters within the CR range
-        """
         if not self._initialized:
             self._initialize()
 
@@ -229,14 +217,6 @@ class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
         return all_monsters
 
     def get_by_type(self, creature_type: str) -> list[MonsterSheet]:
-        """Get all monsters of a specific type.
-
-        Args:
-            creature_type: Type of creature (e.g., "humanoid", "beast", "undead")
-
-        Returns:
-            List of monsters matching the type
-        """
         if not self._initialized:
             self._initialize()
 

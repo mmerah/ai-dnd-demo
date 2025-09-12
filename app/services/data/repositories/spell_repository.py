@@ -20,10 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
-    """Repository for loading and managing spell data.
-
-    Follows Single Responsibility Principle: only manages spell data access.
-    """
+    """Repository for loading and managing spell data."""
 
     def __init__(
         self,
@@ -182,7 +179,7 @@ class SpellRepository(BaseRepository[SpellDefinition], ISpellRepository):
             # New SRD-aligned structure
             duration = data.get("duration", "")
 
-            # Validate school if repository available (fail-fast)
+            # Validate school if repository available
             school = str(data.get("school", "")).lower()
             if school and not self.magic_school_repository.validate_reference(school):
                 raise ValueError(f"Unknown magic school: {school}")

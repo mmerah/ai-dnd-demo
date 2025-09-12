@@ -67,16 +67,6 @@ class ContextService(IContextService):
         ]
 
     def build_context(self, game_state: GameState, agent_type: AgentType) -> str:
-        """Build enhanced context string from game state using strategy builders.
-
-        Args:
-            game_state: Current game state
-            agent_type: Type of agent requesting context
-
-        Returns:
-            Context string optimized for the specified agent type
-        """
-        # Select builders based on agent type
         if agent_type == AgentType.COMBAT:
             # Combat agent only needs tactical information
             selected_builders = [

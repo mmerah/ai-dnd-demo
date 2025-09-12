@@ -1,4 +1,4 @@
-"""Factory for creating specialized agents following Factory pattern."""
+"""Factory for creating specialized agents."""
 
 import logging
 
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 
 
 class AgentFactory:
-    """Factory for creating specialized agents following Factory pattern."""
+    """Factory for creating specialized agents."""
 
     @classmethod
     def _create_model(cls, model_name: str) -> OpenAIModel:

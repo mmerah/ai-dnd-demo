@@ -32,20 +32,7 @@ class ToolCallExtractorService(IToolCallExtractorService):
         self.allowlist = {"next_turn", "end_combat"}
 
     def extract_tool_calls(self, text: str) -> list[dict[str, Any]]:
-        """Extract tool calls from narrative text.
-
-        Looks for patterns like:
-        - ```json\n{"function": "next_turn", "arguments": {}}\n```
-        - {"function": "next_turn", "arguments": {}}
-
-        Args:
-            text: The narrative text that may contain tool calls
-
-        Returns:
-            List of tool call dictionaries with 'function' and 'arguments' keys
-        """
         tool_calls: list[dict[str, Any]] = []
-
         # Find all JSON code blocks and look for allowlisted function names in the raw content
         for match in self.codeblock_pattern.finditer(text):
             content = match.group(1)
@@ -53,7 +40,6 @@ class ToolCallExtractorService(IToolCallExtractorService):
                 if fn in content:
                     tool_calls.append({"function": fn, "arguments": {}})
                     logger.info(f"Matched allowlisted tool in JSON block: {fn}")
-
         return tool_calls
 
     async def execute_extracted_tool_call(
@@ -62,18 +48,6 @@ class ToolCallExtractorService(IToolCallExtractorService):
         game_state: GameState,
         agent_type: AgentType,
     ) -> bool:
-        """Execute an extracted tool call.
-
-        Maps narrative tool calls to actual commands and executes them.
-
-        Args:
-            tool_call: Dictionary with 'function' and 'arguments' keys
-            game_state: Current game state
-            agent_type: The agent type executing the tool
-
-        Returns:
-            True if tool was executed successfully, False otherwise
-        """
         function_name = tool_call.get("function", "")
         arguments = tool_call.get("arguments", {})
 

@@ -1,4 +1,4 @@
-"""Centralized message display service following SOLID principles."""
+"""Centralized message display service."""
 
 import logging
 from collections.abc import AsyncGenerator
@@ -40,17 +40,8 @@ class MessageService(IMessageService):
         is_chunk: bool = False,
         is_complete: bool = False,
     ) -> None:
-        """
-        Send narrative content to the chat.
-
-        Args:
-            game_id: Game identifier
-            content: Narrative text or chunk
-            is_chunk: Whether this is a streaming chunk
-            is_complete: Whether the narrative is complete
-        """
         # For complete messages with content, send the content directly
-        # This handles the orchestrator's system messages like "[Auto Combat: ...]"
+        # Handles orchestrator's system messages
         if is_complete and content:
             data = NarrativeData(
                 content=content,
@@ -66,74 +57,28 @@ class MessageService(IMessageService):
         await self.broadcast_service.publish(game_id, SSEEventType.NARRATIVE.value, data)
 
     async def send_tool_call(self, game_id: str, tool_name: str, parameters: dict[str, JSONSerializable]) -> None:
-        """
-        Send tool call information to the chat.
-
-        Args:
-            game_id: Game identifier
-            tool_name: Name of the tool being called
-            parameters: Tool parameters
-        """
         data = ToolCallData(tool_name=tool_name, parameters=parameters)
         await self.broadcast_service.publish(game_id, SSEEventType.TOOL_CALL.value, data)
 
     async def send_tool_result(self, game_id: str, tool_name: str, result: ToolResult) -> None:
-        """
-        Send tool result information to the chat.
-
-        Args:
-            game_id: Game identifier
-            tool_name: Name of the tool that was called
-            result: Result from the tool
-        """
         data = ToolResultData(tool_name=tool_name, result=result)
         await self.broadcast_service.publish(game_id, SSEEventType.TOOL_RESULT.value, data)
 
     async def send_error(self, game_id: str, error: str, error_type: str | None = None) -> None:
-        """
-        Send error message to the chat.
-
-        Args:
-            game_id: Game identifier
-            error: Error message
-            error_type: Type of error if available
-        """
         data = ErrorData(error=error, type=error_type)
         await self.broadcast_service.publish(game_id, SSEEventType.ERROR.value, data)
 
     async def send_policy_warning(
         self, game_id: str, message: str, tool_name: str | None, agent_type: str | None
     ) -> None:
-        """
-        Send a policy warning event (e.g., blocked tool usage).
-
-        Args:
-            game_id: Game identifier
-            message: Warning message
-            tool_name: Affected tool name, if any
-            agent_type: Agent type involved, if any
-        """
         data = PolicyWarningData(message=message, tool_name=tool_name, agent_type=agent_type)
         await self.broadcast_service.publish(game_id, SSEEventType.POLICY_WARNING.value, data)
 
     async def send_game_update(self, game_id: str, game_state: GameState) -> None:
-        """
-        Send complete game state update.
-
-        Args:
-            game_id: Game identifier
-            game_state: GameState instance
-        """
         data = GameUpdateData(game_state=game_state)
         await self.broadcast_service.publish(game_id, SSEEventType.GAME_UPDATE.value, data)
 
     async def send_complete(self, game_id: str) -> None:
-        """
-        Send completion event indicating processing is done.
-
-        Args:
-            game_id: Game identifier
-        """
         data = CompleteData(status="success")
         await self.broadcast_service.publish(game_id, SSEEventType.COMPLETE.value, data)
 
@@ -144,21 +89,6 @@ class MessageService(IMessageService):
         scenario: ScenarioSheet,
         available_scenarios: list[ScenarioSheet],
     ) -> AsyncGenerator[dict[str, str], None]:
-        """
-        Generate SSE events for a client connection.
-
-        This includes initial events (narrative, game state, scenario info) followed by
-        subscribing to the broadcast service for ongoing events.
-
-        Args:
-            game_id: Game identifier
-            game_state: Current game state
-            scenario: Current scenario
-            available_scenarios: List of available scenarios
-
-        Yields:
-            SSE formatted event dictionaries
-        """
         logger.info(f"Client subscribed to SSE for game {game_id}")
 
         # Send initial narrative if exists

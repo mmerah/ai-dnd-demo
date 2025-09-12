@@ -8,10 +8,7 @@ from app.models.game_state import GameState, Message, MessageRole
 
 
 class MessageManager(IMessageManager):
-    """Manages conversation history following Single Responsibility Principle.
-
-    Only handles message-related operations on game state.
-    """
+    """Manages conversation history"""
 
     def add_message(
         self,
@@ -24,20 +21,6 @@ class MessageManager(IMessageManager):
         combat_round: int,
         combat_occurrence: int | None = None,
     ) -> Message:
-        """Add a message to conversation history.
-
-        Args:
-            game_state: Game state to update
-            role: Message role (player/dm)
-            content: Message content
-            agent_type: Which agent generated this message
-            location: Where this message occurred
-            npcs_mentioned: NPCs referenced in the message
-            combat_round: Combat round if in combat (0 if not in combat)
-
-        Returns:
-            Created message
-        """
         message = Message(
             role=role,
             content=content,

@@ -6,10 +6,7 @@ from app.models.game_state import GameEvent, GameEventType, GameState
 
 
 class EventManager(IEventManager):
-    """Manages game events following Single Responsibility Principle.
-
-    Only handles event-related operations on game state.
-    """
+    """Manages game events"""
 
     def add_event(
         self,
@@ -19,15 +16,6 @@ class EventManager(IEventManager):
         parameters: dict[str, JSONSerializable] | None = None,
         result: dict[str, JSONSerializable] | None = None,
     ) -> None:
-        """Add a game event to the history.
-
-        Args:
-            game_state: Game state to update
-            event_type: Type of event (GameEventType enum)
-            tool_name: Name of the tool that generated the event
-            parameters: Tool parameters (default: empty dict)
-            result: Tool result (default: empty dict)
-        """
         event = GameEvent(
             event_type=event_type,
             tool_name=tool_name,

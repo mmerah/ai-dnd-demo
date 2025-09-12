@@ -12,14 +12,35 @@ class ICharacterService(ABC):
 
     @abstractmethod
     def get_character(self, character_id: str) -> CharacterSheet | None:
+        """Get a character by ID.
+
+        Args:
+            character_id: ID of the character to retrieve
+
+        Returns:
+            CharacterSheet object or None if not found
+        """
         pass
 
     @abstractmethod
     def get_all_characters(self) -> list[CharacterSheet]:
+        """Get all loaded characters.
+
+        Returns:
+            List of all CharacterSheet objects
+        """
         pass
 
     @abstractmethod
     def validate_character_references(self, character: CharacterSheet) -> list[str]:
+        """Validate that all item and spell references in the character exist.
+
+        Args:
+            character: Character to validate
+
+        Returns:
+            List of validation error messages (empty if all references are valid)
+        """
         pass
 
 
@@ -34,16 +55,51 @@ class ICharacterComputeService(ABC):
 
     @abstractmethod
     def compute_ability_modifiers(self, abilities: Abilities) -> AbilityModifiers:
+        """Compute ability modifiers from ability scores.
+
+        Uses D&D 5e formula: (score - 10) // 2
+
+        Args:
+            abilities: Ability scores (STR, DEX, CON, INT, WIS, CHA)
+
+        Returns:
+            Computed ability modifiers
+        """
         pass
 
     @abstractmethod
     def compute_proficiency_bonus(self, level: int) -> int:
+        """Compute proficiency bonus based on character level.
+
+        Uses D&D 5e progression:
+        - Levels 1-4: +2
+        - Levels 5-8: +3
+        - Levels 9-12: +4
+        - Levels 13-16: +5
+        - Levels 17+: +6
+
+        Args:
+            level: Character level
+
+        Returns:
+            Proficiency bonus
+        """
         pass
 
     @abstractmethod
     def compute_saving_throws(
         self, class_index: str, modifiers: AbilityModifiers, proficiency_bonus: int
     ) -> SavingThrows:
+        """Compute saving throw bonuses based on class proficiencies.
+
+        Args:
+            class_index: Character class identifier
+            modifiers: Ability modifiers
+            proficiency_bonus: Character's proficiency bonus
+
+        Returns:
+            Saving throw bonuses for all abilities
+        """
         pass
 
     @abstractmethod
@@ -54,26 +110,89 @@ class ICharacterComputeService(ABC):
         modifiers: AbilityModifiers,
         proficiency_bonus: int,
     ) -> list[SkillValue]:
+        """Compute skill bonuses based on proficiencies and ability modifiers.
+
+        If no skills are explicitly selected, picks first allowed skills from
+        class proficiency choices.
+
+        Args:
+            class_index: Character class identifier
+            selected_skills: List of skill indices the character is proficient in
+            modifiers: Ability modifiers
+            proficiency_bonus: Character's proficiency bonus
+
+        Returns:
+            List of skill values with computed bonuses
+        """
         pass
 
     @abstractmethod
     def compute_armor_class(self, modifiers: AbilityModifiers, inventory: list[InventoryItem]) -> int:
+        """Compute armor class from equipped items and DEX modifier.
+
+        Rules:
+        - Base unarmored AC: 10 + DEX modifier
+        - Light armor: AC + full DEX modifier
+        - Medium armor: AC + DEX modifier (max +2)
+        - Heavy armor: AC (no DEX modifier)
+        - Shield: +2 AC (stacks with armor)
+
+        Args:
+            modifiers: Ability modifiers (uses DEX)
+            inventory: List of inventory items (checks equipped armor/shields)
+
+        Returns:
+            Computed armor class
+        """
         pass
 
     @abstractmethod
     def compute_initiative_bonus(self, modifiers: AbilityModifiers) -> int:
+        """Compute initiative bonus (DEX modifier).
+
+        Args:
+            modifiers: Ability modifiers
+
+        Returns:
+            Initiative bonus
+        """
         pass
 
     @abstractmethod
     def compute_spell_numbers(
         self, class_index: str, modifiers: AbilityModifiers, proficiency_bonus: int
     ) -> tuple[int | None, int | None]:
-        """Returns (spell_save_dc, spell_attack_bonus)."""
+        """Compute spell save DC and spell attack bonus.
+
+        Formulas:
+        - Spell Save DC: 8 + proficiency bonus + spellcasting ability modifier
+        - Spell Attack Bonus: proficiency bonus + spellcasting ability modifier
+
+        Args:
+            class_index: Character class identifier
+            modifiers: Ability modifiers
+            proficiency_bonus: Character's proficiency bonus
+
+        Returns:
+            Tuple of (spell_save_dc, spell_attack_bonus), or (None, None) if class
+            doesn't have spellcasting
+        """
         pass
 
     @abstractmethod
     def compute_speed(self, race_index: str, inventory: list[InventoryItem]) -> int:
-        """Compute base speed from race; minimal rule ignores armor penalties for now."""
+        """Compute base speed from race.
+
+        Note: Current implementation uses base racial speed only.
+        Armor penalties are not yet implemented.
+
+        Args:
+            race_index: Character race identifier
+            inventory: List of inventory items (for future armor penalty checks)
+
+        Returns:
+            Movement speed in feet
+        """
         pass
 
     @abstractmethod
@@ -145,5 +264,15 @@ class ILevelProgressionService(ABC):
 
     @abstractmethod
     def level_up_character(self, character: CharacterInstance) -> None:
-        """Increment level and adjust HP/Hit Dice, then recompute derived values."""
+        """Level up a character, adjusting HP, hit dice, and derived values.
+
+        Process:
+        1. Increment character level
+        2. Increase max HP (average hit die + CON modifier)
+        3. Add one hit die to the pool
+        4. Recompute all derived values (AC, saves, skills, etc.)
+
+        Args:
+            character: Character instance to level up (modified in-place)
+        """
         pass

@@ -26,14 +26,6 @@ class BroadcastService(IBroadcastService):
         self.subscribers: dict[str, list[asyncio.Queue[dict[str, str]]]] = defaultdict(list)
 
     async def publish(self, game_id: str, event: str, data: BaseModel) -> None:
-        """
-        Publish an event to all subscribers for a specific game.
-
-        Args:
-            game_id: The game identifier
-            event: The event type (e.g., 'narrative', 'tool_result')
-            data: The event data (Pydantic model)
-        """
         # Get all subscriber queues for this game
         queues = self.subscribers.get(game_id, [])
 
@@ -71,18 +63,8 @@ class BroadcastService(IBroadcastService):
             self.subscribers.pop(game_id, None)
 
     async def subscribe(self, game_id: str) -> AsyncGenerator[dict[str, str], None]:
-        """
-        Subscribe to events for a specific game.
-
-        Args:
-            game_id: The game identifier
-
-        Yields:
-            Event dictionaries with 'event' and 'data' fields
-        """
-        # Create a new queue for this subscriber
         # Queue holds dict[str, str] to match SSEEvent.to_sse_format() return type
-        queue: asyncio.Queue[dict[str, str]] = asyncio.Queue(maxsize=100)  # Limit queue size to prevent memory issues
+        queue: asyncio.Queue[dict[str, str]] = asyncio.Queue(maxsize=100)
 
         # Add to subscribers list
         self.subscribers[game_id].append(queue)

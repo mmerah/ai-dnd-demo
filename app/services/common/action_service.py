@@ -42,17 +42,6 @@ class ActionService(IActionService):
         game_state: GameState,
         broadcast_parameters: dict[str, JSONSerializable] | None = None,
     ) -> BaseModel:
-        """Execute a command as a game action with event tracking.
-
-        Args:
-            tool_name: Name of the tool/action
-            command: Command to execute
-            game_state: Current game state
-            broadcast_parameters: Optional parameters to broadcast/log; if not provided, extracted from command
-
-        Returns:
-            Result from the command execution
-        """
         # Extract parameters from command for persistence/broadcast if not provided
         if broadcast_parameters is None:
             broadcast_parameters = {

@@ -26,7 +26,7 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class BaseRepository(IRepository[T], ABC, Generic[T]):
-    """Abstract base class for repositories following SOLID principles.
+    """Abstract base class for repositories.
 
     Provides common functionality for caching, loading, and error handling.
     """
@@ -42,17 +42,6 @@ class BaseRepository(IRepository[T], ABC, Generic[T]):
         self._initialized = False
 
     def get(self, key: str) -> T:
-        """Get an item by its key.
-
-        Args:
-            key: The key to look up
-
-        Returns:
-            The item if found
-
-        Raises:
-            RepositoryNotFoundError: If the item is not found
-        """
         if not self._initialized:
             self._initialize()
 
@@ -68,11 +57,6 @@ class BaseRepository(IRepository[T], ABC, Generic[T]):
         raise RepositoryNotFoundError(f"Item with key '{key}' not found")
 
     def list_keys(self) -> list[str]:
-        """List all available keys.
-
-        Returns:
-            Sorted list of all keys
-        """
         if not self._initialized:
             self._initialize()
 
@@ -82,14 +66,6 @@ class BaseRepository(IRepository[T], ABC, Generic[T]):
         return self._get_all_keys()
 
     def validate_reference(self, key: str) -> bool:
-        """Check if a reference exists.
-
-        Args:
-            key: The key to validate
-
-        Returns:
-            True if the key exists, False otherwise
-        """
         if not self._initialized:
             self._initialize()
 
@@ -109,17 +85,6 @@ class BaseRepository(IRepository[T], ABC, Generic[T]):
         return cast(NamedModel, item).name
 
     def get_name_from_index(self, index: str) -> str | None:
-        """Resolve canonical name from an index/key (case-insensitive).
-
-        Default implementation for repositories. Searches cache first,
-        then falls back to loading the item to get its name attribute.
-
-        Args:
-            index: The index/key to resolve
-
-        Returns:
-            The item's display name if found, None otherwise
-        """
         if not self._initialized:
             self._initialize()
 

@@ -13,7 +13,7 @@ T = TypeVar("T", bound=BaseModel)
 
 
 class BaseLoader(ILoader[T], ABC, Generic[T]):
-    """Abstract base class for data loaders following SOLID principles.
+    """Abstract base class for data loaders.
 
     Provides common functionality for file reading, validation, and error handling.
     """
@@ -27,18 +27,6 @@ class BaseLoader(ILoader[T], ABC, Generic[T]):
         self.validate_on_load = validate_on_load
 
     def load(self, path: Path) -> T:
-        """Load data from a file.
-
-        Args:
-            path: Path to the file to load
-
-        Returns:
-            Loaded and validated data
-
-        Raises:
-            FileNotFoundError: If the file doesn't exist
-            RuntimeError: If loading or validation fails
-        """
         if not path.exists():
             raise FileNotFoundError(f"File not found: {path}")
 

@@ -10,23 +10,59 @@ class IScenarioService(ABC):
 
     @abstractmethod
     def get_scenario(self, scenario_id: str) -> ScenarioSheet | None:
+        """Get a scenario by ID.
+
+        Args:
+            scenario_id: ID of the scenario to retrieve
+
+        Returns:
+            ScenarioSheet if found, None otherwise
+        """
         pass
 
     @abstractmethod
     def list_scenarios(self) -> list[ScenarioSheet]:
+        """List all available scenarios.
+
+        Returns:
+            List of all ScenarioSheet objects
+        """
         pass
 
     @abstractmethod
     def get_scenario_npc(self, scenario_id: str, npc_id: str) -> NPCSheet | None:
-        """Resolve a scenario NPC by id to an NPCSheet."""
+        """Get a scenario-specific NPC by ID.
+
+        Args:
+            scenario_id: ID of the scenario
+            npc_id: ID of the NPC within the scenario
+
+        Returns:
+            NPCSheet if found, None otherwise
+        """
         pass
 
     @abstractmethod
     def list_scenario_npcs(self, scenario_id: str) -> list[NPCSheet]:
-        """List all NPCSheets defined in a scenario."""
+        """List all NPCs defined in a scenario.
+
+        Args:
+            scenario_id: ID of the scenario
+
+        Returns:
+            List of NPCSheet objects for the scenario
+        """
         pass
 
     @abstractmethod
     def get_scenario_monster(self, scenario_id: str, monster_id: str) -> MonsterSheet | None:
-        """Resolve a scenario-defined monster by id to a MonsterSheet."""
+        """Get a scenario-specific monster by ID.
+
+        Args:
+            scenario_id: ID of the scenario
+            monster_id: ID of the monster within the scenario
+
+        Returns:
+            MonsterSheet if found, None otherwise
+        """
         pass

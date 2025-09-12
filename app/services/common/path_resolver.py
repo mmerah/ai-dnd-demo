@@ -7,10 +7,7 @@ from app.interfaces.services.common import IPathResolver
 
 
 class PathResolver(IPathResolver):
-    """Service for resolving file paths across the application.
-
-    Follows Single Responsibility Principle: only handles path resolution.
-    """
+    """Service for resolving file paths across the application."""
 
     # Pattern for valid IDs - only alphanumeric, hyphens, and underscores
     VALID_ID_PATTERN = re.compile(r"^[a-zA-Z0-9_-]+$")
@@ -47,37 +44,17 @@ class PathResolver(IPathResolver):
             )
 
     def get_data_dir(self) -> Path:
-        """Get the root data directory."""
         return self.data_dir
 
     def get_saves_dir(self) -> Path:
-        """Get the root saves directory."""
         return self.saves_dir
 
     def get_scenario_dir(self, scenario_id: str) -> Path:
-        """Get directory for a specific scenario.
-
-        Args:
-            scenario_id: ID of the scenario
-
-        Returns:
-            Path to scenario directory
-        """
         self._validate_id(scenario_id, "scenario")
         scenario_dir = self.data_dir / "scenarios" / scenario_id
         return scenario_dir
 
     def get_save_dir(self, scenario_id: str, game_id: str, create: bool = False) -> Path:
-        """Get directory for a saved game.
-
-        Args:
-            scenario_id: ID of the scenario
-            game_id: ID of the game
-            create: If True, create the directory if it doesn't exist
-
-        Returns:
-            Path to save directory
-        """
         self._validate_id(scenario_id, "scenario")
         self._validate_id(game_id, "game")
         save_dir = self.saves_dir / scenario_id / game_id
@@ -86,12 +63,4 @@ class PathResolver(IPathResolver):
         return save_dir
 
     def get_shared_data_file(self, data_type: str) -> Path:
-        """Get path to a shared data file.
-
-        Args:
-            data_type: Type of data (items, spells, monsters)
-
-        Returns:
-            Path to shared data JSON file
-        """
         return self.data_dir / f"{data_type}.json"

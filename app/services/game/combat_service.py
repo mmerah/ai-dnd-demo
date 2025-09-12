@@ -66,7 +66,6 @@ class CombatService(ICombatService):
         )
 
     def add_participants(self, combat: CombatState, entities: list[IEntity]) -> list[CombatParticipant]:
-        """Add multiple entities to combat, returning their participant records."""
         participants: list[CombatParticipant] = []
         for ent in entities:
             participants.append(self.add_participant(combat, ent))
@@ -80,14 +79,6 @@ class CombatService(ICombatService):
         monster_repository: IMonsterRepository,
         game_service: IGameService,
     ) -> list[IEntity]:
-        """Realize encounter participant spawns to concrete entities.
-
-        - Honors probability per spawn definition
-        - Selects random quantity within min/max
-        - For scenario NPCs, reuses existing instance (warns if missing)
-        - For monsters, materializes instances and adds them to game state
-        - Logs warnings for any unresolved references
-        """
         realized: list[IEntity] = []
         current_loc = game_state.scenario_instance.current_location_id
 
@@ -160,7 +151,6 @@ class CombatService(ICombatService):
 
         return realized
 
-    # Flow/prompt methods (fused from former CombatFlowService)
     def generate_combat_prompt(self, game_state: GameState) -> str:
         if not game_state.combat.is_active:
             return ""

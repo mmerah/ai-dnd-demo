@@ -5,13 +5,7 @@ from app.models.instances.character_instance import CharacterInstance
 
 
 class LevelProgressionService(ILevelProgressionService):
-    """Provides minimal single-class level-up behavior.
-
-    - Increments level by 1
-    - Recomputes derived values via compute service
-    - Adjusts current HP by the difference in max HP (clamped)
-    - Updates hit dice totals (and clamps current to total)
-    """
+    """Provides minimal single-class level-up behavior."""
 
     def __init__(self, compute_service: ICharacterComputeService) -> None:
         self.compute_service = compute_service

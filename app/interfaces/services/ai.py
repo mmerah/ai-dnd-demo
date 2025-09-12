@@ -20,6 +20,19 @@ class IAIService(ABC):
         game_state: GameState,
         stream: bool = True,
     ) -> AsyncIterator[AIResponse]:
+        """Generate AI response to user input.
+
+        Processes user message through appropriate AI agent (narrative or combat)
+        and yields response chunks.
+
+        Args:
+            user_message: User's input message
+            game_state: Current game state
+            stream: Whether to stream response chunks
+
+        Yields:
+            AIResponse objects with narrative chunks and tool results
+        """
         pass
 
 
@@ -34,32 +47,80 @@ class IMessageService(ABC):
         is_chunk: bool = False,
         is_complete: bool = False,
     ) -> None:
+        """Send narrative content via SSE.
+
+        Args:
+            game_id: ID of the game
+            content: Narrative text content
+            is_chunk: Whether this is a partial chunk
+            is_complete: Whether the narrative is complete
+        """
         pass
 
     @abstractmethod
     async def send_tool_call(self, game_id: str, tool_name: str, parameters: dict[str, JSONSerializable]) -> None:
+        """Broadcast a tool call event.
+
+        Args:
+            game_id: ID of the game
+            tool_name: Name of the tool being called
+            parameters: Tool parameters
+        """
         pass
 
     @abstractmethod
     async def send_tool_result(self, game_id: str, tool_name: str, result: ToolResult) -> None:
+        """Broadcast a tool result event.
+
+        Args:
+            game_id: ID of the game
+            tool_name: Name of the tool that was called
+            result: Tool execution result
+        """
         pass
 
     @abstractmethod
     async def send_error(self, game_id: str, error: str, error_type: str | None = None) -> None:
+        """Send error message via SSE.
+
+        Args:
+            game_id: ID of the game
+            error: Error message
+            error_type: Optional error type/category
+        """
         pass
 
     @abstractmethod
     async def send_policy_warning(
         self, game_id: str, message: str, tool_name: str | None, agent_type: str | None
     ) -> None:
+        """Send policy violation warning.
+
+        Args:
+            game_id: ID of the game
+            message: Warning message
+            tool_name: Optional tool that triggered warning
+            agent_type: Optional agent type involved
+        """
         pass
 
     @abstractmethod
     async def send_game_update(self, game_id: str, game_state: GameState) -> None:
+        """Send complete game state update.
+
+        Args:
+            game_id: ID of the game
+            game_state: Updated game state
+        """
         pass
 
     @abstractmethod
     async def send_complete(self, game_id: str) -> None:
+        """Send completion signal.
+
+        Args:
+            game_id: ID of the game
+        """
         pass
 
     @abstractmethod
@@ -70,6 +131,17 @@ class IMessageService(ABC):
         scenario: ScenarioSheet,
         available_scenarios: list[ScenarioSheet],
     ) -> AsyncGenerator[dict[str, str], None]:
+        """Generate SSE events for game updates.
+
+        Args:
+            game_id: ID of the game
+            game_state: Current game state
+            scenario: Active scenario
+            available_scenarios: List of available scenarios
+
+        Yields:
+            SSE event dictionaries with 'event' and 'data' keys
+        """
         pass
 
 
@@ -95,26 +167,58 @@ class IEventLoggerService(ABC):
 
     @abstractmethod
     def set_game_id(self, game_id: str) -> None:
+        """Set the current game ID for logging context.
+
+        Args:
+            game_id: ID of the game being processed
+        """
         pass
 
     @abstractmethod
     def set_agent_type(self, agent_type: str) -> None:
+        """Set the current agent type for logging context.
+
+        Args:
+            agent_type: Type of agent (narrative, combat, etc.)
+        """
         pass
 
     @abstractmethod
     def log_tool_call(self, tool_name: str, args: dict[str, Any]) -> None:
+        """Log a tool call event.
+
+        Args:
+            tool_name: Name of the tool being called
+            args: Arguments passed to the tool
+        """
         pass
 
     @abstractmethod
     def log_tool_result(self, tool_name: str, result: str) -> None:
+        """Log a tool result event.
+
+        Args:
+            tool_name: Name of the tool that was called
+            result: String representation of the result
+        """
         pass
 
     @abstractmethod
     def log_thinking(self, content: str) -> None:
+        """Log agent thinking/reasoning content.
+
+        Args:
+            content: Thinking content to log
+        """
         pass
 
     @abstractmethod
     def log_error(self, error: Exception) -> None:
+        """Log an error event.
+
+        Args:
+            error: Exception that occurred
+        """
         pass
 
 
