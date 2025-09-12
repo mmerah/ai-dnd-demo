@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from content_pack_utils import add_pack_fields
+
 
 def convert_alignment(a: dict[str, Any]) -> dict[str, Any]:
     return {
@@ -66,6 +68,7 @@ def main() -> None:
     ]
 
     alignments.extend(additional_alignments)
+    add_pack_fields(alignments, "srd")
     out = {"alignments": alignments}
     dst.parent.mkdir(parents=True, exist_ok=True)
     json.dump(out, dst.open("w"), indent=2, ensure_ascii=False)

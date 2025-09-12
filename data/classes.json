@@ -60,7 +60,9 @@
           "martial-weapons"
         ],
         "proficiency_choices": []
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "bard",
@@ -188,7 +190,9 @@
             ]
           }
         ]
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "cleric",
@@ -247,7 +251,9 @@
           "shields"
         ],
         "proficiency_choices": []
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "druid",
@@ -321,7 +327,9 @@
           "shields"
         ],
         "proficiency_choices": []
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "fighter",
@@ -374,7 +382,9 @@
           "martial-weapons"
         ],
         "proficiency_choices": []
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "monk",
@@ -436,7 +446,9 @@
           "shortswords"
         ],
         "proficiency_choices": []
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "paladin",
@@ -501,7 +513,9 @@
           "martial-weapons"
         ],
         "proficiency_choices": []
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ranger",
@@ -586,7 +600,9 @@
             ]
           }
         ]
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "rogue",
@@ -676,7 +692,9 @@
             ]
           }
         ]
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "sorcerer",
@@ -731,7 +749,9 @@
         ],
         "proficiencies": [],
         "proficiency_choices": []
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "warlock",
@@ -792,7 +812,9 @@
           "simple-weapons"
         ],
         "proficiency_choices": []
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wizard",
@@ -847,7 +869,9 @@
         ],
         "proficiencies": [],
         "proficiency_choices": []
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "commoner",
@@ -867,7 +891,9 @@
       "starting_equipment": null,
       "starting_equipment_options_desc": null,
       "subclasses": null,
-      "multi_classing": null
+      "multi_classing": null,
+      "content_pack": "srd",
+      "reference_packs": []
     }
   ]
 }

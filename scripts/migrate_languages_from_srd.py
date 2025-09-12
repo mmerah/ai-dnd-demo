@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from content_pack_utils import add_pack_fields
+
 
 def convert_language(lang: dict[str, Any]) -> dict[str, Any]:
     return {
@@ -353,6 +355,7 @@ def main() -> None:
     ]
 
     languages.extend(additional_languages)
+    add_pack_fields(languages, "srd")
     out = {"languages": languages}
     dst.parent.mkdir(parents=True, exist_ok=True)
     json.dump(out, dst.open("w"), indent=2, ensure_ascii=False)

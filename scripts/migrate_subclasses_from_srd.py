@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from content_pack_utils import add_pack_fields
+
 
 def join_paragraphs(parts: Any) -> str | None:
     if isinstance(parts, list):
@@ -30,6 +32,7 @@ def main() -> None:
 
     raw: list[dict[str, Any]] = json.load(src.open())
     subclasses = [convert_subclass(s) for s in raw if s.get("index") and s.get("name")]
+    add_pack_fields(subclasses, "srd")
     out = {"subclasses": subclasses}
     dst.parent.mkdir(parents=True, exist_ok=True)
     json.dump(out, dst.open("w"), indent=2, ensure_ascii=False)

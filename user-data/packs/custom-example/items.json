@@ -1,0 +1,40 @@
+{
+  "items": [
+    {
+      "index": "custom-potion-of-heroism",
+      "name": "Potion of Heroism",
+      "type": "Potion",
+      "rarity": "Rare",
+      "weight": 0.5,
+      "value": 180,
+      "description": "For 1 hour after drinking this potion, you gain 10 temporary hit points. For the same duration, you are under the effect of the bless spell (no concentration required).",
+      "subtype": null,
+      "damage": null,
+      "damage_type": null,
+      "properties": [],
+      "armor_class": null,
+      "dex_bonus": null,
+      "contents": [],
+      "content_pack": "custom-example",
+      "reference_packs": []
+    },
+    {
+      "index": "custom-ring-of-the-ram",
+      "name": "Ring of the Ram",
+      "type": "Adventuring Gear",
+      "rarity": "Rare",
+      "weight": 0,
+      "value": 5000,
+      "description": "This ring has 3 charges, and it regains 1d3 expended charges daily at dawn. While wearing the ring, you can use an action to expend 1 to 3 of its charges to make a ranged spell attack against one creature you can see within 60 feet of you.",
+      "subtype": null,
+      "damage": null,
+      "damage_type": null,
+      "properties": [],
+      "armor_class": null,
+      "dex_bonus": null,
+      "contents": [],
+      "content_pack": "custom-example",
+      "reference_packs": []
+    }
+  ]
+}

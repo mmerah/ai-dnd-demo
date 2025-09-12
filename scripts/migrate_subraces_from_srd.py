@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from content_pack_utils import add_pack_fields
+
 
 def join_paragraphs(parts: Any) -> str | None:
     if isinstance(parts, list):
@@ -51,6 +53,7 @@ def main() -> None:
     dst = root / "data/subraces.json"
     raw: list[dict[str, Any]] = json.load(src.open())
     subraces = [convert_subrace(x) for x in raw if x.get("index") and x.get("name")]
+    add_pack_fields(subraces, "srd")
     out = {"subraces": subraces}
     dst.parent.mkdir(parents=True, exist_ok=True)
     json.dump(out, dst.open("w"), indent=2, ensure_ascii=False)

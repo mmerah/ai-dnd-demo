@@ -3,87 +3,121 @@
     {
       "index": "lawful-good",
       "name": "Lawful Good",
-      "description": "Lawful good (LG) creatures can be counted on to do the right thing as expected by society. Gold dragons, paladins, and most dwarves are lawful good."
+      "description": "Lawful good (LG) creatures can be counted on to do the right thing as expected by society. Gold dragons, paladins, and most dwarves are lawful good.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "neutral-good",
       "name": "Neutral Good",
-      "description": "Neutral good (NG) folk do the best they can to help others according to their needs. Many celestials, some cloud giants, and most gnomes are neutral good."
+      "description": "Neutral good (NG) folk do the best they can to help others according to their needs. Many celestials, some cloud giants, and most gnomes are neutral good.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "chaotic-good",
       "name": "Chaotic Good",
-      "description": "Chaotic good (CG) creatures act as their conscience directs, with little regard for what others expect. Copper dragons, many elves, and unicorns are chaotic good."
+      "description": "Chaotic good (CG) creatures act as their conscience directs, with little regard for what others expect. Copper dragons, many elves, and unicorns are chaotic good.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "lawful-neutral",
       "name": "Lawful Neutral",
-      "description": "Lawful neutral (LN) individuals act in accordance with law, tradition, or personal codes. Many monks and some wizards are lawful neutral."
+      "description": "Lawful neutral (LN) individuals act in accordance with law, tradition, or personal codes. Many monks and some wizards are lawful neutral.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "neutral",
       "name": "Neutral",
-      "description": "Neutral (N) is the alignment of those who prefer to steer clear of moral questions and don't take sides, doing what seems best at the time. Lizardfolk, most druids, and many humans are neutral."
+      "description": "Neutral (N) is the alignment of those who prefer to steer clear of moral questions and don't take sides, doing what seems best at the time. Lizardfolk, most druids, and many humans are neutral.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "chaotic-neutral",
       "name": "Chaotic Neutral",
-      "description": "Chaotic neutral (CN) creatures follow their whims, holding their personal freedom above all else. Many barbarians and rogues, and some bards, are chaotic neutral."
+      "description": "Chaotic neutral (CN) creatures follow their whims, holding their personal freedom above all else. Many barbarians and rogues, and some bards, are chaotic neutral.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "lawful-evil",
       "name": "Lawful Evil",
-      "description": "Lawful evil (LE) creatures methodically take what they want, within the limits of a code of tradition, loyalty, or order. Devils, blue dragons, and hobgoblins are lawful evil."
+      "description": "Lawful evil (LE) creatures methodically take what they want, within the limits of a code of tradition, loyalty, or order. Devils, blue dragons, and hobgoblins are lawful evil.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "neutral-evil",
       "name": "Neutral Evil",
-      "description": "Neutral evil (NE) is the alignment of those who do whatever they can get away with, without compassion or qualms. Many drow, some cloud giants, and goblins are neutral evil."
+      "description": "Neutral evil (NE) is the alignment of those who do whatever they can get away with, without compassion or qualms. Many drow, some cloud giants, and goblins are neutral evil.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "chaotic-evil",
       "name": "Chaotic Evil",
-      "description": "Chaotic evil (CE) creatures act with arbitrary violence, spurred by their greed, hatred, or bloodlust. Demons, red dragons, and orcs are chaotic evil."
+      "description": "Chaotic evil (CE) creatures act with arbitrary violence, spurred by their greed, hatred, or bloodlust. Demons, red dragons, and orcs are chaotic evil.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "unknown",
       "name": "Unknown",
-      "description": "Alignment unknown or not applicable."
+      "description": "Alignment unknown or not applicable.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "unaligned",
       "name": "Unaligned",
-      "description": "Creatures that lack the capacity for rational thought or moral and ethical choice. Most beasts, constructs, plants, and oozes are unaligned."
+      "description": "Creatures that lack the capacity for rational thought or moral and ethical choice. Most beasts, constructs, plants, and oozes are unaligned.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "any-alignment",
       "name": "Any Alignment",
-      "description": "Can be of any alignment. Used for humanoid NPCs and creatures that vary in alignment based on individual."
+      "description": "Can be of any alignment. Used for humanoid NPCs and creatures that vary in alignment based on individual.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "any-non-good-alignment",
       "name": "Any Non-Good Alignment",
-      "description": "Can be of any alignment except good alignments. Used for evil or morally ambiguous NPCs."
+      "description": "Can be of any alignment except good alignments. Used for evil or morally ambiguous NPCs.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "any-non-lawful-alignment",
       "name": "Any Non-Lawful Alignment",
-      "description": "Can be of any alignment except lawful alignments. Used for chaotic or neutral NPCs."
+      "description": "Can be of any alignment except lawful alignments. Used for chaotic or neutral NPCs.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "any-chaotic-alignment",
       "name": "Any Chaotic Alignment",
-      "description": "Can be chaotic good, chaotic neutral, or chaotic evil. Used for inherently chaotic creatures."
+      "description": "Can be chaotic good, chaotic neutral, or chaotic evil. Used for inherently chaotic creatures.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "neutral-good-(50%)-or-neutral-evil-(50%)",
       "name": "Neutral Good or Neutral Evil",
-      "description": "Equally likely to be neutral good or neutral evil. Used for creatures with variable morality."
+      "description": "Equally likely to be neutral good or neutral evil. Used for creatures with variable morality.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "any-evil-alignment",
       "name": "Any Evil Alignment",
-      "description": "Can be lawful evil, neutral evil, or chaotic evil. Used for inherently evil creatures."
+      "description": "Can be lawful evil, neutral evil, or chaotic evil. Used for inherently evil creatures.",
+      "content_pack": "srd",
+      "reference_packs": []
     }
   ]
 }

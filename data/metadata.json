@@ -1,0 +1,11 @@
+{
+  "id": "srd",
+  "name": "D&D 5e System Reference Document",
+  "version": "1.0.0",
+  "author": "Wizards of the Coast",
+  "description": "The official D&D 5e System Reference Document content, containing core rules, classes, races, monsters, items, and spells.",
+  "pack_type": "srd",
+  "dependencies": [],
+  "created_at": "2025-09-12T18:41:07.953411",
+  "updated_at": "2025-09-12T18:41:07.953420"
+}

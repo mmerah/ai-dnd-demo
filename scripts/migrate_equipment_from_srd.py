@@ -6,6 +6,8 @@ import unicodedata
 from pathlib import Path
 from typing import Any
 
+from content_pack_utils import add_pack_fields
+
 GP_FACTORS = {"cp": 0.01, "sp": 0.1, "ep": 0.5, "gp": 1.0, "pp": 10.0}
 
 
@@ -128,6 +130,7 @@ def main() -> None:
         conv = convert_equipment(e)
         if conv:
             items.append(conv)
+    add_pack_fields(items, "srd")
     out = {"items": items}
     dst.parent.mkdir(parents=True, exist_ok=True)
     json.dump(out, dst.open("w"), indent=2, ensure_ascii=False)

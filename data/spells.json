@@ -39,7 +39,9 @@
         "9": "11d4"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "acid-splash",
@@ -78,7 +80,9 @@
         "11": "3d6",
         "17": "4d6"
       },
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "aid",
@@ -119,7 +123,9 @@
         "7": "30",
         "8": "35",
         "9": "40"
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "alarm",
@@ -154,7 +160,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "alter-self",
@@ -185,7 +193,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "animal-friendship",
@@ -219,7 +229,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "animal-messenger",
@@ -252,7 +264,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "animal-shapes",
@@ -280,7 +294,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "animate-dead",
@@ -312,7 +328,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "animate-objects",
@@ -342,7 +360,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "antilife-shell",
@@ -373,7 +393,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "antimagic-field",
@@ -406,7 +428,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "antipathy-sympathy",
@@ -439,7 +463,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "arcane-eye",
@@ -472,7 +498,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "arcane-hand",
@@ -501,7 +529,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "arcane-lock",
@@ -532,7 +562,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "arcane-sword",
@@ -564,7 +596,9 @@
         "7": "3d10"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "arcanists-magic-aura",
@@ -595,7 +629,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "astral-projection",
@@ -626,7 +662,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "augury",
@@ -657,7 +695,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "awaken",
@@ -687,7 +727,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "bane",
@@ -722,7 +764,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "banishment",
@@ -758,7 +802,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "barkskin",
@@ -791,7 +837,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "beacon-of-hope",
@@ -823,7 +871,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "bestow-curse",
@@ -858,7 +908,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "black-tentacles",
@@ -895,7 +947,9 @@
         "4": "3d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "blade-barrier",
@@ -931,7 +985,9 @@
         "6": "6d10"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "bless",
@@ -964,7 +1020,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "blight",
@@ -1007,7 +1065,9 @@
         "9": "13d8"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "blindness-deafness",
@@ -1043,7 +1103,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "blink",
@@ -1074,7 +1136,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "blur",
@@ -1105,7 +1169,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "branding-smite",
@@ -1141,7 +1207,9 @@
         "9": "9d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "burning-hands",
@@ -1189,7 +1257,9 @@
         "9": "11d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "call-lightning",
@@ -1231,7 +1301,9 @@
         "9": "9d10"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "calm-emotions",
@@ -1268,7 +1340,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "chain-lightning",
@@ -1303,7 +1377,9 @@
         "6": "10d8"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "charm-person",
@@ -1340,7 +1416,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "chill-touch",
@@ -1377,7 +1455,9 @@
         "11": "3d8",
         "17": "4d8"
       },
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "circle-of-death",
@@ -1419,7 +1499,9 @@
         "9": "14d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "clairvoyance",
@@ -1453,7 +1535,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "clone",
@@ -1482,7 +1566,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "cloudkill",
@@ -1525,7 +1611,9 @@
         "9": "9d8"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "color-spray",
@@ -1560,7 +1648,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "command",
@@ -1594,7 +1684,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "commune",
@@ -1625,7 +1717,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "commune-with-nature",
@@ -1656,7 +1750,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "comprehend-languages",
@@ -1690,7 +1786,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "compulsion",
@@ -1721,7 +1819,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "cone-of-cold",
@@ -1765,7 +1865,9 @@
         "9": "12d8"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "confusion",
@@ -1803,7 +1905,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "conjure-animals",
@@ -1834,7 +1938,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "conjure-celestial",
@@ -1862,7 +1968,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "conjure-elemental",
@@ -1897,7 +2005,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "conjure-fey",
@@ -1926,7 +2036,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "conjure-minor-elementals",
@@ -1955,7 +2067,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "conjure-woodland-beings",
@@ -1985,7 +2099,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "contact-other-plane",
@@ -2016,7 +2132,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "contagion",
@@ -2048,7 +2166,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "contingency",
@@ -2077,7 +2197,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "continual-flame",
@@ -2109,7 +2231,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "control-water",
@@ -2148,7 +2272,9 @@
         "4": "2d8"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "control-weather",
@@ -2181,7 +2307,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "counterspell",
@@ -2210,7 +2338,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "create-food-and-water",
@@ -2243,7 +2373,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "create-undead",
@@ -2274,7 +2406,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "create-or-destroy-water",
@@ -2309,7 +2443,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "creation",
@@ -2342,7 +2478,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "cure-wounds",
@@ -2387,7 +2525,9 @@
         "7": "7d8 + MOD",
         "8": "8d8 + MOD",
         "9": "9d8 + MOD"
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "dancing-lights",
@@ -2420,7 +2560,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "darkness",
@@ -2456,7 +2598,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "darkvision",
@@ -2490,7 +2634,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "daylight",
@@ -2528,7 +2674,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "death-ward",
@@ -2559,7 +2707,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "delayed-blast-fireball",
@@ -2599,7 +2749,9 @@
         "9": "14d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "demiplane",
@@ -2627,7 +2779,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "detect-evil-and-good",
@@ -2661,7 +2815,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "detect-magic",
@@ -2700,7 +2856,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "detect-poison-and-disease",
@@ -2737,7 +2895,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "detect-thoughts",
@@ -2770,7 +2930,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "dimension-door",
@@ -2802,7 +2964,9 @@
         "4": "4d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "disguise-self",
@@ -2834,7 +2998,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "disintegrate",
@@ -2872,7 +3038,9 @@
         "6": "10d6 + 40"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "dispel-evil-and-good",
@@ -2905,7 +3073,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "dispel-magic",
@@ -2942,7 +3112,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "divination",
@@ -2973,7 +3145,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "divine-favor",
@@ -3005,7 +3179,9 @@
         "1": "1d4"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "divine-word",
@@ -3035,7 +3211,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "dominate-beast",
@@ -3067,7 +3245,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "dominate-monster",
@@ -3101,7 +3281,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "dominate-person",
@@ -3134,7 +3316,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "dream",
@@ -3172,7 +3356,9 @@
         "5": "3d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "druidcraft",
@@ -3200,7 +3386,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "earthquake",
@@ -3234,7 +3422,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "eldritch-blast",
@@ -3269,7 +3459,9 @@
         "11": "1d10",
         "17": "1d10"
       },
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "enhance-ability",
@@ -3303,7 +3495,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "enlarge-reduce",
@@ -3338,7 +3532,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "entangle",
@@ -3374,7 +3570,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "enthrall",
@@ -3408,7 +3606,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "etherealness",
@@ -3440,7 +3640,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "expeditious-retreat",
@@ -3472,7 +3674,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "eyebite",
@@ -3506,7 +3710,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "fabricate",
@@ -3534,7 +3740,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "faerie-fire",
@@ -3569,7 +3777,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "faithful-hound",
@@ -3600,7 +3810,9 @@
         "4": "4d8"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "false-life",
@@ -3642,7 +3854,9 @@
         "7": "1d4 + 34",
         "8": "1d4 + 39",
         "9": "1d4 + 44"
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "fear",
@@ -3682,7 +3896,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "feather-fall",
@@ -3714,7 +3930,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "feeblemind",
@@ -3751,7 +3969,9 @@
         "8": "4d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "find-familiar",
@@ -3780,7 +4000,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "find-steed",
@@ -3810,7 +4032,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "find-traps",
@@ -3842,7 +4066,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "find-the-path",
@@ -3873,7 +4099,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "finger-of-death",
@@ -3908,7 +4136,9 @@
         "7": "7d8 + 30"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "fire-bolt",
@@ -3942,7 +4172,9 @@
         "11": "3d10",
         "17": "4d10"
       },
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "fire-shield",
@@ -3978,7 +4210,9 @@
         "4": "2d8"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "fire-storm",
@@ -4016,7 +4250,9 @@
         "7": "7d10"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "fireball",
@@ -4063,7 +4299,9 @@
         "9": "14d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "flame-blade",
@@ -4099,7 +4337,9 @@
         "8": "6d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "flame-strike",
@@ -4143,7 +4383,9 @@
         "9": "4d6 + 8d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "flaming-sphere",
@@ -4184,7 +4426,9 @@
         "9": "9d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "flesh-to-stone",
@@ -4217,7 +4461,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "floating-disk",
@@ -4248,7 +4494,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "fly",
@@ -4281,7 +4529,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "fog-cloud",
@@ -4317,7 +4567,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "forbiddance",
@@ -4349,7 +4601,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "forcecage",
@@ -4383,7 +4637,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "foresight",
@@ -4415,7 +4671,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "freedom-of-movement",
@@ -4450,7 +4708,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "freezing-sphere",
@@ -4487,7 +4747,9 @@
         "6": "10d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "gaseous-form",
@@ -4521,7 +4783,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "gate",
@@ -4552,7 +4816,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "geas",
@@ -4586,7 +4852,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "gentle-repose",
@@ -4618,7 +4886,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-insect",
@@ -4646,7 +4916,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "glibness",
@@ -4674,7 +4946,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "globe-of-invulnerability",
@@ -4707,7 +4981,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "glyph-of-warding",
@@ -4740,7 +5016,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "goodberry",
@@ -4770,7 +5048,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "grease",
@@ -4807,7 +5087,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "greater-invisibility",
@@ -4839,7 +5121,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "greater-restoration",
@@ -4870,7 +5154,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "guardian-of-faith",
@@ -4905,7 +5191,9 @@
         "4": "20"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "guards-and-wards",
@@ -4938,7 +5226,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "guidance",
@@ -4969,7 +5259,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "guiding-bolt",
@@ -5009,7 +5301,9 @@
         "9": "12d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "gust-of-wind",
@@ -5048,7 +5342,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "hallow",
@@ -5085,7 +5381,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "hallucinatory-terrain",
@@ -5122,7 +5420,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "harm",
@@ -5155,7 +5455,9 @@
         "6": "14d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "haste",
@@ -5188,7 +5490,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "heal",
@@ -5222,7 +5526,9 @@
         "7": "80",
         "8": "90",
         "9": "100"
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "healing-word",
@@ -5263,7 +5569,9 @@
         "7": "7d4 + MOD",
         "8": "8d4 + MOD",
         "9": "9d4 + MOD"
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "heat-metal",
@@ -5307,7 +5615,9 @@
         "9": "9d8"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "hellish-rebuke",
@@ -5348,7 +5658,9 @@
         "9": "10d10"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "heroes-feast",
@@ -5378,7 +5690,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "heroism",
@@ -5409,7 +5723,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "hideous-laughter",
@@ -5444,7 +5760,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "hold-monster",
@@ -5479,7 +5797,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "hold-person",
@@ -5519,7 +5839,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "holy-aura",
@@ -5551,7 +5873,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "hunters-mark",
@@ -5578,7 +5902,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "hypnotic-pattern",
@@ -5614,7 +5940,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ice-storm",
@@ -5660,7 +5988,9 @@
         "9": "7d8 + 4d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "identify",
@@ -5692,7 +6022,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "illusory-script",
@@ -5724,7 +6056,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "imprisonment",
@@ -5757,7 +6091,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "incendiary-cloud",
@@ -5794,7 +6130,9 @@
         "8": "10d8"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "inflict-wounds",
@@ -5834,7 +6172,9 @@
         "9": "11d10"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "insect-plague",
@@ -5879,7 +6219,9 @@
         "9": "8d10"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "instant-summons",
@@ -5908,7 +6250,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "invisibility",
@@ -5943,7 +6287,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "irresistible-dance",
@@ -5971,7 +6317,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "jump",
@@ -6005,7 +6353,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "knock",
@@ -6036,7 +6386,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "legend-lore",
@@ -6067,7 +6419,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "lesser-restoration",
@@ -6103,7 +6457,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "levitate",
@@ -6135,7 +6491,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "light",
@@ -6171,7 +6529,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "lightning-bolt",
@@ -6218,7 +6578,9 @@
         "9": "14d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "locate-animals-or-plants",
@@ -6251,7 +6613,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "locate-creature",
@@ -6287,7 +6651,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "locate-object",
@@ -6323,7 +6689,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "longstrider",
@@ -6357,7 +6725,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "mage-armor",
@@ -6389,7 +6759,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "mage-hand",
@@ -6422,7 +6794,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "magic-circle",
@@ -6462,7 +6836,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "magic-jar",
@@ -6494,7 +6870,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "magic-missile",
@@ -6535,7 +6913,9 @@
         "9": "1d4 + 1"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "magic-mouth",
@@ -6567,7 +6947,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "magic-weapon",
@@ -6598,7 +6980,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "magnificent-mansion",
@@ -6631,7 +7015,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "major-image",
@@ -6665,7 +7051,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "mass-cure-wounds",
@@ -6706,7 +7094,9 @@
         "7": "5d8 + MOD",
         "8": "6d8 + MOD",
         "9": "7d8 + MOD"
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "mass-heal",
@@ -6736,7 +7126,9 @@
       "damage_at_character_level": null,
       "heal_at_slot_level": {
         "9": "700"
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "mass-healing-word",
@@ -6773,7 +7165,9 @@
         "7": "5d4 + MOD",
         "8": "6d4 + MOD",
         "9": "7d4 + MOD"
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "mass-suggestion",
@@ -6807,7 +7201,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "maze",
@@ -6835,7 +7231,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "meld-into-stone",
@@ -6866,7 +7264,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "mending",
@@ -6901,7 +7301,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "message",
@@ -6934,7 +7336,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "meteor-swarm",
@@ -6971,7 +7375,9 @@
         "9": "20d6 + 20d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "mind-blank",
@@ -7000,7 +7406,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "minor-illusion",
@@ -7033,7 +7441,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "mirage-arcane",
@@ -7066,7 +7476,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "mirror-image",
@@ -7099,7 +7511,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "mislead",
@@ -7127,7 +7541,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "misty-step",
@@ -7159,7 +7575,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "modify-memory",
@@ -7191,7 +7609,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "moonbeam",
@@ -7237,7 +7657,9 @@
         "9": "9d10"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "move-earth",
@@ -7271,7 +7693,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "nondetection",
@@ -7304,7 +7728,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "pass-without-trace",
@@ -7337,7 +7763,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "passwall",
@@ -7368,7 +7796,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "phantasmal-killer",
@@ -7401,7 +7831,9 @@
         "4": "4d10"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "phantom-steed",
@@ -7431,7 +7863,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "planar-ally",
@@ -7459,7 +7893,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "planar-binding",
@@ -7494,7 +7930,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "plane-shift",
@@ -7530,7 +7968,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "plant-growth",
@@ -7563,7 +8003,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "poison-spray",
@@ -7602,7 +8044,9 @@
         "11": "3d12",
         "17": "4d12"
       },
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "polymorph",
@@ -7637,7 +8081,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "power-word-kill",
@@ -7667,7 +8113,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "power-word-stun",
@@ -7697,7 +8145,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "prayer-of-healing",
@@ -7735,7 +8185,9 @@
         "7": "7d8 + MOD",
         "8": "8d8 + MOD",
         "9": "9d8 + MOD"
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "prestidigitation",
@@ -7768,7 +8220,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "prismatic-spray",
@@ -7805,7 +8259,9 @@
         "7": "10d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "prismatic-wall",
@@ -7836,7 +8292,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "private-sanctum",
@@ -7868,7 +8326,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "produce-flame",
@@ -7903,7 +8363,9 @@
         "11": "3d8",
         "17": "4d8"
       },
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "programmed-illusion",
@@ -7936,7 +8398,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "project-image",
@@ -7966,7 +8430,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "protection-from-energy",
@@ -8001,7 +8467,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "protection-from-evil-and-good",
@@ -8036,7 +8504,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "protection-from-poison",
@@ -8069,7 +8539,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "purify-food-and-drink",
@@ -8101,7 +8573,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "raise-dead",
@@ -8134,7 +8608,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ray-of-enfeeblement",
@@ -8168,7 +8644,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ray-of-frost",
@@ -8204,7 +8682,9 @@
         "11": "3d8",
         "17": "4d8"
       },
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "regenerate",
@@ -8237,7 +8717,9 @@
       "damage_at_character_level": null,
       "heal_at_slot_level": {
         "7": "4d8 + 15"
-      }
+      },
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "reincarnate",
@@ -8266,7 +8748,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "remove-curse",
@@ -8299,7 +8783,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "resilient-sphere",
@@ -8331,7 +8817,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "resistance",
@@ -8363,7 +8851,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "resurrection",
@@ -8393,7 +8883,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "reverse-gravity",
@@ -8430,7 +8922,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "revivify",
@@ -8463,7 +8957,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "rope-trick",
@@ -8494,7 +8990,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "sacred-flame",
@@ -8532,7 +9030,9 @@
         "11": "3d8",
         "17": "4d8"
       },
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "sanctuary",
@@ -8564,7 +9064,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "scorching-ray",
@@ -8598,7 +9100,9 @@
         "2": "2d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "scrying",
@@ -8636,7 +9140,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "secret-chest",
@@ -8665,7 +9171,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "see-invisibility",
@@ -8698,7 +9206,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "seeming",
@@ -8728,7 +9238,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "sending",
@@ -8761,7 +9273,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "sequester",
@@ -8790,7 +9304,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "shapechange",
@@ -8820,7 +9336,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "shatter",
@@ -8869,7 +9387,9 @@
         "9": "10d8"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "shield",
@@ -8900,7 +9420,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "shield-of-faith",
@@ -8932,7 +9454,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "shillelagh",
@@ -8963,7 +9487,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "shocking-grasp",
@@ -8999,7 +9525,9 @@
         "11": "3d8",
         "17": "4d8"
       },
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "silence",
@@ -9035,7 +9563,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "silent-image",
@@ -9071,7 +9601,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "simulacrum",
@@ -9100,7 +9632,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "sleep",
@@ -9138,7 +9672,9 @@
         "1": "5d8"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "sleet-storm",
@@ -9175,7 +9711,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "slow",
@@ -9214,7 +9752,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "spare-the-dying",
@@ -9242,7 +9782,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "speak-with-animals",
@@ -9274,7 +9816,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "speak-with-dead",
@@ -9306,7 +9850,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "speak-with-plants",
@@ -9341,7 +9887,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "spider-climb",
@@ -9375,7 +9923,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "spike-growth",
@@ -9411,7 +9961,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "spirit-guardians",
@@ -9442,7 +9994,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "spiritual-weapon",
@@ -9482,7 +10036,9 @@
         "9": "4d8 + MOD"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "stinking-cloud",
@@ -9523,7 +10079,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "stone-shape",
@@ -9556,7 +10114,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "stoneskin",
@@ -9590,7 +10150,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "storm-of-vengeance",
@@ -9626,7 +10188,9 @@
         "9": "2d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "suggestion",
@@ -9662,7 +10226,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "sunbeam",
@@ -9701,7 +10267,9 @@
         "6": "6d8"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "sunburst",
@@ -9740,7 +10308,9 @@
         "8": "12d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "symbol",
@@ -9774,7 +10344,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "telekinesis",
@@ -9806,7 +10378,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "telepathic-bond",
@@ -9835,7 +10409,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "teleport",
@@ -9867,7 +10443,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "teleportation-circle",
@@ -9900,7 +10478,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "thaumaturgy",
@@ -9929,7 +10509,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "thunderwave",
@@ -9978,7 +10560,9 @@
         "9": "10d8"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "time-stop",
@@ -10006,7 +10590,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "tiny-hut",
@@ -10041,7 +10627,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "tongues",
@@ -10075,7 +10663,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "transport-via-plants",
@@ -10103,7 +10693,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "tree-stride",
@@ -10134,7 +10726,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "true-polymorph",
@@ -10165,7 +10759,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "true-resurrection",
@@ -10195,7 +10791,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "true-seeing",
@@ -10228,7 +10826,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "true-strike",
@@ -10260,7 +10860,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "unseen-servant",
@@ -10293,7 +10895,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "vampiric-touch",
@@ -10332,7 +10936,9 @@
         "9": "9d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "vicious-mockery",
@@ -10367,7 +10973,9 @@
         "11": "3d4",
         "17": "4d4"
       },
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wall-of-fire",
@@ -10408,7 +11016,9 @@
         "4": "5d8"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wall-of-force",
@@ -10437,7 +11047,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wall-of-ice",
@@ -10477,7 +11089,9 @@
         "9": "16d6"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wall-of-stone",
@@ -10510,7 +11124,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wall-of-thorns",
@@ -10550,7 +11166,9 @@
         "9": "10d8"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "warding-bond",
@@ -10581,7 +11199,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "water-breathing",
@@ -10616,7 +11236,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "water-walk",
@@ -10651,7 +11273,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "web",
@@ -10687,7 +11311,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "weird",
@@ -10721,7 +11347,9 @@
       },
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wind-walk",
@@ -10750,7 +11378,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wind-wall",
@@ -10790,7 +11420,9 @@
         "3": "3d8"
       },
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wish",
@@ -10818,7 +11450,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "word-of-recall",
@@ -10848,7 +11482,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "zone-of-truth",
@@ -10884,7 +11520,9 @@
       "dc": null,
       "damage_at_slot_level": null,
       "damage_at_character_level": null,
-      "heal_at_slot_level": null
+      "heal_at_slot_level": null,
+      "content_pack": "srd",
+      "reference_packs": []
     }
   ]
 }

@@ -25,7 +25,9 @@
       },
       "weapon_proficiencies": null,
       "tool_proficiencies": null,
-      "language_options": null
+      "language_options": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "elf",
@@ -51,7 +53,9 @@
       },
       "weapon_proficiencies": null,
       "tool_proficiencies": null,
-      "language_options": null
+      "language_options": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "halfling",
@@ -76,7 +80,9 @@
       },
       "weapon_proficiencies": null,
       "tool_proficiencies": null,
-      "language_options": null
+      "language_options": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "human",
@@ -99,7 +105,9 @@
       },
       "weapon_proficiencies": null,
       "tool_proficiencies": null,
-      "language_options": null
+      "language_options": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "dragonborn",
@@ -123,7 +131,9 @@
       },
       "weapon_proficiencies": null,
       "tool_proficiencies": null,
-      "language_options": null
+      "language_options": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "gnome",
@@ -147,7 +157,9 @@
       },
       "weapon_proficiencies": null,
       "tool_proficiencies": null,
-      "language_options": null
+      "language_options": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "half-elf",
@@ -170,7 +182,9 @@
       },
       "weapon_proficiencies": null,
       "tool_proficiencies": null,
-      "language_options": null
+      "language_options": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "half-orc",
@@ -195,7 +209,9 @@
       },
       "weapon_proficiencies": null,
       "tool_proficiencies": null,
-      "language_options": null
+      "language_options": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "tiefling",
@@ -219,7 +235,9 @@
       },
       "weapon_proficiencies": null,
       "tool_proficiencies": null,
-      "language_options": null
+      "language_options": null,
+      "content_pack": "srd",
+      "reference_packs": []
     }
   ]
 }

@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from content_pack_utils import add_pack_fields
+
 
 def join_paragraphs(parts: Any) -> str:
     if isinstance(parts, list):
@@ -24,7 +26,9 @@ def main() -> None:
     src = root / "docs/5e-database-snippets/src/2014/5e-SRD-Damage-Types.json"
     dst = root / "data/damage_types.json"
     raw: list[dict[str, Any]] = json.load(src.open())
-    out = {"damage_types": [convert_dt(x) for x in raw if x.get("index") and x.get("name")]}
+    damage_types = [convert_dt(x) for x in raw if x.get("index") and x.get("name")]
+    add_pack_fields(damage_types, "srd")
+    out = {"damage_types": damage_types}
     dst.parent.mkdir(parents=True, exist_ok=True)
     json.dump(out, dst.open("w"), indent=2, ensure_ascii=False)
     print(f"Wrote {dst} with {len(out['damage_types'])} damage types")

@@ -6,6 +6,8 @@ import unicodedata
 from pathlib import Path
 from typing import Any
 
+from content_pack_utils import add_pack_fields
+
 
 def as_int(x: Any, default: int = 0) -> int:
     try:
@@ -208,6 +210,7 @@ def main() -> None:
     dst = root / "data/monsters.json"
     raw: list[dict[str, Any]] = json.load(src.open())
     monsters = [convert_monster(m) for m in raw if m.get("name")]
+    add_pack_fields(monsters, "srd")
     out = {"monsters": monsters}
     dst.parent.mkdir(parents=True, exist_ok=True)
     json.dump(out, dst.open("w"), indent=2, ensure_ascii=False)

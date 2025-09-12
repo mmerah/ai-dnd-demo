@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from content_pack_utils import add_pack_fields
+
 
 def join_parts(*parts: Any) -> str | None:
     texts: list[str] = []
@@ -73,6 +75,7 @@ def main() -> None:
     dst = root / "data/races.json"
     raw: list[dict[str, Any]] = json.load(src.open())
     races = [convert_race(r) for r in raw if r.get("index") and r.get("name")]
+    add_pack_fields(races, "srd")
     out = {"races": races}
     dst.parent.mkdir(parents=True, exist_ok=True)
     json.dump(out, dst.open("w"), indent=2, ensure_ascii=False)

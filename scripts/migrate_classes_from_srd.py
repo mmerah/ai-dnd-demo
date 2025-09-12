@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from content_pack_utils import add_pack_fields
+
 
 def to_indexes(objs: Any, key: str = "index") -> list[str]:
     if not isinstance(objs, list):
@@ -173,6 +175,7 @@ def main() -> None:
         "multi_classing": None,
     }
     classes.append(commoner)
+    add_pack_fields(classes, "srd")
     out = {"classes": classes}
     dst.parent.mkdir(parents=True, exist_ok=True)
     json.dump(out, dst.open("w"), indent=2, ensure_ascii=False)

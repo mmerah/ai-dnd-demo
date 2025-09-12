@@ -4,6 +4,8 @@ import json
 from pathlib import Path
 from typing import Any
 
+from content_pack_utils import add_pack_fields
+
 
 def join_paragraphs(parts: Any) -> str:
     if isinstance(parts, list):
@@ -87,6 +89,7 @@ def main() -> None:
     spells = [convert_spell(s) for s in data]
     # drop invalid/nameless
     spells = [s for s in spells if s.get("index") and s.get("name")]
+    add_pack_fields(spells, "srd")
     out.parent.mkdir(parents=True, exist_ok=True)
     json.dump({"spells": spells}, out.open("w"), indent=2, ensure_ascii=False)
     print(f"Wrote {out} with {len(spells)} spells")

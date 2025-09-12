@@ -5,434 +5,558 @@
       "name": "Common",
       "type": "Standard",
       "script": "Common",
-      "description": null
+      "description": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "dwarvish",
       "name": "Dwarvish",
       "type": "Standard",
       "script": "Dwarvish",
-      "description": "Dwarvish is full of hard consonants and guttural sounds."
+      "description": "Dwarvish is full of hard consonants and guttural sounds.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "elvish",
       "name": "Elvish",
       "type": "Standard",
       "script": "Elvish",
-      "description": "Elvish is fluid, with subtle intonations and intricate grammar. Elven literature is rich and varied, and their songs and poems are famous among other races. Many bards learn their language so they can add Elvish ballads to their repertoires."
+      "description": "Elvish is fluid, with subtle intonations and intricate grammar. Elven literature is rich and varied, and their songs and poems are famous among other races. Many bards learn their language so they can add Elvish ballads to their repertoires.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant",
       "name": "Giant",
       "type": "Standard",
       "script": "Dwarvish",
-      "description": null
+      "description": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "gnomish",
       "name": "Gnomish",
       "type": "Standard",
       "script": "Dwarvish",
-      "description": "The Gnomish language, which uses the Dwarvish script, is renowned for its technical treatises and its catalogs of knowledge about the natural world."
+      "description": "The Gnomish language, which uses the Dwarvish script, is renowned for its technical treatises and its catalogs of knowledge about the natural world.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "goblin",
       "name": "Goblin",
       "type": "Standard",
       "script": "Dwarvish",
-      "description": null
+      "description": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "halfling",
       "name": "Halfling",
       "type": "Standard",
       "script": "Common",
-      "description": "The Halfling language isn't secret, but halflings are loath to share it with others. They write very little, so they don't have a rich body of literature. Their oral tradition, however, is very strong."
+      "description": "The Halfling language isn't secret, but halflings are loath to share it with others. They write very little, so they don't have a rich body of literature. Their oral tradition, however, is very strong.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "orc",
       "name": "Orc",
       "type": "Standard",
       "script": "Dwarvish",
-      "description": "Orc is a harsh, grating language with hard consonants. It has no script of its own but is written in the Dwarvish script."
+      "description": "Orc is a harsh, grating language with hard consonants. It has no script of its own but is written in the Dwarvish script.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "abyssal",
       "name": "Abyssal",
       "type": "Exotic",
       "script": "Infernal",
-      "description": null
+      "description": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "celestial",
       "name": "Celestial",
       "type": "Exotic",
       "script": "Celestial",
-      "description": null
+      "description": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "draconic",
       "name": "Draconic",
       "type": "Exotic",
       "script": "Draconic",
-      "description": "Draconic is thought to be one of the oldest languages and is often used in the study of magic. The language sounds harsh to most other creatures and includes numerous hard consonants and sibilants."
+      "description": "Draconic is thought to be one of the oldest languages and is often used in the study of magic. The language sounds harsh to most other creatures and includes numerous hard consonants and sibilants.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "deep-speech",
       "name": "Deep Speech",
       "type": "Exotic",
       "script": null,
-      "description": null
+      "description": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "infernal",
       "name": "Infernal",
       "type": "Exotic",
       "script": "Infernal",
-      "description": null
+      "description": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "primordial",
       "name": "Primordial",
       "type": "Exotic",
       "script": "Dwarvish",
-      "description": null
+      "description": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "sylvan",
       "name": "Sylvan",
       "type": "Exotic",
       "script": "Elvish",
-      "description": null
+      "description": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "undercommon",
       "name": "Undercommon",
       "type": "Exotic",
       "script": "Elvish",
-      "description": null
+      "description": null,
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "unknown",
       "name": "Unknown",
       "type": null,
       "script": null,
-      "description": "Language unknown or not applicable."
+      "description": "Language unknown or not applicable.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "any-one-language-(usually-common)",
       "name": "Any One Language (Usually Common)",
       "type": "Standard",
       "script": null,
-      "description": "Can speak any one language, typically Common."
+      "description": "Can speak any one language, typically Common.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "any-one-language",
       "name": "Any One Language",
       "type": "Standard",
       "script": null,
-      "description": "Can speak any one language."
+      "description": "Can speak any one language.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "any-two-languages",
       "name": "Any Two Languages",
       "type": "Standard",
       "script": null,
-      "description": "Can speak any two languages."
+      "description": "Can speak any two languages.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "any-four-languages",
       "name": "Any Four Languages",
       "type": "Standard",
       "script": null,
-      "description": "Can speak any four languages."
+      "description": "Can speak any four languages.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "any-six-languages",
       "name": "Any Six Languages",
       "type": "Standard",
       "script": null,
-      "description": "Can speak any six languages."
+      "description": "Can speak any six languages.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "common-plus-up-to-five-other-languages",
       "name": "Common Plus Up To Five Other Languages",
       "type": "Standard",
       "script": null,
-      "description": "Speak Common and up-to-five other languages"
+      "description": "Speak Common and up-to-five other languages",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "all",
       "name": "All Languages",
       "type": "Standard",
       "script": null,
-      "description": "Can speak and understand all languages."
+      "description": "Can speak and understand all languages.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "blink-dog",
       "name": "Blink Dog",
       "type": "Exotic",
       "script": null,
-      "description": "The language of blink dogs."
+      "description": "The language of blink dogs.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-eagle",
       "name": "Giant Eagle",
       "type": "Exotic",
       "script": null,
-      "description": "The language of giant eagles."
+      "description": "The language of giant eagles.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-elk",
       "name": "Giant Elk",
       "type": "Exotic",
       "script": null,
-      "description": "The language of giant elk."
+      "description": "The language of giant elk.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-owl",
       "name": "Giant Owl",
       "type": "Exotic",
       "script": null,
-      "description": "The language of giant owls."
+      "description": "The language of giant owls.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "gnoll",
       "name": "Gnoll",
       "type": "Exotic",
       "script": null,
-      "description": "The language of gnolls."
+      "description": "The language of gnolls.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "sahuagin",
       "name": "Sahuagin",
       "type": "Exotic",
       "script": null,
-      "description": "The language of sahuagin."
+      "description": "The language of sahuagin.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "sphinx",
       "name": "Sphinx",
       "type": "Exotic",
       "script": null,
-      "description": "The language of sphinxes."
+      "description": "The language of sphinxes.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "winter-wolf",
       "name": "Winter Wolf",
       "type": "Exotic",
       "script": null,
-      "description": "The language of winter wolves."
+      "description": "The language of winter wolves.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "worg",
       "name": "Worg",
       "type": "Exotic",
       "script": null,
-      "description": "The language of worgs."
+      "description": "The language of worgs.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "otyugh",
       "name": "Otyugh",
       "type": "Exotic",
       "script": null,
-      "description": "The language of otyughs."
+      "description": "The language of otyughs.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "druidic",
       "name": "Druidic",
       "type": "Standard",
       "script": null,
-      "description": "The secret language of druids."
+      "description": "The secret language of druids.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "understands-common-but-can't-speak",
       "name": "Understands Common but can't speak",
       "type": "Special",
       "script": null,
-      "description": "Can understand Common but lacks the ability to speak."
+      "description": "Can understand Common but lacks the ability to speak.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "understands-draconic-but-can't-speak",
       "name": "Understands Draconic but can't speak",
       "type": "Special",
       "script": null,
-      "description": "Can understand Draconic but lacks the ability to speak."
+      "description": "Can understand Draconic but lacks the ability to speak.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "understands-deep-speech-but-can't-speak",
       "name": "Understands Deep Speech but can't speak",
       "type": "Special",
       "script": null,
-      "description": "Can understand Deep Speech but lacks the ability to speak."
+      "description": "Can understand Deep Speech but lacks the ability to speak.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "understands-infernal-but-can't-speak",
       "name": "Understands Infernal but can't speak",
       "type": "Special",
       "script": null,
-      "description": "Can understand Infernal but lacks the ability to speak."
+      "description": "Can understand Infernal but lacks the ability to speak.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "understands-infernal-but-can't-speak-it",
       "name": "Understands Infernal but can't speak it",
       "type": "Special",
       "script": null,
-      "description": "Can understand Infernal but lacks the ability to speak it."
+      "description": "Can understand Infernal but lacks the ability to speak it.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "understands-abyssal",
       "name": "Understands Abyssal",
       "type": "Special",
       "script": null,
-      "description": "Can understand Abyssal."
+      "description": "Can understand Abyssal.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "understands-celestial",
       "name": "Understands Celestial",
       "type": "Special",
       "script": null,
-      "description": "Can understand Celestial."
+      "description": "Can understand Celestial.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "understands-common-but-doesn't-speak-it",
       "name": "Understands Common but doesn't speak it",
       "type": "Special",
       "script": null,
-      "description": "Can understand Common but doesn't speak it."
+      "description": "Can understand Common but doesn't speak it.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "understands-the-languages-of-its-creator-but-can't-speak",
       "name": "Understands the languages of its creator but can't speak",
       "type": "Special",
       "script": null,
-      "description": "Can understand the languages known by its creator but lacks the ability to speak."
+      "description": "Can understand the languages known by its creator but lacks the ability to speak.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "one-language-known-by-its-creator",
       "name": "One language known by its creator",
       "type": "Special",
       "script": null,
-      "description": "Knows one language that was known by its creator."
+      "description": "Knows one language that was known by its creator.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "understands-all-languages-it-spoke-in-life-but-can't-speak",
       "name": "Understands all languages it spoke in life but can't speak",
       "type": "Special",
       "script": null,
-      "description": "Retains understanding of languages from life but cannot speak."
+      "description": "Retains understanding of languages from life but cannot speak.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "understands-all-languages-it-knew-in-life-but-can't-speak",
       "name": "Understands all languages it knew in life but can't speak",
       "type": "Special",
       "script": null,
-      "description": "Retains understanding of languages from life but cannot speak."
+      "description": "Retains understanding of languages from life but cannot speak.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "any-languages-it-knew-in-life",
       "name": "Any languages it knew in life",
       "type": "Special",
       "script": null,
-      "description": "Retains any languages known in life."
+      "description": "Retains any languages known in life.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "the-languages-it-knew-in-life",
       "name": "The languages it knew in life",
       "type": "Special",
       "script": null,
-      "description": "Retains the languages known in life."
+      "description": "Retains the languages known in life.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "understands-common-and-giant-but-can't-speak",
       "name": "Understands Common and Giant but can't speak",
       "type": "Special",
       "script": null,
-      "description": "Can understand Common and Giant but lacks the ability to speak."
+      "description": "Can understand Common and Giant but lacks the ability to speak.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "understands-common-and-draconic-but-can't-speak",
       "name": "Understands Common and Draconic but can't speak",
       "type": "Special",
       "script": null,
-      "description": "Can understand Common and Draconic but lacks the ability to speak."
+      "description": "Can understand Common and Draconic but lacks the ability to speak.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "understands-commands-given-in-any-language-but-can't-speak",
       "name": "Understands commands given in any language but can't speak",
       "type": "Special",
       "script": null,
-      "description": "Can understand commands in any language but cannot speak."
+      "description": "Can understand commands in any language but cannot speak.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "common-(can't-speak-in-boar-form)",
       "name": "Common (can't speak in boar form)",
       "type": "Special",
       "script": null,
-      "description": "Can speak Common but not while in boar form."
+      "description": "Can speak Common but not while in boar form.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "thieves'-cant-plus-any-two-languages",
       "name": "Thieves' Cant plus any two languages",
       "type": "Special",
       "script": null,
-      "description": "Knows Thieves' Cant and any two other languages."
+      "description": "Knows Thieves' Cant and any two other languages.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "druidic-plus-any-two-languages",
       "name": "Druidic plus any two languages",
       "type": "Special",
       "script": null,
-      "description": "Knows Druidic and any two other languages."
+      "description": "Knows Druidic and any two other languages.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "understands-sylvan-but-can't-speak-it",
       "name": "Understands Sylvan but can't speak it",
       "type": "Special",
       "script": null,
-      "description": "Can understand Sylvan but lacks the ability to speak it."
+      "description": "Can understand Sylvan but lacks the ability to speak it.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "understands-common-and-auran-but-can't-speak",
       "name": "Understands Common and Auran but can't speak",
       "type": "Special",
       "script": null,
-      "description": "Can understand Common and Auran but lacks the ability to speak."
+      "description": "Can understand Common and Auran but lacks the ability to speak.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "understands-common",
       "name": "Understands Common",
       "type": "Special",
       "script": null,
-      "description": "Can understand Common."
+      "description": "Can understand Common.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "and-primordial-but-can't-speak",
       "name": "And Primordial but can't speak",
       "type": "Special",
       "script": null,
-      "description": "Can understand Primordial but lacks the ability to speak."
+      "description": "Can understand Primordial but lacks the ability to speak.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "understands-abyssal-but-can't-speak",
       "name": "Understands Abyssal but can't speak",
       "type": "Special",
       "script": null,
-      "description": "Can understand Abyssal but lacks the ability to speak."
+      "description": "Can understand Abyssal but lacks the ability to speak.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "and-infernal-but-can't-speak",
       "name": "And Infernal but can't speak",
       "type": "Special",
       "script": null,
-      "description": "Can understand Infernal but lacks the ability to speak."
+      "description": "Can understand Infernal but lacks the ability to speak.",
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "and-sylvan-but-can't-speak",
       "name": "And Sylvan but can't speak",
       "type": "Special",
       "script": null,
-      "description": "Can understand Sylvan but lacks the ability to speak."
+      "description": "Can understand Sylvan but lacks the ability to speak.",
+      "content_pack": "srd",
+      "reference_packs": []
     }
   ]
 }

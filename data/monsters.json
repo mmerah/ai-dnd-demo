@@ -70,7 +70,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "acolyte",
@@ -124,7 +126,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "adult-black-dragon",
@@ -205,7 +209,9 @@
       "damage_immunities": [
         "acid"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "adult-blue-dragon",
@@ -282,7 +288,9 @@
       "damage_immunities": [
         "lightning"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "adult-brass-dragon",
@@ -361,7 +369,9 @@
       "damage_immunities": [
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "adult-bronze-dragon",
@@ -443,7 +453,9 @@
       "damage_immunities": [
         "lightning"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "adult-copper-dragon",
@@ -521,7 +533,9 @@
       "damage_immunities": [
         "acid"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "adult-gold-dragon",
@@ -604,7 +618,9 @@
       "damage_immunities": [
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "adult-green-dragon",
@@ -690,7 +706,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "adult-red-dragon",
@@ -767,7 +785,9 @@
       "damage_immunities": [
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "adult-silver-dragon",
@@ -846,7 +866,9 @@
       "damage_immunities": [
         "cold"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "adult-white-dragon",
@@ -927,7 +949,9 @@
       "damage_immunities": [
         "cold"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "air-elemental",
@@ -993,7 +1017,9 @@
         "prone",
         "restrained",
         "unconscious"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ancient-black-dragon",
@@ -1074,7 +1100,9 @@
       "damage_immunities": [
         "acid"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ancient-blue-dragon",
@@ -1151,7 +1179,9 @@
       "damage_immunities": [
         "lightning"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ancient-brass-dragon",
@@ -1230,7 +1260,9 @@
       "damage_immunities": [
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ancient-bronze-dragon",
@@ -1312,7 +1344,9 @@
       "damage_immunities": [
         "lightning"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ancient-copper-dragon",
@@ -1390,7 +1424,9 @@
       "damage_immunities": [
         "acid"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ancient-gold-dragon",
@@ -1473,7 +1509,9 @@
       "damage_immunities": [
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ancient-green-dragon",
@@ -1559,7 +1597,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ancient-red-dragon",
@@ -1636,7 +1676,9 @@
       "damage_immunities": [
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ancient-silver-dragon",
@@ -1715,7 +1757,9 @@
       "damage_immunities": [
         "cold"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ancient-white-dragon",
@@ -1796,7 +1840,9 @@
       "damage_immunities": [
         "cold"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "androsphinx",
@@ -1866,7 +1912,9 @@
       "condition_immunities": [
         "charmed",
         "frightened"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "animated-armor",
@@ -1931,7 +1979,9 @@
         "paralyzed",
         "petrified",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ankheg",
@@ -1975,7 +2025,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ape",
@@ -2032,7 +2084,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "archmage",
@@ -2093,7 +2147,9 @@
         "bludgeoning, piercing, and slashing from nonmagical attacks (from stoneskin)"
       ],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "assassin",
@@ -2169,7 +2225,9 @@
         "poison"
       ],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "awakened-shrub",
@@ -2224,7 +2282,9 @@
         "piercing"
       ],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "awakened-tree",
@@ -2280,7 +2340,9 @@
         "piercing"
       ],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "axe-beak",
@@ -2324,7 +2386,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "azer",
@@ -2388,7 +2452,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "baboon",
@@ -2437,7 +2503,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "badger",
@@ -2486,7 +2554,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "balor",
@@ -2568,7 +2638,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "bandit",
@@ -2624,7 +2696,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "bandit-captain",
@@ -2683,7 +2757,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "barbed-devil",
@@ -2774,7 +2850,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "basilisk",
@@ -2823,7 +2901,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "bat",
@@ -2876,7 +2956,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "bearded-devil",
@@ -2953,7 +3035,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "behir",
@@ -3014,7 +3098,9 @@
       "damage_immunities": [
         "lightning"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "berserker",
@@ -3065,7 +3151,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "black-bear",
@@ -3124,7 +3212,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "black-dragon-wyrmling",
@@ -3180,7 +3270,9 @@
       "damage_immunities": [
         "acid"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "black-pudding",
@@ -3248,7 +3340,9 @@
         "exhaustion",
         "frightened",
         "prone"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "blink-dog",
@@ -3303,7 +3397,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "blood-hawk",
@@ -3358,7 +3454,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "blue-dragon-wyrmling",
@@ -3409,7 +3507,9 @@
       "damage_immunities": [
         "lightning"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "boar",
@@ -3462,7 +3562,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "bone-devil",
@@ -3538,7 +3640,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "brass-dragon-wyrmling",
@@ -3589,7 +3693,9 @@
       "damage_immunities": [
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "bronze-dragon-wyrmling",
@@ -3645,7 +3751,9 @@
       "damage_immunities": [
         "lightning"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "brown-bear",
@@ -3706,7 +3814,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "bugbear",
@@ -3775,7 +3885,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "bulette",
@@ -3826,7 +3938,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "camel",
@@ -3870,7 +3984,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "cat",
@@ -3922,7 +4038,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "centaur",
@@ -3998,7 +4116,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "chain-devil",
@@ -4061,7 +4181,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "chimera",
@@ -4129,7 +4251,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "chuul",
@@ -4190,7 +4314,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "clay-golem",
@@ -4269,7 +4395,9 @@
         "paralyzed",
         "petrified",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "cloaker",
@@ -4341,7 +4469,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "cloud-giant",
@@ -4410,7 +4540,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "cockatrice",
@@ -4454,7 +4586,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "commoner",
@@ -4500,7 +4634,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "constrictor-snake",
@@ -4554,7 +4690,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "copper-dragon-wyrmling",
@@ -4605,7 +4743,9 @@
       "damage_immunities": [
         "acid"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "couatl",
@@ -4679,7 +4819,9 @@
         "psychic",
         "bludgeoning, piercing, and slashing from nonmagical weapons"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "crab",
@@ -4730,7 +4872,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "crocodile",
@@ -4781,7 +4925,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "cult-fanatic",
@@ -4840,7 +4986,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "cultist",
@@ -4894,7 +5042,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "darkmantle",
@@ -4949,7 +5099,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "death-dog",
@@ -5001,7 +5153,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "deep-gnome-svirfneblin",
@@ -5076,7 +5230,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "deer",
@@ -5120,7 +5276,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "deva",
@@ -5189,7 +5347,9 @@
         "charmed",
         "exhaustion",
         "frightened"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "dire-wolf",
@@ -5245,7 +5405,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "djinni",
@@ -5303,7 +5465,9 @@
         "lightning",
         "thunder"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "doppelganger",
@@ -5367,7 +5531,9 @@
       "damage_immunities": [],
       "condition_immunities": [
         "charmed"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "draft-horse",
@@ -5411,7 +5577,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "dragon-turtle",
@@ -5485,7 +5653,9 @@
         "fire"
       ],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "dretch",
@@ -5549,7 +5719,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "drider",
@@ -5640,7 +5812,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "drow",
@@ -5713,7 +5887,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "druid",
@@ -5768,7 +5944,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "dryad",
@@ -5835,7 +6013,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "duergar",
@@ -5903,7 +6083,9 @@
         "poison"
       ],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "dust-mephit",
@@ -5967,7 +6149,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "eagle",
@@ -6018,7 +6202,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "earth-elemental",
@@ -6085,7 +6271,9 @@
         "petrified",
         "poisoned",
         "unconscious"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "efreeti",
@@ -6152,7 +6340,9 @@
       "damage_immunities": [
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "elephant",
@@ -6211,7 +6401,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "elk",
@@ -6270,7 +6462,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "erinyes",
@@ -6343,7 +6537,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ettercap",
@@ -6424,7 +6620,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ettin",
@@ -6492,7 +6690,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "fire-elemental",
@@ -6565,7 +6765,9 @@
         "prone",
         "restrained",
         "unconscious"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "fire-giant",
@@ -6626,7 +6828,9 @@
       "damage_immunities": [
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "flesh-golem",
@@ -6708,7 +6912,9 @@
         "paralyzed",
         "petrified",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "flying-snake",
@@ -6757,7 +6963,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "flying-sword",
@@ -6821,7 +7029,9 @@
         "paralyzed",
         "petrified",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "frog",
@@ -6866,7 +7076,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "frost-giant",
@@ -6927,7 +7139,9 @@
       "damage_immunities": [
         "cold"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "gargoyle",
@@ -6996,7 +7210,9 @@
         "exhaustion",
         "petrified",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "gelatinous-cube",
@@ -7056,7 +7272,9 @@
         "exhaustion",
         "frightened",
         "prone"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ghast",
@@ -7129,7 +7347,9 @@
         "poisoned",
         "charmed",
         "exhaustion"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ghost",
@@ -7204,7 +7424,9 @@
         "poisoned",
         "prone",
         "restrained"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ghoul",
@@ -7266,7 +7488,9 @@
         "poisoned",
         "charmed",
         "exhaustion"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-ape",
@@ -7323,7 +7547,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-badger",
@@ -7382,7 +7608,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-bat",
@@ -7435,7 +7663,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-boar",
@@ -7488,7 +7718,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-centipede",
@@ -7532,7 +7764,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-constrictor-snake",
@@ -7588,7 +7822,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-crab",
@@ -7639,7 +7875,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-crocodile",
@@ -7700,7 +7938,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-eagle",
@@ -7764,7 +8004,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-elk",
@@ -7830,7 +8072,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-fire-beetle",
@@ -7879,7 +8123,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-frog",
@@ -7935,7 +8181,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-goat",
@@ -7988,7 +8236,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-hyena",
@@ -8039,7 +8289,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-lizard",
@@ -8083,7 +8335,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-octopus",
@@ -8143,7 +8397,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-owl",
@@ -8204,7 +8460,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-poisonous-snake",
@@ -8250,7 +8508,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-rat",
@@ -8303,7 +8563,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-rat-diseased",
@@ -8356,7 +8618,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-scorpion",
@@ -8410,7 +8674,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-sea-horse",
@@ -8463,7 +8729,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-shark",
@@ -8518,7 +8786,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-spider",
@@ -8587,7 +8857,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-toad",
@@ -8640,7 +8912,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-vulture",
@@ -8707,7 +8981,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-wasp",
@@ -8751,7 +9027,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-weasel",
@@ -8803,7 +9081,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "giant-wolf-spider",
@@ -8863,7 +9143,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "gibbering-mouther",
@@ -8918,7 +9200,9 @@
       "damage_immunities": [],
       "condition_immunities": [
         "prone"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "glabrezu",
@@ -8992,7 +9276,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "gladiator",
@@ -9060,7 +9346,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "gnoll",
@@ -9131,7 +9419,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "goat",
@@ -9184,7 +9474,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "goblin",
@@ -9248,7 +9540,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "gold-dragon-wyrmling",
@@ -9304,7 +9598,9 @@
       "damage_immunities": [
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "gorgon",
@@ -9367,7 +9663,9 @@
       "damage_immunities": [],
       "condition_immunities": [
         "petrified"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "gray-ooze",
@@ -9437,7 +9735,9 @@
         "exhaustion",
         "frightened",
         "prone"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "green-dragon-wyrmling",
@@ -9495,7 +9795,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "green-hag",
@@ -9561,7 +9863,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "grick",
@@ -9622,7 +9926,9 @@
         "bludgeoning, piercing, and slashing from nonmagical weapons"
       ],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "griffon",
@@ -9683,7 +9989,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "grimlock",
@@ -9748,7 +10056,9 @@
       "damage_immunities": [],
       "condition_immunities": [
         "blinded"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "guard",
@@ -9796,7 +10106,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "guardian-naga",
@@ -9867,7 +10179,9 @@
       "condition_immunities": [
         "charmed",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "gynosphinx",
@@ -9939,7 +10253,9 @@
       "condition_immunities": [
         "charmed",
         "frightened"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "half-red-dragon-veteran",
@@ -10008,7 +10324,9 @@
         "fire"
       ],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "harpy",
@@ -10064,7 +10382,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "hawk",
@@ -10115,7 +10435,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "hell-hound",
@@ -10174,7 +10496,9 @@
       "damage_immunities": [
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "hezrou",
@@ -10248,7 +10572,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "hill-giant",
@@ -10306,7 +10632,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "hippogriff",
@@ -10367,7 +10695,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "hobgoblin",
@@ -10429,7 +10759,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "homunculus",
@@ -10485,7 +10817,9 @@
       "condition_immunities": [
         "charmed",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "horned-devil",
@@ -10568,7 +10902,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "hunter-shark",
@@ -10623,7 +10959,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "hydra",
@@ -10686,7 +11024,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "hyena",
@@ -10737,7 +11077,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ice-devil",
@@ -10819,7 +11161,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ice-mephit",
@@ -10889,7 +11233,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "imp",
@@ -10962,7 +11308,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "invisible-stalker",
@@ -11034,7 +11382,9 @@
         "prone",
         "restrained",
         "unconscious"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "iron-golem",
@@ -11119,7 +11469,9 @@
         "paralyzed",
         "petrified",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "jackal",
@@ -11174,7 +11526,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "killer-whale",
@@ -11233,7 +11587,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "knight",
@@ -11294,7 +11650,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "kobold",
@@ -11360,7 +11718,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "kraken",
@@ -11438,7 +11798,9 @@
       "condition_immunities": [
         "frightened",
         "paralyzed"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "lamia",
@@ -11514,7 +11876,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "lemure",
@@ -11578,7 +11942,9 @@
         "charmed",
         "frightened",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "lich",
@@ -11659,7 +12025,9 @@
         "frightened",
         "paralyzed",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "lion",
@@ -11733,7 +12101,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "lizard",
@@ -11777,7 +12147,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "lizardfolk",
@@ -11862,7 +12234,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "mage",
@@ -11916,7 +12290,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "magma-mephit",
@@ -11984,7 +12360,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "magmin",
@@ -12043,7 +12421,9 @@
       "damage_immunities": [
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "mammoth",
@@ -12102,7 +12482,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "manticore",
@@ -12171,7 +12553,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "marilith",
@@ -12249,7 +12633,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "mastiff",
@@ -12300,7 +12686,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "medusa",
@@ -12376,7 +12764,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "merfolk",
@@ -12430,7 +12820,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "merrow",
@@ -12502,7 +12894,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "mimic",
@@ -12579,7 +12973,9 @@
       ],
       "condition_immunities": [
         "prone"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "minotaur",
@@ -12650,7 +13046,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "minotaur-skeleton",
@@ -12718,7 +13116,9 @@
       "condition_immunities": [
         "exhaustion",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "mule",
@@ -12771,7 +13171,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "mummy",
@@ -12830,7 +13232,9 @@
         "frightened",
         "paralyzed",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "mummy-lord",
@@ -12904,7 +13308,9 @@
         "frightened",
         "paralyzed",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "nalfeshnee",
@@ -12974,7 +13380,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "night-hag",
@@ -13047,7 +13455,9 @@
       "damage_immunities": [],
       "condition_immunities": [
         "charmed"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "nightmare",
@@ -13106,7 +13516,9 @@
       "damage_immunities": [
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "noble",
@@ -13156,7 +13568,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ochre-jelly",
@@ -13221,7 +13635,9 @@
         "exhaustion",
         "frightened",
         "prone"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "octopus",
@@ -13281,7 +13697,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ogre",
@@ -13338,7 +13756,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "ogre-zombie",
@@ -13393,7 +13813,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "oni",
@@ -13467,7 +13889,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "orc",
@@ -13531,7 +13955,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "otyugh",
@@ -13592,7 +14018,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "owl",
@@ -13648,7 +14076,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "owlbear",
@@ -13709,7 +14139,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "panther",
@@ -13775,7 +14207,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "pegasus",
@@ -13826,7 +14260,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "phase-spider",
@@ -13885,7 +14321,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "pit-fiend",
@@ -13986,7 +14424,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "planetar",
@@ -14058,7 +14498,9 @@
         "charmed",
         "exhaustion",
         "frightened"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "plesiosaurus",
@@ -14110,7 +14552,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "poisonous-snake",
@@ -14154,7 +14598,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "polar-bear",
@@ -14215,7 +14661,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "pony",
@@ -14259,7 +14707,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "priest",
@@ -14318,7 +14768,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "pseudodragon",
@@ -14390,7 +14842,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "purple-worm",
@@ -14449,7 +14903,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "quasit",
@@ -14516,7 +14972,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "quipper",
@@ -14569,7 +15027,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "rakshasa",
@@ -14632,7 +15092,9 @@
       "damage_immunities": [
         "bludgeoning, piercing, and slashing from nonmagical weapons"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "rat",
@@ -14681,7 +15143,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "raven",
@@ -14732,7 +15196,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "red-dragon-wyrmling",
@@ -14783,7 +15249,9 @@
       "damage_immunities": [
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "reef-shark",
@@ -14838,7 +15306,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "remorhaz",
@@ -14890,7 +15360,9 @@
         "cold",
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "rhinoceros",
@@ -14939,7 +15411,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "riding-horse",
@@ -14983,7 +15457,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "roc",
@@ -15044,7 +15520,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "roper",
@@ -15114,7 +15592,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "rug-of-smothering",
@@ -15182,7 +15662,9 @@
         "paralyzed",
         "petrified",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "rust-monster",
@@ -15235,7 +15717,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "saber-toothed-tiger",
@@ -15301,7 +15785,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "sahuagin",
@@ -15382,7 +15868,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "salamander",
@@ -15453,7 +15941,9 @@
       "damage_immunities": [
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "satyr",
@@ -15530,7 +16020,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "scorpion",
@@ -15574,7 +16066,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "scout",
@@ -15640,7 +16134,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "sea-hag",
@@ -15697,7 +16193,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "sea-horse",
@@ -15735,7 +16233,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "shadow",
@@ -15815,7 +16315,9 @@
         "poisoned",
         "prone",
         "restrained"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "shambling-mound",
@@ -15875,7 +16377,9 @@
         "blinded",
         "blinded",
         "exhaustion"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "shield-guardian",
@@ -15942,7 +16446,9 @@
         "frightened",
         "paralyzed",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "shrieker",
@@ -15984,7 +16490,9 @@
         "blinded",
         "blinded",
         "frightened"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "silver-dragon-wyrmling",
@@ -16035,7 +16543,9 @@
       "damage_immunities": [
         "cold"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "skeleton",
@@ -16098,7 +16608,9 @@
       "condition_immunities": [
         "poisoned",
         "exhaustion"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "solar",
@@ -16184,7 +16696,9 @@
         "exhaustion",
         "frightened",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "specter",
@@ -16259,7 +16773,9 @@
         "prone",
         "restrained",
         "unconscious"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "spider",
@@ -16318,7 +16834,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "spirit-naga",
@@ -16379,7 +16897,9 @@
       "condition_immunities": [
         "charmed",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "sprite",
@@ -16440,7 +16960,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "spy",
@@ -16512,7 +17034,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "steam-mephit",
@@ -16572,7 +17096,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "stirge",
@@ -16616,7 +17142,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "stone-giant",
@@ -16680,7 +17208,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "stone-golem",
@@ -16750,7 +17280,9 @@
         "paralyzed",
         "petrified",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "storm-giant",
@@ -16826,7 +17358,9 @@
         "lightning",
         "thunder"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "succubusincubus",
@@ -16895,7 +17429,9 @@
         "bludgeoning, piercing, and slashing from nonmagical weapons"
       ],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "swarm-of-bats",
@@ -16965,7 +17501,9 @@
         "prone",
         "restrained",
         "stunned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "swarm-of-beetles",
@@ -17027,7 +17565,9 @@
         "prone",
         "restrained",
         "stunned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "swarm-of-centipedes",
@@ -17089,7 +17629,9 @@
         "prone",
         "restrained",
         "stunned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "swarm-of-insects",
@@ -17151,7 +17693,9 @@
         "prone",
         "restrained",
         "stunned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "swarm-of-poisonous-snakes",
@@ -17213,7 +17757,9 @@
         "prone",
         "restrained",
         "stunned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "swarm-of-quippers",
@@ -17283,7 +17829,9 @@
         "prone",
         "restrained",
         "stunned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "swarm-of-rats",
@@ -17349,7 +17897,9 @@
         "prone",
         "restrained",
         "stunned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "swarm-of-ravens",
@@ -17411,7 +17961,9 @@
         "prone",
         "restrained",
         "stunned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "swarm-of-spiders",
@@ -17484,7 +18036,9 @@
         "prone",
         "restrained",
         "stunned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "swarm-of-wasps",
@@ -17546,7 +18100,9 @@
         "prone",
         "restrained",
         "stunned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "tarrasque",
@@ -17646,7 +18202,9 @@
         "frightened",
         "paralyzed",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "thug",
@@ -17709,7 +18267,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "tiger",
@@ -17775,7 +18335,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "treant",
@@ -17848,7 +18410,9 @@
         "piercing"
       ],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "tribal-warrior",
@@ -17899,7 +18463,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "triceratops",
@@ -17958,7 +18524,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "troll",
@@ -18025,7 +18593,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "tyrannosaurus-rex",
@@ -18081,7 +18651,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "unicorn",
@@ -18162,7 +18734,9 @@
         "charmed",
         "paralyzed",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "vampire-vampire-form",
@@ -18249,7 +18823,9 @@
         "bludgeoning, piercing, and slashing from nonmagical weapons"
       ],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "vampire-bat-form",
@@ -18326,7 +18902,9 @@
         "bludgeoning, piercing, and slashing from nonmagical weapons"
       ],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "vampire-mist-form",
@@ -18392,7 +18970,9 @@
         "bludgeoning, piercing, and slashing from nonmagical weapons"
       ],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "vampire-spawn",
@@ -18467,7 +19047,9 @@
         "bludgeoning, piercing, and slashing from nonmagical weapons"
       ],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "veteran",
@@ -18536,7 +19118,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "violet-fungus",
@@ -18589,7 +19173,9 @@
         "blinded",
         "blinded",
         "frightened"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "vrock",
@@ -18659,7 +19245,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "vulture",
@@ -18714,7 +19302,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "warhorse",
@@ -18763,7 +19353,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "warhorse-skeleton",
@@ -18814,7 +19406,9 @@
       "condition_immunities": [
         "exhaustion",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "water-elemental",
@@ -18883,7 +19477,9 @@
         "prone",
         "restrained",
         "unconscious"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "weasel",
@@ -18935,7 +19531,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "werebear-bear-form",
@@ -19002,7 +19600,9 @@
       "damage_immunities": [
         "bludgeoning, piercing, and slashing from nonmagical weapons that aren't silvered"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "werebear-human-form",
@@ -19061,7 +19661,9 @@
       "damage_immunities": [
         "bludgeoning, piercing, and slashing from nonmagical weapons that aren't silvered"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "werebear-hybrid-form",
@@ -19140,7 +19742,9 @@
       "damage_immunities": [
         "bludgeoning, piercing, and slashing from nonmagical weapons that aren't silvered"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wereboar-boar-form",
@@ -19201,7 +19805,9 @@
       "damage_immunities": [
         "bludgeoning, piercing, and slashing from nonmagical weapons that aren't silvered"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wereboar-human-form",
@@ -19260,7 +19866,9 @@
       "damage_immunities": [
         "bludgeoning, piercing, and slashing from nonmagical weapons that aren't silvered"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wereboar-hybrid-form",
@@ -19333,7 +19941,9 @@
       "damage_immunities": [
         "bludgeoning, piercing, and slashing from nonmagical weapons that aren't silvered"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wererat-human-form",
@@ -19403,7 +20013,9 @@
       "damage_immunities": [
         "bludgeoning, piercing, and slashing from nonmagical weapons that aren't silvered"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wererat-hybrid-form",
@@ -19483,7 +20095,9 @@
       "damage_immunities": [
         "bludgeoning, piercing, and slashing from nonmagical weapons that aren't silvered"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wererat-rat-form",
@@ -19541,7 +20155,9 @@
       "damage_immunities": [
         "bludgeoning, piercing, and slashing from nonmagical weapons that aren't silvered"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "weretiger-human-form",
@@ -19611,7 +20227,9 @@
       "damage_immunities": [
         "bludgeoning, piercing, and slashing from nonmagical weapons that aren't silvered"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "weretiger-hybrid-form",
@@ -19705,7 +20323,9 @@
       "damage_immunities": [
         "bludgeoning, piercing, and slashing from nonmagical weapons that aren't silvered"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "weretiger-tiger-form",
@@ -19777,7 +20397,9 @@
       "damage_immunities": [
         "bludgeoning, piercing, and slashing from nonmagical weapons that aren't silvered"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "werewolf-human-form",
@@ -19836,7 +20458,9 @@
       "damage_immunities": [
         "bludgeoning, piercing, and slashing from nonmagical weapons that aren't silvered"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "werewolf-hybrid-form",
@@ -19905,7 +20529,9 @@
       "damage_immunities": [
         "bludgeoning, piercing, and slashing from nonmagical weapons that aren't silvered"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "werewolf-wolf-form",
@@ -19962,7 +20588,9 @@
       "damage_immunities": [
         "bludgeoning, piercing, and slashing from nonmagical weapons that aren't silvered"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "white-dragon-wyrmling",
@@ -20013,7 +20641,9 @@
       "damage_immunities": [
         "cold"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wight",
@@ -20095,7 +20725,9 @@
       "condition_immunities": [
         "exhaustion",
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "will-o-wisp",
@@ -20176,7 +20808,9 @@
         "prone",
         "restrained",
         "unconscious"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "winter-wolf",
@@ -20242,7 +20876,9 @@
       "damage_immunities": [
         "cold"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wolf",
@@ -20298,7 +20934,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "worg",
@@ -20352,7 +20990,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wraith",
@@ -20426,7 +21066,9 @@
         "poisoned",
         "prone",
         "restrained"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "wyvern",
@@ -20492,7 +21134,9 @@
       "damage_vulnerabilities": [],
       "damage_resistances": [],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "xorn",
@@ -20566,7 +21210,9 @@
         "piercing and slashing from nonmagical weapons that aren't adamantine"
       ],
       "damage_immunities": [],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "young-black-dragon",
@@ -20633,7 +21279,9 @@
       "damage_immunities": [
         "acid"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "young-blue-dragon",
@@ -20695,7 +21343,9 @@
       "damage_immunities": [
         "lightning"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "young-brass-dragon",
@@ -20758,7 +21408,9 @@
       "damage_immunities": [
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "young-bronze-dragon",
@@ -20826,7 +21478,9 @@
       "damage_immunities": [
         "lightning"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "young-copper-dragon",
@@ -20889,7 +21543,9 @@
       "damage_immunities": [
         "acid"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "young-gold-dragon",
@@ -20958,7 +21614,9 @@
       "damage_immunities": [
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "young-green-dragon",
@@ -21028,7 +21686,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "young-red-dragon",
@@ -21090,7 +21750,9 @@
       "damage_immunities": [
         "fire"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "young-silver-dragon",
@@ -21154,7 +21816,9 @@
       "damage_immunities": [
         "cold"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "young-white-dragon",
@@ -21221,7 +21885,9 @@
       "damage_immunities": [
         "cold"
       ],
-      "condition_immunities": []
+      "condition_immunities": [],
+      "content_pack": "srd",
+      "reference_packs": []
     },
     {
       "index": "zombie",
@@ -21276,7 +21942,9 @@
       ],
       "condition_immunities": [
         "poisoned"
-      ]
+      ],
+      "content_pack": "srd",
+      "reference_packs": []
     }
   ]
 }

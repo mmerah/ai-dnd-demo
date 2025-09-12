@@ -192,5 +192,7 @@
     }
   },
   "starting_level": 3,
-  "starting_experience_points": 900
+  "starting_experience_points": 900,
+  "content_pack": "srd",
+  "reference_packs": []
 }
