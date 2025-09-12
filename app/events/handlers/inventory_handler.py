@@ -82,7 +82,7 @@ class InventoryHandler(BaseHandler):
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
-            logger.info(
+            logger.debug(
                 f"Currency Update: Gold {old_gold}→{character.currency.gold}, "
                 f"Silver {old_silver}→{character.currency.silver}, "
                 f"Copper {old_copper}→{character.currency.copper}",
@@ -98,8 +98,8 @@ class InventoryHandler(BaseHandler):
                 # Try to get item from repository, or create placeholder if it doesn't exist
                 if not self.item_repository.validate_reference(command.item_name):
                     # Create a placeholder item for dynamic items not in the repository
-                    logger.warning(f"Creating placeholder item for unknown item: '{command.item_name}'")
-                    # TODO: Implement dynamic item creation tool for AI to define custom items
+                    logger.warning(f"Creating placeholder item for AI-invented item: '{command.item_name}'")
+                    # TODO(MVP2): Implement dynamic item creation tool for AI to define custom items
                     item_def = ItemDefinition(
                         name=command.item_name,
                         type=ItemType.ADVENTURING_GEAR,
@@ -130,8 +130,7 @@ class InventoryHandler(BaseHandler):
             )
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-
-            logger.info(f"Item Added: {command.item_name} x{command.quantity}")
+            logger.debug(f"Item Added: {command.item_name} x{command.quantity}")
 
         elif isinstance(command, ModifyInventoryCommand) and command.quantity <= 0:
             existing_item = next((item for item in character.inventory if item.name == command.item_name), None)
@@ -162,8 +161,7 @@ class InventoryHandler(BaseHandler):
             )
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-
-            logger.info(f"Item Removed: {command.item_name} x{command.quantity}")
+            logger.debug(f"Item Removed: {command.item_name} x{command.quantity}")
 
         elif isinstance(command, EquipItemCommand):
             try:
@@ -178,9 +176,8 @@ class InventoryHandler(BaseHandler):
                 )
                 equipped_qty = item.equipped_quantity if item else 0
 
-                # Recompute derived values
-                self.game_service.recompute_character_state(game_state)
                 result.mutated = True
+                result.recompute_state = True
 
                 result.data = EquipItemResult(
                     item_name=item.name if item else command.item_name,
@@ -190,7 +187,7 @@ class InventoryHandler(BaseHandler):
                 )
 
                 result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-                logger.info(f"Item {'Equipped' if command.equipped else 'Unequipped'}: {command.item_name}")
+                logger.debug(f"Item {'Equipped' if command.equipped else 'Unequipped'}: {command.item_name}")
 
             except ValueError as e:
                 raise ValueError(f"Failed to equip/unequip item: {e}") from e

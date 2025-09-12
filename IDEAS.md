@@ -6,16 +6,13 @@ Full D&D 5e functionality with scenario management, character management, functi
 
 ## Ideas
 
-1. Enforce fail fast ?
-2. Loading when we are waiting for agent answer. Frontend should not allow chat input
-3. Cleanup logger calls to minimum
-4. Review manually the code
-5. Re-organize the code ? (review models, services all dependency inversion, ...)
-6. Update CLAUDE.md
-7. Content pack management ? data/ contain scenarios, characters, SRD monsters/items/spells/classes/conditions/backgrounds/... But users can create new content packs ? Sandbox content pack gives AI ability to create on-the-fly, users can create custom packs, scenario are by default SRD. You can create sandbox, with SRD+custom_pack+sandbox, ... ? Each database .json probably needs a new {"content_pack" : "str"} field ?
-8. Add pre-commit
-9. Add unit-tests ? Or rather in MVP2 for faster iteration for now ?
-10. Do all the TODO(MVP1)
+1. Loading when we are waiting for agent answer. Frontend should not allow chat input
+2. Content pack management ? data/ contain scenarios, characters, SRD monsters/items/spells/classes/conditions/backgrounds/... But users can create new content packs ? Sandbox content pack gives AI ability to create on-the-fly, users can create custom packs, scenario are by default SRD. You can create sandbox, with SRD+custom_pack+sandbox, ... ? Each database .json probably needs a new {"content_pack" : "str"} field ?
+3. Review manually the code
+4. Update CLAUDE.md
+5. Add pre-commit
+6. Add unit-tests ? Or rather in MVP2 for faster iteration for now ?
+7. Do all the TODO(MVP1) / TODO
 
 # MVP 2
 

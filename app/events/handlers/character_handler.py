@@ -27,7 +27,6 @@ from app.utils.entity_resolver import resolve_entity_with_fallback
 logger = logging.getLogger(__name__)
 
 
-# TODO(MVP1): Refactor all handlers. save games at the end of handle instead of 10 times throughout ? Enforce use of our services instead
 class CharacterHandler(BaseHandler):
     """Handler for character-related commands."""
 
@@ -80,7 +79,7 @@ class CharacterHandler(BaseHandler):
                 for participant in game_state.combat.participants:
                     if participant.entity_id == entity.instance_id:
                         participant.is_active = False
-                        logger.info(f"Combat participant {participant.name} marked as inactive (0 HP)")
+                        logger.debug(f"Combat participant {participant.name} marked as inactive (0 HP)")
                         break
 
             result.mutated = old_hp != new_hp
@@ -99,7 +98,7 @@ class CharacterHandler(BaseHandler):
             # Add broadcast commands
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
 
-            logger.info(
+            logger.debug(
                 f"HP Update: {entity.display_name} "
                 f"{'healed' if command.amount > 0 else 'took'} "
                 f"{abs(command.amount)} {command.damage_type} - HP: {old_hp} → {new_hp}/{max_hp}",
@@ -123,8 +122,7 @@ class CharacterHandler(BaseHandler):
             )
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-
-            logger.info(f"Condition Added: {entity.display_name} is now {command.condition}")
+            logger.debug(f"Condition Added: {entity.display_name} is now {command.condition}")
 
         elif isinstance(command, UpdateConditionCommand) and command.action == "remove":
             removed = False
@@ -146,8 +144,7 @@ class CharacterHandler(BaseHandler):
             )
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-
-            logger.info(f"Condition Removed: {entity.display_name} is no longer {command.condition}")
+            logger.debug(f"Condition Removed: {entity.display_name} is no longer {command.condition}")
 
         elif isinstance(command, UpdateSpellSlotsCommand):
             character = game_state.character.state
@@ -177,8 +174,7 @@ class CharacterHandler(BaseHandler):
             )
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-
-            logger.info(f"Spell Slots: Level {command.level} - {old_slots} → {new_slots}/{max_slots}")
+            logger.debug(f"Spell Slots: Level {command.level} - {old_slots} → {new_slots}/{max_slots}")
 
         elif isinstance(command, LevelUpCommand):
             character_instance = game_state.character
@@ -204,6 +200,6 @@ class CharacterHandler(BaseHandler):
             )
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-            logger.info(f"Level Up: {old_level} -> {new_level}, HP {old_max_hp}->{new_max_hp}")
+            logger.debug(f"Level Up: {old_level} -> {new_level}, HP {old_max_hp}->{new_max_hp}")
 
         return result

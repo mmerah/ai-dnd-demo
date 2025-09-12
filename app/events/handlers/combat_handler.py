@@ -105,7 +105,7 @@ class CombatHandler(BaseHandler):
                 combat = game_state.combat
                 participant = self.combat_service.add_participant(combat, player_entity)
                 participants_added.append(participant)
-                logger.info(
+                logger.debug(
                     f"Auto-added player '{player_entity.display_name}' to combat with ID: {player_entity.instance_id}, "
                     f"Initiative: {participant.initiative}"
                 )
@@ -124,7 +124,7 @@ class CombatHandler(BaseHandler):
 
             # Log detailed participant info
             participant_names = [f"{p.name} (ID: {p.entity_id}, Init: {p.initiative})" for p in participants_added]
-            logger.info(f"Combat started with {len(participants_added)} participants: {', '.join(participant_names)}")
+            logger.debug(f"Combat started with {len(participants_added)} participants: {', '.join(participant_names)}")
 
         elif isinstance(command, StartEncounterCombatCommand):
             scenario = game_state.scenario_instance.sheet
@@ -156,7 +156,7 @@ class CombatHandler(BaseHandler):
                     player_entity = game_state.character
                     player_participant = self.combat_service.add_participant(game_state.combat, player_entity)
                     all_participants.append(player_participant)
-                    logger.info(
+                    logger.debug(
                         f"Auto-added player '{player_entity.display_name}' to encounter combat with ID: {player_entity.instance_id}, "
                         f"Initiative: {player_participant.initiative}"
                     )
@@ -175,7 +175,7 @@ class CombatHandler(BaseHandler):
 
                 # Log detailed participant info with initiative for ALL participants
                 participant_names = [f"{p.name} (ID: {p.entity_id}, Init: {p.initiative})" for p in all_participants]
-                logger.info(
+                logger.debug(
                     f"Started encounter '{command.encounter_id}' with all participants: {', '.join(participant_names)}"
                 )
             else:
@@ -233,7 +233,7 @@ class CombatHandler(BaseHandler):
             # Log detailed spawn info
             if spawned_monsters:
                 monster_names = [f"{p.name} (ID: {p.entity_id})" for p in spawned_monsters]
-                logger.info(f"Spawned {len(spawned_monsters)} monsters: {', '.join(monster_names)}")
+                logger.debug(f"Spawned {len(spawned_monsters)} monsters: {', '.join(monster_names)}")
             else:
                 logger.warning("SpawnMonstersCommand executed but no monsters were spawned")
 
@@ -254,7 +254,7 @@ class CombatHandler(BaseHandler):
             # Check if combat has no active participants
             if not game_state.combat.is_active or self.combat_service.should_auto_end_combat(game_state):
                 # No enemies left or combat inactive - return a result indicating this
-                logger.info("No active enemies remaining - combat should be ended by AI")
+                logger.debug("No active enemies remaining - combat should be ended by AI")
                 result.mutated = True
                 # Return NextTurnResult indicating no enemies remain
                 result.data = NextTurnResult(
@@ -267,7 +267,7 @@ class CombatHandler(BaseHandler):
 
             if current:
                 message = f"Turn advanced to {current.name} (Round {game_state.combat.round_number})"
-                logger.info(
+                logger.debug(
                     f"Turn advanced: {old_turn.name if old_turn else 'None'} -> {current.name} (Round {old_round} -> {game_state.combat.round_number})"
                 )
             else:
@@ -287,7 +287,7 @@ class CombatHandler(BaseHandler):
                 # Log combat summary before ending
                 participant_count = len(game_state.combat.participants)
                 round_count = game_state.combat.round_number
-                logger.info(f"Ending combat after {round_count} rounds with {participant_count} participants")
+                logger.debug(f"Ending combat after {round_count} rounds with {participant_count} participants")
 
                 game_state.end_combat()
                 game_state.active_agent = AgentType.NARRATIVE

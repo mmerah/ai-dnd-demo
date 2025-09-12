@@ -76,7 +76,7 @@ class DiceHandler(BaseHandler):
             )
             result.data = dice_result
 
-            logger.info(
+            logger.debug(
                 f"Dice Roll: {command.roll_type} - {formula} = {roll_result.total} (rolls: {roll_result.rolls})",
             )
 

@@ -54,9 +54,8 @@ class TimeHandler(BaseHandler):
                     game_state.game_time.hour -= 24
                     game_state.game_time.day += 1
 
-            # Refresh derived values
-            self.game_service.recompute_character_state(game_state)
             result.mutated = True
+            result.recompute_state = True
 
             result.data = ShortRestResult(
                 old_hp=old_hp,
@@ -66,8 +65,7 @@ class TimeHandler(BaseHandler):
             )
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-
-            logger.info(f"Short Rest: Healed {healing} HP, time advanced 1 hour")
+            logger.debug(f"Short Rest: Healed {healing} HP, time advanced 1 hour")
 
         elif isinstance(command, LongRestCommand):
             # Long rest: restore all HP, spell slots, and remove conditions
@@ -92,9 +90,8 @@ class TimeHandler(BaseHandler):
                 game_state.game_time.hour -= 24
                 game_state.game_time.day += 1
 
-            # Refresh derived values
-            self.game_service.recompute_character_state(game_state)
             result.mutated = True
+            result.recompute_state = True
 
             result.data = LongRestResult(
                 old_hp=old_hp,
@@ -105,8 +102,7 @@ class TimeHandler(BaseHandler):
             )
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-
-            logger.info("Long Rest: Full HP restored, spell slots restored, conditions cleared")
+            logger.debug("Long Rest: Full HP restored, spell slots restored, conditions cleared")
 
         elif isinstance(command, AdvanceTimeCommand):
             # Advance game time by specified minutes
@@ -126,9 +122,8 @@ class TimeHandler(BaseHandler):
                 f"Day {game_state.game_time.day}, {game_state.game_time.hour:02d}:{game_state.game_time.minute:02d}"
             )
 
-            # Refresh derived values (time passing may not affect derived stats, but ensures consistency)
-            self.game_service.recompute_character_state(game_state)
             result.mutated = True
+            result.recompute_state = True
 
             result.data = AdvanceTimeResult(
                 old_time=old_time,
@@ -137,7 +132,6 @@ class TimeHandler(BaseHandler):
             )
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-
-            logger.info(f"Time Advanced: {command.minutes} minutes - {old_time} → {new_time}")
+            logger.debug(f"Time Advanced: {command.minutes} minutes - {old_time} → {new_time}")
 
         return result

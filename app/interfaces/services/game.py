@@ -16,6 +16,27 @@ from app.models.monster import MonsterSheet
 from app.models.scenario import ScenarioLocation
 
 
+class IGameFactory(ABC):
+    """Interface for creating new game instances."""
+
+    @abstractmethod
+    def initialize_game(
+        self,
+        character: CharacterSheet,
+        scenario_id: str,
+    ) -> GameState:
+        """Initialize a new game state.
+
+        Args:
+            character: The player's character sheet
+            scenario_id: Scenario to load
+
+        Returns:
+            Initialized GameState object
+        """
+        pass
+
+
 class IGameService(ABC):
     """Interface for managing game state."""
 

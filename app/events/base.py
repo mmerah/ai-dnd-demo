@@ -52,6 +52,8 @@ class CommandResult:
         self.follow_up_commands: list[BaseCommand] = []
         # Indicates mutated game state requiring save
         self.mutated: bool = False
+        # Indicates that character state needs to be recomputed after this command
+        self.recompute_state: bool = False
 
     def add_command(self, command: BaseCommand) -> None:
         """Add a follow-up command to be executed."""

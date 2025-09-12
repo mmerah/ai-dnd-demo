@@ -1,5 +1,6 @@
 """Centralized configuration management for the application."""
 
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -55,13 +56,7 @@ class Settings(BaseSettings):
         return self.summarizer_model
 
 
-# Create singleton instance
-_settings: Settings | None = None
-
-
+@lru_cache(maxsize=1)
 def get_settings() -> Settings:
     """Get the singleton settings instance."""
-    global _settings
-    if _settings is None:
-        _settings = Settings()
-    return _settings
+    return Settings()

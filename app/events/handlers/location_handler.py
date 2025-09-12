@@ -59,7 +59,27 @@ class LocationHandler(BaseHandler):
             if not command.location_id:
                 raise ValueError("Location ID cannot be empty")
 
-            # TODO(MVP2): Validate traversal from current location using scenario connections
+            # Validate traversal from current location using scenario connections
+            if game_state.scenario_instance.is_in_known_location():
+                current_location_id = game_state.scenario_instance.current_location_id
+                scenario = game_state.scenario_instance.sheet
+                current_location = scenario.get_location(current_location_id)
+
+                if current_location:
+                    # Check if target location is directly connected from current location
+                    is_connected = any(
+                        conn.to_location_id == command.location_id for conn in current_location.connections
+                    )
+
+                    if not is_connected:
+                        # Check if we can traverse to the target location
+                        valid_connections = [
+                            conn.to_location_id for conn in current_location.connections if conn.can_traverse()
+                        ]
+                        raise ValueError(
+                            f"Cannot travel to '{command.location_id}' from current location '{current_location_id}'. "
+                            f"Valid destinations: {valid_connections}"
+                        )
 
             # Delegate to LocationService for location change + initialization (auto-resolves name/description)
             self.location_service.change_location(
@@ -80,8 +100,7 @@ class LocationHandler(BaseHandler):
 
             # Broadcast update
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-
-            logger.info(f"Location changed to: {command.location_name}")
+            logger.debug(f"Location changed to: {command.location_name}")
 
         elif isinstance(command, DiscoverSecretCommand):
             # Validate secret ID
@@ -108,8 +127,7 @@ class LocationHandler(BaseHandler):
 
             # Broadcast update
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-
-            logger.info(f"Secret discovered: {command.secret_id}")
+            logger.debug(f"Secret discovered: {command.secret_id}")
 
         elif isinstance(command, MoveNPCCommand):
             # Validate IDs
@@ -144,7 +162,7 @@ class LocationHandler(BaseHandler):
             )
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-            logger.info(f"Moved NPC {npc.display_name} to {target.name}")
+            logger.debug(f"Moved NPC {npc.display_name} to {target.name}")
 
         elif isinstance(command, UpdateLocationStateCommand):
             # Use provided location_id or default to current location
@@ -191,7 +209,6 @@ class LocationHandler(BaseHandler):
 
             # Broadcast update
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-
-            logger.info(f"Location state updated: {updates}")
+            logger.debug(f"Location state updated: {updates}")
 
         return result

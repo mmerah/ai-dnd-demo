@@ -24,6 +24,7 @@ from app.interfaces.services.game import (
     ICombatService,
     IConversationService,
     IEventManager,
+    IGameFactory,
     IGameService,
     IGameStateManager,
     ILocationService,
@@ -70,6 +71,7 @@ from app.services.game import GameService
 from app.services.game.combat_service import CombatService
 from app.services.game.conversation_service import ConversationService
 from app.services.game.event_manager import EventManager
+from app.services.game.game_factory import GameFactory
 from app.services.game.game_state_manager import GameStateManager
 from app.services.game.message_manager import MessageManager as GameMessageManager
 from app.services.game.metadata_service import MetadataService
@@ -87,6 +89,14 @@ class Container:
     """
 
     @cached_property
+    def game_factory(self) -> IGameFactory:
+        return GameFactory(
+            scenario_service=self.scenario_service,
+            compute_service=self.character_compute_service,
+            location_service=self.location_service,
+        )
+
+    @cached_property
     def game_service(self) -> IGameService:
         return GameService(
             scenario_service=self.scenario_service,
@@ -97,6 +107,7 @@ class Container:
             item_repository=self.item_repository,
             monster_factory=self.monster_factory,
             location_service=self.location_service,
+            game_factory=self.game_factory,
         )
 
     @cached_property

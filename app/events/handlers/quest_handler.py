@@ -90,8 +90,7 @@ class QuestHandler(BaseHandler):
 
             # Broadcast update
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-
-            logger.info(f"Quest started: {quest.name}")
+            logger.debug(f"Quest started: {quest.name}")
 
         elif isinstance(command, CompleteObjectiveCommand):
             # Get active quest
@@ -116,8 +115,7 @@ class QuestHandler(BaseHandler):
 
                 # Broadcast update
                 result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-
-                logger.info(f"Objective completed: {command.objective_id} in quest {command.quest_id}")
+                logger.debug(f"Objective completed: {command.objective_id} in quest {command.quest_id}")
 
                 # If quest is complete, move it to completed list
                 if quest_complete:
@@ -150,8 +148,7 @@ class QuestHandler(BaseHandler):
 
                 # Broadcast update
                 result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-
-                logger.info(f"Quest completed: {quest.name}")
+                logger.debug(f"Quest completed: {quest.name}")
             else:
                 raise RuntimeError(f"Failed to complete quest '{command.quest_id}'")
 
@@ -185,8 +182,7 @@ class QuestHandler(BaseHandler):
 
                     # Broadcast update
                     result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-
-                    logger.info(f"Progressed to act: {new_act.name}")
+                    logger.debug(f"Progressed to act: {new_act.name}")
                 else:
                     raise RuntimeError("Failed to get new act after progression")
             else:

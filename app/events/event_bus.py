@@ -94,6 +94,10 @@ class EventBus(IEventBus):
         # Execute command with handlers raising exceptions for errors
         result = await handler.handle(command, game_state)
 
+        # Recompute character state if needed
+        if result.mutated or result.recompute_state:
+            self.game_service.recompute_character_state(game_state)
+
         # Centralized persistence: save once if handler mutated state
         if result.mutated:
             self.game_service.save_game(game_state)
