@@ -2,13 +2,12 @@
 
 import logging
 
+from app.agents.core.types import AgentType
 from app.events.base import BaseCommand, CommandResult
-from app.events.commands.character_commands import UpdateHPCommand
 from app.events.commands.dice_commands import RollDiceCommand
 from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.services.common import IDiceService
 from app.interfaces.services.game import IGameService
-from app.models.attributes import EntityType
 from app.models.dice import RollType
 from app.models.game_state import GameState
 from app.models.tool_results import RollDiceResult
@@ -30,6 +29,17 @@ class DiceHandler(BaseHandler):
         result = CommandResult()
 
         if isinstance(command, RollDiceCommand):
+            # Validate agent type during combat
+            # During combat, only combat agent should roll combat-related dice
+            if (
+                game_state.combat.is_active
+                and command.roll_type in ("attack", "damage", "initiative")
+                and command.agent_type
+                and command.agent_type != AgentType.COMBAT
+            ):
+                logger.warning(
+                    f"Combat roll ({command.roll_type}) made by {command.agent_type.value} agent during active combat - should be COMBAT agent only"
+                )
             # Parse special dice notations for advantage/disadvantage
             dice_str = command.dice
             roll_type = RollType.NORMAL
@@ -60,34 +70,11 @@ class DiceHandler(BaseHandler):
                 modifier=command.modifier,
                 rolls=roll_result.rolls,
                 total=roll_result.total,
-                target=command.target,
                 ability=command.ability,
                 skill=command.skill,
-                damage_type=command.damage_type,
                 critical=roll_result.is_critical_failure or roll_result.is_critical_success,
             )
             result.data = dice_result
-
-            # If this is a damage roll and apply_as_damage is True, automatically apply the damage
-            if command.roll_type == "damage" and command.apply_as_damage and command.apply_to_entity_id:
-                # Create an UpdateHPCommand to apply the damage (negative amount)
-                # Infer entity type from provided string; default to MONSTER if unspecified
-                etype = EntityType.MONSTER
-                if command.apply_to_entity_type:
-                    try:
-                        etype = EntityType(command.apply_to_entity_type)
-                    except Exception:
-                        etype = EntityType.MONSTER
-
-                damage_command = UpdateHPCommand(
-                    game_id=command.game_id,
-                    entity_id=command.apply_to_entity_id,
-                    entity_type=etype,
-                    amount=-roll_result.total,  # Negative for damage
-                    damage_type=command.damage_type or "unspecified",
-                )
-                result.add_command(damage_command)
-                logger.info(f"Auto-applying {roll_result.total} damage to entity {command.apply_to_entity_id}")
 
             logger.info(
                 f"Dice Roll: {command.roll_type} - {formula} = {roll_result.total} (rolls: {roll_result.rolls})",

@@ -1,4 +1,11 @@
-"""Combat initialization tools for D&D 5e AI Dungeon Master."""
+"""Combat management tools for D&D 5e AI Dungeon Master.
+
+IMPORTANT: Tools are agent-specific:
+- NARRATIVE AGENT: start_combat, start_encounter_combat, spawn_monsters
+- COMBAT AGENT: next_turn, end_combat, add_combatant, remove_combatant
+
+The narrative agent MUST STOP after calling start_combat/start_encounter_combat.
+"""
 
 import logging
 
@@ -26,6 +33,9 @@ logger = logging.getLogger(__name__)
 async def start_combat(ctx: RunContext[AgentDependencies], entity_ids: list[str]) -> BaseModel:
     """Start combat with existing entities by their instance IDs.
 
+    **NARRATIVE AGENT ONLY**: This tool starts combat and hands control to the combat agent.
+    After calling this tool, the narrative agent MUST STOP IMMEDIATELY.
+
     Use for unscripted fights with entities already present at the player's current location
     (e.g., spawned earlier, notable monsters, or nearby NPCs).
 
@@ -44,6 +54,9 @@ async def start_combat(ctx: RunContext[AgentDependencies], entity_ids: list[str]
 async def start_encounter_combat(ctx: RunContext[AgentDependencies], encounter_id: str) -> BaseModel:
     """Start a predefined encounter from the scenario.
 
+    **NARRATIVE AGENT ONLY**: This tool starts combat and hands control to the combat agent.
+    After calling this tool, the narrative agent MUST STOP IMMEDIATELY.
+
     Use when triggering specific scenario encounters.
 
     Args:
@@ -60,6 +73,9 @@ async def start_encounter_combat(ctx: RunContext[AgentDependencies], encounter_i
 @tool_handler(SpawnMonstersCommand)
 async def spawn_monsters(ctx: RunContext[AgentDependencies], monsters: list[MonsterSpawnInfo]) -> BaseModel:
     """Spawn monsters from the database.
+
+    **NARRATIVE AGENT ONLY**: Use this to add monsters before combat starts.
+    Do NOT use during active combat.
 
     Use when adding monsters to the current location from the monster database.
 
@@ -78,6 +94,9 @@ async def spawn_monsters(ctx: RunContext[AgentDependencies], monsters: list[Mons
 async def next_turn(ctx: RunContext[AgentDependencies]) -> BaseModel:
     """Advance combat to the next turn.
 
+    **COMBAT AGENT ONLY**: This tool is exclusively for the combat agent.
+    MANDATORY: Must be called after EVERY combat turn completes.
+
     Use during combat to rotate to the next participant and increment the round as needed.
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")
@@ -85,13 +104,18 @@ async def next_turn(ctx: RunContext[AgentDependencies]) -> BaseModel:
 
 @tool_handler(EndCombatCommand)
 async def end_combat(ctx: RunContext[AgentDependencies]) -> BaseModel:
-    """End the current combat encounter and clean up defeated monsters."""
+    """End the current combat encounter and clean up defeated monsters.
+
+    **COMBAT AGENT ONLY**: This tool is exclusively for the combat agent.
+    Call when all enemies are defeated or combat otherwise concludes."""
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 
 @tool_handler(AddParticipantCommand)
 async def add_combatant(ctx: RunContext[AgentDependencies], entity_id: str, entity_type: EntityType) -> BaseModel:
     """Add a participant to the current combat by entity id and type.
+
+    **COMBAT AGENT ONLY**: This tool is exclusively for the combat agent.
 
     Args:
         entity_id: Instance ID of the combatant
@@ -102,5 +126,7 @@ async def add_combatant(ctx: RunContext[AgentDependencies], entity_id: str, enti
 
 @tool_handler(RemoveParticipantCommand)
 async def remove_combatant(ctx: RunContext[AgentDependencies], entity_id: str) -> BaseModel:
-    """Remove a participant from combat by entity id."""
+    """Remove a participant from combat by entity id.
+
+    **COMBAT AGENT ONLY**: This tool is exclusively for the combat agent."""
     raise NotImplementedError("This is handled by the @tool_handler decorator")

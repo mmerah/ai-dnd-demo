@@ -50,6 +50,11 @@ class ToolCallHandler(EventHandler):
             context.processed_tool_calls.add(tool_call_id)
             context.tool_calls_by_id[tool_call_id] = tool_name
 
+        # Track if combat was started
+        if tool_name in ["start_combat", "start_encounter_combat"]:
+            context.combat_started = True
+            logger.info(f"Combat started via {tool_name} - narrative agent should stop")
+
         self.event_logger.log_tool_call(tool_name, processed_args)
         logger.debug(f"Tool call captured (log only): {tool_name} with args: {processed_args}")
 

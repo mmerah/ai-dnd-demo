@@ -47,3 +47,15 @@ class BroadcastGameUpdateCommand(BaseCommand):
 
     def get_handler_name(self) -> str:
         return "broadcast"
+
+
+@dataclass
+class BroadcastPolicyWarningCommand(BaseCommand):
+    """Command to broadcast explicit policy warnings to the frontend."""
+
+    message: str = ""
+    tool_name: str | None = None
+    agent_type: str | None = None
+
+    def get_handler_name(self) -> str:
+        return "broadcast"

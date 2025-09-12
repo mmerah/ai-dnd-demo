@@ -67,22 +67,25 @@ async def discover_secret(ctx: RunContext[AgentDependencies], secret_id: str) ->
 @tool_handler(UpdateLocationStateCommand)
 async def update_location_state(
     ctx: RunContext[AgentDependencies],
+    location_id: str | None = None,
     danger_level: str | None = None,
     complete_encounter: str | None = None,
     add_effect: str | None = None,
 ) -> BaseModel:
-    """Update the state of the current location.
+    """Update the state of a location (defaults to current location if not specified).
 
     Use this to reflect changes in the environment, such as clearing a room of enemies
     or a magical effect being applied to the area.
 
     Args:
+        location_id: Optional location ID to update (defaults to current location).
         danger_level: New danger level (safe/low/moderate/high/extreme/cleared).
         complete_encounter: The ID of an encounter that has been resolved.
         add_effect: A new environmental effect to add (e.g., 'magical darkness', 'heavy fog').
 
     Examples:
-        - After defeating enemies: danger_level="cleared", complete_encounter="goblin_guards"
+        - After defeating enemies in current room: danger_level="cleared", complete_encounter="goblin_guards"
+        - Update another location: location_id="tavern", danger_level="safe"
         - A magical trap is sprung: add_effect="magical darkness"
         - Area becomes safer: danger_level="low"
     """

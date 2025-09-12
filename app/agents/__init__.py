@@ -1,13 +1,7 @@
-"""Agent module for D&D AI Dungeon Master."""
+"""Agents package.
 
-from app.agents.core.base import BaseAgent
-from app.agents.core.types import AgentType
-from app.agents.factory import AgentFactory
-from app.agents.narrative.agent import NarrativeAgent
+Lightweight __init__ to avoid import cycles during tests. Import submodules
+directly from their paths, e.g. `from app.agents.core.types import AgentType`.
+"""
 
-__all__ = [
-    "AgentFactory",
-    "AgentType",
-    "BaseAgent",
-    "NarrativeAgent",
-]
+__all__: list[str] = []

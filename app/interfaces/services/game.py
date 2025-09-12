@@ -103,6 +103,31 @@ class ICombatService(ABC):
         """Convert encounter spawns into concrete entities based on probabilities and data sources."""
         pass
 
+    @abstractmethod
+    def generate_combat_prompt(self, game_state: GameState) -> str:
+        """Generate a prompt for the combat agent based on current turn."""
+        pass
+
+    @abstractmethod
+    def should_auto_continue(self, game_state: GameState) -> bool:
+        """Check if combat should auto-continue for NPC/Monster turns."""
+        pass
+
+    @abstractmethod
+    def get_combat_status(self, game_state: GameState) -> str:
+        """Get a brief combat status summary."""
+        pass
+
+    @abstractmethod
+    def should_auto_end_combat(self, game_state: GameState) -> bool:
+        """Check if combat should automatically end (no enemies remaining)."""
+        pass
+
+    @abstractmethod
+    def reset_combat_tracking(self) -> None:
+        """Reset internal combat tracking state when combat ends."""
+        pass
+
 
 class IGameStateManager(ABC):
     """Interface for managing active game states in memory."""
@@ -179,6 +204,15 @@ class ISaveManager(ABC):
         pass
 
 
+class IPreSaveSanitizer(ABC):
+    """Interface for sanitizing game state prior to persistence."""
+
+    @abstractmethod
+    def sanitize(self, game_state: GameState) -> None:
+        """Mutate game_state to ensure it is in a clean, consistent shape before saving."""
+        pass
+
+
 class IConversationService(ABC):
     """Interface for recording narrative messages with metadata and persistence."""
 
@@ -211,6 +245,7 @@ class IMessageManager(ABC):
         location: str,
         npcs_mentioned: list[str],
         combat_round: int,
+        combat_occurrence: int | None = None,
     ) -> Message:
         """Add a message to conversation history.
 
@@ -222,6 +257,7 @@ class IMessageManager(ABC):
             location: Where this occurred
             npcs_mentioned: NPCs referenced
             combat_round: Combat round if in combat
+            combat_occurrence: Which combat occurrence this message belongs to
 
         Returns:
             Created message

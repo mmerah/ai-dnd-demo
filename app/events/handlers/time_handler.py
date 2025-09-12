@@ -56,7 +56,7 @@ class TimeHandler(BaseHandler):
 
             # Refresh derived values
             self.game_service.recompute_character_state(game_state)
-            self.game_service.save_game(game_state)
+            result.mutated = True
 
             result.data = ShortRestResult(
                 old_hp=old_hp,
@@ -94,7 +94,7 @@ class TimeHandler(BaseHandler):
 
             # Refresh derived values
             self.game_service.recompute_character_state(game_state)
-            self.game_service.save_game(game_state)
+            result.mutated = True
 
             result.data = LongRestResult(
                 old_hp=old_hp,
@@ -128,7 +128,7 @@ class TimeHandler(BaseHandler):
 
             # Refresh derived values (time passing may not affect derived stats, but ensures consistency)
             self.game_service.recompute_character_state(game_state)
-            self.game_service.save_game(game_state)
+            result.mutated = True
 
             result.data = AdvanceTimeResult(
                 old_time=old_time,

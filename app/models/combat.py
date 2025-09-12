@@ -26,6 +26,7 @@ class CombatState(BaseModel):
     turn_index: int = Field(ge=0, default=0)
     participants: list[CombatParticipant] = Field(default_factory=list)
     is_active: bool = False
+    combat_occurrence: int = Field(ge=0, default=0)
 
     def add_participant(
         self,
@@ -96,13 +97,15 @@ class CombatState(BaseModel):
         current = self.get_current_turn()
         current_id = current.entity_id if current else None
         lines = [f"Round {self.round_number} - Turn Order:"]
+        turn_num = 1
         for p in self.participants:
             if not p.is_active:
                 continue
             marker = "→ " if current_id and p.entity_id == current_id else "  "
             tag = " [PLAYER]" if p.is_player else ""
             init = p.initiative if p.initiative is not None else 0
-            lines.append(f"{marker}{init:2d}: {p.name}{tag} (ID: {p.entity_id})")
+            lines.append(f"{marker}{turn_num}. {p.name}{tag} (Initiative: {init}, ID: {p.entity_id})")
+            turn_num += 1
         return "\n".join(lines)
 
 

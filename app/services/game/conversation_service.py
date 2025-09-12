@@ -29,6 +29,7 @@ class ConversationService(IConversationService):
         npcs_mentioned = self.metadata_service.extract_npcs_mentioned(content, known_npcs)
         location = self.metadata_service.get_current_location(game_state) or "Unknown"
         combat_round = self.metadata_service.get_combat_round(game_state) or 0
+        combat_occurrence = game_state.combat.combat_occurrence if game_state.combat.is_active else None
 
         # Add message and persist
         message = self.message_manager.add_message(
@@ -39,6 +40,7 @@ class ConversationService(IConversationService):
             location=location,
             npcs_mentioned=npcs_mentioned,
             combat_round=combat_round,
+            combat_occurrence=combat_occurrence,
         )
         self.save_manager.save_game(game_state)
         return message

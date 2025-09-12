@@ -333,7 +333,15 @@ async function continueGame(gameId) {
                 if (msg.role === 'player') {
                     addMessage(msg.content, 'player');
                 } else if (msg.role === 'dm') {
-                    addMessage(msg.content, 'dm');
+                    // Check if it's a system message (auto-combat, summary, or system messages)
+                    if (msg.content.startsWith('[Auto Combat:') || 
+                        msg.content.startsWith('[Combat System:') || 
+                        msg.content.startsWith('[Summary:') ||
+                        msg.content.startsWith('[System:')) {
+                        addMessage(msg.content, 'system');
+                    } else {
+                        addMessage(msg.content, 'dm');
+                    }
                 }
             });
         }
@@ -620,8 +628,8 @@ function initializeSSE() {
                 if (params.dc !== undefined) {
                     toolMessage += ` DC ${params.dc}`;
                 }
-                if (params.target && params.target !== 'player') {
-                    toolMessage += ` for ${params.target}`;
+                if (params.purpose) {
+                    toolMessage += ` for ${params.purpose}`;
                 }
             } else {
                 // Generic parameter display for other tools
@@ -715,6 +723,17 @@ function initializeSSE() {
             console.log(`[SSE] Adding narrative: ${data.content.substring(0, 50)}...`);
             addMessage(data.content, 'dm');
         }
+    });
+
+    // Policy warnings (distinct UI treatment)
+    sseSource.addEventListener('policy_warning', (event) => {
+        const data = JSON.parse(event.data);
+        console.log('[SSE] Policy warning received:', data);
+        const detail = [];
+        if (data.tool_name) detail.push(`tool: ${data.tool_name}`);
+        if (data.agent_type) detail.push(`agent: ${data.agent_type}`);
+        const suffix = detail.length ? ` (${detail.join(', ')})` : '';
+        addMessage(`⚠️ ${data.message}${suffix}`, 'policy-warning');
     });
     
     
@@ -877,6 +896,7 @@ function updateUI() {
     updateCharacterSheet();
     updateLocationTime();
     updateCombatIndicator();
+    updateActiveAgent();
 }
 
 // Update character sheet
@@ -1469,14 +1489,223 @@ function updateLocationTime() {
     }
 }
 
-// Update combat indicator
+// Update combat indicator and combat panel
 function updateCombatIndicator() {
     const indicator = document.getElementById('combatIndicator');
-    if (gameState && gameState.combat && gameState.combat.active) {
+    const combatSection = document.getElementById('combatSection');
+    
+    if (gameState && gameState.combat && gameState.combat.is_active) {
+        // Show combat indicator
         indicator.classList.remove('hidden');
+        
+        // Show and update combat panel
+        if (combatSection) {
+            combatSection.style.display = 'block';
+            updateCombatPanel(gameState.combat);
+        }
+        
+        // Ensure agent is set to combat when combat is active
+        // This helps sync the frontend if there's any mismatch
+        if (gameState.active_agent !== 'combat') {
+            console.log('[UI] Combat active but agent is not combat, expecting update soon');
+        }
+        
         console.log('[UI] Combat mode active');
     } else {
+        // Hide combat elements
         indicator.classList.add('hidden');
+        if (combatSection) {
+            combatSection.style.display = 'none';
+        }
+        
+        // Ensure agent is not combat when combat is inactive
+        if (gameState.active_agent === 'combat') {
+            console.log('[UI] Combat inactive but agent is still combat, expecting update soon');
+        }
+    }
+}
+
+// Update combat panel with current combat state
+function updateCombatPanel(combat) {
+    if (!combat) return;
+    
+    // Update round number
+    const roundElement = document.getElementById('combatRound');
+    if (roundElement) {
+        roundElement.textContent = combat.round_number || 1;
+    }
+    
+    // Update current turn
+    const currentTurnElement = document.getElementById('currentTurn');
+    const turnOrderList = document.getElementById('turnOrderList');
+    
+    if (!combat.participants || combat.participants.length === 0) {
+        if (currentTurnElement) currentTurnElement.textContent = 'No participants';
+        if (turnOrderList) turnOrderList.innerHTML = '<div class="no-participants">No participants in combat</div>';
+        return;
+    }
+    
+    // Find current turn participant
+    const activeParticipants = combat.participants.filter(p => p.is_active !== false);
+    const currentIndex = Math.min(combat.turn_index || 0, activeParticipants.length - 1);
+    const currentParticipant = activeParticipants[currentIndex];
+    
+    if (currentTurnElement && currentParticipant) {
+        currentTurnElement.textContent = currentParticipant.name;
+    }
+    
+    // Build turn order list
+    if (turnOrderList) {
+        turnOrderList.innerHTML = '';
+        
+        // Sort by initiative (highest first)
+        const sortedParticipants = [...combat.participants].sort((a, b) => {
+            const initA = a.initiative !== null && a.initiative !== undefined ? a.initiative : -1;
+            const initB = b.initiative !== null && b.initiative !== undefined ? b.initiative : -1;
+            return initB - initA;
+        });
+        
+        sortedParticipants.forEach((participant, index) => {
+            if (!participant.is_active) return;
+            
+            const participantDiv = document.createElement('div');
+            participantDiv.className = 'turn-order-item';
+            
+            // Check if this is the current turn
+            const isCurrent = currentParticipant && 
+                             participant.entity_id === currentParticipant.entity_id;
+            
+            if (isCurrent) {
+                participantDiv.classList.add('current-turn');
+            }
+            
+            // Build participant display
+            const initiative = participant.initiative !== null && participant.initiative !== undefined 
+                             ? participant.initiative : '?';
+            const playerTag = participant.is_player ? ' [PLAYER]' : '';
+            const turnArrow = isCurrent ? '→ ' : '';
+            
+            // Try to get HP info for this participant
+            let hpDisplay = '';
+            if (participant.entity_type === 'player' && gameState.character && gameState.character.state) {
+                const hp = gameState.character.state.hit_points;
+                if (hp) {
+                    hpDisplay = ` <span class="participant-hp">(${hp.current}/${hp.maximum} HP)</span>`;
+                }
+            } else if (participant.entity_type === 'monster') {
+                // Look for monster in gameState.monsters
+                const monster = gameState.monsters?.find(m => m.instance_id === participant.entity_id);
+                if (monster && monster.state && monster.state.hit_points) {
+                    hpDisplay = ` <span class="participant-hp">(${monster.state.hit_points.current}/${monster.state.hit_points.maximum} HP)</span>`;
+                }
+            } else if (participant.entity_type === 'npc') {
+                // Look for NPC in gameState.npcs
+                const npc = gameState.npcs?.find(n => n.instance_id === participant.entity_id);
+                if (npc && npc.state && npc.state.hit_points) {
+                    hpDisplay = ` <span class="participant-hp">(${npc.state.hit_points.current}/${npc.state.hit_points.maximum} HP)</span>`;
+                }
+            }
+            
+            participantDiv.innerHTML = `
+                <span class="turn-arrow">${turnArrow}</span>
+                <span class="initiative">${initiative}</span>
+                <span class="participant-name">${participant.name}${playerTag}${hpDisplay}</span>
+            `;
+            
+            turnOrderList.appendChild(participantDiv);
+        });
+    }
+}
+
+// Update active agent indicator
+function updateActiveAgent() {
+    const agentElement = document.getElementById('activeAgent');
+    const agentIndicator = document.getElementById('agentIndicator');
+    
+    if (!agentElement || !gameState) return;
+    
+    const agentType = gameState.active_agent || 'narrative';
+    
+    // Store previous agent for transition detection
+    const previousAgent = agentElement.dataset.currentAgent || 'narrative';
+    
+    // Format agent name and icon for display
+    let displayName = 'Narrative';
+    let agentIcon = '📖';  // Default narrative icon
+    
+    switch (agentType) {
+        case 'combat':
+            displayName = 'Combat';
+            agentIcon = '⚔️';
+            break;
+        case 'summarizer':
+            displayName = 'Summarizer';
+            agentIcon = '📝';
+            break;
+        case 'narrative':
+        default:
+            displayName = 'Narrative';
+            agentIcon = '📖';
+            break;
+    }
+    
+    // Only update if agent has changed
+    if (previousAgent !== agentType) {
+        console.log(`[AGENT] Switching from ${previousAgent} to ${agentType}`);
+        
+        // Add transition class for animation
+        if (agentIndicator) {
+            agentIndicator.classList.add('agent-transitioning');
+            
+            // Update content after a brief delay for smooth transition
+            setTimeout(() => {
+                // Update the icon if there's a separate icon element
+                const iconElement = agentIndicator.querySelector('.agent-icon');
+                if (iconElement) {
+                    iconElement.textContent = agentIcon;
+                    // Update the existing span
+                    const activeAgentSpan = document.getElementById('activeAgent');
+                    if (activeAgentSpan) {
+                        activeAgentSpan.textContent = displayName;
+                        activeAgentSpan.dataset.currentAgent = agentType;
+                    }
+                } else {
+                    // If no separate icon element, replace entire content
+                    agentIndicator.innerHTML = `${agentIcon} <span id="activeAgent" data-current-agent="${agentType}">${displayName}</span>`;
+                }
+                
+                // Update agent indicator styling based on type (moved here for sync with text)
+                agentIndicator.className = 'agent-indicator';
+                agentIndicator.classList.add(`agent-${agentType}`);
+                
+                // Remove transition class after animation
+                setTimeout(() => {
+                    agentIndicator.classList.remove('agent-transitioning');
+                }, 300);
+            }, 150);
+        } else {
+            // No animation, just update
+            agentElement.textContent = displayName;
+            agentElement.dataset.currentAgent = agentType;
+            
+            // Update agent indicator styling immediately
+            if (agentIndicator) {
+                agentIndicator.className = 'agent-indicator';
+                agentIndicator.classList.add(`agent-${agentType}`);
+            }
+        }
+    } else {
+        // Agent hasn't changed, but ensure styling is correct
+        if (agentIndicator) {
+            // Remove existing agent classes and re-apply
+            agentIndicator.className = 'agent-indicator';
+            agentIndicator.classList.add(`agent-${agentType}`);
+        }
+    }
+    
+    // Ensure visibility
+    if (agentIndicator) {
+        agentIndicator.style.display = 'inline-block';
     }
 }
 

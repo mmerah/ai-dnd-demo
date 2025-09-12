@@ -22,6 +22,7 @@ class MessageManager(IMessageManager):
         location: str,
         npcs_mentioned: list[str],
         combat_round: int,
+        combat_occurrence: int | None = None,
     ) -> Message:
         """Add a message to conversation history.
 
@@ -45,6 +46,7 @@ class MessageManager(IMessageManager):
             location=location,
             npcs_mentioned=npcs_mentioned,
             combat_round=combat_round if combat_round > 0 else None,
+            combat_occurrence=combat_occurrence,
         )
 
         game_state.add_message(message)

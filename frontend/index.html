@@ -55,6 +55,7 @@
                 <span class="time">🕐 <span id="gameTime">Day 1, 12:00</span></span>
                 <span class="act-chapter">📖 <span id="currentAct">Act I</span></span>
                 <span id="combatIndicator" class="combat-indicator hidden">⚔️ COMBAT</span>
+                <span id="agentIndicator" class="agent-indicator">🤖 <span id="activeAgent">Narrative</span></span>
             </div>
             <div>
                 <button id="saveGame" class="btn-small">💾 Save</button>
@@ -84,6 +85,29 @@
                             <h4>People here:</h4>
                             <div id="npcsList" class="npcs-list">
                                 <!-- NPCs will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Combat Information Panel -->
+                <div class="sheet-section" id="combatSection" style="display: none;">
+                    <h3>⚔️ Combat Status</h3>
+                    <div class="combat-info">
+                        <div class="combat-header">
+                            <div class="combat-round">
+                                <span class="label">Round:</span>
+                                <span id="combatRound" class="combat-value">1</span>
+                            </div>
+                            <div class="combat-turn">
+                                <span class="label">Current Turn:</span>
+                                <span id="currentTurn" class="combat-value">-</span>
+                            </div>
+                        </div>
+                        <div class="turn-order">
+                            <h4>Turn Order:</h4>
+                            <div id="turnOrderList" class="turn-order-list">
+                                <!-- Turn order will be populated here -->
                             </div>
                         </div>
                     </div>

@@ -1,4 +1,4 @@
-"""Agent that handles all narrative D&D gameplay."""
+"""Combat agent for tactical combat management."""
 
 import logging
 from collections.abc import AsyncIterable, AsyncIterator
@@ -12,11 +12,11 @@ from app.agents.core.dependencies import AgentDependencies
 from app.agents.core.event_stream.base import EventContext, EventStreamProcessor
 from app.agents.core.event_stream.thinking import ThinkingHandler
 from app.agents.core.event_stream.tools import ToolEventHandler
-from app.agents.core.prompts import NARRATIVE_SYSTEM_PROMPT
+from app.agents.core.prompts import COMBAT_SYSTEM_PROMPT
 from app.agents.core.types import AgentType
 from app.events.commands.broadcast_commands import BroadcastNarrativeCommand
 from app.interfaces.events import IEventBus
-from app.interfaces.services.ai import IContextService, IEventLoggerService
+from app.interfaces.services.ai import IContextService, IEventLoggerService, IToolCallExtractorService
 from app.interfaces.services.data import IItemRepository, IMonsterRepository, ISpellRepository
 from app.interfaces.services.game import (
     IConversationService,
@@ -30,22 +30,14 @@ from app.models.ai_response import NarrativeResponse, StreamEvent, StreamEventTy
 from app.models.game_state import GameState, MessageRole
 from app.services.ai.debug_logger import AgentDebugLogger
 from app.services.ai.message_converter_service import MessageConverterService
-from app.tools import (
-    character_tools,
-    combat_tools,
-    dice_tools,
-    inventory_tools,
-    location_tools,
-    quest_tools,
-    time_tools,
-)
+from app.tools import character_tools, combat_tools, dice_tools
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
-class NarrativeAgent(BaseAgent):
-    """Agent that handles all narrative D&D gameplay."""
+class CombatAgent(BaseAgent):
+    """Agent specialized for tactical combat resolution."""
 
     agent: Agent[AgentDependencies, str]
     context_service: IContextService
@@ -61,6 +53,7 @@ class NarrativeAgent(BaseAgent):
     save_manager: ISaveManager
     event_manager: IEventManager
     conversation_service: IConversationService
+    tool_call_extractor: IToolCallExtractorService | None = None
     debug_logger: AgentDebugLogger | None = None
     _event_processor: EventStreamProcessor | None = None
 
@@ -81,29 +74,18 @@ class NarrativeAgent(BaseAgent):
         return self._event_processor
 
     def get_required_tools(self) -> list[ToolFunction]:
-        """Return list of tools this agent requires."""
+        """Return list of combat-specific tools only."""
         return [
+            # Dice tools for all rolls
             dice_tools.roll_dice,
+            # Character state management
             character_tools.update_hp,
             character_tools.update_condition,
-            character_tools.update_spell_slots,
-            character_tools.level_up,
-            inventory_tools.modify_currency,
-            inventory_tools.modify_inventory,
-            time_tools.short_rest,
-            time_tools.long_rest,
-            time_tools.advance_time,
-            location_tools.change_location,
-            location_tools.discover_secret,
-            location_tools.update_location_state,
-            location_tools.move_npc_to_location,
-            combat_tools.start_combat,
-            combat_tools.start_encounter_combat,
-            combat_tools.spawn_monsters,
-            quest_tools.start_quest,
-            quest_tools.complete_objective,
-            quest_tools.complete_quest,
-            quest_tools.progress_act,
+            # Combat flow management - CRITICAL
+            combat_tools.next_turn,  # MANDATORY after each turn
+            combat_tools.end_combat,
+            combat_tools.add_combatant,
+            combat_tools.remove_combatant,
         ]
 
     async def event_stream_handler(
@@ -111,14 +93,14 @@ class NarrativeAgent(BaseAgent):
         ctx: RunContext[AgentDependencies],
         event_stream: AsyncIterable[object],
     ) -> None:
-        """Handle streaming events"""
-        logger.debug("Event stream handler started")
+        """Handle streaming events during combat."""
+        logger.debug("Combat event stream handler started")
         processor = self.event_processor
         if not processor.context.game_id:
             processor.context.game_id = ctx.deps.game_state.game_id
         await processor.process_stream(event_stream, ctx)
         logger.debug(
-            f"Captured {len(processor.context.processed_tool_calls)} tool events in stream handler",
+            f"Captured {len(processor.context.processed_tool_calls)} tool events in combat stream",
         )
 
     async def process(
@@ -127,17 +109,17 @@ class NarrativeAgent(BaseAgent):
         game_state: GameState,
         stream: bool = True,
     ) -> AsyncIterator[StreamEvent]:
-        """Process a prompt and yield stream events."""
+        """Process a combat action and yield stream events."""
         self.event_processor.context.clear()
         self.event_processor.context.game_id = game_state.game_id
 
         self.event_logger.set_game_id(game_state.game_id)
-        self.event_logger.set_agent_type(AgentType.NARRATIVE.value)
+        self.event_logger.set_agent_type(AgentType.COMBAT.value)
 
         deps = AgentDependencies(
             game_state=game_state,
             event_bus=self.event_bus,
-            agent_type=AgentType.NARRATIVE,
+            agent_type=AgentType.COMBAT,
             scenario_service=self.scenario_service,
             item_repository=self.item_repository,
             monster_repository=self.monster_repository,
@@ -148,14 +130,15 @@ class NarrativeAgent(BaseAgent):
             save_manager=self.save_manager,
         )
 
-        context = self.context_service.build_context(game_state, AgentType.NARRATIVE)
+        # Build combat-focused context
+        context = self.context_service.build_context(game_state, AgentType.COMBAT)
         message_history = self.message_converter.to_pydantic_messages(
             game_state.conversation_history,
-            agent_type=AgentType.NARRATIVE,
+            agent_type=AgentType.COMBAT,
         )
 
-        full_prompt = f"\n\n{context}\n\nPlayer: {prompt}"
-        logger.debug(f"Processing prompt: {prompt[:100]}... (stream={stream})")
+        full_prompt = f"\n\n{context}\n\nPlayer Action: {prompt}"
+        logger.info(f"Combat agent processing: {prompt[:100]}... (stream={stream})")
 
         # Log agent call for debugging if enabled
         if self.debug_logger:
@@ -182,18 +165,15 @@ class NarrativeAgent(BaseAgent):
                     conv_history.append({"role": "assistant", "content": msg_content})
 
             self.debug_logger.log_agent_call(
-                agent_type=AgentType.NARRATIVE,
+                agent_type=AgentType.COMBAT,
                 game_id=game_state.game_id,
-                system_prompt=NARRATIVE_SYSTEM_PROMPT,
+                system_prompt=COMBAT_SYSTEM_PROMPT,
                 conversation_history=conv_history,
                 user_prompt=prompt,
                 context=context,
             )
 
         try:
-            _ = self.event_processor
-            logger.debug(f"Starting response generation (stream={stream})")
-
             result = await self.agent.run(
                 full_prompt,
                 deps=deps,
@@ -201,55 +181,44 @@ class NarrativeAgent(BaseAgent):
                 event_stream_handler=self.event_stream_handler,
             )
 
-            logger.debug(f"Response generated: {result.output}...")
+            logger.debug(f"Combat response generated: {result.output[:100]}...")
 
-            # Check if combat was started during this turn
-            if self.event_processor.context.combat_started:
-                # Minimal response when transitioning to combat
-                # The combat agent will handle the actual combat narrative
-                logger.info("Combat started during narrative turn - using minimal response")
-                short_msg = "Combat has begun!"
+            # Check for any tool calls in the narrative output and execute them
+            if self.tool_call_extractor:
+                extracted_tools = self.tool_call_extractor.extract_tool_calls(result.output)
+                if extracted_tools:
+                    logger.warning(f"Found {len(extracted_tools)} tool calls in narrative output - executing them")
+                    for tool_call in extracted_tools:
+                        success = await self.tool_call_extractor.execute_extracted_tool_call(
+                            tool_call, game_state, AgentType.COMBAT
+                        )
+                        if success:
+                            logger.info(f"Successfully executed extracted tool: {tool_call.get('function')}")
+                        else:
+                            logger.error(f"Failed to execute extracted tool: {tool_call.get('function')}")
 
-                # Broadcast minimal narrative
-                await self.event_bus.submit_and_wait(
-                    [
-                        BroadcastNarrativeCommand(game_id=game_state.game_id, content=short_msg, is_complete=False),
-                        BroadcastNarrativeCommand(game_id=game_state.game_id, content="", is_complete=True),
-                    ],
-                )
+            # Broadcast combat narrative via SSE
+            await self.event_bus.submit_and_wait(
+                [
+                    BroadcastNarrativeCommand(game_id=game_state.game_id, content=result.output, is_complete=False),
+                    BroadcastNarrativeCommand(game_id=game_state.game_id, content="", is_complete=True),
+                ],
+            )
 
-                # Record minimal messages
-                self.conversation_service.record_message(game_state, MessageRole.PLAYER, prompt, AgentType.NARRATIVE)
-                self.conversation_service.record_message(game_state, MessageRole.DM, short_msg, AgentType.NARRATIVE)
+            # Record combat messages
+            self.conversation_service.record_message(game_state, MessageRole.PLAYER, prompt, AgentType.COMBAT)
+            self.conversation_service.record_message(game_state, MessageRole.DM, result.output, AgentType.COMBAT)
 
-                yield StreamEvent(
-                    type=StreamEventType.COMPLETE,
-                    content=NarrativeResponse(narrative=short_msg),
-                )
-            else:
-                # Normal narrative response
-                # Broadcast final narrative via SSE
-                await self.event_bus.submit_and_wait(
-                    [
-                        BroadcastNarrativeCommand(game_id=game_state.game_id, content=result.output, is_complete=False),
-                        BroadcastNarrativeCommand(game_id=game_state.game_id, content="", is_complete=True),
-                    ],
-                )
-
-                # Record messages
-                self.conversation_service.record_message(game_state, MessageRole.PLAYER, prompt, AgentType.NARRATIVE)
-                self.conversation_service.record_message(game_state, MessageRole.DM, result.output, AgentType.NARRATIVE)
-
-                yield StreamEvent(
-                    type=StreamEventType.COMPLETE,
-                    content=NarrativeResponse(narrative=result.output),
-                )
+            yield StreamEvent(
+                type=StreamEventType.COMPLETE,
+                content=NarrativeResponse(narrative=result.output),
+            )
 
         except Exception as e:
+            logger.error(f"Combat agent error: {e}", exc_info=True)
             self.event_logger.log_error(e)
             yield StreamEvent(
                 type=StreamEventType.ERROR,
                 content=str(e),
                 metadata={"error_type": type(e).__name__},
             )
-            raise

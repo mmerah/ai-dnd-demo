@@ -60,7 +60,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         print("Data validation successful!")
 
         print(f"Save directory: {settings.save_directory}")
-        print(f"Using model: {settings.openrouter_model}")
+        print("Using models:")
+        print(f"  - Narrative: {settings.get_narrative_model()}")
+        print(f"  - Combat: {settings.get_combat_model()}")
+        print(f"  - Summarizer: {settings.get_summarizer_model()}")
     except Exception as e:
         raise RuntimeError(f"Configuration or data validation error: {e}") from e
 

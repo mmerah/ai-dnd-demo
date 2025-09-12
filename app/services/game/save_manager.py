@@ -67,11 +67,19 @@ class SaveManager(ISaveManager):
         self._save_instances(save_dir, game_state)
         self._save_conversation_history(save_dir, game_state.conversation_history)
         self._save_game_events(save_dir, game_state.game_events)
-        self._save_monster_instances(save_dir, game_state.monsters)
 
-        # Save combat state if active
+        # Save only alive monsters (redundant check but ensures consistency)
+        alive_monsters = [m for m in game_state.monsters if m.is_alive()]
+        self._save_monster_instances(save_dir, alive_monsters)
+
+        # Save combat state if active, delete if inactive
+        combat_file = save_dir / "combat.json"
         if game_state.combat.is_active:
             self._save_combat(save_dir, game_state.combat)
+        elif combat_file.exists():
+            # Clean up stale combat file when combat is no longer active
+            combat_file.unlink()
+            logger.debug(f"Removed inactive combat.json for game {game_state.game_id}")
 
         return save_dir
 
@@ -251,10 +259,24 @@ class SaveManager(ISaveManager):
         monsters_dir = save_dir / "instances" / "monsters"
         monsters_dir.mkdir(parents=True, exist_ok=True)
 
+        # Get current saved monster files
+        existing_monster_files = set(monsters_dir.glob("*.json")) if monsters_dir.exists() else set()
+
+        # Track which files we're keeping
+        active_monster_files = set()
+
+        # Save alive monsters
         for monster in monsters:
             file_path = monsters_dir / f"{monster.instance_id}.json"
+            active_monster_files.add(file_path)
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(monster.model_dump_json(indent=2))
+
+        # Clean up dead monster files
+        dead_monster_files = existing_monster_files - active_monster_files
+        for dead_file in dead_monster_files:
+            dead_file.unlink()
+            logger.debug(f"Removed dead monster file: {dead_file.name}")
 
     def _save_combat(self, save_dir: Path, combat: CombatState) -> None:
         """Save combat state."""

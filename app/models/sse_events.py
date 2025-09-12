@@ -25,6 +25,7 @@ class SSEEventType(str, Enum):
     DICE_ROLL = "dice_roll"
     COMBAT_UPDATE = "combat_update"
     SYSTEM = "system"
+    POLICY_WARNING = "policy_warning"
     ERROR = "error"
     GAME_UPDATE = "game_update"
     SCENARIO_INFO = "scenario_info"
@@ -93,6 +94,14 @@ class SystemMessageData(BaseSSEData):
     level: Literal["info", "warning", "error"] = "info"
 
 
+class PolicyWarningData(BaseSSEData):
+    """Data for explicit policy warning events (tool gating, etc.)."""
+
+    message: str
+    tool_name: str | None = None
+    agent_type: str | None = None
+
+
 class ErrorData(BaseSSEData):
     """Data for error events."""
 
@@ -129,6 +138,7 @@ SSEData = (
     | ToolResultData
     | CombatUpdateData
     | SystemMessageData
+    | PolicyWarningData
     | ErrorData
     | GameUpdateData
     | ScenarioInfoData

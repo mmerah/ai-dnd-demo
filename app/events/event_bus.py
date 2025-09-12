@@ -8,7 +8,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from app.events.base import BaseCommand
+from app.events.base import BaseCommand, CommandResult
 from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.events import IEventBus
 from app.interfaces.services.game import IGameService
@@ -43,37 +43,8 @@ class EventBus(IEventBus):
             self.processing_task = asyncio.create_task(self._process_queue())
 
     async def execute_command(self, command: BaseCommand) -> BaseModel | None:
-        """Execute a command synchronously and return its result data.
-
-        This is used by tools to get immediate results from their commands.
-        Returns the data field from the CommandResult as a BaseModel.
-        """
-        logger.info(f"Executing command synchronously: {type(command).__name__}")
-
-        # Get game state
-        game_state = self.game_service.get_game(command.game_id)
-        if not game_state:
-            raise ValueError(f"Game {command.game_id} not found")
-
-        # Find handler
-        handler_name = command.get_handler_name()
-        handler = self._handlers.get(handler_name)
-
-        if not handler:
-            raise ValueError(f"No handler found for {handler_name}")
-
-        if not handler.can_handle(command):
-            raise ValueError(f"Handler {handler_name} cannot handle {type(command).__name__}")
-
-        # Execute command with handlers raising exceptions for errors
-        result = await handler.handle(command, game_state)
-
-        # Process follow-up commands asynchronously (don't wait)
-        if result.follow_up_commands:
-            logger.debug(f"Submitting {len(result.follow_up_commands)} follow-up commands")
-            await self.submit_commands(result.follow_up_commands)
-
-        # Return the result data
+        """Execute a command synchronously and return its result data (BaseModel)."""
+        result = await self._run_command(command)
         return result.data
 
     async def submit_commands(self, commands: list[BaseCommand]) -> None:
@@ -100,8 +71,12 @@ class EventBus(IEventBus):
             self.processing = False
 
     async def _process_command(self, command: BaseCommand) -> None:
-        """Process a single command."""
-        logger.info(f"Processing command: {type(command).__name__}")
+        """Process a single command from the queue."""
+        await self._run_command(command)
+
+    async def _run_command(self, command: BaseCommand) -> CommandResult:
+        """Core command execution used by both queued and direct execution."""
+        logger.info(f"Executing command: {type(command).__name__}")
 
         # Get game state
         game_state = self.game_service.get_game(command.game_id)
@@ -121,10 +96,16 @@ class EventBus(IEventBus):
         # Execute command with handlers raising exceptions for errors
         result = await handler.handle(command, game_state)
 
+        # Centralized persistence: save once if handler mutated state
+        if result.mutated:
+            self.game_service.save_game(game_state)
+
         # Process follow-up commands
         if result.follow_up_commands:
             logger.debug(f"Processing {len(result.follow_up_commands)} follow-up commands")
             await self.submit_commands(result.follow_up_commands)
+
+        return result
 
     async def wait_for_completion(self) -> None:
         """Wait for all queued commands to complete."""

@@ -1,4 +1,8 @@
-"""Character management tools for D&D 5e AI Dungeon Master."""
+"""Character management tools for D&D 5e AI Dungeon Master.
+
+IMPORTANT: During active combat, update_hp and update_condition should ONLY be used by the combat agent.
+The narrative agent uses these for non-combat situations only.
+"""
 
 import logging
 from typing import Literal
@@ -30,6 +34,9 @@ async def update_hp(
     # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Update hit points for damage or healing.
 
+    **IMPORTANT**: During active combat, this tool should ONLY be used by the COMBAT AGENT.
+    The narrative agent can use this for non-combat healing/damage only.
+
     Use after damage rolls or healing effects.
 
     Args:
@@ -57,6 +64,9 @@ async def update_condition(
 ) -> BaseModel:
     # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Add or remove a status condition from a target.
+
+    **IMPORTANT**: During active combat, this tool should ONLY be used by the COMBAT AGENT.
+    The narrative agent can use this for non-combat conditions only.
 
     Args:
         entity_id: Instance ID of target (player, npc, or monster)

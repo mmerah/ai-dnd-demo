@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator, AsyncIterator
 from typing import Any
 
+from app.agents.core.types import AgentType
 from app.common.types import JSONSerializable
 from app.models.ai_response import AIResponse
 from app.models.game_state import GameState
@@ -48,6 +49,12 @@ class IMessageService(ABC):
         pass
 
     @abstractmethod
+    async def send_policy_warning(
+        self, game_id: str, message: str, tool_name: str | None, agent_type: str | None
+    ) -> None:
+        pass
+
+    @abstractmethod
     async def send_game_update(self, game_id: str, game_state: GameState) -> None:
         pass
 
@@ -70,7 +77,16 @@ class IContextService(ABC):
     """Interface for creating augmented context for AI prompting."""
 
     @abstractmethod
-    def build_context(self, game_state: GameState) -> str:
+    def build_context(self, game_state: GameState, agent_type: AgentType) -> str:
+        """Build context for AI agent.
+
+        Args:
+            game_state: Current game state
+            agent_type: Type of agent requesting context
+
+        Returns:
+            Context string optimized for the specified agent type
+        """
         pass
 
 
@@ -79,6 +95,10 @@ class IEventLoggerService(ABC):
 
     @abstractmethod
     def set_game_id(self, game_id: str) -> None:
+        pass
+
+    @abstractmethod
+    def set_agent_type(self, agent_type: str) -> None:
         pass
 
     @abstractmethod
@@ -95,4 +115,39 @@ class IEventLoggerService(ABC):
 
     @abstractmethod
     def log_error(self, error: Exception) -> None:
+        pass
+
+
+class IToolCallExtractorService(ABC):
+    """Interface for extracting and executing tool calls from narrative text."""
+
+    @abstractmethod
+    def extract_tool_calls(self, text: str) -> list[dict[str, Any]]:
+        """Extract tool calls from narrative text.
+
+        Args:
+            text: The narrative text that may contain tool calls
+
+        Returns:
+            List of tool call dictionaries with 'function' and 'arguments' keys
+        """
+        pass
+
+    @abstractmethod
+    async def execute_extracted_tool_call(
+        self,
+        tool_call: dict[str, Any],
+        game_state: GameState,
+        agent_type: AgentType,
+    ) -> bool:
+        """Execute an extracted tool call.
+
+        Args:
+            tool_call: Dictionary with 'function' and 'arguments' keys
+            game_state: Current game state
+            agent_type: The agent type executing the tool
+
+        Returns:
+            True if tool was executed successfully, False otherwise
+        """
         pass

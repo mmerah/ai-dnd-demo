@@ -4,6 +4,7 @@ from functools import cached_property
 
 from app.agents.core.types import AgentType
 from app.agents.factory import AgentFactory
+from app.agents.summarizer.agent import SummarizerAgent
 from app.config import get_settings
 from app.events.event_bus import EventBus
 from app.events.handlers.broadcast_handler import BroadcastHandler
@@ -29,6 +30,7 @@ from app.interfaces.services.game import (
     IMessageManager,
     IMetadataService,
     IMonsterFactory,
+    IPreSaveSanitizer,
     ISaveManager,
 )
 from app.interfaces.services.scenario import IScenarioService
@@ -38,6 +40,7 @@ from app.services.ai import AIService, MessageService
 from app.services.ai.context_service import ContextService
 from app.services.ai.event_logger_service import EventLoggerService
 from app.services.ai.orchestrator_service import AgentOrchestrator
+from app.services.ai.tool_call_extractor_service import ToolCallExtractorService
 from app.services.character import CharacterService
 from app.services.character.compute_service import CharacterComputeService
 from app.services.character.level_service import LevelProgressionService
@@ -70,6 +73,7 @@ from app.services.game.game_state_manager import GameStateManager
 from app.services.game.message_manager import MessageManager as GameMessageManager
 from app.services.game.metadata_service import MetadataService
 from app.services.game.monster_factory import MonsterFactory
+from app.services.game.pre_save_sanitizer import PreSaveSanitizer
 from app.services.game.save_manager import SaveManager
 from app.services.scenario import ScenarioService
 
@@ -86,6 +90,7 @@ class Container:
         return GameService(
             scenario_service=self.scenario_service,
             save_manager=self.save_manager,
+            pre_save_sanitizer=self.pre_save_sanitizer,
             game_state_manager=self.game_state_manager,
             compute_service=self.character_compute_service,
             item_repository=self.item_repository,
@@ -306,6 +311,8 @@ class Container:
     @cached_property
     def ai_service(self) -> IAIService:
         settings = get_settings()
+
+        # Create narrative agent
         narrative_agent = AgentFactory.create_agent(
             AgentType.NARRATIVE,
             event_bus=self.event_bus,
@@ -322,7 +329,54 @@ class Container:
             event_logger_service=self.event_logger_service,
             debug=settings.debug_ai,
         )
-        orchestrator = AgentOrchestrator(narrative_agent)
+
+        # Create combat agent
+        combat_agent = AgentFactory.create_agent(
+            AgentType.COMBAT,
+            event_bus=self.event_bus,
+            scenario_service=self.scenario_service,
+            item_repository=self.item_repository,
+            monster_repository=self.monster_repository,
+            spell_repository=self.spell_repository,
+            metadata_service=self.metadata_service,
+            message_manager=self.game_message_manager,
+            event_manager=self.event_manager,
+            save_manager=self.save_manager,
+            conversation_service=self.conversation_service,
+            context_service=self.context_service,
+            event_logger_service=self.event_logger_service,
+            tool_call_extractor_service=self.tool_call_extractor_service,
+            debug=settings.debug_ai,
+        )
+
+        # Create summarizer agent
+        summarizer_agent = AgentFactory.create_agent(
+            AgentType.SUMMARIZER,
+            event_bus=self.event_bus,
+            scenario_service=self.scenario_service,
+            item_repository=self.item_repository,
+            monster_repository=self.monster_repository,
+            spell_repository=self.spell_repository,
+            metadata_service=self.metadata_service,
+            message_manager=self.game_message_manager,
+            event_manager=self.event_manager,
+            save_manager=self.save_manager,
+            conversation_service=self.conversation_service,
+            context_service=self.context_service,
+            event_logger_service=self.event_logger_service,
+            debug=settings.debug_ai,
+        )
+        # The orchestrator requires a summarizer and not just a BaseAgent
+        assert isinstance(summarizer_agent, SummarizerAgent)
+
+        orchestrator = AgentOrchestrator(
+            narrative_agent=narrative_agent,
+            combat_agent=combat_agent,
+            summarizer_agent=summarizer_agent,
+            combat_service=self.combat_service,
+            event_bus=self.event_bus,
+            game_service=self.game_service,
+        )
         return AIService(orchestrator)
 
     @cached_property
@@ -336,6 +390,10 @@ class Container:
     @cached_property
     def combat_service(self) -> ICombatService:
         return CombatService()
+
+    @cached_property
+    def pre_save_sanitizer(self) -> IPreSaveSanitizer:
+        return PreSaveSanitizer()
 
     @cached_property
     def conversation_service(self) -> IConversationService:
@@ -357,6 +415,10 @@ class Container:
     def event_logger_service(self) -> IEventLoggerService:
         settings = get_settings()
         return EventLoggerService(game_id="", debug=settings.debug_ai)
+
+    @cached_property
+    def tool_call_extractor_service(self) -> ToolCallExtractorService:
+        return ToolCallExtractorService(event_bus=self.event_bus)
 
 
 # Singleton instance of the container

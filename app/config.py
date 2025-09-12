@@ -12,7 +12,11 @@ class Settings(BaseSettings):
 
     # OpenRouter API Configuration
     openrouter_api_key: str = Field(..., alias="OPENROUTER_API_KEY")
-    openrouter_model: str = Field(default="openai/gpt-oss-120b", alias="OPENROUTER_MODEL")
+
+    # Agent-specific model configuration
+    narrative_model: str = Field(..., alias="NARRATIVE_MODEL")
+    combat_model: str = Field(..., alias="COMBAT_MODEL")
+    summarizer_model: str = Field(..., alias="SUMMARIZER_MODEL")
 
     # Retry Configuration
     max_retries: int = Field(default=3, alias="MAX_RETRIES")
@@ -23,6 +27,7 @@ class Settings(BaseSettings):
 
     # Debug Configuration
     debug_ai: bool = Field(default=False, alias="DEBUG_AI")
+    debug_agent_context: bool = Field(default=False, alias="DEBUG_AGENT_CONTEXT")
 
     class Config:
         """Pydantic configuration."""
@@ -36,6 +41,18 @@ class Settings(BaseSettings):
         super().__init__(**kwargs)
         # Ensure save directory exists
         self.save_directory.mkdir(parents=True, exist_ok=True)
+
+    def get_narrative_model(self) -> str:
+        """Get the narrative agent model"""
+        return self.narrative_model
+
+    def get_combat_model(self) -> str:
+        """Get the combat agent model"""
+        return self.combat_model
+
+    def get_summarizer_model(self) -> str:
+        """Get the summarizer agent model"""
+        return self.summarizer_model
 
 
 # Create singleton instance

@@ -76,8 +76,7 @@ class QuestHandler(BaseHandler):
             # Add to game state
             game_state.add_quest(quest_copy)
 
-            # Save game state
-            self.game_service.save_game(game_state)
+            result.mutated = True
 
             result.data = StartQuestResult(
                 quest_id=command.quest_id,
@@ -105,8 +104,7 @@ class QuestHandler(BaseHandler):
                 # Check if quest is now complete
                 quest_complete = quest.status == QuestStatus.COMPLETED
 
-                # Save game state
-                self.game_service.save_game(game_state)
+                result.mutated = True
 
                 result.data = CompleteObjectiveResult(
                     quest_id=command.quest_id,
@@ -124,7 +122,6 @@ class QuestHandler(BaseHandler):
                 # If quest is complete, move it to completed list
                 if quest_complete:
                     game_state.complete_quest(command.quest_id)
-                    self.game_service.save_game(game_state)
             else:
                 raise ValueError(f"Objective '{command.objective_id}' not found in quest")
 
@@ -142,8 +139,7 @@ class QuestHandler(BaseHandler):
 
             # Move to completed quests
             if game_state.complete_quest(command.quest_id):
-                # Save game state
-                self.game_service.save_game(game_state)
+                result.mutated = True
 
                 result.data = CompleteQuestResult(
                     quest_id=command.quest_id,
@@ -179,8 +175,7 @@ class QuestHandler(BaseHandler):
                 if new_act:
                     game_state.scenario_instance.current_act_id = new_act.id
 
-                    # Save game state
-                    self.game_service.save_game(game_state)
+                    result.mutated = True
 
                     result.data = ProgressActResult(
                         new_act_id=new_act.id,

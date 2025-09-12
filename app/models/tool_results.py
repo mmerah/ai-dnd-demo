@@ -165,7 +165,7 @@ class StartEncounterCombatResult(BaseModel):
     type: str = "trigger_encounter"
     encounter_id: str
     encounter_type: str
-    monsters_spawned: list[CombatParticipant]
+    participants: list[CombatParticipant]
     message: str
 
 
@@ -206,16 +206,9 @@ class RollDiceResult(BaseModel):
     modifier: int
     rolls: list[int]
     total: int
-    target: str | None = None
     ability: str | None = None
     skill: str | None = None
-    damage_type: str | None = None
-    dc: int | None = None
     critical: bool | None = None
-    source: str | None = None
-    weapon_name: str | None = None
-    attacker: str | None = None
-    combatants: list[str] | None = None
 
 
 class LevelUpResult(BaseModel):

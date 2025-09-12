@@ -9,11 +9,15 @@ from pydantic import BaseModel
 from pydantic_ai import RunContext
 
 from app.agents.core.dependencies import AgentDependencies
+from app.agents.core.types import AgentType
 from app.common.types import JSONSerializable
 from app.events.base import BaseCommand
-from app.events.commands.broadcast_commands import BroadcastToolCallCommand, BroadcastToolResultCommand
+from app.events.commands.broadcast_commands import (
+    BroadcastPolicyWarningCommand,
+    BroadcastToolCallCommand,
+    BroadcastToolResultCommand,
+)
 from app.models.game_state import GameEventType
-from app.models.tool_results import ToolResult
 
 logger = logging.getLogger(__name__)
 
@@ -52,6 +56,52 @@ def tool_handler(
             game_state = ctx.deps.game_state
             event_bus = ctx.deps.event_bus
             tool_name = func.__name__
+            agent_type = ctx.deps.agent_type
+
+            # Validation: Prevent narrative agent from using combat tools during active combat
+            if game_state.combat.is_active and agent_type == AgentType.NARRATIVE:
+                # List of tools that should ONLY be used by combat agent during combat
+                combat_only_tools = [
+                    "roll_dice",  # During combat, only combat agent should roll
+                    "update_hp",  # During combat, only combat agent should update HP
+                    "update_condition",  # During combat, only combat agent should update conditions
+                    "next_turn",  # Combat flow control
+                    "end_combat",  # Combat flow control
+                    "add_combatant",  # Combat management
+                    "remove_combatant",  # Combat management
+                ]
+
+                if tool_name in combat_only_tools:
+                    error_msg = (
+                        f"BLOCKED: Narrative agent attempted to use '{tool_name}' during active combat. "
+                        f"This tool should only be used by the combat agent during combat. "
+                        f"The narrative agent must STOP after calling start_combat or start_encounter_combat."
+                    )
+                    logger.error(error_msg)
+                    # Also broadcast a policy warning so the user can see policy enforcement
+                    try:
+                        await event_bus.submit_and_wait(
+                            [
+                                BroadcastPolicyWarningCommand(
+                                    game_id=game_state.game_id,
+                                    message="Blocked tool usage during combat",
+                                    tool_name=tool_name,
+                                    agent_type=agent_type.value,
+                                )
+                            ]
+                        )
+                    except Exception:
+                        logger.debug("Failed to broadcast blocked-tool system message", exc_info=True)
+                    # Return a dummy result to prevent the agent from crashing
+                    # but the error will be logged
+                    from pydantic import BaseModel as BlockedBaseModel
+
+                    class BlockedToolResult(BlockedBaseModel):
+                        type: str = "blocked"
+                        message: str
+                        tool_name: str
+
+                    return BlockedToolResult(message=error_msg, tool_name=tool_name, type="blocked")
 
             original_kwargs: dict[str, JSONSerializable] = cast(dict[str, JSONSerializable], dict(kwargs))
 
@@ -101,12 +151,29 @@ def tool_handler(
                     raise RuntimeError(
                         "tool_handler requires either command_class or command_factory to be provided",
                     )
-                command = command_class(game_id=game_state.game_id, **command_kwargs)
+                # Pass agent_type to commands that support it
+                # Build kwargs with game_id first
+                final_kwargs: dict[str, Any] = {"game_id": game_state.game_id}
+
+                # Add agent_type if the command class has this field
+                if (
+                    hasattr(command_class, "__dataclass_fields__")
+                    and "agent_type" in command_class.__dataclass_fields__
+                ):
+                    final_kwargs["agent_type"] = ctx.deps.agent_type
+
+                # Add the rest of the command kwargs
+                final_kwargs.update(command_kwargs)
+
+                command = command_class(**final_kwargs)
             result = await event_bus.execute_command(command)
 
             # 4. Broadcast tool result and 5. Persist TOOL_RESULT event
             if result:
                 # Guard result type before broadcasting and persisting
+                # Import here to avoid circular imports
+                from app.models.tool_results import ToolResult
+
                 if not isinstance(result, ToolResult):
                     logger.warning(
                         f"Tool '{tool_name}' returned unexpected result type: {type(result)}; "
@@ -114,7 +181,7 @@ def tool_handler(
                     )
                     return result
 
-                tool_result = cast(ToolResult, result)
+                tool_result = result
 
                 await event_bus.submit_command(
                     BroadcastToolResultCommand(

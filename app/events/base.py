@@ -50,6 +50,8 @@ class CommandResult:
     def __init__(self, data: BaseModel | None = None):
         self.data = data
         self.follow_up_commands: list[BaseCommand] = []
+        # Indicates mutated game state requiring save
+        self.mutated: bool = False
 
     def add_command(self, command: BaseCommand) -> None:
         """Add a follow-up command to be executed."""

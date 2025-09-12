@@ -14,6 +14,7 @@ from app.models.sse_events import (
     GameUpdateData,
     InitialNarrativeData,
     NarrativeData,
+    PolicyWarningData,
     ScenarioInfoData,
     SSEEvent,
     SSEEventType,
@@ -48,12 +49,20 @@ class MessageService(IMessageService):
             is_chunk: Whether this is a streaming chunk
             is_complete: Whether the narrative is complete
         """
-        data = NarrativeData(
-            word=content if is_chunk else None,
-            complete=True if is_complete else None,
-            start=True if not is_chunk and not is_complete else None,
-            content=content if not is_chunk and not is_complete and content else None,
-        )
+        # For complete messages with content, send the content directly
+        # This handles the orchestrator's system messages like "[Auto Combat: ...]"
+        if is_complete and content:
+            data = NarrativeData(
+                content=content,
+                complete=True,
+            )
+        else:
+            data = NarrativeData(
+                word=content if is_chunk else None,
+                complete=True if is_complete else None,
+                start=True if not is_chunk and not is_complete else None,
+                content=content if not is_chunk and not is_complete and content else None,
+            )
         await self.broadcast_service.publish(game_id, SSEEventType.NARRATIVE.value, data)
 
     async def send_tool_call(self, game_id: str, tool_name: str, parameters: dict[str, JSONSerializable]) -> None:
@@ -91,6 +100,21 @@ class MessageService(IMessageService):
         """
         data = ErrorData(error=error, type=error_type)
         await self.broadcast_service.publish(game_id, SSEEventType.ERROR.value, data)
+
+    async def send_policy_warning(
+        self, game_id: str, message: str, tool_name: str | None, agent_type: str | None
+    ) -> None:
+        """
+        Send a policy warning event (e.g., blocked tool usage).
+
+        Args:
+            game_id: Game identifier
+            message: Warning message
+            tool_name: Affected tool name, if any
+            agent_type: Agent type involved, if any
+        """
+        data = PolicyWarningData(message=message, tool_name=tool_name, agent_type=agent_type)
+        await self.broadcast_service.publish(game_id, SSEEventType.POLICY_WARNING.value, data)
 
     async def send_game_update(self, game_id: str, game_state: GameState) -> None:
         """

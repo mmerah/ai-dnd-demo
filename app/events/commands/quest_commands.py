@@ -1,7 +1,8 @@
 """Commands for quest management."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
+from app.agents.core.types import AgentType
 from app.events.base import BaseCommand
 
 
@@ -9,6 +10,7 @@ from app.events.base import BaseCommand
 class StartQuestCommand(BaseCommand):
     """Command to start a new quest."""
 
+    agent_type: AgentType | None = field(default=None)
     quest_id: str = ""
 
     def get_handler_name(self) -> str:
@@ -19,6 +21,7 @@ class StartQuestCommand(BaseCommand):
 class CompleteObjectiveCommand(BaseCommand):
     """Command to complete a quest objective."""
 
+    agent_type: AgentType | None = field(default=None)
     quest_id: str = ""
     objective_id: str = ""
 
@@ -30,6 +33,7 @@ class CompleteObjectiveCommand(BaseCommand):
 class CompleteQuestCommand(BaseCommand):
     """Command to complete an entire quest."""
 
+    agent_type: AgentType | None = field(default=None)
     quest_id: str = ""
 
     def get_handler_name(self) -> str:
@@ -39,6 +43,8 @@ class CompleteQuestCommand(BaseCommand):
 @dataclass
 class ProgressActCommand(BaseCommand):
     """Command to progress to the next act."""
+
+    agent_type: AgentType | None = field(default=None)
 
     def get_handler_name(self) -> str:
         return "quest"

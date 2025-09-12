@@ -36,6 +36,7 @@ class Message(BaseModel):
     location: str | None = None
     npcs_mentioned: list[str] = Field(default_factory=list)
     combat_round: int | None = None
+    combat_occurrence: int | None = None
 
 
 class GameEventType(str, Enum):
@@ -206,7 +207,8 @@ class GameState(BaseModel):
 
     def start_combat(self) -> CombatState:
         """Initialize combat state."""
-        self.combat = CombatState(is_active=True)
+        # Increment combat occurrence counter for tracking
+        self.combat = CombatState(is_active=True, combat_occurrence=self.combat.combat_occurrence + 1)
         return self.combat
 
     def end_combat(self) -> None:
@@ -241,6 +243,10 @@ class GameState(BaseModel):
     def get_messages_for_agent(self, agent_type: AgentType) -> list[Message]:
         """Get conversation history filtered for a specific agent."""
         return [msg for msg in self.conversation_history if msg.agent_type == agent_type]
+
+    def get_messages_for_combat(self, occurrence: int) -> list[Message]:
+        """Get conversation history for a specific combat occurrence."""
+        return [msg for msg in self.conversation_history if msg.combat_occurrence == occurrence]
 
     def update_save_time(self) -> None:
         """Update the last saved timestamp."""

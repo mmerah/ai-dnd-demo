@@ -4,19 +4,18 @@ Full D&D 5e functionality with scenario management, character management, functi
 
 ## Current Issues [CRITICAL]
 
-None
-
 ## Ideas
 
 1. Enforce fail fast ?
-2. Cleanup logger calls to minimum
-3. Review manually the code
-4. Re-organize the code ? (review models, services all dependency inversion, ...)
-5. Update CLAUDE.md
-6. Content pack management ? data/ contain scenarios, characters, SRD monsters/items/spells/classes/conditions/backgrounds/... But users can create new content packs ? Sandbox content pack gives AI ability to create on-the-fly, users can create custom packs, scenario are by default SRD. You can create sandbox, with SRD+custom_pack+sandbox, ... ? Each database .json probably needs a new {"content_pack" : "str"} field ?
-7. Add pre-commit
-8. Add unit-tests ? Or rather in MVP2 for faster iteration for now ?
-9. Add the combat agent
+2. Loading when we are waiting for agent answer. Frontend should not allow chat input
+3. Cleanup logger calls to minimum
+4. Review manually the code
+5. Re-organize the code ? (review models, services all dependency inversion, ...)
+6. Update CLAUDE.md
+7. Content pack management ? data/ contain scenarios, characters, SRD monsters/items/spells/classes/conditions/backgrounds/... But users can create new content packs ? Sandbox content pack gives AI ability to create on-the-fly, users can create custom packs, scenario are by default SRD. You can create sandbox, with SRD+custom_pack+sandbox, ... ? Each database .json probably needs a new {"content_pack" : "str"} field ?
+8. Add pre-commit
+9. Add unit-tests ? Or rather in MVP2 for faster iteration for now ?
+10. Do all the TODO(MVP1)
 
 # MVP 2
 
@@ -43,3 +42,4 @@ Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic 
 17. Monster location tracking: Consider adding location-aware monsters that persist between encounters (wandering monsters)
 18. NPC population optimization: Currently all NPCs are loaded at game start - consider lazy loading based on location
 19. TODO(MVP2): Solve all those todos
+20. Tools might need to not throw exception but tell the AI if the tool call was wrong

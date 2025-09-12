@@ -6,6 +6,7 @@ from app.events.base import BaseCommand, CommandResult
 from app.events.commands.broadcast_commands import (
     BroadcastGameUpdateCommand,
     BroadcastNarrativeCommand,
+    BroadcastPolicyWarningCommand,
     BroadcastToolCallCommand,
     BroadcastToolResultCommand,
 )
@@ -29,6 +30,7 @@ class BroadcastHandler(BaseHandler):
             BroadcastToolCallCommand,
             BroadcastToolResultCommand,
             BroadcastGameUpdateCommand,
+            BroadcastPolicyWarningCommand,
         )
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
@@ -69,5 +71,11 @@ class BroadcastHandler(BaseHandler):
                 game_state,
             )
             logger.debug("Broadcast game state update")
+
+        elif isinstance(command, BroadcastPolicyWarningCommand):
+            await self.message_service.send_policy_warning(
+                command.game_id, command.message, command.tool_name, command.agent_type
+            )
+            logger.debug("Broadcast policy warning")
 
         return result

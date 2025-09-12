@@ -21,13 +21,18 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
 
     logger.info(f"Starting AI processing for game {game_id}")
     try:
-        # Load game state
-        game_state = game_service.load_game(game_id)
+        # Get game state from memory (already loaded by the API endpoint)
+        game_state = game_service.get_game(game_id)
+        if not game_state:
+            logger.error(f"Game {game_id} not found in memory")
+            await message_service.send_error(game_id, f"Game {game_id} not found")
+            return
 
         logger.info(f"Requesting AI response for game {game_id}")
-        narrative = None
+        narratives = []
 
         # Get the AI response (MVP uses non-streaming for simplicity)
+        # Process ALL events from the orchestrator to allow combat continuation
         async for chunk in ai_service.generate_response(
             user_message=message,
             game_state=game_state,
@@ -38,9 +43,9 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
                 # chunk is CompleteResponse
                 from app.models.ai_response import CompleteResponse
 
-                if isinstance(chunk, CompleteResponse):
-                    narrative = chunk.narrative
-                    break
+                if isinstance(chunk, CompleteResponse) and chunk.narrative:
+                    narratives.append(chunk.narrative)
+                    # Continue processing to allow orchestrator to handle combat flow
             elif chunk.type == "error":
                 # chunk is ErrorResponse
                 from app.models.ai_response import ErrorResponse
@@ -51,12 +56,15 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
                     await message_service.send_error(game_id, error_msg)
                     return
 
+        # Join all collected narratives
+        narrative = "\n\n".join(narratives) if narratives else None
+
         if not narrative:
-            logger.error(f"Failed to get AI response for game {game_id} - narrative is empty")
+            logger.error(f"Failed to get AI response for game {game_id} - no narratives collected")
             await message_service.send_error(game_id, "AI failed to generate a response")
             return
 
-        logger.info(f"AI response received for game {game_id}")
+        logger.info(f"AI response received for game {game_id} - collected {len(narratives)} narrative(s)")
 
         # Game state is updated by tools during AI response generation
         # Reload the final state

@@ -83,3 +83,6 @@ repository.md
 # mypy, ruff
 .mypy_cache/
 .ruff_cache/
+
+# Debug Logs
+logs/

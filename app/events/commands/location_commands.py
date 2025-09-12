@@ -1,7 +1,8 @@
 """Commands for location and navigation management."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
+from app.agents.core.types import AgentType
 from app.events.base import BaseCommand
 
 
@@ -9,6 +10,7 @@ from app.events.base import BaseCommand
 class ChangeLocationCommand(BaseCommand):
     """Command to change the current location."""
 
+    agent_type: AgentType | None = field(default=None)
     location_id: str = ""
     location_name: str | None = None
     description: str | None = None
@@ -21,6 +23,7 @@ class ChangeLocationCommand(BaseCommand):
 class DiscoverSecretCommand(BaseCommand):
     """Command to discover a secret in current location."""
 
+    agent_type: AgentType | None = field(default=None)
     secret_id: str = ""
     secret_description: str = ""
 
@@ -32,6 +35,7 @@ class DiscoverSecretCommand(BaseCommand):
 class UpdateLocationStateCommand(BaseCommand):
     """Command to update location state."""
 
+    agent_type: AgentType | None = field(default=None)
     location_id: str = ""
     danger_level: str | None = None
     complete_encounter: str | None = None
@@ -45,6 +49,7 @@ class UpdateLocationStateCommand(BaseCommand):
 class MoveNPCCommand(BaseCommand):
     """Move an NPC instance to a specific scenario location by ID."""
 
+    agent_type: AgentType | None = field(default=None)
     npc_id: str = ""
     to_location_id: str = ""
 

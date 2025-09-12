@@ -1,4 +1,8 @@
-"""Dice and combat-related tools for D&D 5e AI Dungeon Master."""
+"""Dice rolling tools for D&D 5e AI Dungeon Master.
+
+IMPORTANT: During active combat, dice rolls should ONLY be made by the combat agent.
+The narrative agent uses this for non-combat rolls only.
+"""
 
 import logging
 from typing import Any, Literal, cast
@@ -30,14 +34,10 @@ def _prepare_roll_command_kwargs(
         "dice": kwargs.get("dice", "").strip(),
         "modifier": kwargs.get("modifier", 0),
     }
-    if kwargs.get("target") is not None:
-        command_kwargs["target"] = kwargs.get("target")
-    if kwargs.get("apply_to_entity_id") is not None:
-        command_kwargs["apply_to_entity_id"] = kwargs.get("apply_to_entity_id")
-    if kwargs.get("apply_as_damage") is not None:
-        command_kwargs["apply_as_damage"] = kwargs.get("apply_as_damage")
-    if kwargs.get("apply_to_entity_type") is not None:
-        command_kwargs["apply_to_entity_type"] = kwargs.get("apply_to_entity_type")
+    if kwargs.get("ability") is not None:
+        command_kwargs["ability"] = kwargs.get("ability")
+    if kwargs.get("skill") is not None:
+        command_kwargs["skill"] = kwargs.get("skill")
 
     # Broadcast original inputs including purpose for UX clarity
     broadcast_kwargs: dict[str, JSONSerializable] = original
@@ -52,30 +52,32 @@ async def roll_dice(
     modifier: int,
     roll_type: Literal["ability_check", "saving_throw", "attack", "damage", "initiative"],
     purpose: str,
-    target: str | None = None,
-    apply_to_entity_id: str | None = None,
-    apply_as_damage: bool = False,
-    apply_to_entity_type: Literal["player", "npc", "monster"] | None = None,
+    ability: str | None = None,
+    skill: str | None = None,
 ) -> BaseModel:
     # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Roll dice for any purpose in D&D 5e.
+
+    **IMPORTANT**: During active combat, this tool should ONLY be used by the COMBAT AGENT.
+    The narrative agent should NOT use this for combat rolls (attack, damage, initiative).
+
+    **IMPORTANT**: After rolling damage, you MUST use the update_hp tool to apply the damage to the target!
 
     Args:
         dice: The dice to roll (e.g., "1d20", "2d6", "2d20kh" for advantage)
         modifier: The numerical modifier to add to the roll (can be 0 or negative)
         roll_type: The category of roll ('ability_check', 'saving_throw', 'attack', 'damage', 'initiative')
         purpose: A human-readable description of the roll (e.g., "Stealth Check", "Longsword Damage")
-        target: The name of the character or NPC being targeted or making the roll
-        apply_to_entity_id: If roll_type is 'damage' and this is set, automatically apply damage to this entity
-        apply_as_damage: If True and roll_type is 'damage', automatically apply the rolled damage
+        ability: The ability being used (optional, e.g., "Strength", "Dexterity")
+        skill: The skill being used (optional, e.g., "Stealth", "Athletics")
 
     Examples:
-        - Stealth check: dice="1d20", modifier=5, roll_type="ability_check", purpose="Stealth Check"
-        - Constitution save: dice="1d20", modifier=2, roll_type="saving_throw", purpose="Poison Save"
-        - Longsword attack: dice="1d20", modifier=7, roll_type="attack", purpose="Longsword Attack", target="Goblin"
+        - Stealth check: dice="1d20", modifier=5, roll_type="ability_check", purpose="Stealth Check", ability="Dexterity", skill="Stealth"
+        - Constitution save: dice="1d20", modifier=2, roll_type="saving_throw", purpose="Poison Save", ability="Constitution"
+        - Longsword attack: dice="1d20", modifier=7, roll_type="attack", purpose="Longsword Attack"
         - Damage roll: dice="1d8", modifier=4, roll_type="damage", purpose="Longsword Damage"
-        - Auto-apply damage: dice="1d8", modifier=4, roll_type="damage", purpose="Longsword Damage", apply_to_entity_id="goblin-1", apply_to_entity_type="monster", apply_as_damage=True
+          Then call: update_hp(entity_id="goblin-1", entity_type="monster", amount=-8, damage_type="slashing")
         - Initiative: dice="1d20", modifier=3, roll_type="initiative", purpose="Combat Initiative"
-        - Advantage roll: dice="2d20kh", modifier=5, roll_type="ability_check", purpose="Perception with Advantage"
+        - Advantage roll: dice="2d20kh", modifier=5, roll_type="ability_check", purpose="Perception with Advantage", ability="Wisdom", skill="Perception"
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")

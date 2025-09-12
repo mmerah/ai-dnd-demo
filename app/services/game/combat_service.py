@@ -24,6 +24,11 @@ logger = logging.getLogger(__name__)
 class CombatService(ICombatService):
     """Default implementation of ICombatService."""
 
+    def __init__(self) -> None:
+        # Flow tracking to detect missing next_turn calls
+        self._last_prompted_entity_id: str | None = None
+        self._last_prompted_round: int = 0
+
     def roll_initiative(self, entity: IEntity) -> int:
         # d20 + initiative modifier from state
         return random.randint(1, 20) + int(entity.state.initiative_bonus or 0)
@@ -146,11 +151,83 @@ class CombatService(ICombatService):
                             except RepositoryNotFoundError:
                                 logger.warning(f"Monster not found in repository: '{spawn.entity_id}'")
                                 continue
-
-                    realized.append(entity)
+                    if entity is not None:
+                        realized.append(entity)
                 except Exception as e:
                     logger.warning(
                         f"Failed to realize spawn for entity_id={spawn.entity_id} ({spawn.spawn_type}/{spawn.entity_type}): {e}"
                     )
 
         return realized
+
+    # Flow/prompt methods (fused from former CombatFlowService)
+    def generate_combat_prompt(self, game_state: GameState) -> str:
+        if not game_state.combat.is_active:
+            return ""
+
+        current_turn = game_state.combat.get_current_turn()
+        if not current_turn:
+            return "No active participants remain in combat. Use the end_combat tool to conclude the encounter."
+
+        round_num = game_state.combat.round_number
+
+        # Check if we're prompting for the same entity again (likely forgot next_turn)
+        reminder = ""
+        if self._last_prompted_entity_id == current_turn.entity_id and self._last_prompted_round == round_num:
+            reminder = (
+                "\n\nIMPORTANT: You are still processing the same turn. "
+                "Did you forget to call next_turn after the previous action? "
+                "Remember: You MUST call next_turn after EVERY turn to advance combat."
+            )
+            logger.warning(
+                f"Same entity prompted twice: {current_turn.name} (Round {round_num}) - likely missing next_turn call"
+            )
+
+        # Update tracking
+        self._last_prompted_entity_id = current_turn.entity_id
+        self._last_prompted_round = round_num
+
+        if current_turn.is_player:
+            return (
+                f"Round {round_num}: It is {current_turn.name}'s turn (the player). "
+                f"Ask them what they want to do for their combat action. "
+                f"After resolving their action, you MUST call next_turn to advance combat."
+                f"{reminder}"
+            )
+        else:
+            entity_type = "NPC" if "npc" in current_turn.entity_type.value.lower() else "Monster"
+            return (
+                f"Round {round_num}: It is {current_turn.name}'s turn ({entity_type}). "
+                f"Narrate their combat action (attack, movement, abilities, etc.) appropriately for this creature. "
+                f"Roll any necessary dice for their actions. "
+                f"After resolving the turn, you MUST call next_turn to advance combat."
+                f"{reminder}"
+            )
+
+    def should_auto_continue(self, game_state: GameState) -> bool:
+        if not game_state.combat.is_active:
+            return False
+        current_turn = game_state.combat.get_current_turn()
+        return current_turn is not None and not current_turn.is_player
+
+    def get_combat_status(self, game_state: GameState) -> str:
+        if not game_state.combat.is_active:
+            return "No active combat"
+        current = game_state.combat.get_current_turn()
+        if not current:
+            return "Combat active but no participants"
+        return (
+            f"Combat Round {game_state.combat.round_number} - "
+            f"Current Turn: {current.name} {'(Player)' if current.is_player else '(NPC/Monster)'}"
+        )
+
+    def should_auto_end_combat(self, game_state: GameState) -> bool:
+        if not game_state.combat.is_active:
+            return False
+        active_enemies = [p for p in game_state.combat.participants if p.is_active and not p.is_player]
+        return len(active_enemies) == 0
+
+    def reset_combat_tracking(self) -> None:
+        self._last_prompted_entity_id = None
+        self._last_prompted_round = 0
+        logger.debug("Combat tracking state reset")

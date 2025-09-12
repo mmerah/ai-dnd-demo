@@ -2,6 +2,7 @@
 
 from dataclasses import dataclass
 
+from app.agents.core.types import AgentType
 from app.interfaces.events import IEventBus
 from app.interfaces.services.data import IItemRepository, IMonsterRepository, ISpellRepository
 from app.interfaces.services.game import IEventManager, IMessageManager, IMetadataService, ISaveManager
@@ -15,6 +16,7 @@ class AgentDependencies:
 
     game_state: GameState
     event_bus: IEventBus
+    agent_type: AgentType
     scenario_service: IScenarioService
     item_repository: IItemRepository
     monster_repository: IMonsterRepository

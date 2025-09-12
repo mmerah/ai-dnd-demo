@@ -10,6 +10,7 @@ from app.interfaces.services.game import (
     IGameStateManager,
     ILocationService,
     IMonsterFactory,
+    IPreSaveSanitizer,
     ISaveManager,
 )
 from app.interfaces.services.scenario import IScenarioService
@@ -36,6 +37,7 @@ class GameService(IGameService):
         self,
         scenario_service: IScenarioService,
         save_manager: ISaveManager,
+        pre_save_sanitizer: IPreSaveSanitizer,
         game_state_manager: IGameStateManager,
         compute_service: ICharacterComputeService,
         item_repository: IItemRepository,
@@ -55,6 +57,7 @@ class GameService(IGameService):
         """
         self.scenario_service = scenario_service
         self.save_manager = save_manager
+        self.pre_save_sanitizer = pre_save_sanitizer
         self.game_state_manager = game_state_manager
         self.compute_service = compute_service
         self.item_repository = item_repository
@@ -195,6 +198,8 @@ class GameService(IGameService):
             IOError: If save fails
         """
         try:
+            # Pre-save sanitization step to avoid SaveManager mutating state inline
+            self.pre_save_sanitizer.sanitize(game_state)
             save_dir = self.save_manager.save_game(game_state)
             return str(save_dir)
         except Exception as e:

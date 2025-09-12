@@ -8,9 +8,9 @@
       "entity_type": "monster",
       "spawn_type": "repository",
       "entity_id": "Goblin",
-      "quantity_min": 2,
-      "quantity_max": 3,
-      "probability": 0.8
+      "quantity_min": 1,
+      "quantity_max": 1,
+      "probability": 1.0
     }
   ],
   "rewards": ["20-30 gold pieces", "Crude goblin weapons"]

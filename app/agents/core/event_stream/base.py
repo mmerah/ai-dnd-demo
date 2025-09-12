@@ -32,11 +32,13 @@ class EventContext:
     game_id: str
     tool_calls_by_id: dict[str, str] = field(default_factory=dict)
     processed_tool_calls: set[str] = field(default_factory=set)
+    combat_started: bool = False  # Track if combat was started this turn
 
     def clear(self) -> None:
         """Clear the context for a new processing session."""
         self.tool_calls_by_id.clear()
         self.processed_tool_calls.clear()
+        self.combat_started = False
 
 
 class EventStreamProcessor:

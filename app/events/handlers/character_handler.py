@@ -2,6 +2,7 @@
 
 import logging
 
+from app.agents.core.types import AgentType
 from app.events.base import BaseCommand, CommandResult
 from app.events.commands.broadcast_commands import BroadcastGameUpdateCommand
 from app.events.commands.character_commands import (
@@ -21,10 +22,12 @@ from app.models.tool_results import (
     UpdateHPResult,
     UpdateSpellSlotsResult,
 )
+from app.utils.entity_resolver import resolve_entity_with_fallback
 
 logger = logging.getLogger(__name__)
 
 
+# TODO(MVP1): Refactor all handlers. save games at the end of handle instead of 10 times throughout ? Enforce use of our services instead
 class CharacterHandler(BaseHandler):
     """Handler for character-related commands."""
 
@@ -44,16 +47,27 @@ class CharacterHandler(BaseHandler):
         """Handle character commands."""
         result = CommandResult()
 
+        # Validate agent type during combat for HP and condition updates
+        if (
+            game_state.combat.is_active
+            and isinstance(command, UpdateHPCommand | UpdateConditionCommand)
+            and command.agent_type
+            and command.agent_type != AgentType.COMBAT
+        ):
+            logger.warning(
+                f"{command.__class__.__name__} called by {command.agent_type.value} agent during active combat - should be COMBAT agent only"
+            )
+
         if isinstance(command, UpdateHPCommand):
             old_hp = 0
             new_hp = 0
             max_hp = 0
 
-            entity = game_state.get_entity_by_id(command.entity_type, command.entity_id)
-            if not entity:
-                raise ValueError(
-                    f"Entity with ID '{command.entity_id}' of type '{command.entity_type.value}' not found"
-                )
+            # Resolve entity with fallback and fuzzy matching
+            entity, resolved_type = resolve_entity_with_fallback(game_state, command.entity_id, command.entity_type)
+            if not entity or not resolved_type:
+                etype = command.entity_type.value if command.entity_type else "unknown"
+                raise ValueError(f"Entity with ID '{command.entity_id}' of type '{etype}' not found")
 
             state = entity.state
             old_hp = state.hit_points.current
@@ -61,8 +75,15 @@ class CharacterHandler(BaseHandler):
             new_hp = min(old_hp + command.amount, max_hp) if command.amount > 0 else max(0, old_hp + command.amount)
             state.hit_points.current = new_hp
 
-            # Save game state
-            self.game_service.save_game(game_state)
+            # Update combat participant active status if in combat and HP reaches 0
+            if game_state.combat.is_active and new_hp == 0:
+                for participant in game_state.combat.participants:
+                    if participant.entity_id == entity.instance_id:
+                        participant.is_active = False
+                        logger.info(f"Combat participant {participant.name} marked as inactive (0 HP)")
+                        break
+
+            result.mutated = old_hp != new_hp
 
             result.data = UpdateHPResult(
                 target=entity.display_name,
@@ -85,16 +106,15 @@ class CharacterHandler(BaseHandler):
             )
 
         elif isinstance(command, UpdateConditionCommand) and command.action == "add":
-            entity = game_state.get_entity_by_id(command.entity_type, command.entity_id)
-            if not entity:
-                raise ValueError(
-                    f"Entity with ID '{command.entity_id}' of type '{command.entity_type.value}' not found"
-                )
+            entity, resolved_type = resolve_entity_with_fallback(game_state, command.entity_id, command.entity_type)
+            if not entity or not resolved_type:
+                etype = command.entity_type.value if command.entity_type else "unknown"
+                raise ValueError(f"Entity with ID '{command.entity_id}' of type '{etype}' not found")
 
             if command.condition not in entity.state.conditions:
                 entity.state.conditions.append(command.condition)
 
-            self.game_service.save_game(game_state)
+            result.mutated = True
 
             result.data = AddConditionResult(
                 target=entity.display_name,
@@ -108,18 +128,16 @@ class CharacterHandler(BaseHandler):
 
         elif isinstance(command, UpdateConditionCommand) and command.action == "remove":
             removed = False
-
-            entity = game_state.get_entity_by_id(command.entity_type, command.entity_id)
-            if not entity:
-                raise ValueError(
-                    f"Entity with ID '{command.entity_id}' of type '{command.entity_type.value}' not found"
-                )
+            entity, resolved_type = resolve_entity_with_fallback(game_state, command.entity_id, command.entity_type)
+            if not entity or not resolved_type:
+                etype = command.entity_type.value if command.entity_type else "unknown"
+                raise ValueError(f"Entity with ID '{command.entity_id}' of type '{etype}' not found")
 
             if command.condition in entity.state.conditions:
                 entity.state.conditions.remove(command.condition)
                 removed = True
 
-            self.game_service.save_game(game_state)
+            result.mutated = removed
 
             result.data = RemoveConditionResult(
                 target=entity.display_name,
@@ -148,7 +166,7 @@ class CharacterHandler(BaseHandler):
             new_slots = slot.current
             max_slots = slot.total
 
-            self.game_service.save_game(game_state)
+            result.mutated = old_slots != new_slots
 
             result.data = UpdateSpellSlotsResult(
                 level=command.level,
@@ -174,7 +192,7 @@ class CharacterHandler(BaseHandler):
             new_max_hp = character_instance.state.hit_points.maximum
             hp_increase = max(0, new_max_hp - old_max_hp)
 
-            self.game_service.save_game(game_state)
+            result.mutated = True
 
             result.data = LevelUpResult(
                 old_level=old_level,

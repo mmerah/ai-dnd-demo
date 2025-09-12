@@ -15,7 +15,7 @@ from app.interfaces.services.character import ICharacterComputeService
 from app.interfaces.services.data import IItemRepository
 from app.interfaces.services.game import IGameService
 from app.models.game_state import GameState
-from app.models.item import InventoryItem
+from app.models.item import InventoryItem, ItemDefinition, ItemRarity, ItemType
 from app.models.tool_results import (
     AddItemResult,
     EquipItemResult,
@@ -61,7 +61,12 @@ class InventoryHandler(BaseHandler):
             character.currency.silver = max(character.currency.silver, 0)
             character.currency.copper = max(character.currency.copper, 0)
 
-            self.game_service.save_game(game_state)
+            # Mark mutated if any currency value changed
+            result.mutated = (
+                character.currency.gold != old_gold
+                or character.currency.silver != old_silver
+                or character.currency.copper != old_copper
+            )
 
             result.data = ModifyCurrencyResult(
                 old_gold=old_gold,
@@ -90,19 +95,33 @@ class InventoryHandler(BaseHandler):
             if existing_item:
                 existing_item.quantity += command.quantity
             else:
-                # Validate item exists in repository (fail-fast)
+                # Try to get item from repository, or create placeholder if it doesn't exist
                 if not self.item_repository.validate_reference(command.item_name):
-                    raise ValueError(f"Unknown item: {command.item_name}")
-
-                # Get item definition and create properly
-                try:
-                    item_def = self.item_repository.get(command.item_name)
+                    # Create a placeholder item for dynamic items not in the repository
+                    logger.warning(f"Creating placeholder item for unknown item: '{command.item_name}'")
+                    # TODO: Implement dynamic item creation tool for AI to define custom items
+                    item_def = ItemDefinition(
+                        name=command.item_name,
+                        type=ItemType.ADVENTURING_GEAR,
+                        rarity=ItemRarity.COMMON,
+                        description=f"A unique item: {command.item_name}",
+                        weight=0.5,
+                        value=1,
+                    )
                     new_item = InventoryItem.from_definition(item_def, quantity=command.quantity, equipped_quantity=0)
                     character.inventory.append(new_item)
-                except RepositoryNotFoundError as e:
-                    raise ValueError(f"Failed to load item definition: {command.item_name}") from e
+                else:
+                    # Get item definition from repository
+                    try:
+                        item_def = self.item_repository.get(command.item_name)
+                        new_item = InventoryItem.from_definition(
+                            item_def, quantity=command.quantity, equipped_quantity=0
+                        )
+                        character.inventory.append(new_item)
+                    except RepositoryNotFoundError as e:
+                        raise ValueError(f"Failed to load item definition: {command.item_name}") from e
 
-            self.game_service.save_game(game_state)
+            result.mutated = True
 
             result.data = AddItemResult(
                 item_name=command.item_name,
@@ -134,7 +153,7 @@ class InventoryHandler(BaseHandler):
             if existing_item.quantity == 0:
                 character.inventory.remove(existing_item)
 
-            self.game_service.save_game(game_state)
+            result.mutated = True
 
             result.data = RemoveItemResult(
                 item_name=command.item_name,
@@ -161,7 +180,7 @@ class InventoryHandler(BaseHandler):
 
                 # Recompute derived values
                 self.game_service.recompute_character_state(game_state)
-                self.game_service.save_game(game_state)
+                result.mutated = True
 
                 result.data = EquipItemResult(
                     item_name=item.name if item else command.item_name,

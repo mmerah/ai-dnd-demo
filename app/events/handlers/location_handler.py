@@ -69,8 +69,7 @@ class LocationHandler(BaseHandler):
                 description=command.description,
             )
 
-            # Save game state
-            self.game_service.save_game(game_state)
+            result.mutated = True
 
             result.data = ChangeLocationResult(
                 location_id=command.location_id,
@@ -99,8 +98,7 @@ class LocationHandler(BaseHandler):
             # Use provided description or default to the secret ID
             secret_description = command.secret_description or f"Secret '{command.secret_id}'"
 
-            # Save game state
-            self.game_service.save_game(game_state)
+            result.mutated = True
 
             result.data = DiscoverSecretResult(
                 secret_id=command.secret_id,
@@ -135,8 +133,7 @@ class LocationHandler(BaseHandler):
             # Move NPC using GameState
             _ = game_state.move_npc(command.npc_id, command.to_location_id)
 
-            # Save and broadcast
-            self.game_service.save_game(game_state)
+            result.mutated = True
 
             result.data = MoveNPCResult(
                 npc_id=command.npc_id,
@@ -150,9 +147,19 @@ class LocationHandler(BaseHandler):
             logger.info(f"Moved NPC {npc.display_name} to {target.name}")
 
         elif isinstance(command, UpdateLocationStateCommand):
-            if not command.location_id:
-                raise ValueError("Location ID cannot be empty")
-            location_state = game_state.get_location_state(command.location_id)
+            # Use provided location_id or default to current location
+            location_id = command.location_id
+            if not location_id:
+                if not game_state.scenario_instance.is_in_known_location():
+                    raise ValueError(
+                        "Cannot update location state: current location is unknown and no location_id provided"
+                    )
+                location_id = game_state.scenario_instance.current_location_id
+                logger.warning(
+                    f"UpdateLocationStateCommand: No location_id provided, using current location: {location_id}"
+                )
+
+            location_state = game_state.get_location_state(location_id)
             updates = []
 
             # Update danger level
@@ -173,13 +180,13 @@ class LocationHandler(BaseHandler):
                 location_state.active_effects.append(command.add_effect)
                 updates.append(f"Added effect: {command.add_effect}")
 
-            # Save game state
-            self.game_service.save_game(game_state)
+            # Mutated if any update applied
+            result.mutated = len(updates) > 0
 
             result.data = UpdateLocationStateResult(
-                location_id=command.location_id,
+                location_id=location_id,
                 updates=updates,
-                message=f"Location (ID: {command.location_id}) state updated: {', '.join(updates)}",
+                message=f"Location (ID: {location_id}) state updated: {', '.join(updates)}",
             )
 
             # Broadcast update
