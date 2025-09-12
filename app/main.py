@@ -31,13 +31,16 @@ logging.getLogger("httpcore").setLevel(logging.WARNING)
 load_dotenv()
 
 
+logger = logging.getLogger(__name__)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     """
     Manage application lifecycle - startup and shutdown events.
     """
     # Startup
-    print("Starting D&D 5e AI Dungeon Master...")
+    logger.info("Starting D&D 5e AI Dungeon Master...")
 
     # Initialize settings and container - this will validate all required environment variables
     try:
@@ -47,7 +50,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         _ = container.ai_service
 
         # Pre-cache and validate all game data
-        print("Pre-caching and validating all game data...")
+        logger.info("Pre-caching and validating all game data...")
         _ = container.item_repository.list_keys()
         _ = container.spell_repository.list_keys()
         _ = container.monster_repository.list_keys()
@@ -57,22 +60,22 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         if scenarios:
             # Get first scenario to validate its structure
             _ = container.scenario_service.get_scenario(scenarios[0].id)
-        print("Data validation successful!")
+        logger.info("Data validation successful!")
 
-        print(f"Save directory: {settings.save_directory}")
-        print("Using models:")
-        print(f"  - Narrative: {settings.get_narrative_model()}")
-        print(f"  - Combat: {settings.get_combat_model()}")
-        print(f"  - Summarizer: {settings.get_summarizer_model()}")
+        logger.info(f"Save directory: {settings.save_directory}")
+        logger.info("Using models:")
+        logger.info(f"  - Narrative: {settings.get_narrative_model()}")
+        logger.info(f"  - Combat: {settings.get_combat_model()}")
+        logger.info(f"  - Summarizer: {settings.get_summarizer_model()}")
     except Exception as e:
         raise RuntimeError(f"Configuration or data validation error: {e}") from e
 
-    print("Application started successfully!")
+    logger.info("Application started successfully!")
 
     yield
 
     # Shutdown
-    print("Shutting down D&D 5e AI Dungeon Master...")
+    logger.info("Shutting down D&D 5e AI Dungeon Master...")
 
 
 # Create FastAPI app instance
@@ -125,7 +128,7 @@ async def global_exception_handler(request: Request, exc: Exception) -> JSONResp
     }
 
     # Log the error
-    print(f"Unhandled exception: {error_detail}")
+    logger.error("Unhandled exception: %s", exc, exc_info=True)
 
     return JSONResponse(status_code=500, content=error_detail)
 

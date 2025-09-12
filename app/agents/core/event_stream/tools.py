@@ -56,7 +56,6 @@ class ToolCallHandler(EventHandler):
             logger.info(f"Combat started via {tool_name} - narrative agent should stop")
 
         self.event_logger.log_tool_call(tool_name, processed_args)
-        logger.debug(f"Tool call captured (log only): {tool_name} with args: {processed_args}")
 
     def _extract_tool_info(self, event: object) -> tuple[str | None, str | None, Any]:
         """Extract tool info from supported event types with proper type narrowing."""

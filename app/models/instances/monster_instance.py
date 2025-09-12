@@ -6,22 +6,15 @@ aligned with CharacterInstance and NPCInstance patterns.
 
 from __future__ import annotations
 
-from datetime import datetime
-
-from pydantic import BaseModel, Field
-
+from app.models.instances.base_instance import BaseInstance
 from app.models.instances.entity_state import EntityState
 from app.models.monster import MonsterSheet
 
 
-class MonsterInstance(BaseModel):
+class MonsterInstance(BaseInstance):
     """Dynamic monster state bound to a MonsterSheet template."""
 
-    # Identity
-    instance_id: str
     template_id: str
-    created_at: datetime = Field(default_factory=datetime.now)
-    updated_at: datetime = Field(default_factory=datetime.now)
 
     # Template reference
     sheet: MonsterSheet
@@ -31,12 +24,6 @@ class MonsterInstance(BaseModel):
 
     # Location tracking
     current_location_id: str
-
-    def touch(self) -> None:
-        self.updated_at = datetime.now()
-
-    def is_alive(self) -> bool:
-        return self.state.hit_points.current > 0
 
     @property
     def display_name(self) -> str:

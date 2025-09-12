@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from app.agents.core.types import AgentType
 from app.interfaces.events import IEventBus
+from app.interfaces.services.common import IActionService
 from app.interfaces.services.data import IItemRepository, IMonsterRepository, ISpellRepository
 from app.interfaces.services.game import IEventManager, IMessageManager, IMetadataService, ISaveManager
 from app.interfaces.services.scenario import IScenarioService
@@ -25,3 +26,4 @@ class AgentDependencies:
     event_manager: IEventManager
     metadata_service: IMetadataService
     save_manager: ISaveManager
+    action_service: IActionService

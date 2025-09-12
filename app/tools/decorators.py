@@ -14,10 +14,7 @@ from app.common.types import JSONSerializable
 from app.events.base import BaseCommand
 from app.events.commands.broadcast_commands import (
     BroadcastPolicyWarningCommand,
-    BroadcastToolCallCommand,
-    BroadcastToolResultCommand,
 )
-from app.models.game_state import GameEventType
 
 logger = logging.getLogger(__name__)
 
@@ -118,32 +115,7 @@ def tool_handler(
                 command_kwargs = original_kwargs
                 broadcast_kwargs = original_kwargs
 
-            # 1. Broadcast tool call
-            await event_bus.submit_command(
-                BroadcastToolCallCommand(
-                    game_id=game_state.game_id,
-                    tool_name=tool_name,
-                    parameters=broadcast_kwargs,
-                ),
-            )
-
-            # 2. Persist TOOL_CALL event
-            try:
-                ctx.deps.event_manager.add_event(
-                    game_state=game_state,
-                    event_type=GameEventType.TOOL_CALL,
-                    tool_name=tool_name,
-                    parameters=broadcast_kwargs,
-                )
-                ctx.deps.save_manager.save_game(game_state)
-            except Exception as e:
-                # Do not fail tool execution if event persistence fails
-                logger.error(
-                    f"Failed to persist TOOL_CALL for {tool_name}: {e}",
-                    exc_info=True,
-                )
-
-            # 3. Execute domain command (use factory if provided)
+            # Build command (use factory if provided)
             if command_factory is not None:
                 command = command_factory(ctx, command_kwargs)
             else:
@@ -166,52 +138,16 @@ def tool_handler(
                 final_kwargs.update(command_kwargs)
 
                 command = command_class(**final_kwargs)
-            result = await event_bus.execute_command(command)
 
-            # 4. Broadcast tool result and 5. Persist TOOL_RESULT event
-            if result:
-                # Guard result type before broadcasting and persisting
-                # Import here to avoid circular imports
-                from app.models.tool_results import ToolResult
-
-                if not isinstance(result, ToolResult):
-                    logger.warning(
-                        f"Tool '{tool_name}' returned unexpected result type: {type(result)}; "
-                        "skipping TOOL_RESULT broadcast/persistence",
-                    )
-                    return result
-
-                tool_result = result
-
-                await event_bus.submit_command(
-                    BroadcastToolResultCommand(
-                        game_id=game_state.game_id,
-                        tool_name=tool_name,
-                        result=tool_result,
-                    ),
-                )
-
-                try:
-                    ctx.deps.event_manager.add_event(
-                        game_state=game_state,
-                        event_type=GameEventType.TOOL_RESULT,
-                        tool_name=tool_name,
-                        result=tool_result.model_dump(mode="json"),
-                    )
-                    ctx.deps.save_manager.save_game(game_state)
-                except Exception as e:
-                    logger.error(
-                        f"Failed to persist TOOL_RESULT for {tool_name}: {e}",
-                        exc_info=True,
-                    )
-
-                return result
-
-            # No result is a serious error - commands should always return something
-            # Use the constructed command type for clearer error without Optional issues
-            raise RuntimeError(
-                f"Command {type(command).__name__} returned None for tool {tool_name}",
+            # Execute via common ActionService to ensure DRY handling
+            result = await ctx.deps.action_service.execute_command_as_action(
+                tool_name=tool_name,
+                command=command,
+                game_state=game_state,
+                broadcast_parameters=broadcast_kwargs,
             )
+
+            return result
 
         # Preserve the original function's metadata
         wrapper.__doc__ = func.__doc__

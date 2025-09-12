@@ -22,10 +22,15 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
     logger.info(f"Starting AI processing for game {game_id}")
     try:
         # Get game state from memory (already loaded by the API endpoint)
-        game_state = game_service.get_game(game_id)
-        if not game_state:
-            logger.error(f"Game {game_id} not found in memory")
+        try:
+            game_state = game_service.get_game(game_id)
+        except FileNotFoundError:
+            logger.error(f"Game {game_id} not found in memory or on disk")
             await message_service.send_error(game_id, f"Game {game_id} not found")
+            return
+        except ValueError as e:
+            logger.error(f"Invalid game data for {game_id}: {e}")
+            await message_service.send_error(game_id, f"Invalid game data: {e}")
             return
 
         logger.info(f"Requesting AI response for game {game_id}")
@@ -68,14 +73,15 @@ async def process_ai_and_broadcast(game_id: str, message: str) -> None:
 
         # Game state is updated by tools during AI response generation
         # Reload the final state
-        updated_game_state = game_service.get_game(game_state.game_id)
-
-        if updated_game_state:
+        try:
+            updated_game_state = game_service.get_game(game_state.game_id)
             # Save final game state
             game_service.save_game(updated_game_state)
 
             # Send game state update
             await message_service.send_game_update(game_id, updated_game_state)
+        except Exception as e:
+            logger.error(f"Failed to reload or broadcast updated game state: {e}")
 
         # Send completion event
         await message_service.send_complete(game_id)

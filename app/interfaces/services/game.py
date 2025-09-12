@@ -43,7 +43,7 @@ class IGameService(ABC):
         pass
 
     @abstractmethod
-    def get_game(self, game_id: str) -> GameState | None:
+    def get_game(self, game_id: str) -> GameState:
         pass
 
     @abstractmethod

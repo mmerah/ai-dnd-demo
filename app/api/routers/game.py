@@ -171,15 +171,11 @@ async def equip_item(game_id: str, request: EquipItemRequest) -> EquipItemRespon
         - Constraints enforced: at most one shield equipped and at most one body armor equipped at a time
     """
     game_service = container.game_service
-    event_bus = container.event_bus
-    event_manager = container.event_manager
-    save_manager = container.save_manager
+    action_service = container.action_service
 
     try:
         # Get the game state
         game_state = game_service.get_game(game_id)
-        if not game_state:
-            raise HTTPException(status_code=404, detail=f"Game {game_id} not found")
 
         # Create command
         command = EquipItemCommand(game_id=game_id, item_name=request.item_name, equipped=request.equipped)
@@ -189,9 +185,7 @@ async def equip_item(game_id: str, request: EquipItemRequest) -> EquipItemRespon
             command=command,
             tool_name="equip_item",
             game_state=game_state,
-            event_bus=event_bus,
-            event_manager=event_manager,
-            save_manager=save_manager,
+            action_service=action_service,
         )
 
         # Extract the result data
@@ -204,6 +198,10 @@ async def equip_item(game_id: str, request: EquipItemRequest) -> EquipItemRespon
             equipped_quantity=result.equipped_quantity,
             new_armor_class=game_state.character.state.armor_class,
         )
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"Game {game_id} not found") from None
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid game data: {e!s}") from e
     except HTTPException:
         raise
     except Exception as e:

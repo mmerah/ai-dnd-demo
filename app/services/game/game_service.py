@@ -239,7 +239,7 @@ class GameService(IGameService):
         except Exception as e:
             raise ValueError(f"Failed to load game {game_id}: {e}") from e
 
-    def get_game(self, game_id: str) -> GameState | None:
+    def get_game(self, game_id: str) -> GameState:
         """
         Get active game state from memory or load from disk.
 
@@ -247,7 +247,11 @@ class GameService(IGameService):
             game_id: ID of the game
 
         Returns:
-            GameState or None if not found
+            GameState object
+
+        Raises:
+            FileNotFoundError: If the saved game does not exist
+            ValueError: If the saved game is corrupted
         """
         # Check in-memory storage first
         game_state = self.game_state_manager.get_game(game_id)
@@ -255,10 +259,7 @@ class GameService(IGameService):
             return game_state
 
         # Try loading from disk
-        try:
-            return self.load_game(game_id)
-        except (FileNotFoundError, ValueError):
-            return None
+        return self.load_game(game_id)
 
     def list_saved_games(self) -> list[GameState]:
         """

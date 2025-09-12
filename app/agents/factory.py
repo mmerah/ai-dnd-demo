@@ -6,7 +6,6 @@ import httpx
 from pydantic_ai import Agent
 from pydantic_ai.models.openai import OpenAIModel, OpenAIModelSettings
 from pydantic_ai.providers.openai import OpenAIProvider
-from pydantic_ai.settings import ModelSettings
 
 from app.agents.combat.agent import CombatAgent
 from app.agents.core.base import BaseAgent, ToolFunction
@@ -18,6 +17,7 @@ from app.agents.summarizer.agent import SummarizerAgent
 from app.config import get_settings
 from app.interfaces.events import IEventBus
 from app.interfaces.services.ai import IContextService, IEventLoggerService, IToolCallExtractorService
+from app.interfaces.services.common import IActionService
 from app.interfaces.services.data import IItemRepository, IMonsterRepository, ISpellRepository
 from app.interfaces.services.game import (
     IConversationService,
@@ -84,7 +84,8 @@ class AgentFactory:
         conversation_service: IConversationService,
         context_service: IContextService,
         event_logger_service: IEventLoggerService,
-        tool_call_extractor_service: IToolCallExtractorService | None = None,
+        tool_call_extractor_service: IToolCallExtractorService,
+        action_service: IActionService,
         debug: bool = False,
     ) -> BaseAgent:
         """Create a specialized agent based on type."""
@@ -122,6 +123,7 @@ class AgentFactory:
                 save_manager=save_manager,
                 event_manager=event_manager,
                 conversation_service=conversation_service,
+                action_service=action_service,
                 debug_logger=debug_logger,
             )
 
@@ -156,6 +158,7 @@ class AgentFactory:
                 event_manager=event_manager,
                 conversation_service=conversation_service,
                 tool_call_extractor=tool_call_extractor_service,
+                action_service=action_service,
                 debug_logger=debug_logger,
             )
 
@@ -166,15 +169,20 @@ class AgentFactory:
 
         if agent_type == AgentType.SUMMARIZER:
             model = cls._create_model(settings.get_summarizer_model())
+            summarizer_settings = OpenAIModelSettings(temperature=0.5, max_tokens=1000, parallel_tool_calls=False)
             # Summarizer doesn't need dependencies, so we create a simpler agent
             agent: Agent[None, str] = Agent(
                 model=model,
                 system_prompt=SUMMARIZER_SYSTEM_PROMPT,
-                model_settings=ModelSettings(temperature=0.5, max_tokens=500),
+                model_settings=summarizer_settings,
                 retries=settings.max_retries,
             )
 
-            summarizer_agent = SummarizerAgent(agent=agent, context_service=context_service)
+            summarizer_agent = SummarizerAgent(
+                agent=agent,
+                context_service=context_service,
+                debug_logger=debug_logger,
+            )
             # Summarizer doesn't need tools
             return summarizer_agent
 

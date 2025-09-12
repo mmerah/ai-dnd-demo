@@ -18,7 +18,7 @@ from app.events.handlers.time_handler import TimeHandler
 from app.interfaces.events import IEventBus
 from app.interfaces.services.ai import IAIService, IContextService, IEventLoggerService, IMessageService
 from app.interfaces.services.character import ICharacterComputeService, ICharacterService, ILevelProgressionService
-from app.interfaces.services.common import IBroadcastService, IDiceService, IPathResolver
+from app.interfaces.services.common import IActionService, IBroadcastService, IDiceService, IPathResolver
 from app.interfaces.services.data import IItemRepository, ILoader, IMonsterRepository, ISpellRepository
 from app.interfaces.services.game import (
     ICombatService,
@@ -45,6 +45,7 @@ from app.services.character import CharacterService
 from app.services.character.compute_service import CharacterComputeService
 from app.services.character.level_service import LevelProgressionService
 from app.services.common import BroadcastService, DiceService
+from app.services.common.action_service import ActionService
 from app.services.common.path_resolver import PathResolver
 from app.services.data.loaders.character_loader import CharacterLoader
 from app.services.data.loaders.scenario_loader import ScenarioLoader
@@ -309,6 +310,14 @@ class Container:
         return event_bus
 
     @cached_property
+    def action_service(self) -> IActionService:
+        return ActionService(
+            event_bus=self.event_bus,
+            event_manager=self.event_manager,
+            save_manager=self.save_manager,
+        )
+
+    @cached_property
     def ai_service(self) -> IAIService:
         settings = get_settings()
 
@@ -327,6 +336,8 @@ class Container:
             conversation_service=self.conversation_service,
             context_service=self.context_service,
             event_logger_service=self.event_logger_service,
+            action_service=self.action_service,
+            tool_call_extractor_service=self.tool_call_extractor_service,
             debug=settings.debug_ai,
         )
 
@@ -346,6 +357,7 @@ class Container:
             context_service=self.context_service,
             event_logger_service=self.event_logger_service,
             tool_call_extractor_service=self.tool_call_extractor_service,
+            action_service=self.action_service,
             debug=settings.debug_ai,
         )
 
@@ -364,6 +376,8 @@ class Container:
             conversation_service=self.conversation_service,
             context_service=self.context_service,
             event_logger_service=self.event_logger_service,
+            action_service=self.action_service,
+            tool_call_extractor_service=self.tool_call_extractor_service,
             debug=settings.debug_ai,
         )
         # The orchestrator requires a summarizer and not just a BaseAgent

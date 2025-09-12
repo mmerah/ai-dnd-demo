@@ -5,7 +5,10 @@ from typing import TypeVar
 
 from pydantic import BaseModel
 
+from app.common.types import JSONSerializable
+from app.events.base import BaseCommand
 from app.models.dice import DiceRoll, RollType
+from app.models.game_state import GameState
 
 T = TypeVar("T")
 
@@ -74,4 +77,19 @@ class IDiceService(ABC):
     @abstractmethod
     def roll_dice(self, formula: str, roll_type: RollType = RollType.NORMAL) -> DiceRoll:
         """Roll dice based on formula with optional advantage/disadvantage."""
+        pass
+
+
+class IActionService(ABC):
+    """Execute commands as actions with unified tracking and broadcasting."""
+
+    @abstractmethod
+    async def execute_command_as_action(
+        self,
+        tool_name: str,
+        command: BaseCommand,
+        game_state: GameState,
+        broadcast_parameters: dict[str, JSONSerializable] | None = None,
+    ) -> BaseModel:
+        """Execute a command as an action, broadcasting and persisting events."""
         pass

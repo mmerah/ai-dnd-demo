@@ -7,10 +7,12 @@ from dataclasses import dataclass
 from pydantic_ai import Agent
 
 from app.agents.core.base import BaseAgent, ToolFunction
+from app.agents.core.prompts import SUMMARIZER_SYSTEM_PROMPT
 from app.agents.core.types import AgentType
 from app.interfaces.services.ai import IContextService
 from app.models.ai_response import StreamEvent
 from app.models.game_state import GameState
+from app.services.ai.debug_logger import AgentDebugLogger
 
 logger = logging.getLogger(__name__)
 
@@ -21,10 +23,30 @@ class SummarizerAgent(BaseAgent):
 
     agent: Agent[None, str]
     context_service: IContextService
+    debug_logger: AgentDebugLogger | None = None
 
     def get_required_tools(self) -> list[ToolFunction]:
         """Summarizer doesn't need tools - it just summarizes text."""
         return []
+
+    async def _summarize_with_retry(self, prompt: str, fallback: str, warn_label: str) -> str:
+        """Run the summarizer up to 2 times and return non-empty output or fallback.
+
+        Args:
+            prompt: The prompt to send to the summarizer model
+            fallback: Fallback string if both attempts fail or are empty
+            warn_label: Context label to include in warnings (e.g., "combat start")
+        """
+        for attempt in range(2):
+            try:
+                result = await self.agent.run(prompt)
+                output = (result.output or "").strip()
+                if output:
+                    return output
+                raise ValueError("Empty model response")
+            except Exception as e:
+                logger.warning(f"Summarization attempt {attempt + 1} failed ({warn_label}): {e}")
+        return fallback
 
     async def summarize_for_combat(self, game_state: GameState) -> str:
         """Create a summary when transitioning from narrative to combat.
@@ -48,18 +70,26 @@ class SummarizerAgent(BaseAgent):
 
         prompt = (
             "Summarize this context for combat in 2-3 sentences:\n"
-            + (f"Game context:\n{context_text}\n\n" if context_text else "")
+            + f"Game context:\n{context_text}\n\n"
             + narrative_block
             + "\n\nFocus on: How combat started, current environment, and any tactical considerations."
         )
 
-        try:
-            # Summarizer runs without dependencies
-            result = await self.agent.run(prompt)
-            return result.output
-        except Exception as e:
-            logger.error(f"Summarization error: {e}")
-            return "Combat has begun after recent events."
+        if self.debug_logger:
+            self.debug_logger.log_agent_call(
+                agent_type=AgentType.SUMMARIZER,
+                game_id=game_state.game_id,
+                system_prompt=SUMMARIZER_SYSTEM_PROMPT,
+                conversation_history=[],
+                user_prompt=prompt,
+                context=context_text,
+            )
+
+        return await self._summarize_with_retry(
+            prompt,
+            fallback="Combat has begun after recent events.",
+            warn_label="combat start",
+        )
 
     async def summarize_combat_end(self, game_state: GameState) -> str:
         """Create a summary when transitioning from combat to narrative.
@@ -83,18 +113,26 @@ class SummarizerAgent(BaseAgent):
 
         prompt = (
             "Summarize this combat for the narrative in 2-3 sentences:\n"
-            + (f"Game context:\n{context_text}\n\n" if context_text else "")
+            + f"Game context:\n{context_text}\n\n"
             + combat_block
             + "\n\nFocus on: Combat outcome, casualties, loot gained, and story implications. Keep in mind that the combat has ended."
         )
 
-        try:
-            # Summarizer runs without dependencies
-            result = await self.agent.run(prompt)
-            return result.output
-        except Exception as e:
-            logger.error(f"Summarization error: {e}")
-            return "Combat has ended with the party victorious."
+        if self.debug_logger:
+            self.debug_logger.log_agent_call(
+                agent_type=AgentType.SUMMARIZER,
+                game_id=game_state.game_id,
+                system_prompt=SUMMARIZER_SYSTEM_PROMPT,
+                conversation_history=[],
+                user_prompt=prompt,
+                context=context_text,
+            )
+
+        return await self._summarize_with_retry(
+            prompt,
+            fallback="Combat has ended with the party victorious.",
+            warn_label="combat end",
+        )
 
     async def process(
         self,

@@ -80,8 +80,6 @@ class EventBus(IEventBus):
 
         # Get game state
         game_state = self.game_service.get_game(command.game_id)
-        if not game_state:
-            raise ValueError(f"Game {command.game_id} not found")
 
         # Find handler
         handler_name = command.get_handler_name()

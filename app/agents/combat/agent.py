@@ -17,6 +17,7 @@ from app.agents.core.types import AgentType
 from app.events.commands.broadcast_commands import BroadcastNarrativeCommand
 from app.interfaces.events import IEventBus
 from app.interfaces.services.ai import IContextService, IEventLoggerService, IToolCallExtractorService
+from app.interfaces.services.common import IActionService
 from app.interfaces.services.data import IItemRepository, IMonsterRepository, ISpellRepository
 from app.interfaces.services.game import (
     IConversationService,
@@ -53,6 +54,7 @@ class CombatAgent(BaseAgent):
     save_manager: ISaveManager
     event_manager: IEventManager
     conversation_service: IConversationService
+    action_service: IActionService
     tool_call_extractor: IToolCallExtractorService | None = None
     debug_logger: AgentDebugLogger | None = None
     _event_processor: EventStreamProcessor | None = None
@@ -128,6 +130,7 @@ class CombatAgent(BaseAgent):
             event_manager=self.event_manager,
             metadata_service=self.metadata_service,
             save_manager=self.save_manager,
+            action_service=self.action_service,
         )
 
         # Build combat-focused context
