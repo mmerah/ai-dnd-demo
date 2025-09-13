@@ -5,7 +5,7 @@
       "name": "Shadow Wolf",
       "type": "beast",
       "size": "Medium",
-      "alignment": "Neutral Evil",
+      "alignment": "neutral-evil",
       "armor_class": 14,
       "hit_points": {
         "current": 22,

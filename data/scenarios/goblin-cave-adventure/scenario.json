@@ -29,5 +29,8 @@
     "cave-entrance-guards",
     "boss-fight"
   ],
-  "progression": "acts"
+  "progression": "acts",
+  "content_packs": [
+    "srd"
+  ]
 }
