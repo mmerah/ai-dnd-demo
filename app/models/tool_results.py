@@ -55,14 +55,14 @@ class ModifyCurrencyResult(BaseModel):
 
 class AddItemResult(BaseModel):
     type: str = "item_added"
-    item_name: str
+    item_index: str
     quantity: int
     total_quantity: int
 
 
 class RemoveItemResult(BaseModel):
     type: str = "item_removed"
-    item_name: str
+    item_index: str
     quantity: int
     remaining_quantity: int
 
@@ -223,7 +223,7 @@ class LevelUpResult(BaseModel):
 
 class EquipItemResult(BaseModel):
     type: str = "equip_item"
-    item_name: str
+    item_index: str
     equipped: bool
     equipped_quantity: int
     message: str

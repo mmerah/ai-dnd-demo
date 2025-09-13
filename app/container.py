@@ -18,8 +18,14 @@ from app.events.handlers.time_handler import TimeHandler
 from app.interfaces.events import IEventBus
 from app.interfaces.services.ai import IAIService, IContextService, IEventLoggerService, IMessageService
 from app.interfaces.services.character import ICharacterComputeService, ICharacterService, ILevelProgressionService
-from app.interfaces.services.common import IActionService, IBroadcastService, IDiceService, IPathResolver
-from app.interfaces.services.data import IItemRepository, ILoader, IMonsterRepository, ISpellRepository
+from app.interfaces.services.common import (
+    IActionService,
+    IBroadcastService,
+    IContentPackRegistry,
+    IDiceService,
+    IPathResolver,
+)
+from app.interfaces.services.data import ILoader, IRepository
 from app.interfaces.services.game import (
     ICombatService,
     IConversationService,
@@ -36,7 +42,10 @@ from app.interfaces.services.game import (
 )
 from app.interfaces.services.scenario import IScenarioService
 from app.models.character import CharacterSheet
+from app.models.item import ItemDefinition
+from app.models.monster import MonsterSheet
 from app.models.scenario import ScenarioSheet
+from app.models.spell import SpellDefinition
 from app.services.ai import AIService, MessageService
 from app.services.ai.context_service import ContextService
 from app.services.ai.event_logger_service import EventLoggerService
@@ -48,6 +57,7 @@ from app.services.character.level_service import LevelProgressionService
 from app.services.common import BroadcastService, DiceService
 from app.services.common.action_service import ActionService
 from app.services.common.path_resolver import PathResolver
+from app.services.data.content_pack_registry import ContentPackRegistry
 from app.services.data.loaders.character_loader import CharacterLoader
 from app.services.data.loaders.scenario_loader import ScenarioLoader
 from app.services.data.repositories.alignment_repository import AlignmentRepository
@@ -67,6 +77,7 @@ from app.services.data.repositories.skill_repository import SkillRepository
 from app.services.data.repositories.spell_repository import SpellRepository
 from app.services.data.repositories.trait_repository import TraitRepository
 from app.services.data.repositories.weapon_property_repository import WeaponPropertyRepository
+from app.services.data.repository_factory import RepositoryFactory
 from app.services.game import GameService
 from app.services.game.combat_service import CombatService
 from app.services.game.conversation_service import ConversationService
@@ -104,10 +115,10 @@ class Container:
             pre_save_sanitizer=self.pre_save_sanitizer,
             game_state_manager=self.game_state_manager,
             compute_service=self.character_compute_service,
-            item_repository=self.item_repository,
             monster_factory=self.monster_factory,
             location_service=self.location_service,
             game_factory=self.game_factory,
+            repository_factory=self.repository_factory,
         )
 
     @cached_property
@@ -138,7 +149,6 @@ class Container:
         return ScenarioService(
             path_resolver=self.path_resolver,
             scenario_loader=self.scenario_loader,
-            monster_repository=self.monster_repository,
             character_service=self.character_service,
         )
 
@@ -151,17 +161,38 @@ class Container:
         return PathResolver()
 
     @cached_property
-    def item_repository(self) -> IItemRepository:
-        return ItemRepository(self.path_resolver)
+    def content_pack_registry(self) -> IContentPackRegistry:
+        registry = ContentPackRegistry(self.path_resolver)
+        registry.discover_packs()
+        return registry
 
     @cached_property
-    def monster_repository(self) -> IMonsterRepository:
+    def all_pack_ids(self) -> list[str]:
+        summaries = self.content_pack_registry.list_packs()
+        ids = [s.id for s in summaries]
+        try:
+            return self.content_pack_registry.get_pack_order(ids)
+        except Exception:
+            return ids
+
+    @cached_property
+    def item_repository(self) -> IRepository[ItemDefinition]:
+        return ItemRepository(
+            self.path_resolver,
+            content_pack_registry=self.content_pack_registry,
+            content_packs=self.all_pack_ids,
+        )
+
+    @cached_property
+    def monster_repository(self) -> IRepository[MonsterSheet]:
         return MonsterRepository(
             self.path_resolver,
             language_repository=self.language_repository,
             condition_repository=self.condition_repository,
             alignment_repository=self.alignment_repository,
             skill_repository=self.skill_repository,
+            content_pack_registry=self.content_pack_registry,
+            content_packs=self.all_pack_ids,
         )
 
     @cached_property
@@ -175,68 +206,133 @@ class Container:
         return LocationService(monster_factory=self.monster_factory)
 
     @cached_property
-    def spell_repository(self) -> ISpellRepository:
-        return SpellRepository(self.path_resolver, magic_school_repository=self.magic_school_repository)
+    def spell_repository(self) -> IRepository[SpellDefinition]:
+        return SpellRepository(
+            self.path_resolver,
+            magic_school_repository=self.magic_school_repository,
+            content_pack_registry=self.content_pack_registry,
+            content_packs=self.all_pack_ids,
+        )
 
     @cached_property
     def magic_school_repository(self) -> MagicSchoolRepository:
-        return MagicSchoolRepository(self.path_resolver)
+        return MagicSchoolRepository(
+            self.path_resolver,
+            content_pack_registry=self.content_pack_registry,
+            content_packs=self.all_pack_ids,
+        )
 
     @cached_property
     def alignment_repository(self) -> AlignmentRepository:
-        return AlignmentRepository(self.path_resolver)
+        return AlignmentRepository(
+            self.path_resolver,
+            content_pack_registry=self.content_pack_registry,
+            content_packs=self.all_pack_ids,
+        )
 
     @cached_property
     def class_repository(self) -> ClassRepository:
-        return ClassRepository(self.path_resolver)
+        return ClassRepository(
+            self.path_resolver,
+            content_pack_registry=self.content_pack_registry,
+            content_packs=self.all_pack_ids,
+        )
 
     @cached_property
     def subclass_repository(self) -> SubclassRepository:
-        return SubclassRepository(self.path_resolver)
+        return SubclassRepository(
+            self.path_resolver,
+            content_pack_registry=self.content_pack_registry,
+            content_packs=self.all_pack_ids,
+        )
 
     @cached_property
     def language_repository(self) -> LanguageRepository:
-        return LanguageRepository(self.path_resolver)
+        return LanguageRepository(
+            self.path_resolver,
+            content_pack_registry=self.content_pack_registry,
+            content_packs=self.all_pack_ids,
+        )
 
     @cached_property
     def condition_repository(self) -> ConditionRepository:
-        return ConditionRepository(self.path_resolver)
+        return ConditionRepository(
+            self.path_resolver,
+            content_pack_registry=self.content_pack_registry,
+            content_packs=self.all_pack_ids,
+        )
 
     @cached_property
     def race_repository(self) -> RaceRepository:
-        return RaceRepository(self.path_resolver)
+        return RaceRepository(
+            self.path_resolver,
+            content_pack_registry=self.content_pack_registry,
+            content_packs=self.all_pack_ids,
+        )
 
     @cached_property
     def race_subrace_repository(self) -> RaceSubraceRepository:
-        return RaceSubraceRepository(self.path_resolver)
+        return RaceSubraceRepository(
+            self.path_resolver,
+            content_pack_registry=self.content_pack_registry,
+            content_packs=self.all_pack_ids,
+        )
 
     @cached_property
     def background_repository(self) -> BackgroundRepository:
-        return BackgroundRepository(self.path_resolver)
+        return BackgroundRepository(
+            self.path_resolver,
+            content_pack_registry=self.content_pack_registry,
+            content_packs=self.all_pack_ids,
+        )
 
     @cached_property
     def trait_repository(self) -> TraitRepository:
-        return TraitRepository(self.path_resolver)
+        return TraitRepository(
+            self.path_resolver,
+            content_pack_registry=self.content_pack_registry,
+            content_packs=self.all_pack_ids,
+        )
 
     @cached_property
     def feature_repository(self) -> FeatureRepository:
-        return FeatureRepository(self.path_resolver)
+        return FeatureRepository(
+            self.path_resolver,
+            content_pack_registry=self.content_pack_registry,
+            content_packs=self.all_pack_ids,
+        )
 
     @cached_property
     def feat_repository(self) -> FeatRepository:
-        return FeatRepository(self.path_resolver)
+        return FeatRepository(
+            self.path_resolver,
+            content_pack_registry=self.content_pack_registry,
+            content_packs=self.all_pack_ids,
+        )
 
     @cached_property
     def skill_repository(self) -> SkillRepository:
-        return SkillRepository(self.path_resolver)
+        return SkillRepository(
+            self.path_resolver,
+            content_pack_registry=self.content_pack_registry,
+            content_packs=self.all_pack_ids,
+        )
 
     @cached_property
     def weapon_property_repository(self) -> WeaponPropertyRepository:
-        return WeaponPropertyRepository(self.path_resolver)
+        return WeaponPropertyRepository(
+            self.path_resolver,
+            content_pack_registry=self.content_pack_registry,
+            content_packs=self.all_pack_ids,
+        )
 
     @cached_property
     def damage_type_repository(self) -> DamageTypeRepository:
-        return DamageTypeRepository(self.path_resolver)
+        return DamageTypeRepository(
+            self.path_resolver,
+            content_pack_registry=self.content_pack_registry,
+            content_packs=self.all_pack_ids,
+        )
 
     @cached_property
     def character_loader(self) -> ILoader[CharacterSheet]:
@@ -268,13 +364,7 @@ class Container:
 
     @cached_property
     def character_compute_service(self) -> ICharacterComputeService:
-        return CharacterComputeService(
-            class_repository=self.class_repository,
-            skill_repository=self.skill_repository,
-            item_repository=self.item_repository,
-            spell_repository=self.spell_repository,
-            race_repository=self.race_repository,
-        )
+        return CharacterComputeService(repository_provider=self.repository_factory)
 
     @cached_property
     def level_progression_service(self) -> ILevelProgressionService:
@@ -288,7 +378,8 @@ class Container:
         event_bus.register_handler("character", CharacterHandler(self.game_service, self.level_progression_service))
         event_bus.register_handler("dice", DiceHandler(self.game_service, self.dice_service))
         event_bus.register_handler(
-            "inventory", InventoryHandler(self.game_service, self.item_repository, self.character_compute_service)
+            "inventory",
+            InventoryHandler(self.game_service, self.character_compute_service, self.repository_factory),
         )
         event_bus.register_handler("time", TimeHandler(self.game_service))
         event_bus.register_handler("broadcast", BroadcastHandler(self.game_service, self.message_service))
@@ -297,8 +388,6 @@ class Container:
             LocationHandler(
                 self.game_service,
                 self.scenario_service,
-                self.monster_repository,
-                self.item_repository,
                 self.location_service,
             ),
         )
@@ -307,13 +396,11 @@ class Container:
             CombatHandler(
                 self.game_service,
                 self.scenario_service,
-                self.monster_repository,
                 self.combat_service,
+                self.repository_factory,
             ),
         )
-        event_bus.register_handler(
-            "quest", QuestHandler(self.game_service, self.scenario_service, self.item_repository)
-        )
+        event_bus.register_handler("quest", QuestHandler(self.game_service, self.scenario_service))
 
         # Verify handlers can handle all commands
         event_bus.verify_handlers()
@@ -337,9 +424,7 @@ class Container:
             AgentType.NARRATIVE,
             event_bus=self.event_bus,
             scenario_service=self.scenario_service,
-            item_repository=self.item_repository,
-            monster_repository=self.monster_repository,
-            spell_repository=self.spell_repository,
+            repository_provider=self.repository_factory,
             metadata_service=self.metadata_service,
             message_manager=self.game_message_manager,
             event_manager=self.event_manager,
@@ -357,9 +442,7 @@ class Container:
             AgentType.COMBAT,
             event_bus=self.event_bus,
             scenario_service=self.scenario_service,
-            item_repository=self.item_repository,
-            monster_repository=self.monster_repository,
-            spell_repository=self.spell_repository,
+            repository_provider=self.repository_factory,
             metadata_service=self.metadata_service,
             message_manager=self.game_message_manager,
             event_manager=self.event_manager,
@@ -377,9 +460,7 @@ class Container:
             AgentType.SUMMARIZER,
             event_bus=self.event_bus,
             scenario_service=self.scenario_service,
-            item_repository=self.item_repository,
-            monster_repository=self.monster_repository,
-            spell_repository=self.spell_repository,
+            repository_provider=self.repository_factory,
             metadata_service=self.metadata_service,
             message_manager=self.game_message_manager,
             event_manager=self.event_manager,
@@ -430,11 +511,11 @@ class Container:
 
     @cached_property
     def context_service(self) -> IContextService:
-        return ContextService(
-            item_repository=self.item_repository,
-            monster_repository=self.monster_repository,
-            spell_repository=self.spell_repository,
-        )
+        return ContextService(self.repository_factory)
+
+    @cached_property
+    def repository_factory(self) -> RepositoryFactory:
+        return RepositoryFactory(self.path_resolver, self.content_pack_registry)
 
     @cached_property
     def event_logger_service(self) -> IEventLoggerService:

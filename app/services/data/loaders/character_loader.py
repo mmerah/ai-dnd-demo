@@ -11,7 +11,6 @@ class CharacterLoader(BaseLoader[CharacterSheet]):
     """Loader for character sheets from JSON files."""
 
     def _parse_data(self, data: dict[str, Any] | list[Any], source_path: Path) -> CharacterSheet:
-        # Any is necessary because raw JSON data can contain mixed types
         if not isinstance(data, dict):
             raise RuntimeError(f"Expected dict for character data, got {type(data).__name__} from {source_path}")
 

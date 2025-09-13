@@ -2,15 +2,16 @@ from pydantic import BaseModel
 
 
 class FeatureGrantedBy(BaseModel):
-    class_index: str | None = None
+    class_index: str
     subclass_index: str | None = None
 
 
 class FeatureDefinition(BaseModel):
     index: str
     name: str
-    description: str | None = None
-    class_index: str | None = None
+    description: str
+    class_index: str
     subclass_index: str | None = None
-    level: int | None = None
-    granted_by: FeatureGrantedBy | None = None
+    level: int
+    granted_by: FeatureGrantedBy
+    content_pack: str

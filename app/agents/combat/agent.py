@@ -18,7 +18,7 @@ from app.events.commands.broadcast_commands import BroadcastNarrativeCommand
 from app.interfaces.events import IEventBus
 from app.interfaces.services.ai import IContextService, IEventLoggerService, IToolCallExtractorService
 from app.interfaces.services.common import IActionService
-from app.interfaces.services.data import IItemRepository, IMonsterRepository, ISpellRepository
+from app.interfaces.services.data import IRepositoryProvider
 from app.interfaces.services.game import (
     IConversationService,
     IEventManager,
@@ -47,9 +47,7 @@ class CombatAgent(BaseAgent):
     metadata_service: IMetadataService
     event_bus: IEventBus
     scenario_service: IScenarioService
-    item_repository: IItemRepository
-    monster_repository: IMonsterRepository
-    spell_repository: ISpellRepository
+    repository_provider: IRepositoryProvider
     message_manager: IMessageManager
     save_manager: ISaveManager
     event_manager: IEventManager
@@ -118,14 +116,18 @@ class CombatAgent(BaseAgent):
         self.event_logger.set_game_id(game_state.game_id)
         self.event_logger.set_agent_type(AgentType.COMBAT.value)
 
+        item_repo = self.repository_provider.get_item_repository_for(game_state)
+        monster_repo = self.repository_provider.get_monster_repository_for(game_state)
+        spell_repo = self.repository_provider.get_spell_repository_for(game_state)
+
         deps = AgentDependencies(
             game_state=game_state,
             event_bus=self.event_bus,
             agent_type=AgentType.COMBAT,
             scenario_service=self.scenario_service,
-            item_repository=self.item_repository,
-            monster_repository=self.monster_repository,
-            spell_repository=self.spell_repository,
+            item_repository=item_repo,
+            monster_repository=monster_repo,
+            spell_repository=spell_repo,
             message_manager=self.message_manager,
             event_manager=self.event_manager,
             metadata_service=self.metadata_service,

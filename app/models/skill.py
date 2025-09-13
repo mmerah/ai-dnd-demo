@@ -5,4 +5,5 @@ class Skill(BaseModel):
     index: str
     name: str
     ability: str
-    description: str | None = None
+    description: str
+    content_pack: str

@@ -42,8 +42,7 @@ class BaseLoader(ILoader[T], ABC, Generic[T]):
 
     @abstractmethod
     def _parse_data(self, data: dict[str, Any] | list[Any], source_path: Path) -> T:
-        # Any is necessary here because raw JSON data can contain mixed types
-        """Parse raw JSON data into the appropriate model.
+        """Parse raw JSON data into the appropriate model (Any is thus necessary).
 
         Args:
             data: Raw JSON data

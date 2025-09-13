@@ -11,7 +11,7 @@ class InventoryContextBuilder(ContextBuilder):
         if not inv:
             return None
 
-        lines = ["Your Inventory (use exact names shown):"]
+        lines = ["Your Inventory (use exact indexes):"]
         for item in inv[:20]:
-            lines.append(f"  • {item.name} x{item.quantity}")
+            lines.append(f"  - {item.index} x{item.quantity}")
         return "\n".join(lines)

@@ -1,8 +1,9 @@
 import logging
 
 from app.common.exceptions import RepositoryNotFoundError
-from app.interfaces.services.data import ISpellRepository
+from app.interfaces.services.data import IRepository
 from app.models.game_state import GameState
+from app.models.spell import SpellDefinition
 
 from .base import ContextBuilder
 
@@ -12,7 +13,7 @@ logger = logging.getLogger(__name__)
 class SpellContextBuilder(ContextBuilder):
     """Build known spells context using the spell repository, if any."""
 
-    def __init__(self, spell_repository: ISpellRepository) -> None:
+    def __init__(self, spell_repository: IRepository[SpellDefinition] | None) -> None:
         self.spell_repository = spell_repository
 
     def build(self, game_state: GameState) -> str | None:
@@ -25,6 +26,8 @@ class SpellContextBuilder(ContextBuilder):
 
         for spell_name in spells[:10]:  # Limit to avoid context overflow
             try:
+                if not self.spell_repository:
+                    continue
                 spell_def = self.spell_repository.get(spell_name)
                 context_parts.append(f"  • {spell_name} (Level {spell_def.level}): {spell_def.description[:100]}...")
             except RepositoryNotFoundError:

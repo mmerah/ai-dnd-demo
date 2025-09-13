@@ -11,7 +11,6 @@ from app.events.commands.location_commands import (
     UpdateLocationStateCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services.data import IItemRepository, IMonsterRepository
 from app.interfaces.services.game import IGameService, ILocationService
 from app.interfaces.services.scenario import IScenarioService
 from app.models.game_state import GameState
@@ -33,14 +32,10 @@ class LocationHandler(BaseHandler):
         self,
         game_service: IGameService,
         scenario_service: IScenarioService,
-        monster_repository: IMonsterRepository,
-        item_repository: IItemRepository,
         location_service: ILocationService,
     ):
         super().__init__(game_service)
         self.scenario_service = scenario_service
-        self.monster_repository = monster_repository
-        self.item_repository = item_repository
         self.location_service = location_service
 
     supported_commands = (

@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 
 from app.models.attributes import Abilities, AbilityModifiers, AttackAction, SavingThrows, SkillValue
 from app.models.character import CharacterSheet
+from app.models.game_state import GameState
 from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.entity_state import EntityState
 from app.models.item import InventoryItem
@@ -88,11 +89,12 @@ class ICharacterComputeService(ABC):
 
     @abstractmethod
     def compute_saving_throws(
-        self, class_index: str, modifiers: AbilityModifiers, proficiency_bonus: int
+        self, game_state: GameState, class_index: str, modifiers: AbilityModifiers, proficiency_bonus: int
     ) -> SavingThrows:
         """Compute saving throw bonuses based on class proficiencies.
 
         Args:
+            game_state: Game state for pack-scoped repository access
             class_index: Character class identifier
             modifiers: Ability modifiers
             proficiency_bonus: Character's proficiency bonus
@@ -105,6 +107,7 @@ class ICharacterComputeService(ABC):
     @abstractmethod
     def compute_skills(
         self,
+        game_state: GameState,
         class_index: str,
         selected_skills: list[str],
         modifiers: AbilityModifiers,
@@ -116,6 +119,7 @@ class ICharacterComputeService(ABC):
         class proficiency choices.
 
         Args:
+            game_state: Game state for pack-scoped repository access
             class_index: Character class identifier
             selected_skills: List of skill indices the character is proficient in
             modifiers: Ability modifiers
@@ -127,7 +131,9 @@ class ICharacterComputeService(ABC):
         pass
 
     @abstractmethod
-    def compute_armor_class(self, modifiers: AbilityModifiers, inventory: list[InventoryItem]) -> int:
+    def compute_armor_class(
+        self, game_state: GameState, modifiers: AbilityModifiers, inventory: list[InventoryItem]
+    ) -> int:
         """Compute armor class from equipped items and DEX modifier.
 
         Rules:
@@ -138,6 +144,7 @@ class ICharacterComputeService(ABC):
         - Shield: +2 AC (stacks with armor)
 
         Args:
+            game_state: Game state for pack-scoped repository access
             modifiers: Ability modifiers (uses DEX)
             inventory: List of inventory items (checks equipped armor/shields)
 
@@ -160,7 +167,7 @@ class ICharacterComputeService(ABC):
 
     @abstractmethod
     def compute_spell_numbers(
-        self, class_index: str, modifiers: AbilityModifiers, proficiency_bonus: int
+        self, game_state: GameState, class_index: str, modifiers: AbilityModifiers, proficiency_bonus: int
     ) -> tuple[int | None, int | None]:
         """Compute spell save DC and spell attack bonus.
 
@@ -169,6 +176,7 @@ class ICharacterComputeService(ABC):
         - Spell Attack Bonus: proficiency bonus + spellcasting ability modifier
 
         Args:
+            game_state: Game state for pack-scoped repository access
             class_index: Character class identifier
             modifiers: Ability modifiers
             proficiency_bonus: Character's proficiency bonus
@@ -180,13 +188,14 @@ class ICharacterComputeService(ABC):
         pass
 
     @abstractmethod
-    def compute_speed(self, race_index: str, inventory: list[InventoryItem]) -> int:
+    def compute_speed(self, game_state: GameState, race_index: str, inventory: list[InventoryItem]) -> int:
         """Compute base speed from race.
 
         Note: Current implementation uses base racial speed only.
         Armor penalties are not yet implemented.
 
         Args:
+            game_state: Game state for pack-scoped repository access
             race_index: Character race identifier
             inventory: List of inventory items (for future armor penalty checks)
 
@@ -196,30 +205,56 @@ class ICharacterComputeService(ABC):
         pass
 
     @abstractmethod
-    def compute_hit_points_and_dice(self, class_index: str, level: int, con_modifier: int) -> tuple[int, int, str]:
+    def compute_hit_points_and_dice(
+        self, game_state: GameState, class_index: str, level: int, con_modifier: int
+    ) -> tuple[int, int, str]:
         """Compute base maximum HP and hit dice for a class/level.
 
-        Returns a tuple of (max_hp, hit_dice_total, hit_die_type), where hit_die_type is like 'd8'.
-        Uses level 1 max hit die + CON mod, and average per-level increase thereafter with a minimum of 1 per level.
+        Args:
+            game_state: Game state for pack-scoped repository access
+            class_index: Character class identifier
+            level: Character level
+            con_modifier: Constitution modifier
+
+        Returns:
+            Tuple of (max_hp, hit_dice_total, hit_die_type), where hit_die_type is like 'd8'.
+            Uses level 1 max hit die + CON mod, and average per-level increase thereafter with a minimum of 1 per level.
         """
         pass
 
     @abstractmethod
-    def initialize_entity_state(self, sheet: CharacterSheet) -> EntityState:
-        """Create an EntityState from a CharacterSheet's starting_* fields."""
+    def initialize_entity_state(self, game_state: GameState, sheet: CharacterSheet) -> EntityState:
+        """Create an EntityState from a CharacterSheet's starting_* fields.
+
+        Args:
+            game_state: Game state for pack-scoped repository access
+            sheet: Character sheet to initialize from
+
+        Returns:
+            Initialized EntityState with computed values
+        """
         pass
 
     @abstractmethod
-    def recompute_entity_state(self, sheet: CharacterSheet, state: EntityState) -> EntityState:
+    def recompute_entity_state(self, game_state: GameState, sheet: CharacterSheet, state: EntityState) -> EntityState:
         """Recompute derived fields on EntityState from sheet + current state.
 
         Preserves current HP (clamped to new max) and current hit dice count (clamped to total).
+
+        Args:
+            game_state: Game state for pack-scoped repository access
+            sheet: Character sheet
+            state: Current entity state
+
+        Returns:
+            Updated EntityState with recomputed derived values
         """
         pass
 
     @abstractmethod
     def compute_attacks(
         self,
+        game_state: GameState,
         class_index: str,
         race_index: str,
         inventory: list[InventoryItem],
@@ -230,12 +265,25 @@ class ICharacterComputeService(ABC):
 
         Uses simple proficiency heuristics (class/race proficiencies) and weapon properties
         to select the attack ability (STR/DEX) and to-hit/damage values.
+
+        Args:
+            game_state: Game state for pack-scoped repository access
+            class_index: Character class identifier
+            race_index: Character race identifier
+            inventory: List of inventory items (checks equipped weapons)
+            modifiers: Ability modifiers
+            proficiency_bonus: Character's proficiency bonus
+
+        Returns:
+            List of available attack actions
         """
         pass
 
     @abstractmethod
-    def set_item_equipped(self, state: EntityState, item_name: str, equipped: bool) -> EntityState:
-        """Equip or unequip an inventory item by name.
+    def set_item_equipped(
+        self, game_state: GameState, state: EntityState, item_index: str, equipped: bool
+    ) -> EntityState:
+        """Equip or unequip an inventory item by index.
 
         Validates equippability against the item repository, performs stack split/merge
         for multi-quantity items, and returns the updated EntityState.
@@ -246,8 +294,9 @@ class ICharacterComputeService(ABC):
         - Operation equips/unequips exactly one unit per call
 
         Args:
+            game_state: Game state for pack-scoped repository access
             state: Current entity state
-            item_name: Name of the item to equip/unequip
+            item_index: Index of the item to equip/unequip
             equipped: True to equip, False to unequip
 
         Returns:
@@ -263,7 +312,7 @@ class ILevelProgressionService(ABC):
     """Interface for minimal character level-up progression."""
 
     @abstractmethod
-    def level_up_character(self, character: CharacterInstance) -> None:
+    def level_up_character(self, game_state: GameState, character: CharacterInstance) -> None:
         """Level up a character, adjusting HP, hit dice, and derived values.
 
         Process:

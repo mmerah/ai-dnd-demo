@@ -7,3 +7,4 @@ class Language(BaseModel):
     type: str | None = None
     script: str | None = None
     description: str | None = None
+    content_pack: str

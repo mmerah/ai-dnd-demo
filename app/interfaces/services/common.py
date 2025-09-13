@@ -7,6 +7,7 @@ from pydantic import BaseModel
 
 from app.common.types import JSONSerializable
 from app.events.base import BaseCommand
+from app.models.content_pack import ContentPackMetadata, ContentPackSummary
 from app.models.dice import DiceRoll, RollType
 from app.models.game_state import GameState
 
@@ -164,5 +165,90 @@ class IActionService(ABC):
 
         Returns:
             Result model from command execution
+        """
+        pass
+
+
+class IContentPackRegistry(ABC):
+    """Interface for managing content packs.
+
+    Responsible for:
+    - Discovering and loading content packs
+    - Managing pack metadata and dependencies
+    - Resolving pack conflicts based on load order
+    - Providing pack data to repositories
+    """
+
+    @abstractmethod
+    def discover_packs(self) -> None:
+        """Discover all available content packs.
+
+        Scans both SRD data directory and user-data/packs directory
+        for content pack metadata files.
+        """
+        pass
+
+    @abstractmethod
+    def get_pack(self, pack_id: str) -> ContentPackMetadata | None:
+        """Get metadata for a specific content pack.
+
+        Args:
+            pack_id: Unique identifier for the content pack
+
+        Returns:
+            ContentPackMetadata if found, None otherwise
+        """
+        pass
+
+    @abstractmethod
+    def list_packs(self) -> list[ContentPackSummary]:
+        """List all available content packs.
+
+        Returns:
+            List of ContentPackSummary objects for all discovered packs
+        """
+        pass
+
+    @abstractmethod
+    def validate_dependencies(self, pack_ids: list[str]) -> tuple[bool, str]:
+        """Validate that pack dependencies are satisfied.
+
+        Args:
+            pack_ids: List of pack IDs to validate
+
+        Returns:
+            Tuple of (is_valid, error_message)
+            If valid, error_message will be empty string
+        """
+        pass
+
+    @abstractmethod
+    def get_pack_order(self, pack_ids: list[str]) -> list[str]:
+        """Get the order in which packs should be loaded.
+
+        Resolves dependencies and returns pack IDs in the correct
+        loading order (dependencies first, then dependent packs).
+
+        Args:
+            pack_ids: List of pack IDs to order
+
+        Returns:
+            Ordered list of pack IDs
+
+        Raises:
+            ValueError: If circular dependencies are detected
+        """
+        pass
+
+    @abstractmethod
+    def get_pack_data_path(self, pack_id: str, data_type: str) -> Path | None:
+        """Get the path to a specific data file within a content pack.
+
+        Args:
+            pack_id: Content pack identifier
+            data_type: Type of data file (e.g., 'items', 'monsters', 'spells')
+
+        Returns:
+            Path to the data file if it exists, None otherwise
         """
         pass

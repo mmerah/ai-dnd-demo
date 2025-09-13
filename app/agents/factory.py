@@ -18,7 +18,7 @@ from app.config import get_settings
 from app.interfaces.events import IEventBus
 from app.interfaces.services.ai import IContextService, IEventLoggerService, IToolCallExtractorService
 from app.interfaces.services.common import IActionService
-from app.interfaces.services.data import IItemRepository, IMonsterRepository, ISpellRepository
+from app.interfaces.services.data import IRepositoryProvider
 from app.interfaces.services.game import (
     IConversationService,
     IEventManager,
@@ -74,9 +74,7 @@ class AgentFactory:
         agent_type: AgentType,
         event_bus: IEventBus,
         scenario_service: IScenarioService,
-        item_repository: IItemRepository,
-        monster_repository: IMonsterRepository,
-        spell_repository: ISpellRepository,
+        repository_provider: IRepositoryProvider,
         metadata_service: IMetadataService,
         message_manager: IMessageManager,
         event_manager: IEventManager,
@@ -116,9 +114,7 @@ class AgentFactory:
                 metadata_service=metadata_service,
                 event_bus=event_bus,
                 scenario_service=scenario_service,
-                item_repository=item_repository,
-                monster_repository=monster_repository,
-                spell_repository=spell_repository,
+                repository_provider=repository_provider,
                 message_manager=message_manager,
                 save_manager=save_manager,
                 event_manager=event_manager,
@@ -150,9 +146,7 @@ class AgentFactory:
                 metadata_service=metadata_service,
                 event_bus=event_bus,
                 scenario_service=scenario_service,
-                item_repository=item_repository,
-                monster_repository=monster_repository,
-                spell_repository=spell_repository,
+                repository_provider=repository_provider,
                 message_manager=message_manager,
                 save_manager=save_manager,
                 event_manager=event_manager,

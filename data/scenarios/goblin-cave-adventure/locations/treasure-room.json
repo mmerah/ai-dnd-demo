@@ -17,7 +17,9 @@
     {"id": "hidden-cache", "description": "A loose stone hides a small stash.", "discovery_method": "search", "dc": 13, "reward": "25 gold pieces"}
   ],
   "loot_table": [
-    {"item_name": "Potion of Healing", "quantity_min": 1, "quantity_max": 2, "probability": 0.8, "found": false, "hidden": false}
+    {"item_name": "Potion of Healing", "quantity_min": 1, "quantity_max": 2, "probability": 0.8, "found": false, "hidden": false},
+    {"item_name": "goblin-treasure-map", "quantity_min": 1, "quantity_max": 1, "probability": 1.0, "found": false, "hidden": false},
+    {"item_name": "goblin-chief-key", "quantity_min": 1, "quantity_max": 1, "probability": 1.0, "found": false, "hidden": true, "dc_to_find": 12}
   ],
   "danger_level": "high"
 }

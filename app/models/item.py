@@ -45,6 +45,7 @@ class ItemSubtype(str, Enum):
 class ItemDefinition(BaseModel):
     """Definition of an item type from data files."""
 
+    index: str
     name: str
     type: ItemType
     rarity: ItemRarity
@@ -69,6 +70,9 @@ class ItemDefinition(BaseModel):
 
     # Shop/availability. -1 for unlimited
     quantity_available: int = -1
+
+    # Content pack this item comes from
+    content_pack: str
 
     # --- Normalization validators for legacy/loose item inputs ---
     @field_validator("description", mode="before")
@@ -167,15 +171,11 @@ class ItemDefinition(BaseModel):
 class InventoryItem(BaseModel):
     """Item instance in a character's inventory."""
 
-    name: str
+    index: str
+    name: str | None = None
+    item_type: ItemType | None = None
     quantity: int = Field(ge=1, default=1)
     equipped_quantity: int = Field(ge=0, default=0)
-
-    # These can be populated from ItemDefinition when needed
-    weight: float = Field(ge=0, default=0.0)
-    value: float = Field(ge=0, default=0)
-    description: str = ""
-    item_type: ItemType = ItemType.ADVENTURING_GEAR
 
     @classmethod
     def from_definition(
@@ -183,13 +183,11 @@ class InventoryItem(BaseModel):
     ) -> "InventoryItem":
         """Create an inventory item from an item definition."""
         return cls(
+            index=definition.index,
             name=definition.name,
+            item_type=definition.type,
             quantity=quantity,
             equipped_quantity=equipped_quantity,
-            weight=definition.weight,
-            value=definition.value,
-            description=definition.description,
-            item_type=definition.type,
         )
 
     def model_post_init(self, __context: object) -> None:

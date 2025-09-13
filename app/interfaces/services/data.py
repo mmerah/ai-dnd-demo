@@ -1,10 +1,26 @@
 from abc import ABC, abstractmethod
+from collections.abc import Callable
 from pathlib import Path
 from typing import Generic, TypeVar
 
-from app.models.item import ItemDefinition, ItemRarity, ItemType
+from app.models.alignment import Alignment
+from app.models.background import BackgroundDefinition
+from app.models.class_definitions import ClassDefinition, SubclassDefinition
+from app.models.condition import Condition
+from app.models.damage_type import DamageType
+from app.models.feat import FeatDefinition
+from app.models.feature import FeatureDefinition
+from app.models.game_state import GameState
+from app.models.item import ItemDefinition
+from app.models.language import Language
+from app.models.magic_school import MagicSchool
 from app.models.monster import MonsterSheet
-from app.models.spell import SpellDefinition, SpellSchool
+from app.models.race import RaceDefinition
+from app.models.race import SubraceDefinition as RaceSubraceDefinition
+from app.models.skill import Skill
+from app.models.spell import SpellDefinition
+from app.models.trait import TraitDefinition
+from app.models.weapon_property import WeaponProperty
 
 # Type variable for generic interfaces
 T = TypeVar("T")
@@ -58,6 +74,19 @@ class IRepository(ABC, Generic[T]):
         pass
 
     @abstractmethod
+    def get_name(self, key: str) -> str:
+        """Get the display name for a given key.
+
+        Args:
+            key: The key/index to look up
+
+        Returns:
+            The display name, or formatted key as fallback
+
+        """
+        pass
+
+    @abstractmethod
     def validate_reference(self, key: str) -> bool:
         """Check if a reference exists.
 
@@ -70,113 +99,139 @@ class IRepository(ABC, Generic[T]):
         pass
 
     @abstractmethod
-    def get_name_from_index(self, index: str) -> str | None:
-        """Resolve canonical name from an index/key (case-insensitive).
+    def get_item_pack_id(self, key: str) -> str | None:
+        """Return the content pack id that provided this key, if known.
 
-        Searches for the item by index/key and returns its display name.
-        Performs case-insensitive matching.
-
-        Args:
-            index: The index/key to resolve
-
-        Returns:
-            The item's display name if found, None otherwise
-        """
-        pass
-
-
-class IItemRepository(IRepository[ItemDefinition]):
-    """Repository interface for item data."""
-
-    @abstractmethod
-    def get_by_type(self, item_type: ItemType) -> list[ItemDefinition]:
-        """Get all items of a specific type.
+        Repositories that load from multiple content packs can track which pack
+        contributed each item when caching is enabled. When unknown, returns None.
 
         Args:
-            item_type: Type of items to retrieve (WEAPON, ARMOR, etc.)
+            key: The key/index to look up
 
         Returns:
-            List of items matching the specified type
+            Pack id string or None if unavailable
         """
         pass
 
     @abstractmethod
-    def get_by_rarity(self, rarity: ItemRarity) -> list[ItemDefinition]:
-        """Get all items of a specific rarity.
+    def filter(self, *predicates: Callable[[T], bool]) -> list[T]:
+        """Filter repository items using one or more predicate functions.
+
+        All predicates must return True for an item to be included (AND logic).
+
+        Examples:
+            # Single filter
+            weapons = item_repo.filter(lambda item: item.type == ItemType.WEAPON)
+
+            # Multiple filters (AND logic)
+            cheap_weapons = item_repo.filter(
+                lambda item: item.type == ItemType.WEAPON,
+                lambda item: item.value < 50
+            )
+
+            # Complex filter with OR logic inside predicate
+            magic_or_rare = item_repo.filter(
+                lambda item: item.rarity == ItemRarity.RARE or "magic" in item.properties
+            )
 
         Args:
-            rarity: Rarity level to filter by
+            *predicates: One or more functions that return True for items to include
 
         Returns:
-            List of items matching the specified rarity
+            List of items matching all predicates
         """
         pass
 
 
-class IMonsterRepository(IRepository[MonsterSheet]):
-    """Repository interface for monster data."""
+class IRepositoryProvider(ABC):
+    """Provider interface for pack-scoped repositories."""
 
     @abstractmethod
-    def get_by_challenge_rating(self, min_cr: float, max_cr: float) -> list[MonsterSheet]:
-        """Get all monsters within a challenge rating range.
-
-        Args:
-            min_cr: Minimum challenge rating (inclusive)
-            max_cr: Maximum challenge rating (inclusive)
-
-        Returns:
-            List of monsters with CR in the specified range
-        """
+    def get_item_repository_for(self, game_state: GameState) -> IRepository[ItemDefinition]:
+        """Get an item repository scoped to the game's content packs."""
         pass
 
     @abstractmethod
-    def get_by_type(self, creature_type: str) -> list[MonsterSheet]:
-        """Get all monsters of a specific type.
-
-        Args:
-            creature_type: Type of creature (humanoid, beast, undead, etc.)
-
-        Returns:
-            List of monsters matching the specified type
-        """
-        pass
-
-
-class ISpellRepository(IRepository[SpellDefinition]):
-    """Repository interface for spell data."""
-
-    @abstractmethod
-    def get_by_level(self, level: int) -> list[SpellDefinition]:
-        """Get all spells of a specific level.
-
-        Args:
-            level: Spell level (0 for cantrips, 1-9 for leveled spells)
-
-        Returns:
-            List of spells of the specified level
-        """
+    def get_monster_repository_for(self, game_state: GameState) -> IRepository[MonsterSheet]:
+        """Get a monster repository scoped to the game's content packs."""
         pass
 
     @abstractmethod
-    def get_by_school(self, school: SpellSchool) -> list[SpellDefinition]:
-        """Get all spells of a specific school.
-
-        Args:
-            school: School of magic (evocation, illusion, etc.)
-
-        Returns:
-            List of spells from the specified school
-        """
+    def get_spell_repository_for(self, game_state: GameState) -> IRepository[SpellDefinition]:
+        """Get a spell repository scoped to the game's content packs."""
         pass
 
     @abstractmethod
-    def get_by_class(self, class_name: str) -> list[SpellDefinition]:
-        """Get all spells available to a specific class.
+    def get_magic_school_repository_for(self, game_state: GameState) -> IRepository[MagicSchool]:
+        """Get a magic school repository scoped to the game's content packs."""
+        pass
 
-        Args:
-            class_name: Name of the class (wizard, cleric, etc.)
+    @abstractmethod
+    def get_alignment_repository_for(self, game_state: GameState) -> IRepository[Alignment]:
+        """Get an alignment repository scoped to the game's content packs."""
+        pass
 
-        Returns:
-            List of spells available to the specified class
-        """
+    @abstractmethod
+    def get_condition_repository_for(self, game_state: GameState) -> IRepository[Condition]:
+        """Get a condition repository scoped to the game's content packs."""
+        pass
+
+    @abstractmethod
+    def get_language_repository_for(self, game_state: GameState) -> IRepository[Language]:
+        """Get a language repository scoped to the game's content packs."""
+        pass
+
+    @abstractmethod
+    def get_skill_repository_for(self, game_state: GameState) -> IRepository[Skill]:
+        """Get a skill repository scoped to the game's content packs."""
+        pass
+
+    @abstractmethod
+    def get_class_repository_for(self, game_state: GameState) -> IRepository[ClassDefinition]:
+        """Get a class repository scoped to the game's content packs."""
+        pass
+
+    @abstractmethod
+    def get_subclass_repository_for(self, game_state: GameState) -> IRepository[SubclassDefinition]:
+        """Get a subclass repository scoped to the game's content packs."""
+        pass
+
+    @abstractmethod
+    def get_race_repository_for(self, game_state: GameState) -> IRepository[RaceDefinition]:
+        """Get a race repository scoped to the game's content packs."""
+        pass
+
+    @abstractmethod
+    def get_race_subrace_repository_for(self, game_state: GameState) -> IRepository[RaceSubraceDefinition]:
+        """Get a race subrace repository scoped to the game's content packs."""
+        pass
+
+    @abstractmethod
+    def get_background_repository_for(self, game_state: GameState) -> IRepository[BackgroundDefinition]:
+        """Get a background repository scoped to the game's content packs."""
+        pass
+
+    @abstractmethod
+    def get_trait_repository_for(self, game_state: GameState) -> IRepository[TraitDefinition]:
+        """Get a trait repository scoped to the game's content packs."""
+        pass
+
+    @abstractmethod
+    def get_feature_repository_for(self, game_state: GameState) -> IRepository[FeatureDefinition]:
+        """Get a feature repository scoped to the game's content packs."""
+        pass
+
+    @abstractmethod
+    def get_feat_repository_for(self, game_state: GameState) -> IRepository[FeatDefinition]:
+        """Get a feat repository scoped to the game's content packs."""
+        pass
+
+    @abstractmethod
+    def get_damage_type_repository_for(self, game_state: GameState) -> IRepository[DamageType]:
+        """Get a damage type repository scoped to the game's content packs."""
+        pass
+
+    @abstractmethod
+    def get_weapon_property_repository_for(self, game_state: GameState) -> IRepository[WeaponProperty]:
+        """Get a weapon property repository scoped to the game's content packs."""
         pass

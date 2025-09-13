@@ -2,66 +2,38 @@
 
 from typing import Any
 
-from app.interfaces.services.common import IPathResolver
+from app.interfaces.services.common import IContentPackRegistry, IPathResolver
 from app.models.trait import TraitDefinition
 from app.services.data.repositories.base_repository import BaseRepository
 
 
 class TraitRepository(BaseRepository[TraitDefinition]):
-    def __init__(self, path_resolver: IPathResolver, cache_enabled: bool = True):
-        super().__init__(cache_enabled)
+    def __init__(
+        self,
+        path_resolver: IPathResolver,
+        cache_enabled: bool = True,
+        content_pack_registry: IContentPackRegistry | None = None,
+        content_packs: list[str] | None = None,
+    ):
+        super().__init__(cache_enabled, content_pack_registry, content_packs)
         self.path_resolver = path_resolver
-        self.file = self.path_resolver.get_shared_data_file("traits")
 
-    def _initialize(self) -> None:
-        if self.cache_enabled:
-            self._load_all()
-        self._initialized = True
+    def _get_item_key(self, item_data: dict[str, Any]) -> str | None:
+        """Extract the unique key from raw item data."""
+        return str(item_data.get("index", ""))
 
-    def _load_all(self) -> None:
-        data = self._load_json_file(self.file)
-        if not isinstance(data, dict):
-            return
-        for item in data.get("traits", []):
-            try:
-                model = self._parse(item)
-                self._cache[model.index] = model
-            except Exception:
-                continue
+    def _get_data_type(self) -> str:
+        """Get the data type name for this repository."""
+        return "traits"
 
-    def _load_item(self, key: str) -> TraitDefinition | None:
-        data = self._load_json_file(self.file)
-        if not isinstance(data, dict):
-            return None
-        for item in data.get("traits", []):
-            if item.get("index") == key or (item.get("name") or "").lower() == key.lower():
-                try:
-                    return self._parse(item)
-                except Exception:
-                    return None
-        return None
-
-    def _get_all_keys(self) -> list[str]:
-        data = self._load_json_file(self.file)
-        if not isinstance(data, dict):
-            return []
-        return sorted([i.get("index", "") for i in data.get("traits", []) if i.get("index")])
-
-    def _check_key_exists(self, key: str) -> bool:
-        data = self._load_json_file(self.file)
-        if not isinstance(data, dict):
-            return False
-        for item in data.get("traits", []):
-            if item.get("index") == key:
-                return True
-            if (item.get("name") or "").lower() == key.lower():
-                return True
-        return False
+    def _parse_item(self, data: dict[str, Any]) -> TraitDefinition:
+        """Parse raw item data into model instance."""
+        return self._parse(data)
 
     def _parse(self, data: dict[str, Any]) -> TraitDefinition:
         return TraitDefinition(
             index=data["index"],
             name=data["name"],
-            description=data.get("description")
-            or ("\n\n".join(data.get("desc", [])) if isinstance(data.get("desc"), list) else data.get("desc", "")),
+            description=data["description"],
+            content_pack=data["content_pack"],
         )

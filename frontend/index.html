@@ -40,6 +40,15 @@
                     <div id="scenarioList" class="scenario-list">
                         <!-- Scenarios loaded dynamically -->
                     </div>
+                    
+                    <!-- Content Pack Selection -->
+                    <div id="contentPackSection" class="content-pack-section" style="display: none; margin-top: 1rem;">
+                        <h3>Additional Content Packs (Optional)</h3>
+                        <div id="contentPackList" class="content-pack-list">
+                            <!-- Content packs loaded dynamically -->
+                        </div>
+                    </div>
+                    
                     <button id="startGame" class="btn-primary" disabled>Start Adventure</button>
                 </div>
             </div>
@@ -344,6 +353,13 @@
         <div class="selection-container">
             <h2>Catalogs</h2>
             <div id="catalogsNav" class="catalogs-nav"></div>
+            
+            <!-- Content Pack Filter -->
+            <div id="catalogPackFilter" class="catalog-pack-filter" style="margin-top:10px; padding:10px; background:rgba(255,255,255,0.03); border-radius:4px;">
+                <label style="display:block; margin-bottom:5px; font-weight:bold;">Filter by Content Pack:</label>
+                <div id="catalogPackCheckboxes" class="pack-filter-list" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
+            </div>
+            
             <div style="margin-top:6px;">
                 <button id="catBackBtn" class="btn-small">⬅ Back</button>
             </div>

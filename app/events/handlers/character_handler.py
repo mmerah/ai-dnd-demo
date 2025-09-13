@@ -182,7 +182,7 @@ class CharacterHandler(BaseHandler):
             old_level = character_instance.state.level
             old_max_hp = character_instance.state.hit_points.maximum
 
-            self.level_service.level_up_character(character_instance)
+            self.level_service.level_up_character(game_state, character_instance)
 
             new_level = character_instance.state.level
             new_max_hp = character_instance.state.hit_points.maximum

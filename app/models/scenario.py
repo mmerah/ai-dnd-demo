@@ -147,6 +147,9 @@ class ScenarioSheet(BaseModel):
     progression: ScenarioProgression
     random_encounters: list[Encounter] = Field(default_factory=list)
 
+    # Content packs used by this scenario
+    content_packs: list[str] = Field(default_factory=lambda: ["srd"])
+
     def get_location(self, location_id: str) -> ScenarioLocation | None:
         """Get a location by ID."""
         for loc in self.locations:

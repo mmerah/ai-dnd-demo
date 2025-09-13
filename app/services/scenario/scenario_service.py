@@ -5,7 +5,7 @@ import logging
 
 from app.interfaces.services.character import ICharacterService
 from app.interfaces.services.common import IPathResolver
-from app.interfaces.services.data import ILoader, IMonsterRepository
+from app.interfaces.services.data import ILoader
 from app.interfaces.services.scenario import IScenarioService
 from app.models.monster import MonsterSheet
 from app.models.npc import NPCSheet
@@ -21,7 +21,6 @@ class ScenarioService(IScenarioService):
         self,
         path_resolver: IPathResolver,
         scenario_loader: ILoader[ScenarioSheet],
-        monster_repository: IMonsterRepository,
         character_service: ICharacterService,
     ):
         """
@@ -30,12 +29,10 @@ class ScenarioService(IScenarioService):
         Args:
             path_resolver: Service for resolving file paths
             scenario_loader: Loader for scenario data
-            monster_repository: Repository for validating monster references
             character_service: Service for character validation
         """
         self.path_resolver = path_resolver
         self.scenario_loader = scenario_loader
-        self.monster_repository = monster_repository
         self.character_service = character_service
         self._scenarios: dict[str, ScenarioSheet] = {}
         self._load_all_scenarios()

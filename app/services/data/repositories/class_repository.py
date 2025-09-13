@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from app.interfaces.services.common import IPathResolver
+from app.interfaces.services.common import IContentPackRegistry, IPathResolver
 from app.models.class_definitions import (
     ClassDefinition,
     ClassProficiencyChoice,
@@ -15,55 +15,27 @@ from app.services.data.repositories.base_repository import BaseRepository
 
 
 class ClassRepository(BaseRepository[ClassDefinition]):
-    def __init__(self, path_resolver: IPathResolver, cache_enabled: bool = True):
-        super().__init__(cache_enabled)
+    def __init__(
+        self,
+        path_resolver: IPathResolver,
+        cache_enabled: bool = True,
+        content_pack_registry: IContentPackRegistry | None = None,
+        content_packs: list[str] | None = None,
+    ):
+        super().__init__(cache_enabled, content_pack_registry, content_packs)
         self.path_resolver = path_resolver
-        self.file = self.path_resolver.get_shared_data_file("classes")
 
-    def _initialize(self) -> None:
-        if self.cache_enabled:
-            self._load_all()
-        self._initialized = True
+    def _get_item_key(self, item_data: dict[str, Any]) -> str | None:
+        """Extract the unique key from raw item data."""
+        return str(item_data.get("index", ""))
 
-    def _load_all(self) -> None:
-        data = self._load_json_file(self.file)
-        if not isinstance(data, dict):
-            return
-        for item in data.get("classes", []):
-            try:
-                model = self._parse(item)
-                self._cache[model.index] = model
-            except Exception:
-                continue
+    def _get_data_type(self) -> str:
+        """Get the data type name for this repository."""
+        return "classes"
 
-    def _load_item(self, key: str) -> ClassDefinition | None:
-        data = self._load_json_file(self.file)
-        if not isinstance(data, dict):
-            return None
-        for item in data.get("classes", []):
-            if item.get("index") == key or (item.get("name") or "").lower() == key.lower():
-                try:
-                    return self._parse(item)
-                except Exception:
-                    return None
-        return None
-
-    def _get_all_keys(self) -> list[str]:
-        data = self._load_json_file(self.file)
-        if not isinstance(data, dict):
-            return []
-        return sorted([i.get("index", "") for i in data.get("classes", []) if i.get("index")])
-
-    def _check_key_exists(self, key: str) -> bool:
-        data = self._load_json_file(self.file)
-        if not isinstance(data, dict):
-            return False
-        for item in data.get("classes", []):
-            if item.get("index") == key:
-                return True
-            if (item.get("name") or "").lower() == key.lower():
-                return True
-        return False
+    def _parse_item(self, data: dict[str, Any]) -> ClassDefinition:
+        """Parse raw item data into model instance."""
+        return self._parse(data)
 
     def _parse(self, data: dict[str, Any]) -> ClassDefinition:
         # Map nested optional structures if present
@@ -130,64 +102,38 @@ class ClassRepository(BaseRepository[ClassDefinition]):
             starting_equipment_options_desc=data.get("starting_equipment_options_desc"),
             subclasses=data.get("subclasses"),
             multi_classing=mc,
+            content_pack=data["content_pack"],
         )
 
 
 class SubclassRepository(BaseRepository[SubclassDefinition]):
-    def __init__(self, path_resolver: IPathResolver, cache_enabled: bool = True):
-        super().__init__(cache_enabled)
+    def __init__(
+        self,
+        path_resolver: IPathResolver,
+        cache_enabled: bool = True,
+        content_pack_registry: IContentPackRegistry | None = None,
+        content_packs: list[str] | None = None,
+    ):
+        super().__init__(cache_enabled, content_pack_registry, content_packs)
         self.path_resolver = path_resolver
-        self.file = self.path_resolver.get_shared_data_file("subclasses")
 
-    def _initialize(self) -> None:
-        if self.cache_enabled:
-            self._load_all()
-        self._initialized = True
+    def _get_item_key(self, item_data: dict[str, Any]) -> str | None:
+        """Extract the unique key from raw item data."""
+        return str(item_data.get("index", ""))
 
-    def _load_all(self) -> None:
-        data = self._load_json_file(self.file)
-        if not isinstance(data, dict):
-            return
-        for item in data.get("subclasses", []):
-            try:
-                model = self._parse(item)
-                self._cache[model.index] = model
-            except Exception:
-                continue
+    def _get_data_type(self) -> str:
+        """Get the data type name for this repository."""
+        return "subclasses"
 
-    def _load_item(self, key: str) -> SubclassDefinition | None:
-        data = self._load_json_file(self.file)
-        if not isinstance(data, dict):
-            return None
-        for item in data.get("subclasses", []):
-            if item.get("index") == key or (item.get("name") or "").lower() == key.lower():
-                try:
-                    return self._parse(item)
-                except Exception:
-                    return None
-        return None
-
-    def _get_all_keys(self) -> list[str]:
-        data = self._load_json_file(self.file)
-        if not isinstance(data, dict):
-            return []
-        return sorted([i.get("index", "") for i in data.get("subclasses", []) if i.get("index")])
-
-    def _check_key_exists(self, key: str) -> bool:
-        data = self._load_json_file(self.file)
-        if not isinstance(data, dict):
-            return False
-        for item in data.get("subclasses", []):
-            if item.get("index") == key:
-                return True
-            if (item.get("name") or "").lower() == key.lower():
-                return True
-        return False
+    def _parse_item(self, data: dict[str, Any]) -> SubclassDefinition:
+        """Parse raw item data into model instance."""
+        return self._parse(data)
 
     def _parse(self, data: dict[str, Any]) -> SubclassDefinition:
         return SubclassDefinition(
             index=data["index"],
             name=data["name"],
             parent_class=data["parent_class"],
-            description=data.get("description"),
+            description=data["description"],
+            content_pack=data["content_pack"],
         )

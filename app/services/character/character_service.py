@@ -5,21 +5,22 @@ from pathlib import Path
 
 from app.interfaces.services.character import ICharacterService
 from app.interfaces.services.common import IPathResolver
-from app.interfaces.services.data import IItemRepository, ILoader, ISpellRepository
+from app.interfaces.services.data import ILoader, IRepository
+from app.models.alignment import Alignment
+from app.models.background import BackgroundDefinition
 from app.models.character import CharacterSheet
-from app.services.data.repositories.alignment_repository import AlignmentRepository
-from app.services.data.repositories.background_repository import BackgroundRepository
-from app.services.data.repositories.class_repository import ClassRepository, SubclassRepository
-from app.services.data.repositories.condition_repository import ConditionRepository
-from app.services.data.repositories.damage_type_repository import DamageTypeRepository
-from app.services.data.repositories.feat_repository import FeatRepository
-from app.services.data.repositories.feature_repository import FeatureRepository
-from app.services.data.repositories.language_repository import LanguageRepository
-from app.services.data.repositories.race_repository import RaceRepository
-from app.services.data.repositories.race_repository import SubraceRepository as RaceSubraceRepository
-from app.services.data.repositories.skill_repository import SkillRepository
-from app.services.data.repositories.trait_repository import TraitRepository
-from app.services.data.repositories.weapon_property_repository import WeaponPropertyRepository
+from app.models.class_definitions import ClassDefinition, SubclassDefinition
+from app.models.condition import Condition
+from app.models.damage_type import DamageType
+from app.models.feat import FeatDefinition
+from app.models.feature import FeatureDefinition
+from app.models.item import ItemDefinition
+from app.models.language import Language
+from app.models.race import RaceDefinition, SubraceDefinition
+from app.models.skill import Skill
+from app.models.spell import SpellDefinition
+from app.models.trait import TraitDefinition
+from app.models.weapon_property import WeaponProperty
 
 logger = logging.getLogger(__name__)
 
@@ -31,22 +32,22 @@ class CharacterService(ICharacterService):
         self,
         path_resolver: IPathResolver,
         character_loader: ILoader[CharacterSheet],
-        item_repository: IItemRepository,
-        spell_repository: ISpellRepository,
-        alignment_repository: AlignmentRepository,
-        class_repository: ClassRepository,
-        subclass_repository: SubclassRepository,
-        language_repository: LanguageRepository,
-        condition_repository: ConditionRepository,
-        race_repository: RaceRepository,
-        race_subrace_repository: RaceSubraceRepository,
-        background_repository: BackgroundRepository,
-        skill_repository: SkillRepository,
-        trait_repository: TraitRepository,
-        feature_repository: FeatureRepository,
-        feat_repository: FeatRepository,
-        damage_type_repository: DamageTypeRepository,
-        weapon_property_repository: WeaponPropertyRepository,
+        item_repository: IRepository[ItemDefinition],
+        spell_repository: IRepository[SpellDefinition],
+        alignment_repository: IRepository[Alignment],
+        class_repository: IRepository[ClassDefinition],
+        subclass_repository: IRepository[SubclassDefinition],
+        language_repository: IRepository[Language],
+        condition_repository: IRepository[Condition],
+        race_repository: IRepository[RaceDefinition],
+        race_subrace_repository: IRepository[SubraceDefinition],
+        background_repository: IRepository[BackgroundDefinition],
+        skill_repository: IRepository[Skill],
+        trait_repository: IRepository[TraitDefinition],
+        feature_repository: IRepository[FeatureDefinition],
+        feat_repository: IRepository[FeatDefinition],
+        damage_type_repository: IRepository[DamageType],
+        weapon_property_repository: IRepository[WeaponProperty],
     ):
         """
         Initialize character service.
@@ -124,8 +125,8 @@ class CharacterService(ICharacterService):
 
         # Validate starting inventory items
         for item in character.starting_inventory:
-            if not self.item_repository.validate_reference(item.name):
-                errors.append(f"Unknown item: {item.name}")
+            if not self.item_repository.validate_reference(item.index):
+                errors.append(f"Unknown item: {item.index}")
 
         # Validate known spells
         starting_sc = character.starting_spellcasting

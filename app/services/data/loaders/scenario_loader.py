@@ -38,7 +38,6 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
         self.path_resolver = path_resolver
 
     def _parse_data(self, data: dict[str, Any] | list[Any], source_path: Path) -> ScenarioSheet:
-        # Any is necessary because raw JSON data can contain mixed types
         if not isinstance(data, dict):
             raise RuntimeError(f"Expected dict for scenario data, got {type(data).__name__} from {source_path}")
 
@@ -64,6 +63,7 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
                 quests=quests,
                 progression=progression if progression else ScenarioProgression(acts=[]),
                 random_encounters=[],  # TODO(MVP2): Load random encounters if needed
+                content_packs=list(data.get("content_packs", ["srd"])),
             )
 
             if self.validate_on_load:
@@ -212,6 +212,11 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
         m_map: dict[str, ScenarioMonster] = {}
         if not monsters_dir.exists():
             return m_map
+
+        # Extract scenario ID from directory path
+        # scenario_dir is like data/scenarios/goblin-cave-adventure/
+        scenario_id = scenario_dir.name
+
         for file_path in monsters_dir.glob("*.json"):
             try:
                 with open(file_path, encoding="utf-8") as f:
@@ -228,6 +233,10 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
                             skill_index = skill_name.lower().replace(" ", "-")
                             skills_list.append({"index": skill_index, "value": modifier})
                         raw["monster"]["skills"] = skills_list
+
+                # Inject content_pack field for scenario-specific monsters
+                if "monster" in raw:
+                    raw["monster"]["content_pack"] = f"scenario:{scenario_id}"
 
                 sm = ScenarioMonster(**raw)
                 m_map[sm.id] = sm

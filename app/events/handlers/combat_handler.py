@@ -16,7 +16,7 @@ from app.events.commands.combat_commands import (
     StartEncounterCombatCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services.data import IMonsterRepository
+from app.interfaces.services.data import IRepositoryProvider
 from app.interfaces.services.game import ICombatService, IGameService
 from app.interfaces.services.scenario import IScenarioService
 from app.models.attributes import EntityType
@@ -42,13 +42,13 @@ class CombatHandler(BaseHandler):
         self,
         game_service: IGameService,
         scenario_service: IScenarioService,
-        monster_repository: IMonsterRepository,
         combat_service: ICombatService,
+        repository_provider: IRepositoryProvider,
     ):
         super().__init__(game_service)
         self.scenario_service = scenario_service
-        self.monster_repository = monster_repository
         self.combat_service = combat_service
+        self.repository_provider = repository_provider
 
     supported_commands = (
         StartCombatCommand,
@@ -137,8 +137,8 @@ class CombatHandler(BaseHandler):
                 game_state,
                 encounter.participant_spawns,
                 self.scenario_service,
-                self.monster_repository,
                 self.game_service,
+                self.repository_provider,
             )
             all_participants: list[CombatParticipant] = []
             if entities:
@@ -200,7 +200,9 @@ class CombatHandler(BaseHandler):
 
                 for _ in range(quantity):
                     try:
-                        monster_data = self.monster_repository.get(monster_name)
+                        # Use per-game content packs
+                        monster_repo = self.repository_provider.get_monster_repository_for(game_state)
+                        monster_data = monster_repo.get(monster_name)
                         # Create runtime instance and add to game state (dedup name)
                         inst = self.game_service.create_monster_instance(
                             monster_data, game_state.scenario_instance.current_location_id

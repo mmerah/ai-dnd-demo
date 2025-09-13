@@ -106,6 +106,9 @@ class GameState(BaseModel):
     scenario_title: str
     scenario_instance: ScenarioInstance
 
+    # Content packs for this game session (scenario + user selections)
+    content_packs: list[str] = Field(default_factory=lambda: ["srd"])
+
     # Location and time
     location: str = "Unknown"
     description: str = ""

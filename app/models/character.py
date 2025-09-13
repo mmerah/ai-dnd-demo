@@ -47,6 +47,8 @@ class CharacterSheet(BaseModel):
     class_index: str
     subclass: str | None = None
     subrace: str | None = None
+    content_packs: list[str] = Field(default_factory=lambda: ["srd"])
+
     # Initialization-only fields (for seeding instances)
     starting_level: int = Field(ge=1, le=20, default=1)
     background: str

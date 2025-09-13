@@ -12,6 +12,7 @@ from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.npc_instance import NPCInstance
 from app.models.instances.scenario_instance import ScenarioInstance
 from app.models.quest import QuestStatus
+from app.models.scenario import ScenarioSheet
 from app.utils.id_generator import generate_instance_id
 
 
@@ -58,6 +59,7 @@ class GameFactory(IGameFactory):
         self,
         character: CharacterSheet,
         scenario_id: str,
+        content_packs: list[str] | None = None,
     ) -> GameState:
         game_id = self.generate_game_id(character.name)
 
@@ -92,14 +94,10 @@ class GameFactory(IGameFactory):
             combat_round=None,
         )
 
-        # Create instances
-        char_inst = CharacterInstance(
-            instance_id=generate_instance_id(character.name),
-            template_id=character.id,
-            sheet=character,
-            state=self.compute_service.initialize_entity_state(character),
-        )
+        # Merge content packs first
+        final_packs = self._merge_content_packs(scenario, scenario_id, content_packs)
 
+        # Create scenario instance
         scen_inst = ScenarioInstance(
             instance_id=generate_instance_id(scenario.title),
             template_id=scenario_id,
@@ -108,6 +106,29 @@ class GameFactory(IGameFactory):
             current_act_id=scenario.progression.acts[0].id,
         )
 
+        # Create a temporary game state for compute service because it needs pack-scoped repositories
+        temp_game_state = GameState(
+            game_id=game_id,
+            character=None,  # type: ignore[arg-type]
+            npcs=[],
+            location=initial_location,
+            scenario_id=scenario_id,
+            scenario_title=scenario_title,
+            scenario_instance=scen_inst,
+            game_time=initial_time,
+            conversation_history=[],
+            content_packs=final_packs,
+        )
+
+        # Initialize character with pack-scoped repositories
+        char_inst = CharacterInstance(
+            instance_id=generate_instance_id(character.name),
+            template_id=character.id,
+            sheet=character,
+            state=self.compute_service.initialize_entity_state(temp_game_state, character),
+        )
+
+        # Create the real game state with the initialized character
         game_state = GameState(
             game_id=game_id,
             character=char_inst,
@@ -118,6 +139,7 @@ class GameFactory(IGameFactory):
             scenario_instance=scen_inst,
             game_time=initial_time,
             conversation_history=[initial_message],
+            content_packs=final_packs,
         )
 
         # Initialize quests from scenario
@@ -144,6 +166,35 @@ class GameFactory(IGameFactory):
 
         return game_state
 
+    def _merge_content_packs(
+        self, scenario: ScenarioSheet, scenario_id: str, content_packs: list[str] | None
+    ) -> list[str]:
+        """Merge content packs from scenario and user selection.
+
+        Args:
+            scenario: Scenario sheet with base content packs
+            scenario_id: ID of the scenario
+            content_packs: Additional user-selected content packs
+
+        Returns:
+            Merged list of content pack IDs with duplicates removed
+        """
+        # Start with scenario's content packs
+        final_packs = list(scenario.content_packs)
+
+        # Add scenario-specific content pack for scenario monsters/items
+        scenario_pack = f"scenario:{scenario_id}"
+        if scenario_pack not in final_packs:
+            final_packs.append(scenario_pack)
+
+        # Add user-selected packs
+        if content_packs:
+            for pack in content_packs:
+                if pack not in final_packs:
+                    final_packs.append(pack)
+
+        return final_packs
+
     def _initialize_all_npcs(self, game_state: GameState) -> None:
         """
         Initialize all NPCInstances from the scenario at game start.
@@ -169,7 +220,7 @@ class GameFactory(IGameFactory):
                 instance_id=generate_instance_id(npc_sheet.display_name),
                 scenario_npc_id=npc_sheet.id,
                 sheet=npc_sheet,
-                state=self.compute_service.initialize_entity_state(npc_sheet.character),
+                state=self.compute_service.initialize_entity_state(game_state, npc_sheet.character),
                 current_location_id=npc_sheet.initial_location_id,
                 attitude=npc_sheet.initial_attitude,
                 notes=list(npc_sheet.initial_notes) if npc_sheet.initial_notes else [],

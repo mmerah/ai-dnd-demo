@@ -6,40 +6,27 @@ import logging
 
 from app.common.exceptions import RepositoryNotFoundError
 from app.interfaces.services.character import ICharacterComputeService
-from app.interfaces.services.data import IItemRepository, IRepository, ISpellRepository
+from app.interfaces.services.data import IRepositoryProvider
 from app.models.attributes import Abilities, AbilityModifiers, AttackAction, SavingThrows, SkillValue
 from app.models.character import CharacterSheet
-from app.models.class_definitions import ClassDefinition
+from app.models.game_state import GameState
 from app.models.instances.entity_state import EntityState, HitDice, HitPoints
 from app.models.item import InventoryItem, ItemDefinition, ItemSubtype, ItemType
-from app.models.race import RaceDefinition
-from app.models.skill import Skill
 from app.utils.ability_utils import ALL_ABILITY_CODES, get_ability_modifier, normalize_ability_name, set_ability_value
 
 logger = logging.getLogger(__name__)
 
 
 class CharacterComputeService(ICharacterComputeService):
-    """Computes derived character values from core inputs.
+    """Computes derived character values from core inputs. Stateless service."""
 
-    Intended to consume state from EntityState (abilities, level) and
-    class_index from the template (CharacterInstance.sheet.class_index),
-    returning derived values used across both CharacterInstance and NPCInstance.
-    """
+    def __init__(self, repository_provider: IRepositoryProvider) -> None:
+        """Initialize with a repository provider.
 
-    def __init__(
-        self,
-        class_repository: IRepository[ClassDefinition],
-        skill_repository: IRepository[Skill],
-        item_repository: IItemRepository,
-        spell_repository: ISpellRepository,
-        race_repository: IRepository[RaceDefinition],
-    ) -> None:
-        self.class_repository = class_repository
-        self.skill_repository = skill_repository
-        self.item_repository = item_repository
-        self.spell_repository = spell_repository
-        self.race_repository = race_repository
+        Args:
+            repository_provider: Provider for pack-scoped repositories
+        """
+        self.repository_provider = repository_provider
 
     # Interface implementation
     def compute_ability_modifiers(self, abilities: Abilities) -> AbilityModifiers:
@@ -67,10 +54,10 @@ class CharacterComputeService(ICharacterComputeService):
         return 6
 
     def compute_saving_throws(
-        self, class_index: str, modifiers: AbilityModifiers, proficiency_bonus: int
+        self, game_state: GameState, class_index: str, modifiers: AbilityModifiers, proficiency_bonus: int
     ) -> SavingThrows:
         out = SavingThrows()
-        cls_def = self.class_repository.get(class_index)
+        cls_def = self.repository_provider.get_class_repository_for(game_state).get(class_index)
         proficient = set(cls_def.saving_throws)
         for ability_code in ALL_ABILITY_CODES:
             base = get_ability_modifier(modifiers, ability_code)
@@ -80,13 +67,14 @@ class CharacterComputeService(ICharacterComputeService):
             set_ability_value(out, ability_code, value)
         return out
 
-    def _skill_base_mod(self, skill_index: str, modifiers: AbilityModifiers) -> int:
-        skill = self.skill_repository.get(skill_index)
+    def _skill_base_mod(self, game_state: GameState, skill_index: str, modifiers: AbilityModifiers) -> int:
+        skill = self.repository_provider.get_skill_repository_for(game_state).get(skill_index)
         ability_code = normalize_ability_name(skill.ability)
         return get_ability_modifier(modifiers, ability_code) if ability_code else 0
 
     def compute_skills(
         self,
+        game_state: GameState,
         class_index: str,
         selected_skills: list[str],
         modifiers: AbilityModifiers,
@@ -95,8 +83,9 @@ class CharacterComputeService(ICharacterComputeService):
         out: list[SkillValue] = []
         # If no explicit selection, pick first allowed skills from class proficiency choices
         chosen: list[str] = list(selected_skills)
+        skill_repo = self.repository_provider.get_skill_repository_for(game_state)
         if not chosen:
-            cls_def = self.class_repository.get(class_index)
+            cls_def = self.repository_provider.get_class_repository_for(game_state).get(class_index)
             if cls_def.proficiency_choices:
                 for choice in cls_def.proficiency_choices:
                     to_choose = int(choice.choose)
@@ -107,7 +96,7 @@ class CharacterComputeService(ICharacterComputeService):
                         if isinstance(opt, str) and opt.startswith("skill-")
                     ]
                     # Deterministic selection: first N valid skills
-                    valid = [opt for opt in options if self.skill_repository.validate_reference(opt)]
+                    valid = [opt for opt in options if skill_repo.validate_reference(opt)]
                     for sk in valid:
                         if len(chosen) >= to_choose:
                             break
@@ -115,26 +104,28 @@ class CharacterComputeService(ICharacterComputeService):
                             chosen.append(sk)
 
         selected = set(chosen)
-        for key in self.skill_repository.list_keys():
-            base = self._skill_base_mod(key, modifiers)
+        for key in skill_repo.list_keys():
+            base = self._skill_base_mod(game_state, key, modifiers)
             value = base + (proficiency_bonus if key in selected else 0)
             out.append(SkillValue(index=key, value=value))
         return out
 
-    def compute_armor_class(self, modifiers: AbilityModifiers, inventory: list[InventoryItem]) -> int:
+    def compute_armor_class(
+        self, game_state: GameState, modifiers: AbilityModifiers, inventory: list[InventoryItem]
+    ) -> int:
         # Minimal equipment handling: pick best equipped armor; add one shield if equipped
         base_unarmored = 10 + modifiers.DEX
-        # Item repository is always provided in the constructor
+        item_repo = self.repository_provider.get_item_repository_for(game_state)
 
         equipped_defs: list[tuple[InventoryItem, ItemDefinition]] = []
         for it in inventory:
             if (it.equipped_quantity or 0) <= 0:
                 continue
             try:
-                item_def = self.item_repository.get(it.name)
+                item_def = item_repo.get(it.index)
                 equipped_defs.append((it, item_def))
             except RepositoryNotFoundError:
-                logger.warning(f"Can't compute new armor class as {it.name} not found in ItemRepository")
+                logger.warning(f"Can't compute new armor class as {it.index} not found in ItemRepository")
                 continue
 
         # Separate shields and body armor
@@ -173,10 +164,10 @@ class CharacterComputeService(ICharacterComputeService):
         return modifiers.DEX
 
     def compute_spell_numbers(
-        self, class_index: str, modifiers: AbilityModifiers, proficiency_bonus: int
+        self, game_state: GameState, class_index: str, modifiers: AbilityModifiers, proficiency_bonus: int
     ) -> tuple[int | None, int | None]:
         try:
-            cls_def = self.class_repository.get(class_index)
+            cls_def = self.repository_provider.get_class_repository_for(game_state).get(class_index)
         except RepositoryNotFoundError:
             return None, None
         if not cls_def.spellcasting_ability:
@@ -189,9 +180,11 @@ class CharacterComputeService(ICharacterComputeService):
         atk = proficiency_bonus + ability_mod
         return dc, atk
 
-    def compute_hit_points_and_dice(self, class_index: str, level: int, con_modifier: int) -> tuple[int, int, str]:
+    def compute_hit_points_and_dice(
+        self, game_state: GameState, class_index: str, level: int, con_modifier: int
+    ) -> tuple[int, int, str]:
         try:
-            cls_def = self.class_repository.get(class_index)
+            cls_def = self.repository_provider.get_class_repository_for(game_state).get(class_index)
             hit_die = cls_def.hit_die if cls_def.hit_die else 8
         except RepositoryNotFoundError:
             hit_die = 8
@@ -205,47 +198,51 @@ class CharacterComputeService(ICharacterComputeService):
         hit_dice_total = level
         return max_hp, hit_dice_total, f"d{hit_die}"
 
-    def compute_speed(self, race_index: str, inventory: list[InventoryItem]) -> int:
+    def compute_speed(self, game_state: GameState, race_index: str, inventory: list[InventoryItem]) -> int:
         # Minimal rule: base speed from race; ignore armor penalties
         try:
-            race = self.race_repository.get(race_index)
+            race = self.repository_provider.get_race_repository_for(game_state).get(race_index)
             return race.speed
         except RepositoryNotFoundError:
             return 30
 
-    def initialize_entity_state(self, sheet: CharacterSheet) -> EntityState:
+    def initialize_entity_state(self, game_state: GameState, sheet: CharacterSheet) -> EntityState:
         abilities = sheet.starting_abilities
         level = sheet.starting_level
 
         # Derived basics
         modifiers = self.compute_ability_modifiers(abilities)
         proficiency = self.compute_proficiency_bonus(level)
-        saving_throws = self.compute_saving_throws(sheet.class_index, modifiers, proficiency)
+        saving_throws = self.compute_saving_throws(game_state, sheet.class_index, modifiers, proficiency)
         skills = self.compute_skills(
+            game_state,
             sheet.class_index,
             selected_skills=sheet.starting_skill_indexes,
             modifiers=modifiers,
             proficiency_bonus=proficiency,
         )
-        armor_class = self.compute_armor_class(modifiers, sheet.starting_inventory)
+        armor_class = self.compute_armor_class(game_state, modifiers, sheet.starting_inventory)
         initiative_bonus = self.compute_initiative_bonus(modifiers)
 
         # HP / Hit Dice
-        max_hp, hit_dice_total, hit_die_type = self.compute_hit_points_and_dice(sheet.class_index, level, modifiers.CON)
+        max_hp, hit_dice_total, hit_die_type = self.compute_hit_points_and_dice(
+            game_state, sheet.class_index, level, modifiers.CON
+        )
 
         # Spellcasting copy with computed numbers
         spellcasting = None
         if sheet.starting_spellcasting is not None:
             sc = sheet.starting_spellcasting.model_copy(deep=True)
-            dc, atk = self.compute_spell_numbers(sheet.class_index, modifiers, proficiency)
+            dc, atk = self.compute_spell_numbers(game_state, sheet.class_index, modifiers, proficiency)
             sc.spell_save_dc = dc
             sc.spell_attack_bonus = atk
             spellcasting = sc
 
         # Speed from race (minimal rule)
-        speed = self.compute_speed(sheet.race, sheet.starting_inventory)
+        speed = self.compute_speed(game_state, sheet.race, sheet.starting_inventory)
 
         attacks = self.compute_attacks(
+            game_state,
             sheet.class_index,
             sheet.race,
             sheet.starting_inventory,
@@ -273,22 +270,24 @@ class CharacterComputeService(ICharacterComputeService):
             spellcasting=spellcasting,
         )
 
-    def recompute_entity_state(self, sheet: CharacterSheet, state: EntityState) -> EntityState:
+    def recompute_entity_state(self, game_state: GameState, sheet: CharacterSheet, state: EntityState) -> EntityState:
         # Compute all derived fields based on current state + sheet
         modifiers = self.compute_ability_modifiers(state.abilities)
         proficiency = self.compute_proficiency_bonus(state.level)
-        saving_throws = self.compute_saving_throws(sheet.class_index, modifiers, proficiency)
+        saving_throws = self.compute_saving_throws(game_state, sheet.class_index, modifiers, proficiency)
 
         # Selected skills from sheet if present
         selected_skills = sheet.starting_skill_indexes
-        skills = self.compute_skills(sheet.class_index, selected_skills, modifiers, proficiency)
+        skills = self.compute_skills(game_state, sheet.class_index, selected_skills, modifiers, proficiency)
 
-        armor_class = self.compute_armor_class(modifiers, state.inventory)
+        armor_class = self.compute_armor_class(game_state, modifiers, state.inventory)
         initiative_bonus = self.compute_initiative_bonus(modifiers)
-        speed = self.compute_speed(sheet.race, state.inventory)
+        speed = self.compute_speed(game_state, sheet.race, state.inventory)
 
         # HP and Hit Dice totals/types based on class and level
-        max_hp, hd_total, hd_type = self.compute_hit_points_and_dice(sheet.class_index, state.level, modifiers.CON)
+        max_hp, hd_total, hd_type = self.compute_hit_points_and_dice(
+            game_state, sheet.class_index, state.level, modifiers.CON
+        )
         current_hp = min(state.hit_points.current, max_hp)
         current_hd = min(state.hit_dice.current or hd_total, hd_total)
 
@@ -305,12 +304,13 @@ class CharacterComputeService(ICharacterComputeService):
         new_state.hit_dice.type = hd_type
 
         if new_state.spellcasting is not None:
-            dc, atk = self.compute_spell_numbers(sheet.class_index, modifiers, proficiency)
+            dc, atk = self.compute_spell_numbers(game_state, sheet.class_index, modifiers, proficiency)
             new_state.spellcasting.spell_save_dc = dc
             new_state.spellcasting.spell_attack_bonus = atk
 
         # Rebuild attacks from equipped items
         new_state.attacks = self.compute_attacks(
+            game_state,
             sheet.class_index,
             sheet.race,
             new_state.inventory,
@@ -333,15 +333,17 @@ class CharacterComputeService(ICharacterComputeService):
         # Normalize name to a simple index-like token (best-effort)
         return name.lower().replace(",", "").replace(" ", "-")
 
-    def _is_proficient_with_weapon(self, class_index: str, race_index: str, idef: ItemDefinition) -> bool:
+    def _is_proficient_with_weapon(
+        self, game_state: GameState, class_index: str, race_index: str, idef: ItemDefinition
+    ) -> bool:
         try:
-            cls_def = self.class_repository.get(class_index)
+            cls_def = self.repository_provider.get_class_repository_for(game_state).get(class_index)
             profs = set(cls_def.proficiencies or [])
         except RepositoryNotFoundError:
             profs = set()
 
         try:
-            race_def = self.race_repository.get(race_index)
+            race_def = self.repository_provider.get_race_repository_for(game_state).get(race_index)
             race_profs = set(race_def.weapon_proficiencies or []) if race_def.weapon_proficiencies else set()
         except RepositoryNotFoundError:
             race_profs = set()
@@ -374,6 +376,7 @@ class CharacterComputeService(ICharacterComputeService):
 
     def compute_attacks(
         self,
+        game_state: GameState,
         class_index: str,
         race_index: str,
         inventory: list[InventoryItem],
@@ -381,20 +384,21 @@ class CharacterComputeService(ICharacterComputeService):
         proficiency_bonus: int,
     ) -> list[AttackAction]:
         attacks: list[AttackAction] = []
+        item_repo = self.repository_provider.get_item_repository_for(game_state)
         # Build from equipped weapons
         for inv in inventory:
             if (inv.equipped_quantity or 0) <= 0:
                 continue
             try:
-                idef = self.item_repository.get(inv.name)
+                idef = item_repo.get(inv.index)
             except RepositoryNotFoundError:
-                logger.warning(f"Can't compute attacks as {inv.name} not found in ItemRepository")
+                logger.warning(f"Can't compute attacks as {inv.index} not found in ItemRepository")
                 continue
             if idef.type != ItemType.WEAPON:
                 continue
 
             ability_mod = self._choose_attack_mod(idef, modifiers)
-            prof = self._is_proficient_with_weapon(class_index, race_index, idef)
+            prof = self._is_proficient_with_weapon(game_state, class_index, race_index, idef)
             attack_roll_bonus = ability_mod + (proficiency_bonus if prof else 0)
             dmg = self._format_damage_with_mod(idef.damage, ability_mod)
             attack_range = self._determine_attack_range(idef)
@@ -437,7 +441,9 @@ class CharacterComputeService(ICharacterComputeService):
             ItemSubtype.HEAVY,
         )
 
-    def _enforce_equip_constraints(self, inventory: list[InventoryItem], equipping_def: ItemDefinition) -> None:
+    def _enforce_equip_constraints(
+        self, game_state: GameState, inventory: list[InventoryItem], equipping_def: ItemDefinition
+    ) -> None:
         """
         Enforce simple equipment constraints.
 
@@ -445,41 +451,44 @@ class CharacterComputeService(ICharacterComputeService):
         - Only one body armor (light/medium/heavy) may be equipped
         """
         if self._is_shield(equipping_def):
+            item_repo = self.repository_provider.get_item_repository_for(game_state)
             for it in inventory:
                 if (it.equipped_quantity or 0) <= 0:
                     continue
-                current_def = self.item_repository.get(it.name)
+                current_def = item_repo.get(it.index)
                 if self._is_shield(current_def):
                     raise ValueError("Cannot equip more than one shield at a time")
         elif self._is_body_armor(equipping_def):
+            item_repo = self.repository_provider.get_item_repository_for(game_state)
             for it in inventory:
                 if (it.equipped_quantity or 0) <= 0:
                     continue
-                current_def = self.item_repository.get(it.name)
+                current_def = item_repo.get(it.index)
                 if self._is_body_armor(current_def):
                     raise ValueError("Already wearing body armor; unequip it first")
 
-    def set_item_equipped(self, state: EntityState, item_name: str, equipped: bool) -> EntityState:
+    def set_item_equipped(
+        self, game_state: GameState, state: EntityState, item_index: str, equipped: bool
+    ) -> EntityState:
         inventory = state.inventory
-        # Locate item by name (case-insensitive fallback)
-        item = next((it for it in inventory if it.name == item_name), None)
+        # Locate item by index
+        item = next((it for it in inventory if it.index == item_index), None)
         if not item:
-            item = next((it for it in inventory if it.name.lower() == item_name.lower()), None)
-        if not item:
-            raise ValueError(f"Item '{item_name}' not found in inventory")
+            raise ValueError(f"Item with index '{item_index}' not found in inventory")
 
         # Validate using item repository
+        item_repo = self.repository_provider.get_item_repository_for(game_state)
         try:
-            item_def = self.item_repository.get(item.name)
+            item_def = item_repo.get(item.index)
         except RepositoryNotFoundError as e:
-            raise ValueError(f"Unknown item definition for '{item.name}'") from e
+            raise ValueError(f"Unknown item definition for '{item.index}'") from e
         if item_def.type not in (ItemType.WEAPON, ItemType.ARMOR):
-            raise ValueError(f"Item '{item.name}' is not equippable")
+            raise ValueError(f"Item '{item_def.name}' is not equippable")
 
         # Single-entry model: adjust equipped_quantity by one
         if equipped:
             # TODO(MVP2): move to a slot-based equipment system (typed slots, constraints)
-            self._enforce_equip_constraints(inventory, item_def)
+            self._enforce_equip_constraints(game_state, inventory, item_def)
             if item.equipped_quantity < item.quantity:
                 item.equipped_quantity += 1
         else:

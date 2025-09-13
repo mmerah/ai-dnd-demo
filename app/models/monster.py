@@ -56,6 +56,9 @@ class MonsterSheet(BaseModel):
     damage_immunities: list[str] = Field(default_factory=list)
     condition_immunities: list[str] = Field(default_factory=list)
 
+    # Content pack this monster comes from
+    content_pack: str
+
     def has_multiattack(self) -> bool:
         """Check if this monster has multiattack ability."""
         return any(ability.name.lower() == "multiattack" for ability in self.special_abilities)

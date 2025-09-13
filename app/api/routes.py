@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 
-from .routers import catalogs_router, characters_router, game_router, scenarios_router
+from .routers import catalogs_router, characters_router, content_packs_router, game_router, scenarios_router
 
 router = APIRouter()
 
@@ -11,3 +11,4 @@ router.include_router(game_router)
 router.include_router(scenarios_router)
 router.include_router(characters_router)
 router.include_router(catalogs_router)
+router.include_router(content_packs_router)

@@ -11,7 +11,6 @@ from app.events.commands.quest_commands import (
     StartQuestCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services.data import IItemRepository
 from app.interfaces.services.game import IGameService
 from app.interfaces.services.scenario import IScenarioService
 from app.models.game_state import GameState
@@ -33,11 +32,9 @@ class QuestHandler(BaseHandler):
         self,
         game_service: IGameService,
         scenario_service: IScenarioService,
-        item_repository: IItemRepository,
     ):
         super().__init__(game_service)
         self.scenario_service = scenario_service
-        self.item_repository = item_repository
 
     supported_commands = (
         StartQuestCommand,

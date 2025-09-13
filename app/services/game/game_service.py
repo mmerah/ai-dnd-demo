@@ -1,7 +1,6 @@
 """Game state management service for D&D 5e game sessions."""
 
 from app.interfaces.services.character import ICharacterComputeService
-from app.interfaces.services.data import IItemRepository
 from app.interfaces.services.game import (
     IGameFactory,
     IGameService,
@@ -17,6 +16,7 @@ from app.models.game_state import GameState
 from app.models.instances.monster_instance import MonsterInstance
 from app.models.monster import MonsterSheet
 from app.models.scenario import ScenarioLocation
+from app.services.data.repository_factory import RepositoryFactory
 
 
 class GameService(IGameService):
@@ -33,10 +33,10 @@ class GameService(IGameService):
         pre_save_sanitizer: IPreSaveSanitizer,
         game_state_manager: IGameStateManager,
         compute_service: ICharacterComputeService,
-        item_repository: IItemRepository,
         monster_factory: IMonsterFactory,
         location_service: ILocationService,
         game_factory: IGameFactory,
+        repository_factory: RepositoryFactory,
     ) -> None:
         """
         Initialize the game service.
@@ -46,7 +46,6 @@ class GameService(IGameService):
             save_manager: Service for managing saves
             game_state_manager: Manager for active game states
             compute_service: Service for computing derived character values
-            item_repository: Repository for all items of the game
             monster_factory: Factory to MonsterInstance from a MonsterSheet
             location_service: Service for managing location state
             game_factory: Factory for creating new game instances
@@ -56,18 +55,19 @@ class GameService(IGameService):
         self.pre_save_sanitizer = pre_save_sanitizer
         self.game_state_manager = game_state_manager
         self.compute_service = compute_service
-        self.item_repository = item_repository
         self.monster_factory = monster_factory
         self.location_service = location_service
         self.game_factory = game_factory
+        self.repository_factory = repository_factory
 
     def initialize_game(
         self,
         character: CharacterSheet,
         scenario_id: str,
+        content_packs: list[str] | None = None,
     ) -> GameState:
         # Delegate initialization to the factory
-        game_state = self.game_factory.initialize_game(character, scenario_id)
+        game_state = self.game_factory.initialize_game(character, scenario_id, content_packs)
 
         # Store in memory and save to disk
         self.game_state_manager.store_game(game_state)
@@ -114,6 +114,36 @@ class GameService(IGameService):
         # Try loading from disk
         return self.load_game(game_id)
 
+    def enrich_for_display(self, game_state: GameState) -> GameState:
+        """Enrich game state with display names for frontend presentation."""
+        item_repo = self.repository_factory.get_item_repository_for(game_state)
+
+        # Enrich player inventory
+        for item in game_state.character.state.inventory:
+            if not item.name or not item.item_type:
+                try:
+                    item_def = item_repo.get(item.index)
+                    item.name = item_def.name
+                    item.item_type = item_def.type
+                except Exception:
+                    # Use a formatted version of the index as fallback
+                    if not item.name:
+                        item.name = item.index.replace("-", " ").title()
+
+        # Enrich NPC inventories
+        for npc in game_state.npcs:
+            for item in npc.state.inventory:
+                if not item.name or not item.item_type:
+                    try:
+                        item_def = item_repo.get(item.index)
+                        item.name = item_def.name
+                        item.item_type = item_def.type
+                    except Exception:
+                        if not item.name:
+                            item.name = item.index.replace("-", " ").title()
+
+        return game_state
+
     def list_saved_games(self) -> list[GameState]:
         games = []
         saved_games = self.save_manager.list_saved_games()
@@ -139,7 +169,8 @@ class GameService(IGameService):
         self.location_service.initialize_location_from_scenario(game_state, scenario_location)
 
     def recompute_character_state(self, game_state: GameState) -> None:
+        """Recompute using repositories scoped to the game's content packs."""
         char = game_state.character
-        new_state = self.compute_service.recompute_entity_state(char.sheet, char.state)
+        new_state = self.compute_service.recompute_entity_state(game_state, char.sheet, char.state)
         char.state = new_state
         char.touch()

@@ -63,13 +63,9 @@
     ],
     "starting_inventory": [
       {
-        "name": "Potion of Healing",
+        "index": "potion-of-healing",
         "quantity": 3,
-        "equipped_quantity": 0,
-        "weight": 0.5,
-        "value": 50,
-        "description": "Heals 2d4+2 HP.",
-        "item_type": "Potion"
+        "equipped_quantity": 0
       }
     ],
     "starting_currency": {
@@ -81,6 +77,7 @@
     },
     "starting_spellcasting": null,
     "starting_level": 1,
-    "starting_experience_points": 0
+    "starting_experience_points": 0,
+    "content_packs": ["srd"]
   }
 }

@@ -1,0 +1,16 @@
+{
+  "index": "goblin-treasure-map",
+  "name": "Goblin's Treasure Map",
+  "type": "Adventuring Gear",
+  "rarity": "Uncommon",
+  "weight": 0.0,
+  "value": 25.0,
+  "description": "A crude map drawn on weathered parchment, marked with goblin symbols. It appears to show the location of a hidden treasure somewhere deeper in the cave system.",
+  "subtype": null,
+  "damage": null,
+  "damage_type": null,
+  "properties": [],
+  "armor_class": null,
+  "dex_bonus": null,
+  "contents": []
+}

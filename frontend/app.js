@@ -3,7 +3,9 @@ let gameState = null;
 let currentGameId = null;
 let selectedCharacter = null;
 let selectedScenario = null;
+let selectedContentPacks = []; // Track selected content packs
 let sseSource = null;
+let isProcessing = false; // Track if agent is processing
 
 // DOM elements - cached for performance
 const elements = {};
@@ -137,6 +139,8 @@ function initializeElements() {
     elements.chatMessages = document.getElementById('chatMessages');
     elements.messageInput = document.getElementById('messageInput');
     elements.sendMessageBtn = document.getElementById('sendMessage');
+    elements.contentPackSection = document.getElementById('contentPackSection');
+    elements.contentPackList = document.getElementById('contentPackList');
     
     // Log any missing elements
     for (const [key, element] of Object.entries(elements)) {
@@ -153,7 +157,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     initializeElements();
     await loadCatalogs();
-    await Promise.all([loadSavedGames(), loadCharacters(), loadScenarios()]);
+    await Promise.all([loadSavedGames(), loadCharacters(), loadScenarios(), loadContentPacks()]);
     setupEventListeners();
     // Home button to open full Catalogs screen
     const openCatalogsHomeBtn = document.getElementById('openCatalogsHome');
@@ -431,6 +435,78 @@ function createScenarioCard(scenario) {
     return card;
 }
 
+// Load available content packs
+async function loadContentPacks() {
+    console.log('[API] Loading content packs...');
+    
+    if (!elements.contentPackSection || !elements.contentPackList) {
+        console.warn('[WARN] Content pack elements not found, skipping');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/content-packs');
+        
+        if (!response.ok) {
+            console.warn('[WARN] Content packs endpoint not available');
+            return;
+        }
+        
+        const data = await response.json();
+        const packs = data.packs || [];
+        console.log(`[API] Loaded ${packs.length} content packs:`, packs);
+        
+        // Filter out SRD (it's always included)
+        const additionalPacks = packs.filter(pack => pack.id !== 'srd');
+        
+        // Always show the section, even if empty, to inform users
+        elements.contentPackSection.style.display = 'block';
+        elements.contentPackList.innerHTML = '';
+        
+        if (additionalPacks.length > 0) {
+            additionalPacks.forEach(pack => {
+                const packItem = document.createElement('div');
+                packItem.className = 'content-pack-item';
+                packItem.innerHTML = `
+                    <label style="display: flex; align-items: center; margin-bottom: 0.5rem; cursor: pointer;">
+                        <input type="checkbox" value="${pack.id}" style="margin-right: 0.5rem;">
+                        <div>
+                            <strong>${pack.name}</strong> v${pack.version}<br>
+                            <small style="color: #888;">${pack.description}</small><br>
+                            <small style="color: #666;">by ${pack.author}</small>
+                        </div>
+                    </label>
+                `;
+                
+                const checkbox = packItem.querySelector('input[type="checkbox"]');
+                checkbox.addEventListener('change', (e) => {
+                    if (e.target.checked) {
+                        if (!selectedContentPacks.includes(pack.id)) {
+                            selectedContentPacks.push(pack.id);
+                        }
+                    } else {
+                        selectedContentPacks = selectedContentPacks.filter(id => id !== pack.id);
+                    }
+                    console.log('[UI] Selected content packs:', selectedContentPacks);
+                });
+                
+                elements.contentPackList.appendChild(packItem);
+            });
+        } else {
+            // Show a message when no additional packs are available
+            elements.contentPackList.innerHTML = `
+                <div style="color: #888; padding: 1rem; text-align: center;">
+                    <p>No additional content packs available.</p>
+                    <small>The base SRD content is always included.</small>
+                </div>
+            `;
+        }
+    } catch (error) {
+        console.warn('[WARN] Failed to load content packs:', error);
+        // Content packs are optional, so we don't show an error
+    }
+}
+
 // Load available characters
 async function loadCharacters() {
     console.log('[API] Loading characters...');
@@ -500,6 +576,11 @@ async function startGame() {
             scenario_id: selectedScenario
         };
         
+        // Add content packs if any are selected
+        if (selectedContentPacks.length > 0) {
+            requestBody.content_packs = selectedContentPacks;
+        }
+        
         console.log('[API] Sending game creation request:', requestBody);
         
         const response = await fetch('/api/game/new', {
@@ -554,6 +635,25 @@ async function loadGameState() {
         
         gameState = await response.json();
         console.log('[GAME] Game state loaded:', gameState);
+
+        // Fetch spell names if there are spells
+        if (gameState.character?.state?.spellcasting?.spells_known?.length > 0) {
+            const spellIndexes = gameState.character.state.spellcasting.spells_known;
+            try {
+                const namesResponse = await fetch('/api/catalogs/resolve-names', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ game_id: currentGameId, spells: spellIndexes })
+                });
+                if (namesResponse.ok) {
+                    const namesData = await namesResponse.json();
+                    // Store the spell name mappings for use in updateSpellList
+                    window.spellNameMappings = namesData.spells || {};
+                }
+            } catch (e) {
+                console.warn('[API] Failed to fetch spell names:', e);
+            }
+        }
         updateUI();
     } catch (error) {
         console.error('[ERROR] Failed to load game state:', error);
@@ -775,11 +875,25 @@ function initializeSSE() {
         }
     });
     
+    // Complete event - stop loading
+    sseSource.addEventListener('complete', (event) => {
+        console.log('[SSE] Processing complete');
+        setLoadingState(false);
+    });
+    
+    // Error event - stop loading
+    sseSource.addEventListener('error', (event) => {
+        const data = JSON.parse(event.data || '{}');
+        console.log('[SSE] Error received:', data);
+        setLoadingState(false);
+    });
+    
     // Error handling
     sseSource.onerror = (error) => {
         console.error('[SSE] Connection error:', error);
         if (sseSource.readyState === EventSource.CLOSED) {
             console.log('[SSE] Connection closed, attempting reconnect...');
+            setLoadingState(false); // Reset on connection error
             reconnectSSE();
         }
     };
@@ -805,12 +919,20 @@ async function sendMessage() {
         return;
     }
     
+    // Prevent sending if already processing
+    if (isProcessing) {
+        console.warn('[UI] Cannot send message: agent is processing');
+        return;
+    }
+    
     console.log(`[CHAT] Sending message: ${message}`);
     
     // Add player message to chat
     addMessage(message, 'player');
     elements.messageInput.value = '';
-    elements.sendMessageBtn.disabled = true;
+    
+    // Start loading state
+    setLoadingState(true);
     
     try {
         const response = await fetch(`/api/game/${currentGameId}/action`, {
@@ -834,8 +956,7 @@ async function sendMessage() {
     } catch (error) {
         console.error('[ERROR] Failed to send message:', error);
         showError('Failed to send message. Please try again.');
-    } finally {
-        elements.sendMessageBtn.disabled = false;
+        setLoadingState(false); // Reset on error
     }
 }
 
@@ -1068,7 +1189,8 @@ function updateSkills(skills) {
 }
 
 // Catalog full-screen (pagination)
-let catState = { type: 'monsters', page: 1, pageSize: 50 };
+let catState = { type: 'monsters', page: 1, pageSize: 50, selectedPacks: [] };
+let availableContentPacks = [];
 
 function renderCatalogsNav(activeType) {
     const nav = document.getElementById('catalogsNav');
@@ -1108,7 +1230,7 @@ function renderCatalogsNav(activeType) {
     });
 }
 
-function showCatalogsScreen(type = 'monsters') {
+async function showCatalogsScreen(type = 'monsters') {
     catState.type = type;
     const home = document.getElementById('characterSelection');
     const game = document.getElementById('gameInterface');
@@ -1116,7 +1238,14 @@ function showCatalogsScreen(type = 'monsters') {
     if (home) home.classList.add('hidden');
     if (game) game.classList.add('hidden');
     if (screen) screen.classList.remove('hidden');
+    
+    // Load content packs if not loaded
+    if (availableContentPacks.length === 0) {
+        await loadContentPacksForCatalog();
+    }
+    
     renderCatalogsNav(type);
+    renderPackFilter();
     renderCatalogsPage();
 }
 
@@ -1133,7 +1262,65 @@ function hideCatalogsScreen() {
     }
 }
 
-function renderCatalogsPage() {
+async function loadContentPacksForCatalog() {
+    try {
+        const response = await fetch('/api/content-packs');
+        if (!response.ok) return;
+        
+        const data = await response.json();
+        availableContentPacks = data.packs || [];
+        // Start with all packs selected by default
+        catState.selectedPacks = availableContentPacks.map(p => p.id);
+    } catch (error) {
+        console.warn('[CATALOG] Failed to load content packs:', error);
+        availableContentPacks = [];
+    }
+}
+
+function renderPackFilter() {
+    const container = document.getElementById('catalogPackCheckboxes');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (availableContentPacks.length === 0) {
+        container.innerHTML = '<small style="color:#888;">No content packs available</small>';
+        return;
+    }
+    
+    availableContentPacks.forEach(pack => {
+        const label = document.createElement('label');
+        label.style.cssText = 'display:flex; align-items:center; cursor:pointer;';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = pack.id;
+        checkbox.checked = catState.selectedPacks.includes(pack.id);
+        checkbox.style.marginRight = '5px';
+        
+        checkbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                if (!catState.selectedPacks.includes(pack.id)) {
+                    catState.selectedPacks.push(pack.id);
+                }
+            } else {
+                catState.selectedPacks = catState.selectedPacks.filter(id => id !== pack.id);
+            }
+            catState.page = 1; // Reset to first page when filter changes
+            renderCatalogsPage();
+        });
+        
+        const text = document.createElement('span');
+        text.textContent = pack.name;
+        text.style.fontSize = '0.9rem';
+        
+        label.appendChild(checkbox);
+        label.appendChild(text);
+        container.appendChild(label);
+    });
+}
+
+async function renderCatalogsPage() {
     const list = document.getElementById('catalogsContentList');
     const pageInfo = document.getElementById('catPageInfo');
     const pager = document.querySelector('#catalogsScreen .pagination');
@@ -1142,54 +1329,169 @@ function renderCatalogsPage() {
     list.innerHTML = '';
     
     if (type === 'monsters') {
+        // Paginated catalog: fetch filtered list from API with packs
         if (pager) pager.style.display = 'flex';
-        const monsters = window.catalogs?.monsters || [];
-        const total = monsters.length;
-        const start = (page - 1) * pageSize;
-        const slice = monsters.slice(start, start + pageSize);
-        slice.forEach(monster => {
-            const row = document.createElement('div');
-            row.className = 'catalog-row';
-            row.textContent = `${monster.name} (${monster.index})`;
-            list.appendChild(row);
-        });
-        pageInfo.textContent = `Page ${page} / ${Math.max(1, Math.ceil(total / pageSize))}`;
+        list.innerHTML = '<small style="color:#888;">Loading...</small>';
+        try {
+            const packsParam = (catState.selectedPacks && catState.selectedPacks.length > 0)
+                ? `?packs=${encodeURIComponent(catState.selectedPacks.join(','))}`
+                : '';
+            const resp = await fetch(`/api/catalogs/monsters${packsParam}`);
+            const monsters = resp.ok ? await resp.json() : [];
+            list.innerHTML = '';
+            
+            const total = monsters.length;
+            const start = (page - 1) * pageSize;
+            const slice = monsters.slice(start, start + pageSize);
+            
+            slice.forEach(monster => {
+                const row = document.createElement('div');
+                row.className = 'catalog-row';
+                row.style.cssText = 'display:flex; justify-content:space-between; align-items:center;';
+                
+                const text = document.createElement('span');
+                text.textContent = `${monster.name} (${monster.index})`;
+                
+                const badge = document.createElement('span');
+                badge.className = 'pack-badge';
+                badge.style.cssText = 'font-size:0.75rem; padding:2px 6px; background:rgba(100,100,255,0.2); border-radius:3px; color:#88f;';
+                badge.textContent = monster.content_pack || 'srd';
+                
+                row.appendChild(text);
+                row.appendChild(badge);
+                list.appendChild(row);
+            });
+            
+            const totalPages = Math.max(1, Math.ceil(total / pageSize));
+            pageInfo.textContent = `Page ${page} / ${totalPages} (${total} items)`;
+            if (pager) pager.style.display = totalPages > 1 ? 'flex' : 'none';
+            if (monsters.length === 0) {
+                list.innerHTML = '<small style="color:#888;">No monsters for selected packs</small>';
+            }
+        } catch (e) {
+            list.innerHTML = '<small style="color:#c66;">Failed to load monsters</small>';
+        }
     } else if (type === 'items') {
+        // Paginated catalog: fetch filtered list from API with packs
         if (pager) pager.style.display = 'flex';
-        const items = window.catalogs?.items || [];
-        const total = items.length;
-        const start = (page - 1) * pageSize;
-        const slice = items.slice(start, start + pageSize);
-        slice.forEach(it => {
-            const row = document.createElement('div');
-            row.className = 'catalog-row';
-            row.textContent = `${it.name} (${it.index}) — ${it.type}${it.rarity ? ' • ' + it.rarity : ''}`;
-            list.appendChild(row);
-        });
-        pageInfo.textContent = `Page ${page} / ${Math.max(1, Math.ceil(total / pageSize))}`;
+        list.innerHTML = '<small style="color:#888;">Loading...</small>';
+        try {
+            const packsParam = (catState.selectedPacks && catState.selectedPacks.length > 0)
+                ? `?packs=${encodeURIComponent(catState.selectedPacks.join(','))}`
+                : '';
+            const resp = await fetch(`/api/catalogs/items${packsParam}`);
+            const items = resp.ok ? await resp.json() : [];
+            list.innerHTML = '';
+            
+            const total = items.length;
+            const start = (page - 1) * pageSize;
+            const slice = items.slice(start, start + pageSize);
+            
+            slice.forEach(it => {
+                const row = document.createElement('div');
+                row.className = 'catalog-row';
+                row.style.cssText = 'display:flex; justify-content:space-between; align-items:center;';
+                
+                const text = document.createElement('span');
+                text.textContent = `${it.name} (${it.index}) — ${it.type}${it.rarity ? ' • ' + it.rarity : ''}`;
+                
+                const badge = document.createElement('span');
+                badge.className = 'pack-badge';
+                badge.style.cssText = 'font-size:0.75rem; padding:2px 6px; background:rgba(100,100,255,0.2); border-radius:3px; color:#88f;';
+                badge.textContent = it.content_pack || 'srd';
+                
+                row.appendChild(text);
+                row.appendChild(badge);
+                list.appendChild(row);
+            });
+            
+            const totalPages = Math.max(1, Math.ceil(total / pageSize));
+            pageInfo.textContent = `Page ${page} / ${totalPages} (${total} items)`;
+            if (pager) pager.style.display = totalPages > 1 ? 'flex' : 'none';
+            if (items.length === 0) {
+                list.innerHTML = '<small style="color:#888;">No items for selected packs</small>';
+            }
+        } catch (e) {
+            list.innerHTML = '<small style="color:#c66;">Failed to load items</small>';
+        }
     } else if (type === 'spells') {
+        // Paginated catalog: fetch filtered list from API with packs
         if (pager) pager.style.display = 'flex';
-        const spells = window.catalogs?.spells || [];
-        const total = spells.length;
-        const start = (page - 1) * pageSize;
-        const slice = spells.slice(start, start + pageSize);
-        slice.forEach(spell => {
-            const row = document.createElement('div');
-            row.className = 'catalog-row';
-            row.textContent = `${spell.name} (${spell.index}) — Level ${spell.level}`;
-            list.appendChild(row);
-        });
-        pageInfo.textContent = `Page ${page} / ${Math.max(1, Math.ceil(total / pageSize))}`;
+        list.innerHTML = '<small style="color:#888;">Loading...</small>';
+        try {
+            const packsParam = (catState.selectedPacks && catState.selectedPacks.length > 0)
+                ? `?packs=${encodeURIComponent(catState.selectedPacks.join(','))}`
+                : '';
+            const resp = await fetch(`/api/catalogs/spells${packsParam}`);
+            const spells = resp.ok ? await resp.json() : [];
+            list.innerHTML = '';
+            
+            const total = spells.length;
+            const start = (page - 1) * pageSize;
+            const slice = spells.slice(start, start + pageSize);
+            
+            slice.forEach(spell => {
+                const row = document.createElement('div');
+                row.className = 'catalog-row';
+                row.style.cssText = 'display:flex; justify-content:space-between; align-items:center;';
+                
+                const text = document.createElement('span');
+                text.textContent = `${spell.name} (${spell.index}) — Level ${spell.level}`;
+                
+                const badge = document.createElement('span');
+                badge.className = 'pack-badge';
+                badge.style.cssText = 'font-size:0.75rem; padding:2px 6px; background:rgba(100,100,255,0.2); border-radius:3px; color:#88f;';
+                badge.textContent = spell.content_pack || 'srd';
+                
+                row.appendChild(text);
+                row.appendChild(badge);
+                list.appendChild(row);
+            });
+            
+            const totalPages = Math.max(1, Math.ceil(total / pageSize));
+            pageInfo.textContent = `Page ${page} / ${totalPages} (${total} items)`;
+            if (pager) pager.style.display = totalPages > 1 ? 'flex' : 'none';
+            if (spells.length === 0) {
+                list.innerHTML = '<small style="color:#888;">No spells for selected packs</small>';
+            }
+        } catch (e) {
+            list.innerHTML = '<small style="color:#c66;">Failed to load spells</small>';
+        }
     } else {
-        // Non-paginated catalogs rendered from window.catalogs
+        // Non-paginated catalogs: fetch filtered list from API with packs
         if (pager) pager.style.display = 'none';
-        const entries = window.catalogs?.[type] || {};
-        Object.entries(entries).forEach(([idx, name]) => {
-            const row = document.createElement('div');
-            row.className = 'catalog-row';
-            row.textContent = `${name} (${idx})`;
-            list.appendChild(row);
-        });
+        list.innerHTML = '<small style="color:#888;">Loading...</small>';
+        try {
+            const packsParam = (catState.selectedPacks && catState.selectedPacks.length > 0)
+                ? `?packs=${encodeURIComponent(catState.selectedPacks.join(','))}`
+                : '';
+            const resp = await fetch(`/api/catalogs/${type}${packsParam}`);
+            const data = resp.ok ? await resp.json() : [];
+            list.innerHTML = '';
+            (data || []).forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'catalog-row';
+                const name = item && item.name ? item.name : (item || '');
+                const idx = item && item.index ? item.index : '';
+                const text = document.createElement('span');
+                text.textContent = `${name}${idx ? ' (' + idx + ')' : ''}`;
+
+                const badge = document.createElement('span');
+                badge.className = 'pack-badge';
+                badge.style.cssText = 'margin-left:8px;font-size:0.75rem;padding:2px 6px;background:rgba(100,100,255,0.2);border-radius:3px;color:#88f;';
+                const packId = (item && item.content_pack) ? item.content_pack : 'srd';
+                badge.textContent = packId;
+
+                row.appendChild(text);
+                row.appendChild(badge);
+                list.appendChild(row);
+            });
+            if ((data || []).length === 0) {
+                list.innerHTML = '<small style="color:#888;">No entries for selected packs</small>';
+            }
+        } catch (e) {
+            list.innerHTML = '<small style="color:#c66;">Failed to load catalog</small>';
+        }
     }
 }
 
@@ -1327,16 +1629,18 @@ function updateSpellSlots(spellSlots) {
 function updateSpellList(spells) {
     const spellList = document.getElementById('spellList');
     spellList.innerHTML = '';
-    
+
     if (!spells || spells.length === 0) {
         spellList.innerHTML = '<span style="color: var(--text-secondary); font-size: 0.9rem;">No spells known</span>';
         return;
     }
-    
+
     spells.forEach(spell => {
         const spellDiv = document.createElement('div');
         spellDiv.className = 'spell-item';
-        spellDiv.textContent = spell;
+        // Use spell name from mappings if available, otherwise show index
+        const displayName = window.spellNameMappings?.[spell] || spell;
+        spellDiv.textContent = displayName;
         spellList.appendChild(spellDiv);
     });
 }
@@ -1376,7 +1680,7 @@ function updateInventory(inventory) {
             const row = document.createElement('div');
             row.className = 'inventory-item';
             const left = document.createElement('div');
-            left.textContent = `${item.name}`;
+            left.textContent = `${item.name || item.index}`;
             left.style.fontWeight = '600';
             const count = document.createElement('div');
             count.textContent = `×${item.equipped_quantity || 0}`;
@@ -1384,7 +1688,7 @@ function updateInventory(inventory) {
             btn.className = 'btn-small';
             btn.textContent = 'Unequip';
             btn.addEventListener('click', async () => {
-                await equipToggle(item.name, false);
+                await equipToggle(item.index, false);
             });
             row.appendChild(left);
             row.appendChild(count);
@@ -1412,7 +1716,7 @@ function updateInventory(inventory) {
             const row = document.createElement('div');
             row.className = 'inventory-item';
             const left = document.createElement('div');
-            left.textContent = `${item.name}`;
+            left.textContent = `${item.name || item.index}`;
             left.style.fontWeight = '600';
             const right = document.createElement('div');
             const freeQty = (item.quantity || 0) - (item.equipped_quantity || 0);
@@ -1427,7 +1731,7 @@ function updateInventory(inventory) {
                 btn.className = 'btn-small';
                 btn.textContent = 'Equip';
                 btn.addEventListener('click', async () => {
-                    await equipToggle(item.name, true);
+                    await equipToggle(item.index, true);
                 });
                 const actions = document.createElement('div');
                 actions.appendChild(btn);
@@ -1445,7 +1749,7 @@ async function equipToggle(itemName, equip) {
         const res = await fetch(`/api/game/${currentGameId}/equip`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ item_name: itemName, equipped: equip })
+            body: JSON.stringify({ item_index: itemName, equipped: equip })
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         // Refresh state to reflect inventory changes and AC/attacks
@@ -2077,5 +2381,88 @@ function updateActInfo(actData) {
     }
 }
 
+// Loading state management
+function setLoadingState(loading) {
+    isProcessing = loading;
+    
+    // Update input controls
+    elements.messageInput.disabled = loading;
+    elements.sendMessageBtn.disabled = loading;
+    
+    // Update visual indicators
+    if (loading) {
+        // Add loading class to chat area
+        elements.chatMessages.classList.add('loading');
+        
+        // Show loading message
+        const loadingMsg = addMessage('', 'loading');
+        loadingMsg.id = 'loadingMessage';
+        updateLoadingMessage();
+        
+        // Add pulse to agent indicator
+        const agentIndicator = document.getElementById('agentIndicator');
+        if (agentIndicator) {
+            agentIndicator.classList.add('agent-loading');
+        }
+        
+        // Update button text
+        elements.sendMessageBtn.textContent = 'Agent is thinking...';
+        
+        // Add loading class to input area
+        elements.messageInput.placeholder = 'Waiting for agent response...';
+    } else {
+        // Remove loading class
+        elements.chatMessages.classList.remove('loading');
+        
+        // Remove loading message
+        const loadingMsg = document.getElementById('loadingMessage');
+        if (loadingMsg) {
+            loadingMsg.remove();
+        }
+        
+        // Remove pulse from agent indicator
+        const agentIndicator = document.getElementById('agentIndicator');
+        if (agentIndicator) {
+            agentIndicator.classList.remove('agent-loading');
+        }
+        
+        // Reset button text
+        elements.sendMessageBtn.textContent = 'Send';
+        
+        // Reset input placeholder
+        elements.messageInput.placeholder = 'Type your action...';
+        
+        // Re-focus input for convenience
+        elements.messageInput.focus();
+    }
+}
+
+// Update loading message based on active agent
+function updateLoadingMessage() {
+    const loadingMsg = document.getElementById('loadingMessage');
+    if (!loadingMsg) return;
+    
+    const agentType = gameState?.active_agent || 'narrative';
+    let message = '';
+    
+    switch (agentType) {
+        case 'combat':
+            message = '⚔️ Combat agent is processing the battle...';
+            break;
+        case 'summarizer':
+            message = '📝 Summarizer agent is preparing a summary...';
+            break;
+        case 'narrative':
+        default:
+            message = '📖 The Dungeon Master is crafting your adventure...';
+            break;
+    }
+    
+    // Update the loading message content
+    const msgContent = loadingMsg.querySelector('p');
+    if (msgContent) {
+        msgContent.innerHTML = `<span class="loading-dots">${message}</span>`;
+    }
+}
 
 // Removed tooltip functions - no longer needed

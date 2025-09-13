@@ -1,0 +1,16 @@
+{
+  "index": "goblin-chief-key",
+  "name": "Goblin Chief's Key",
+  "type": "Adventuring Gear",
+  "rarity": "Common",
+  "weight": 0.0,
+  "value": 5.0,
+  "description": "A crude iron key on a leather thong. It looks like it might open a chest or door somewhere in the goblin lair.",
+  "subtype": null,
+  "damage": null,
+  "damage_type": null,
+  "properties": [],
+  "armor_class": null,
+  "dex_bonus": null,
+  "contents": []
+}

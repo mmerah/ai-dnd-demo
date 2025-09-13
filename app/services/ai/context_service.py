@@ -2,7 +2,7 @@
 
 from app.agents.core.types import AgentType
 from app.interfaces.services.ai import IContextService
-from app.interfaces.services.data import IItemRepository, IMonsterRepository, ISpellRepository
+from app.interfaces.services.data import IRepositoryProvider
 from app.models.game_state import GameState
 
 from .context_builders import (
@@ -24,22 +24,16 @@ from .context_builders import (
 class ContextService(IContextService):
     """Coordinator service that composes AI context from multiple builders."""
 
-    def __init__(
-        self,
-        item_repository: IItemRepository,
-        monster_repository: IMonsterRepository,
-        spell_repository: ISpellRepository,
-    ):
-        self.item_repository = item_repository
-        self.monster_repository = monster_repository
-        self.spell_repository = spell_repository
+    def __init__(self, repository_provider: IRepositoryProvider):
+        self.repository_provider = repository_provider
 
         # Instantiate builders with explicit dependencies
         monsters_in_combat = MonstersInCombatContextBuilder()
 
         # Store individual builders for agent-specific selection
         self.scenario_builder = ScenarioContextBuilder()
-        self.location_builder = LocationContextBuilder(item_repository=self.item_repository)
+        # Builders will receive per-game repositories at build time
+        self.location_builder = LocationContextBuilder(item_repository=None)
         self.npcs_at_location_builder = NPCsAtLocationContextBuilder()
         self.monsters_at_location_builder = MonstersAtLocationContextBuilder()
         self.quest_builder = QuestContextBuilder()
@@ -47,9 +41,9 @@ class ContextService(IContextService):
         self.npc_detail_builder = NPCDetailContextBuilder()
         self.combat_builder = CombatContextBuilder(monsters_in_combat_builder=monsters_in_combat)
         self.monsters_in_combat_builder = monsters_in_combat
-        self.spell_builder = SpellContextBuilder(spell_repository=self.spell_repository)
+        self.spell_builder = SpellContextBuilder(spell_repository=None)
         self.inventory_builder = InventoryContextBuilder()
-        self.npc_items_builder = NPCItemsContextBuilder(item_repository=self.item_repository)
+        self.npc_items_builder = NPCItemsContextBuilder(item_repository=None)
 
         # Full builder list for narrative agent
         self.builders = [
@@ -67,6 +61,12 @@ class ContextService(IContextService):
         ]
 
     def build_context(self, game_state: GameState, agent_type: AgentType) -> str:
+        # Inject per-game repositories into builders
+        item_repo = self.repository_provider.get_item_repository_for(game_state)
+        spell_repo = self.repository_provider.get_spell_repository_for(game_state)
+        self.location_builder.item_repository = item_repo
+        self.spell_builder.spell_repository = spell_repo
+        self.npc_items_builder.item_repository = item_repo
         if agent_type == AgentType.COMBAT:
             # Combat agent only needs tactical information
             selected_builders = [

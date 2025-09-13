@@ -5,19 +5,6 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 
-class SpellSchool(str, Enum):
-    """D&D 5e spell schools."""
-
-    ABJURATION = "Abjuration"
-    CONJURATION = "Conjuration"
-    DIVINATION = "Divination"
-    ENCHANTMENT = "Enchantment"
-    EVOCATION = "Evocation"
-    ILLUSION = "Illusion"
-    NECROMANCY = "Necromancy"
-    TRANSMUTATION = "Transmutation"
-
-
 class SpellAreaOfEffect(BaseModel):
     size: int
     type: str
@@ -100,6 +87,9 @@ class SpellDefinition(BaseModel):
     damage_at_slot_level: SpellDamageAtSlot | None = None
     heal_at_slot_level: SpellHealingAtSlot | None = None
     damage_at_character_level: SpellDamageAtLevel | None = None
+
+    # Content pack this spell comes from
+    content_pack: str
 
     @property
     def is_cantrip(self) -> bool:

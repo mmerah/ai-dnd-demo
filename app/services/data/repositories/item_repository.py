@@ -3,207 +3,68 @@
 import logging
 from typing import Any
 
-from app.interfaces.services.common import IPathResolver
-from app.interfaces.services.data import IItemRepository
+from app.interfaces.services.common import IContentPackRegistry, IPathResolver
 from app.models.item import ItemDefinition, ItemRarity, ItemSubtype, ItemType
 from app.services.data.repositories.base_repository import BaseRepository
 
 logger = logging.getLogger(__name__)
 
 
-class ItemRepository(BaseRepository[ItemDefinition], IItemRepository):
+class ItemRepository(BaseRepository[ItemDefinition]):
     """Repository for loading and managing item data."""
 
-    def __init__(self, path_resolver: IPathResolver, cache_enabled: bool = True):
+    def __init__(
+        self,
+        path_resolver: IPathResolver,
+        cache_enabled: bool = True,
+        content_pack_registry: IContentPackRegistry | None = None,
+        content_packs: list[str] | None = None,
+    ):
         """Initialize the item repository.
 
         Args:
             path_resolver: Service for resolving file paths
             cache_enabled: Whether to cache items in memory
+            content_pack_registry: Registry for managing content packs
+            content_packs: List of content pack IDs to load from
         """
-        super().__init__(cache_enabled)
+        super().__init__(cache_enabled, content_pack_registry, content_packs)
         self.path_resolver = path_resolver
-        self.items_file = self.path_resolver.get_shared_data_file("items")
-        self.magic_items_file = self.path_resolver.get_shared_data_file("magic_items")
 
-    def _initialize(self) -> None:
-        """Initialize the repository by loading all items if caching is enabled."""
-        if self.cache_enabled:
-            self._load_all_items()
-        self._initialized = True
+    def _get_item_key(self, item_data: dict[str, Any]) -> str | None:
+        """Extract the unique key from raw item data (index required)."""
+        if "index" not in item_data or item_data.get("index") in (None, ""):
+            return None
+        return str(item_data["index"])
 
-    def _load_all_items(self) -> None:
-        """Load all items from the items.json file into cache."""
-        sources = [self.items_file, self.magic_items_file]
-        any_found = False
-        for src in sources:
-            data = self._load_json_file(src)
-            if data and isinstance(data, dict):
-                any_found = True
-                for item_data in data.get("items", []):
-                    try:
-                        item = self._parse_item_data(item_data)
-                        key = item_data.get("index") or item.name
-                        self._cache[str(key)] = item
-                    except Exception as e:
-                        logger.warning(f"Failed to load item {item_data.get('name', 'unknown')} from {src}: {e}")
-        if not any_found:
-            logger.warning("Items data files not found or invalid: %s", sources)
+    def _get_data_type(self) -> str:
+        """Get the data type name for this repository."""
+        return "items"
 
-    def _load_item(self, key: str) -> ItemDefinition | None:
-        """Load a single item by name.
-
-        Args:
-            key: Item name to load
-
-        Returns:
-            ItemDefinition or None if not found
-        """
-        for src in [self.items_file, self.magic_items_file]:
-            data = self._load_json_file(src)
-            if not data or not isinstance(data, dict):
-                continue
-            for item_data in data.get("items", []):
-                idx = str(item_data.get("index", ""))
-                nm = item_data.get("name", "")
-                if idx == key or (idx and idx.lower() == key.lower()) or nm == key or nm.lower() == key.lower():
-                    try:
-                        return self._parse_item_data(item_data)
-                    except Exception:
-                        return None
-
-        return None
-
-    def _get_all_keys(self) -> list[str]:
-        """Get all item names without using cache."""
-        names: set[str] = set()
-        for src in [self.items_file, self.magic_items_file]:
-            data = self._load_json_file(src)
-            if not data or not isinstance(data, dict):
-                continue
-            for item in data.get("items", []):
-                key = item.get("index") or item.get("name", "")
-                if key:
-                    names.add(str(key))
-        return sorted(names)
-
-    def _check_key_exists(self, key: str) -> bool:
-        """Check if an item exists without using cache."""
-        for src in [self.items_file, self.magic_items_file]:
-            data = self._load_json_file(src)
-            if not data or not isinstance(data, dict):
-                continue
-            for item in data.get("items", []):
-                idx = str(item.get("index", ""))
-                nm = item.get("name", "")
-                if idx == key or (idx and idx.lower() == key.lower()) or nm == key or nm.lower() == key.lower():
-                    return True
-        return False
+    def _parse_item(self, data: dict[str, Any]) -> ItemDefinition:
+        """Parse raw item data into model instance."""
+        return self._parse_item_data(data)
 
     def _parse_item_data(self, data: dict[str, Any]) -> ItemDefinition:
-        # Any is necessary because item data from JSON contains mixed types
-        """Parse item data from JSON into ItemDefinition model.
-
-        Args:
-            data: Raw item data from JSON
-
-        Returns:
-            Parsed ItemDefinition
-
-        Raises:
-            ValueError: If parsing fails
-        """
+        """Parse item data from JSON into ItemDefinition model."""
         try:
-            # Map string values to enums
-            item_type = ItemType(data["type"])
-            rarity = ItemRarity(data["rarity"])
-            subtype = ItemSubtype(data["subtype"]) if data.get("subtype") else None
-
-            # Provide typed values for mypy while model validators handle legacy inputs
-            weight: float = float(data.get("weight") or 0.0)
-            value: float = float(data.get("value") or 0.0)
-            description: str = data.get("description") or ""
-            damage: str = data.get("damage") or ""
-            damage_type: str = data.get("damage_type") or ""
-            properties: list[str] = list(data.get("properties") or [])
-            armor_class: int = int(data.get("armor_class") or 0)
-            dex_bonus: bool = bool(data.get("dex_bonus") or False)
-            contents: list[str] = list(data.get("contents") or [])
-            quantity_available: int = int(data.get("quantity_available") or -1)
-
             return ItemDefinition(
+                index=data["index"],
                 name=data["name"],
-                type=item_type,
-                rarity=rarity,
-                weight=weight,
-                value=value,
-                description=description,
-                subtype=subtype,
-                damage=damage,
-                damage_type=damage_type,
-                properties=properties,
-                armor_class=armor_class,
-                dex_bonus=dex_bonus,
-                contents=contents,
-                quantity_available=quantity_available,
+                type=ItemType(data["type"]),
+                rarity=ItemRarity(data["rarity"]),
+                weight=float(data.get("weight") or 0.0),
+                value=float(data.get("value") or 0.0),
+                description=data.get("description") or "",
+                subtype=ItemSubtype(data["subtype"]) if data.get("subtype") else None,
+                damage=data.get("damage") or "",
+                damage_type=data.get("damage_type") or "",
+                properties=list(data.get("properties") or []),
+                armor_class=int(data.get("armor_class") or 0),
+                dex_bonus=bool(data.get("dex_bonus") or False),
+                contents=list(data.get("contents") or []),
+                quantity_available=int(data.get("quantity_available") or -1),
+                content_pack=data["content_pack"],
             )
         except Exception as e:
             raise ValueError(f"Failed to parse item data: {e}") from e
-
-    def get_by_type(self, item_type: ItemType) -> list[ItemDefinition]:
-        if not self._initialized:
-            self._initialize()
-
-        if self.cache_enabled:
-            return [item for item in self._cache.values() if item.type == item_type]
-
-        # Without cache, load all and filter
-        all_items = []
-        data = self._load_json_file(self.items_file)
-        if data and isinstance(data, dict):
-            for item_data in data.get("items", []):
-                try:
-                    item = self._parse_item_data(item_data)
-                    if item.type == item_type:
-                        all_items.append(item)
-                except Exception:
-                    continue
-
-        return all_items
-
-    def get_by_rarity(self, rarity: ItemRarity) -> list[ItemDefinition]:
-        if not self._initialized:
-            self._initialize()
-
-        if self.cache_enabled:
-            return [item for item in self._cache.values() if item.rarity == rarity]
-
-        # Without cache, load all and filter
-        all_items = []
-        data = self._load_json_file(self.items_file)
-        if data and isinstance(data, dict):
-            for item_data in data.get("items", []):
-                try:
-                    item = self._parse_item_data(item_data)
-                    if item.rarity == rarity:
-                        all_items.append(item)
-                except Exception:
-                    continue
-
-        return all_items
-
-    def validate_reference(self, key: str) -> bool:
-        """Validate item by index or name (case-insensitive), even with cache enabled."""
-        if not self._initialized:
-            self._initialize()
-
-        if self.cache_enabled:
-            if key in self._cache:
-                return True
-            lower = key.lower()
-            for k, v in self._cache.items():
-                if k.lower() == lower or v.name.lower() == lower:
-                    return True
-            return self._check_key_exists(key)
-
-        return self._check_key_exists(key)

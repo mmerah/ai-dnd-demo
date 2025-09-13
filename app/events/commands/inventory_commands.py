@@ -24,7 +24,7 @@ class ModifyInventoryCommand(BaseCommand):
     """Command to modify an inventory item quantity (positive=add, negative=remove)."""
 
     agent_type: AgentType | None = field(default=None)
-    item_name: str = ""
+    item_index: str = ""
     quantity: int = 0
 
     def get_handler_name(self) -> str:
@@ -36,7 +36,7 @@ class EquipItemCommand(BaseCommand):
     """Command to equip or unequip an item."""
 
     agent_type: AgentType | None = field(default=None)
-    item_name: str = ""
+    item_index: str = ""
     equipped: bool = True
 
     def get_handler_name(self) -> str:

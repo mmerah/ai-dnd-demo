@@ -6,7 +6,7 @@ import logging
 import random
 
 from app.common.exceptions import RepositoryNotFoundError
-from app.interfaces.services.data import IMonsterRepository
+from app.interfaces.services.data import IRepositoryProvider
 from app.interfaces.services.game import ICombatService, IGameService
 from app.interfaces.services.scenario import IScenarioService
 from app.models.attributes import EntityType
@@ -76,8 +76,8 @@ class CombatService(ICombatService):
         game_state: GameState,
         spawns: list[EncounterParticipantSpawn],
         scenario_service: IScenarioService,
-        monster_repository: IMonsterRepository,
         game_service: IGameService,
+        repository_provider: IRepositoryProvider,
     ) -> list[IEntity]:
         realized: list[IEntity] = []
         current_loc = game_state.scenario_instance.current_location_id
@@ -135,7 +135,8 @@ class CombatService(ICombatService):
                             entity = inst
                         elif spawn.spawn_type == SpawnType.REPOSITORY:
                             try:
-                                monster_sheet = monster_repository.get(spawn.entity_id)
+                                monster_repo = repository_provider.get_monster_repository_for(game_state)
+                                monster_sheet = monster_repo.get(spawn.entity_id)
                                 inst = game_service.create_monster_instance(monster_sheet, current_loc)
                                 _ = game_state.add_monster_instance(inst)
                                 entity = inst
@@ -199,17 +200,6 @@ class CombatService(ICombatService):
             return False
         current_turn = game_state.combat.get_current_turn()
         return current_turn is not None and not current_turn.is_player
-
-    def get_combat_status(self, game_state: GameState) -> str:
-        if not game_state.combat.is_active:
-            return "No active combat"
-        current = game_state.combat.get_current_turn()
-        if not current:
-            return "Combat active but no participants"
-        return (
-            f"Combat Round {game_state.combat.round_number} - "
-            f"Current Turn: {current.name} {'(Player)' if current.is_player else '(NPC/Monster)'}"
-        )
 
     def should_auto_end_combat(self, game_state: GameState) -> bool:
         if not game_state.combat.is_active:

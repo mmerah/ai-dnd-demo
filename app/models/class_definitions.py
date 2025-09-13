@@ -35,10 +35,12 @@ class ClassDefinition(BaseModel):
     starting_equipment_options_desc: list[str] | None = None
     subclasses: list[str] | None = None
     multi_classing: MultiClassingInfo | None = None
+    content_pack: str
 
 
 class SubclassDefinition(BaseModel):
     index: str
     name: str
     parent_class: str
-    description: str | None = None
+    description: str
+    content_pack: str

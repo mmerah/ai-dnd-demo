@@ -4,7 +4,7 @@ from pathlib import Path
 
 from app.agents.core.types import AgentType
 from app.common.types import JSONSerializable
-from app.interfaces.services.data import IMonsterRepository
+from app.interfaces.services.data import IRepositoryProvider
 from app.interfaces.services.scenario import IScenarioService
 from app.models.character import CharacterSheet
 from app.models.combat import CombatParticipant, CombatState
@@ -24,12 +24,14 @@ class IGameFactory(ABC):
         self,
         character: CharacterSheet,
         scenario_id: str,
+        content_packs: list[str] | None = None,
     ) -> GameState:
         """Initialize a new game state.
 
         Args:
             character: The player's character sheet
             scenario_id: Scenario to load
+            content_packs: Additional content packs to use (merged with scenario packs)
 
         Returns:
             Initialized GameState object
@@ -45,6 +47,7 @@ class IGameService(ABC):
         self,
         character: CharacterSheet,
         scenario_id: str,
+        content_packs: list[str] | None = None,
     ) -> GameState:
         """Initialize a new game state.
 
@@ -54,6 +57,7 @@ class IGameService(ABC):
         Args:
             character: The player's character sheet
             scenario_id: Scenario to load
+            content_packs: Additional content packs to use (merged with scenario packs)
 
         Returns:
             Initialized GameState object
@@ -102,6 +106,21 @@ class IGameService(ABC):
 
         Raises:
             FileNotFoundError: If game doesn't exist
+        """
+        pass
+
+    @abstractmethod
+    def enrich_for_display(self, game_state: GameState) -> GameState:
+        """Enrich game state with display names for frontend presentation.
+
+        Populates item names from definitions for inventory items that
+        only have indexes. This is used when sending game state to frontend.
+
+        Args:
+            game_state: The game state to enrich
+
+        Returns:
+            The enriched game state (modified in place)
         """
         pass
 
@@ -218,8 +237,8 @@ class ICombatService(ABC):
         game_state: GameState,
         spawns: list[EncounterParticipantSpawn],
         scenario_service: IScenarioService,
-        monster_repository: IMonsterRepository,
         game_service: IGameService,
+        repository_provider: IRepositoryProvider,
     ) -> list[IEntity]:
         """Convert encounter spawns into concrete entities.
 
@@ -265,18 +284,6 @@ class ICombatService(ABC):
 
         Returns:
             True if combat should continue automatically
-        """
-        pass
-
-    @abstractmethod
-    def get_combat_status(self, game_state: GameState) -> str:
-        """Get a brief combat status summary.
-
-        Args:
-            game_state: Current game state
-
-        Returns:
-            Human-readable combat status string
         """
         pass
 

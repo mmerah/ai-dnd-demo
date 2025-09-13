@@ -79,94 +79,54 @@
   ],
   "starting_inventory": [
     {
-      "name": "Potion of Healing",
+      "index": "potion-of-healing",
       "quantity": 2,
-      "equipped_quantity": 0,
-      "weight": 0.5,
-      "value": 50,
-      "description": "You regain 2d4 + 2 hit points when you drink this potion.",
-      "item_type": "Potion"
+      "equipped_quantity": 0
     },
     {
-      "name": "Rope, hempen (50 feet)",
+      "index": "rope-hempen-50-feet",
       "quantity": 1,
-      "equipped_quantity": 0,
-      "weight": 10,
-      "value": 1,
-      "description": "Rope has 2 hit points and can be burst with a DC 17 Strength check.",
-      "item_type": "Adventuring Gear"
+      "equipped_quantity": 0
     },
     {
-      "name": "Torch",
+      "index": "torch",
       "quantity": 5,
-      "equipped_quantity": 0,
-      "weight": 1,
-      "value": 0.01,
-      "description": "A torch burns for 1 hour, providing bright light in a 20-foot radius.",
-      "item_type": "Adventuring Gear"
+      "equipped_quantity": 0
     },
     {
-      "name": "Rations (1 day)",
+      "index": "rations-1-day",
       "quantity": 10,
-      "equipped_quantity": 0,
-      "weight": 2,
-      "value": 0.5,
-      "description": "Rations consist of dry foods suitable for extended travel.",
-      "item_type": "Adventuring Gear"
+      "equipped_quantity": 0
     },
     {
-      "name": "Longbow",
+      "index": "longbow",
       "quantity": 1,
-      "equipped_quantity": 1,
-      "weight": 2,
-      "value": 50,
-      "description": "A tall bow for shooting arrows at long range.",
-      "item_type": "Weapon"
+      "equipped_quantity": 1
     },
     {
-      "name": "Arrow",
+      "index": "arrow",
       "quantity": 40,
-      "equipped_quantity": 0,
-      "weight": 0.05,
-      "value": 0.05,
-      "description": "Standard arrows for use with a bow.",
-      "item_type": "Ammunition"
+      "equipped_quantity": 0
     },
     {
-      "name": "Shortsword",
+      "index": "shortsword",
       "quantity": 1,
-      "equipped_quantity": 1,
-      "weight": 2,
-      "value": 10,
-      "description": "A short, lightweight sword ideal for quick strikes.",
-      "item_type": "Weapon"
+      "equipped_quantity": 1
     },
     {
-      "name": "Leather Armor",
+      "index": "leather-armor",
       "quantity": 1,
-      "equipped_quantity": 1,
-      "weight": 10,
-      "value": 10,
-      "description": "Light armor made of stiffened leather.",
-      "item_type": "Armor"
+      "equipped_quantity": 1
     },
     {
-      "name": "Explorer's Pack",
+      "index": "explorers-pack",
       "quantity": 1,
-      "equipped_quantity": 0,
-      "weight": 59,
-      "value": 10,
-      "description": "Includes a backpack, bedroll, mess kit, tinderbox, torches, rations, waterskin, and rope.",
-      "item_type": "Equipment Pack"
+      "equipped_quantity": 0
     },
     {
-      "name": "Component pouch",
+      "index": "component-pouch",
       "quantity": 1,
-      "equipped_quantity": 0,
-      "weight": 2,
-      "value": 25,
-      "description": "A small, watertight leather belt pouch containing material components for spells.",
-      "item_type": "Adventuring Gear"
+      "equipped_quantity": 0
     }
   ],
   "starting_currency": {
@@ -179,9 +139,9 @@
   "starting_spellcasting": {
     "ability": "Wisdom",
     "spells_known": [
-      "Cure Wounds",
-      "Hunter's Mark",
-      "Entangle"
+      "cure-wounds",
+      "hunters-mark",
+      "entangle"
     ],
     "spell_slots": {
       "1": {
@@ -193,6 +153,6 @@
   },
   "starting_level": 3,
   "starting_experience_points": 900,
-  "content_pack": "srd",
+  "content_packs": ["srd"],
   "reference_packs": []
 }

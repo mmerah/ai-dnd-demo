@@ -53,6 +53,7 @@ async def create_new_game(request: NewGameRequest) -> NewGameResponse:
         game_state = game_service.initialize_game(
             character=character,
             scenario_id=request.scenario_id,
+            content_packs=request.content_packs,
         )
 
         game_service.save_game(game_state)
@@ -178,7 +179,7 @@ async def equip_item(game_id: str, request: EquipItemRequest) -> EquipItemRespon
         game_state = game_service.get_game(game_id)
 
         # Create command
-        command = EquipItemCommand(game_id=game_id, item_name=request.item_name, equipped=request.equipped)
+        command = EquipItemCommand(game_id=game_id, item_index=request.item_index, equipped=request.equipped)
 
         # Execute with event tracking (treating this as a player "tool")
         result: BaseModel = await execute_player_action(
@@ -194,7 +195,7 @@ async def equip_item(game_id: str, request: EquipItemRequest) -> EquipItemRespon
 
         return EquipItemResponse(
             game_id=game_id,
-            item_name=result.item_name,
+            item_index=result.item_index,
             equipped_quantity=result.equipped_quantity,
             new_armor_class=game_state.character.state.armor_class,
         )

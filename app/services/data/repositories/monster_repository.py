@@ -4,8 +4,8 @@ import logging
 from typing import Any
 
 from app.common.exceptions import RepositoryNotFoundError
-from app.interfaces.services.common import IPathResolver
-from app.interfaces.services.data import IMonsterRepository, IRepository
+from app.interfaces.services.common import IContentPackRegistry, IPathResolver
+from app.interfaces.services.data import IRepository
 from app.models.alignment import Alignment
 from app.models.attributes import SkillValue
 from app.models.condition import Condition
@@ -17,7 +17,7 @@ from app.services.data.repositories.base_repository import BaseRepository
 logger = logging.getLogger(__name__)
 
 
-class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
+class MonsterRepository(BaseRepository[MonsterSheet]):
     """Repository for loading and managing monster data."""
 
     def __init__(
@@ -28,89 +28,39 @@ class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
         alignment_repository: IRepository[Alignment],
         skill_repository: IRepository[Skill],
         cache_enabled: bool = True,
+        content_pack_registry: IContentPackRegistry | None = None,
+        content_packs: list[str] | None = None,
     ):
         """Initialize the monster repository.
 
         Args:
             path_resolver: Service for resolving file paths
+            language_repository: Repository for languages
+            condition_repository: Repository for conditions
+            alignment_repository: Repository for alignments
+            skill_repository: Repository for skills
             cache_enabled: Whether to cache monsters in memory
+            content_pack_registry: Registry for managing content packs
+            content_packs: List of content pack IDs to load from
         """
-        super().__init__(cache_enabled)
+        super().__init__(cache_enabled, content_pack_registry, content_packs)
         self.path_resolver = path_resolver
-        self.monsters_file = self.path_resolver.get_shared_data_file("monsters")
         self.language_repository = language_repository
         self.condition_repository = condition_repository
         self.alignment_repository = alignment_repository
         self.skill_repository = skill_repository
 
-    def _initialize(self) -> None:
-        """Initialize the repository by loading all monsters if caching is enabled."""
-        if self.cache_enabled:
-            self._load_all_monsters()
-        self._initialized = True
+    def _get_item_key(self, item_data: dict[str, Any]) -> str | None:
+        """Extract the unique key from raw item data."""
+        return str(item_data.get("index", ""))
 
-    def _load_all_monsters(self) -> None:
-        """Load all monsters from the monsters.json file into cache."""
-        data = self._load_json_file(self.monsters_file)
-        if not data or not isinstance(data, dict):
-            logger.warning("Monsters data file not found or invalid: %s", self.monsters_file)
-            return
+    def _get_data_type(self) -> str:
+        """Get the data type name for this repository."""
+        return "monsters"
 
-        for monster_data in data.get("monsters", []):
-            try:
-                monster = self._parse_monster_data(monster_data)
-                self._cache[monster.index] = monster
-            except Exception as e:
-                # Log error but continue loading other monsters
-                logger.warning(f"Failed to load monster {monster_data.get('name', 'unknown')}: {e}")
-
-    def _load_item(self, key: str) -> MonsterSheet | None:
-        """Load a single monster by name.
-
-        Args:
-            key: Monster name to load
-
-        Returns:
-            Monster or None if not found
-        """
-        data = self._load_json_file(self.monsters_file)
-        if not data or not isinstance(data, dict):
-            return None
-
-        for monster_data in data.get("monsters", []):
-            idx = str(monster_data.get("index", ""))
-            if idx.lower() == key.lower():
-                try:
-                    return self._parse_monster_data(monster_data)
-                except Exception:
-                    return None
-
-        return None
-
-    def _get_all_keys(self) -> list[str]:
-        """Get all monster names without using cache."""
-        data = self._load_json_file(self.monsters_file)
-        if not data or not isinstance(data, dict):
-            return []
-
-        keys: list[str] = []
-        for monster in data.get("monsters", []):
-            # Use index as primary key since it's now mandatory
-            if "index" in monster:
-                keys.append(str(monster["index"]))
-        return sorted(keys)
-
-    def _check_key_exists(self, key: str) -> bool:
-        """Check if a monster exists without using cache."""
-        data = self._load_json_file(self.monsters_file)
-        if not data or not isinstance(data, dict):
-            return False
-
-        for m in data.get("monsters", []):
-            idx = str(m.get("index", ""))
-            if idx.lower() == key.lower():
-                return True
-        return False
+    def _parse_item(self, data: dict[str, Any]) -> MonsterSheet:
+        """Parse raw item data into model instance."""
+        return self._parse_monster_data(data)
 
     def _parse_skills(self, data: dict[str, int] | None) -> list[SkillValue]:
         """Parse skills from JSON dict to list of SkillValue using repository indexes."""
@@ -135,18 +85,7 @@ class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
         return skills
 
     def _parse_monster_data(self, data: dict[str, Any]) -> MonsterSheet:
-        # Any is necessary because monster data from JSON contains mixed types
-        """Parse monster data from JSON into Monster model.
-
-        Args:
-            data: Raw monster data from JSON
-
-        Returns:
-            Parsed Monster
-
-        Raises:
-            ValueError: If parsing fails
-        """
+        """Parse monster data from JSON into Monster model."""
         try:
             # Parse skills to list of SkillValue
             data["skills"] = self._parse_skills(data.get("skills"))
@@ -173,13 +112,13 @@ class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
             raise ValueError(f"Failed to parse monster data: {e}") from e
 
     def get(self, key: str) -> MonsterSheet:
-        """Get a monster by name, returning a deep copy.
+        """Get a monster by index, returning a deep copy.
 
         Override base implementation to return deep copies to avoid
         modifying the cached version.
 
         Args:
-            key: Monster name to get
+            key: Monster index to get
 
         Returns:
             Deep copy of MonsterSheet
@@ -190,55 +129,3 @@ class MonsterRepository(BaseRepository[MonsterSheet], IMonsterRepository):
         monster = super().get(key)
         # Return a deep copy to avoid modifying the cached version
         return monster.model_copy(deep=True)
-
-    def get_by_challenge_rating(self, min_cr: float, max_cr: float) -> list[MonsterSheet]:
-        if not self._initialized:
-            self._initialize()
-
-        if self.cache_enabled:
-            return [
-                monster.model_copy(deep=True)
-                for monster in self._cache.values()
-                if min_cr <= monster.challenge_rating <= max_cr
-            ]
-
-        # Without cache, load all and filter
-        all_monsters: list[MonsterSheet] = []
-        data = self._load_json_file(self.monsters_file)
-        if data and isinstance(data, dict):
-            for monster_data in data.get("monsters", []):
-                try:
-                    monster = self._parse_monster_data(monster_data)
-                    if min_cr <= monster.challenge_rating <= max_cr:
-                        all_monsters.append(monster)
-                except Exception:
-                    continue
-
-        return all_monsters
-
-    def get_by_type(self, creature_type: str) -> list[MonsterSheet]:
-        if not self._initialized:
-            self._initialize()
-
-        creature_type_lower = creature_type.lower()
-
-        if self.cache_enabled:
-            return [
-                monster.model_copy(deep=True)
-                for monster in self._cache.values()
-                if creature_type_lower in monster.type.lower()
-            ]
-
-        # Without cache, load all and filter
-        all_monsters: list[MonsterSheet] = []
-        data = self._load_json_file(self.monsters_file)
-        if data and isinstance(data, dict):
-            for monster_data in data.get("monsters", []):
-                try:
-                    if creature_type_lower in monster_data.get("type", "").lower():
-                        monster = self._parse_monster_data(monster_data)
-                        all_monsters.append(monster)
-                except Exception:
-                    continue
-
-        return all_monsters
