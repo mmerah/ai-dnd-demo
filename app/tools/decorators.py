@@ -15,6 +15,7 @@ from app.events.base import BaseCommand
 from app.events.commands.broadcast_commands import (
     BroadcastPolicyWarningCommand,
 )
+from app.models.tool_results import ToolErrorResult
 
 logger = logging.getLogger(__name__)
 
@@ -140,12 +141,34 @@ def tool_handler(
                 command = command_class(**final_kwargs)
 
             # Execute via common ActionService to ensure DRY handling
-            result = await ctx.deps.action_service.execute_command_as_action(
-                tool_name=tool_name,
-                command=command,
-                game_state=game_state,
-                broadcast_parameters=broadcast_kwargs,
-            )
+            try:
+                result = await ctx.deps.action_service.execute_command_as_action(
+                    tool_name=tool_name,
+                    command=command,
+                    game_state=game_state,
+                    broadcast_parameters=broadcast_kwargs,
+                )
+            except ValueError as e:
+                # Return structured error that AI can understand and potentially correct
+                logger.warning(f"Tool {tool_name} encountered error: {str(e)}")
+
+                # Try to provide helpful suggestions based on common errors
+                suggestion = None
+                error_msg = str(e).lower()
+                if "not found" in error_msg:
+                    suggestion = "Check the ID or name is correct. You may need to list available options first."
+                elif "cannot travel" in error_msg or "valid destinations" in error_msg:
+                    suggestion = "Check the available connections from the current location."
+                elif "empty" in error_msg:
+                    suggestion = "Provide a value for the required parameter."
+                elif "invalid" in error_msg:
+                    suggestion = "Check that the provided value is in the correct format or from the allowed options."
+
+                return ToolErrorResult(
+                    error=str(e),
+                    tool_name=tool_name,
+                    suggestion=suggestion,
+                )
 
             return result
 

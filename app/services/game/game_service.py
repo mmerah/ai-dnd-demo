@@ -15,7 +15,6 @@ from app.models.character import CharacterSheet
 from app.models.game_state import GameState
 from app.models.instances.monster_instance import MonsterInstance
 from app.models.monster import MonsterSheet
-from app.models.scenario import ScenarioLocation
 from app.services.data.repository_factory import RepositoryFactory
 
 
@@ -164,9 +163,6 @@ class GameService(IGameService):
 
     def create_monster_instance(self, sheet: MonsterSheet, current_location_id: str) -> MonsterInstance:
         return self.monster_factory.create(sheet, current_location_id)
-
-    def initialize_location_from_scenario(self, game_state: GameState, scenario_location: ScenarioLocation) -> None:
-        self.location_service.initialize_location_from_scenario(game_state, scenario_location)
 
     def recompute_character_state(self, game_state: GameState) -> None:
         """Recompute using repositories scoped to the game's content packs."""

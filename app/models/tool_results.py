@@ -229,7 +229,14 @@ class EquipItemResult(BaseModel):
     message: str
 
 
-# Union type representing any possible successful result from a tool
+class ToolErrorResult(BaseModel):
+    type: str = "tool_error"
+    error: str
+    tool_name: str
+    suggestion: str | None = None
+
+
+# Union type representing any possible result from a tool
 ToolResult = (
     UpdateHPResult
     | AddConditionResult
@@ -259,4 +266,5 @@ ToolResult = (
     | RollDiceResult
     | LevelUpResult
     | EquipItemResult
+    | ToolErrorResult
 )
