@@ -7,7 +7,7 @@ import random
 
 from app.common.exceptions import RepositoryNotFoundError
 from app.interfaces.services.data import IRepositoryProvider
-from app.interfaces.services.game import ICombatService, IGameService
+from app.interfaces.services.game import ICombatService, IMonsterFactory
 from app.interfaces.services.scenario import IScenarioService
 from app.models.attributes import EntityType
 from app.models.combat import CombatParticipant, CombatState
@@ -24,7 +24,15 @@ logger = logging.getLogger(__name__)
 class CombatService(ICombatService):
     """Default implementation of ICombatService."""
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        scenario_service: IScenarioService,
+        monster_factory: IMonsterFactory,
+        repository_provider: IRepositoryProvider,
+    ) -> None:
+        self.scenario_service = scenario_service
+        self.monster_factory = monster_factory
+        self.repository_provider = repository_provider
         # Flow tracking to detect missing next_turn calls
         self._last_prompted_entity_id: str | None = None
         self._last_prompted_round: int = 0
@@ -75,9 +83,6 @@ class CombatService(ICombatService):
         self,
         game_state: GameState,
         spawns: list[EncounterParticipantSpawn],
-        scenario_service: IScenarioService,
-        game_service: IGameService,
-        repository_provider: IRepositoryProvider,
     ) -> list[IEntity]:
         realized: list[IEntity] = []
         current_loc = game_state.scenario_instance.current_location_id
@@ -104,7 +109,7 @@ class CombatService(ICombatService):
                             continue
 
                         # Validate scenario NPC exists in content
-                        npc_def = scenario_service.get_scenario_npc(game_state.scenario_id, spawn.entity_id)
+                        npc_def = self.scenario_service.get_scenario_npc(game_state.scenario_id, spawn.entity_id)
                         if not npc_def:
                             logger.warning(
                                 f"Scenario NPC definition not found: id={spawn.entity_id} in scenario {game_state.scenario_id}"
@@ -122,7 +127,7 @@ class CombatService(ICombatService):
                     else:
                         # Monsters: scenario-defined or repository
                         if spawn.spawn_type == SpawnType.SCENARIO:
-                            monster_sheet = scenario_service.get_scenario_monster(
+                            monster_sheet = self.scenario_service.get_scenario_monster(
                                 game_state.scenario_id, spawn.entity_id
                             )
                             if not monster_sheet:
@@ -130,14 +135,14 @@ class CombatService(ICombatService):
                                     f"Scenario monster not found: id={spawn.entity_id} in scenario {game_state.scenario_id}"
                                 )
                                 continue
-                            inst = game_service.create_monster_instance(monster_sheet, current_loc)
+                            inst = self.monster_factory.create(monster_sheet, current_loc)
                             _ = game_state.add_monster_instance(inst)
                             entity = inst
                         elif spawn.spawn_type == SpawnType.REPOSITORY:
                             try:
-                                monster_repo = repository_provider.get_monster_repository_for(game_state)
+                                monster_repo = self.repository_provider.get_monster_repository_for(game_state)
                                 monster_sheet = monster_repo.get(spawn.entity_id)
-                                inst = game_service.create_monster_instance(monster_sheet, current_loc)
+                                inst = self.monster_factory.create(monster_sheet, current_loc)
                                 _ = game_state.add_monster_instance(inst)
                                 entity = inst
                             except RepositoryNotFoundError:
@@ -211,3 +216,33 @@ class CombatService(ICombatService):
         self._last_prompted_entity_id = None
         self._last_prompted_round = 0
         logger.debug("Combat tracking state reset")
+
+    def ensure_player_in_combat(self, game_state: GameState) -> CombatParticipant | None:
+        if not game_state.combat.is_active:
+            raise ValueError("Cannot add player to combat: no active combat")
+
+        # Check if player already in combat
+        if any(p.is_player for p in game_state.combat.participants):
+            return None
+
+        # Add player to combat
+        player_entity = game_state.character
+        participant = self.add_participant(game_state.combat, player_entity)
+        logger.debug(
+            f"Auto-added player '{player_entity.display_name}' to combat with ID: {player_entity.instance_id}, "
+            f"Initiative: {participant.initiative}"
+        )
+        return participant
+
+    def spawn_free_monster(self, game_state: GameState, monster_name: str) -> IEntity | None:
+        try:
+            # Use per-game content packs
+            monster_repo = self.repository_provider.get_monster_repository_for(game_state)
+            monster_data = monster_repo.get(monster_name)
+            # Create runtime instance and add to game state (dedup name)
+            inst = self.monster_factory.create(monster_data, game_state.scenario_instance.current_location_id)
+            _ = game_state.add_monster_instance(inst)
+            return inst
+        except RepositoryNotFoundError:
+            logger.warning(f"Monster '{monster_name}' not found in repository")
+            return None

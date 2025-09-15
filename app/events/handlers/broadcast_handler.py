@@ -12,7 +12,6 @@ from app.events.commands.broadcast_commands import (
 )
 from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.services.ai import IMessageService
-from app.interfaces.services.game import IGameService
 from app.models.game_state import GameState
 
 logger = logging.getLogger(__name__)
@@ -21,9 +20,8 @@ logger = logging.getLogger(__name__)
 class BroadcastHandler(BaseHandler):
     """Handler for broadcasting events to frontend via SSE."""
 
-    def __init__(self, game_service: IGameService, message_service: IMessageService) -> None:
-        """Initialize with game service and message service dependencies."""
-        super().__init__(game_service)
+    def __init__(self, message_service: IMessageService) -> None:
+        """Initialize with message service dependency."""
         self.message_service = message_service
         self.supported_commands = (
             BroadcastNarrativeCommand,

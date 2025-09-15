@@ -5,6 +5,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
+from app.models.equipment_slots import EquipmentSlotType
+
 
 class ItemType(str, Enum):
     """Types of items in the game."""
@@ -73,6 +75,51 @@ class ItemDefinition(BaseModel):
 
     # Content pack this item comes from
     content_pack: str
+
+    # Valid equipment slots for this item
+    valid_slots: list[EquipmentSlotType] = Field(default_factory=list)
+
+    @property
+    def is_two_handed(self) -> bool:
+        """Determine if weapon requires both hands."""
+        return "Two-Handed" in (self.properties or []) or "two-handed" in self.name.lower()
+
+    def get_valid_slots(self) -> list[EquipmentSlotType]:
+        """Get valid equipment slots with fail-fast validation."""
+        if self.valid_slots:
+            return self.valid_slots
+
+        if self.type == ItemType.ARMOR:
+            if self.subtype == ItemSubtype.SHIELD:
+                return [EquipmentSlotType.OFF_HAND, EquipmentSlotType.MAIN_HAND]
+            elif (
+                self.subtype == ItemSubtype.LIGHT
+                or self.subtype == ItemSubtype.MEDIUM
+                or self.subtype == ItemSubtype.HEAVY
+            ):
+                return [EquipmentSlotType.CHEST]
+            else:
+                raise ValueError(f"Unknown armor subtype: {self.subtype}")
+        elif self.type == ItemType.WEAPON:
+            if self.is_two_handed:
+                return [EquipmentSlotType.MAIN_HAND]
+            else:
+                return [EquipmentSlotType.MAIN_HAND, EquipmentSlotType.OFF_HAND]
+        elif self.type == ItemType.AMMUNITION:
+            return [EquipmentSlotType.AMMUNITION]
+        elif self.type == ItemType.ADVENTURING_GEAR:
+            # Special handling for rings and amulets
+            if self.index.startswith("ring-"):
+                return [EquipmentSlotType.RING_1, EquipmentSlotType.RING_2]
+            elif self.index.startswith("amulet-"):
+                return [EquipmentSlotType.NECK]
+
+        # Non-equippable items return empty list
+        return []
+
+    def is_equippable(self) -> bool:
+        """Check if item can be equipped."""
+        return len(self.get_valid_slots()) > 0
 
     # --- Normalization validators for legacy/loose item inputs ---
     @field_validator("description", mode="before")
@@ -169,30 +216,19 @@ class ItemDefinition(BaseModel):
 
 
 class InventoryItem(BaseModel):
-    """Item instance in a character's inventory."""
+    """Item instance in inventory."""
 
     index: str
     name: str | None = None
     item_type: ItemType | None = None
     quantity: int = Field(ge=1, default=1)
-    equipped_quantity: int = Field(ge=0, default=0)
 
     @classmethod
-    def from_definition(
-        cls, definition: ItemDefinition, quantity: int = 1, equipped_quantity: int = 0
-    ) -> "InventoryItem":
+    def from_definition(cls, definition: ItemDefinition, quantity: int = 1) -> "InventoryItem":
         """Create an inventory item from an item definition."""
         return cls(
             index=definition.index,
             name=definition.name,
             item_type=definition.type,
             quantity=quantity,
-            equipped_quantity=equipped_quantity,
         )
-
-    def model_post_init(self, __context: object) -> None:
-        # Ensure equipped_quantity does not exceed quantity
-        if self.equipped_quantity < 0:
-            self.equipped_quantity = 0
-        if self.equipped_quantity > self.quantity:
-            self.equipped_quantity = self.quantity

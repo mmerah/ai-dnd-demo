@@ -30,6 +30,7 @@ from app.interfaces.services.game import (
     ICombatService,
     IConversationService,
     IEventManager,
+    IGameEnrichmentService,
     IGameFactory,
     IGameService,
     IGameStateManager,
@@ -81,6 +82,7 @@ from app.services.data.repository_factory import RepositoryFactory
 from app.services.game import GameService
 from app.services.game.combat_service import CombatService
 from app.services.game.conversation_service import ConversationService
+from app.services.game.enrichment_service import GameEnrichmentService
 from app.services.game.event_manager import EventManager
 from app.services.game.game_factory import GameFactory
 from app.services.game.game_state_manager import GameStateManager
@@ -110,15 +112,16 @@ class Container:
     @cached_property
     def game_service(self) -> IGameService:
         return GameService(
-            scenario_service=self.scenario_service,
             save_manager=self.save_manager,
             pre_save_sanitizer=self.pre_save_sanitizer,
             game_state_manager=self.game_state_manager,
-            compute_service=self.character_compute_service,
-            monster_factory=self.monster_factory,
-            location_service=self.location_service,
             game_factory=self.game_factory,
-            repository_factory=self.repository_factory,
+        )
+
+    @cached_property
+    def game_enrichment_service(self) -> IGameEnrichmentService:
+        return GameEnrichmentService(
+            repository_provider=self.repository_factory,
         )
 
     @cached_property
@@ -126,13 +129,13 @@ class Container:
         return CharacterService(
             path_resolver=self.path_resolver,
             character_loader=self.character_loader,
+            compute_service=self.character_compute_service,
             item_repository=self.item_repository,
             spell_repository=self.spell_repository,
             alignment_repository=self.alignment_repository,
             class_repository=self.class_repository,
             subclass_repository=self.subclass_repository,
             language_repository=self.language_repository,
-            condition_repository=self.condition_repository,
             race_repository=self.race_repository,
             race_subrace_repository=self.race_subrace_repository,
             background_repository=self.background_repository,
@@ -140,8 +143,6 @@ class Container:
             trait_repository=self.trait_repository,
             feature_repository=self.feature_repository,
             feat_repository=self.feat_repository,
-            damage_type_repository=self.damage_type_repository,
-            weapon_property_repository=self.weapon_property_repository,
         )
 
     @cached_property
@@ -372,35 +373,32 @@ class Container:
 
     @cached_property
     def event_bus(self) -> IEventBus:
-        event_bus = EventBus(self.game_service)
+        event_bus = EventBus(self.game_service, self.character_service)
 
         # Register all handlers
-        event_bus.register_handler("character", CharacterHandler(self.game_service, self.level_progression_service))
-        event_bus.register_handler("dice", DiceHandler(self.game_service, self.dice_service))
+        event_bus.register_handler(
+            "character", CharacterHandler(self.character_service, self.level_progression_service)
+        )
+        event_bus.register_handler("dice", DiceHandler(self.dice_service))
         event_bus.register_handler(
             "inventory",
-            InventoryHandler(self.game_service, self.character_compute_service, self.repository_factory),
+            InventoryHandler(self.character_service, self.repository_factory),
         )
-        event_bus.register_handler("time", TimeHandler(self.game_service))
-        event_bus.register_handler("broadcast", BroadcastHandler(self.game_service, self.message_service))
+        event_bus.register_handler("time", TimeHandler())
+        event_bus.register_handler("broadcast", BroadcastHandler(self.message_service))
         event_bus.register_handler(
             "location",
             LocationHandler(
-                self.game_service,
-                self.scenario_service,
                 self.location_service,
             ),
         )
         event_bus.register_handler(
             "combat",
             CombatHandler(
-                self.game_service,
-                self.scenario_service,
                 self.combat_service,
-                self.repository_factory,
             ),
         )
-        event_bus.register_handler("quest", QuestHandler(self.game_service, self.scenario_service))
+        event_bus.register_handler("quest", QuestHandler())
 
         # Verify handlers can handle all commands
         event_bus.verify_handlers()
@@ -495,7 +493,11 @@ class Container:
 
     @cached_property
     def combat_service(self) -> ICombatService:
-        return CombatService()
+        return CombatService(
+            scenario_service=self.scenario_service,
+            monster_factory=self.monster_factory,
+            repository_provider=self.repository_factory,
+        )
 
     @cached_property
     def pre_save_sanitizer(self) -> IPreSaveSanitizer:

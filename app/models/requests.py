@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -39,7 +41,24 @@ class EquipItemRequest(BaseModel):
     """Request model to equip or unequip a specific inventory item for the player."""
 
     item_index: str = Field(..., description="Index of the item in inventory")
-    equipped: bool = Field(..., description="True to equip one unit, False to unequip one unit")
+    slot: (
+        Literal[
+            "head",
+            "neck",
+            "chest",
+            "hands",
+            "feet",
+            "waist",
+            "main_hand",
+            "off_hand",
+            "ring_1",
+            "ring_2",
+            "back",
+            "ammunition",
+        ]
+        | None
+    ) = Field(None, description="Target equipment slot. Auto-selects if not specified.")
+    unequip: bool = Field(False, description="True to unequip from slots")
 
 
 class EquipItemResponse(BaseModel):
@@ -47,7 +66,8 @@ class EquipItemResponse(BaseModel):
 
     game_id: str
     item_index: str
-    equipped_quantity: int
+    equipped: bool
+    slot: str | None
     new_armor_class: int
 
 

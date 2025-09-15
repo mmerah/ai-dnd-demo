@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 from app.models.attributes import Abilities, AttackAction, SavingThrows, SkillValue
 from app.models.character import Currency
+from app.models.equipment_slots import EquipmentSlots
 from app.models.item import InventoryItem
 from app.models.spell import Spellcasting
 
@@ -36,5 +37,6 @@ class EntityState(BaseModel):
     exhaustion_level: int = Field(ge=0, le=6, default=0)
     inspiration: bool = False
     inventory: list[InventoryItem] = Field(default_factory=list)
+    equipment_slots: EquipmentSlots = Field(default_factory=EquipmentSlots)
     currency: Currency
     spellcasting: Spellcasting | None = None

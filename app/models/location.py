@@ -50,7 +50,7 @@ class LocationConnection(BaseModel):
 class LootEntry(BaseModel):
     """Loot table entry for a location."""
 
-    item_name: str
+    item_index: str
     quantity_min: int = 1
     quantity_max: int = 1
     probability: float = 1.0

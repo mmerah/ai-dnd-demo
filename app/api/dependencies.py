@@ -4,7 +4,7 @@ from fastapi import Depends, HTTPException, Path
 
 from app.container import container
 from app.interfaces.services.common import IContentPackRegistry
-from app.interfaces.services.game import IGameService
+from app.interfaces.services.game import IGameEnrichmentService, IGameService
 from app.models.game_state import GameState
 
 
@@ -18,14 +18,22 @@ def get_content_pack_registry() -> IContentPackRegistry:
     return container.content_pack_registry
 
 
+def get_game_enrichment_service() -> IGameEnrichmentService:
+    """Get the game enrichment service from the dependency container."""
+    return container.game_enrichment_service
+
+
 async def get_game_state_from_path(
-    game_id: str = Path(...), game_service: IGameService = Depends(get_game_service)
+    game_id: str = Path(...),
+    game_service: IGameService = Depends(get_game_service),
+    enrichment_service: IGameEnrichmentService = Depends(get_game_enrichment_service),
 ) -> GameState:
     """A FastAPI dependency to load a game state by its ID from the path.
 
     Args:
         game_id: The game ID from the path parameter
         game_service: The game service (injected)
+        enrichment_service: The game enrichment service (injected)
 
     Returns:
         The loaded GameState with enriched display names
@@ -35,7 +43,7 @@ async def get_game_state_from_path(
     """
     try:
         game_state = game_service.load_game(game_id)
-        game_service.enrich_for_display(game_state)
+        enrichment_service.enrich_for_display(game_state)
         return game_state
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f"Game with ID '{game_id}' not found") from None

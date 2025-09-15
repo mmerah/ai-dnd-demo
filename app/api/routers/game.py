@@ -179,7 +179,9 @@ async def equip_item(game_id: str, request: EquipItemRequest) -> EquipItemRespon
         game_state = game_service.get_game(game_id)
 
         # Create command
-        command = EquipItemCommand(game_id=game_id, item_index=request.item_index, equipped=request.equipped)
+        command = EquipItemCommand(
+            game_id=game_id, item_index=request.item_index, slot=request.slot, unequip=request.unequip
+        )
 
         # Execute with event tracking (treating this as a player "tool")
         result: BaseModel = await execute_player_action(
@@ -196,7 +198,8 @@ async def equip_item(game_id: str, request: EquipItemRequest) -> EquipItemRespon
         return EquipItemResponse(
             game_id=game_id,
             item_index=result.item_index,
-            equipped_quantity=result.equipped_quantity,
+            equipped=result.equipped,
+            slot=result.slot,
             new_armor_class=game_state.character.state.armor_class,
         )
     except FileNotFoundError:

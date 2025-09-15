@@ -11,11 +11,11 @@ from app.events.commands.inventory_commands import (
     ModifyInventoryCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services.character import ICharacterComputeService
+from app.interfaces.services.character import ICharacterService
 from app.interfaces.services.data import IRepositoryProvider
-from app.interfaces.services.game import IGameService
+from app.models.equipment_slots import EquipmentSlotType
 from app.models.game_state import GameState
-from app.models.item import InventoryItem, ItemDefinition, ItemRarity, ItemType
+from app.models.item import InventoryItem
 from app.models.tool_results import (
     AddItemResult,
     EquipItemResult,
@@ -31,12 +31,10 @@ class InventoryHandler(BaseHandler):
 
     def __init__(
         self,
-        game_service: IGameService,
-        compute_service: ICharacterComputeService,
+        character_service: ICharacterService,
         repository_provider: IRepositoryProvider,
     ):
-        super().__init__(game_service)
-        self.compute_service = compute_service
+        self.character_service = character_service
         self.repository_provider = repository_provider
 
     supported_commands = (
@@ -51,44 +49,39 @@ class InventoryHandler(BaseHandler):
         character = game_state.character.state
 
         if isinstance(command, ModifyCurrencyCommand):
-            old_gold = character.currency.gold
-            old_silver = character.currency.silver
-            old_copper = character.currency.copper
-
-            character.currency.gold += command.gold
-            character.currency.silver += command.silver
-            character.currency.copper += command.copper
-
-            # Handle negative values
-            character.currency.gold = max(character.currency.gold, 0)
-            character.currency.silver = max(character.currency.silver, 0)
-            character.currency.copper = max(character.currency.copper, 0)
+            # Entity None is the player
+            old_currency, new_currency = self.character_service.modify_currency(
+                game_state,
+                entity_id=None,
+                gold=command.gold,
+                silver=command.silver,
+                copper=command.copper,
+            )
 
             # Mark mutated if any currency value changed
             result.mutated = (
-                character.currency.gold != old_gold
-                or character.currency.silver != old_silver
-                or character.currency.copper != old_copper
+                old_currency.gold != new_currency.gold
+                or old_currency.silver != new_currency.silver
+                or old_currency.copper != new_currency.copper
             )
 
             result.data = ModifyCurrencyResult(
-                old_gold=old_gold,
-                old_silver=old_silver,
-                old_copper=old_copper,
-                new_gold=character.currency.gold,
-                new_silver=character.currency.silver,
-                new_copper=character.currency.copper,
+                old_gold=old_currency.gold,
+                old_silver=old_currency.silver,
+                old_copper=old_currency.copper,
+                new_gold=new_currency.gold,
+                new_silver=new_currency.silver,
+                new_copper=new_currency.copper,
                 change_gold=command.gold,
                 change_silver=command.silver,
                 change_copper=command.copper,
             )
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-
             logger.debug(
-                f"Currency Update: Gold {old_gold}→{character.currency.gold}, "
-                f"Silver {old_silver}→{character.currency.silver}, "
-                f"Copper {old_copper}→{character.currency.copper}",
+                f"Currency Update: Gold {old_currency.gold}→{new_currency.gold}, "
+                f"Silver {old_currency.silver}→{new_currency.silver}, "
+                f"Copper {old_currency.copper}→{new_currency.copper}",
             )
 
         elif isinstance(command, ModifyInventoryCommand) and command.quantity > 0:
@@ -104,27 +97,15 @@ class InventoryHandler(BaseHandler):
                     # Create a placeholder item for dynamic items not in the repository
                     logger.warning(f"Creating placeholder item for AI-invented item: '{command.item_index}'")
                     # TODO(MVP2): Implement dynamic item creation tool for AI to define custom items
-                    # Use index as name for placeholder items
-                    item_name = command.item_index.replace("-", " ").title()
-                    item_def = ItemDefinition(
-                        index=command.item_index,
-                        name=item_name,
-                        type=ItemType.ADVENTURING_GEAR,
-                        rarity=ItemRarity.COMMON,
-                        description=f"A unique item: {item_name}",
-                        weight=0.5,
-                        value=1,
-                        content_pack="sandbox",
+                    new_item = self.character_service.create_placeholder_item(
+                        game_state, command.item_index, command.quantity
                     )
-                    new_item = InventoryItem.from_definition(item_def, quantity=command.quantity, equipped_quantity=0)
                     character.inventory.append(new_item)
                 else:
                     # Get item definition from repository
                     try:
                         item_def = item_repo.get(command.item_index)
-                        new_item = InventoryItem.from_definition(
-                            item_def, quantity=command.quantity, equipped_quantity=0
-                        )
+                        new_item = InventoryItem.from_definition(item_def, quantity=command.quantity)
                         character.inventory.append(new_item)
                     except RepositoryNotFoundError as e:
                         raise ValueError(f"Failed to load item definition: {command.item_index}") from e
@@ -146,8 +127,10 @@ class InventoryHandler(BaseHandler):
             if not existing_item:
                 raise ValueError(f"Item {command.item_index} not found in inventory")
 
-            # Do not allow removing equipped units implicitly
-            removable = (existing_item.quantity or 0) - (existing_item.equipped_quantity or 0)
+            # Check if item is equipped and prevent removal if so
+            equipped_slots = character.equipment_slots.find_item_slots(command.item_index)
+            equipped_count = len(equipped_slots)
+            removable = existing_item.quantity - equipped_count
             need = abs(command.quantity)
             if removable < need:
                 raise ValueError(
@@ -172,25 +155,35 @@ class InventoryHandler(BaseHandler):
             logger.debug(f"Item Removed: {command.item_index} x{command.quantity}")
 
         elif isinstance(command, EquipItemCommand):
-            updated_state = self.compute_service.set_item_equipped(
-                game_state, character, command.item_index, command.equipped
-            )
+            # Convert string slot to enum if provided
+            slot_type = None
+            if command.slot:
+                try:
+                    slot_type = EquipmentSlotType(command.slot)
+                except ValueError as exc:
+                    raise ValueError(f"Invalid equipment slot: {command.slot}") from exc
 
-            # Find equipped quantity after operation
-            inv_item = next((it for it in updated_state.inventory if it.index == command.item_index), None)
-            equipped_qty = inv_item.equipped_quantity if inv_item else 0
+            self.character_service.equip_item(game_state, None, command.item_index, slot_type, command.unequip)
 
             result.mutated = True
             result.recompute_state = True
 
+            # Determine action message
+            if command.unequip:
+                message = f"Unequipped {command.item_index}"
+            elif command.slot:
+                message = f"Equipped {command.item_index} in {command.slot}"
+            else:
+                message = f"Equipped {command.item_index}"
+
             result.data = EquipItemResult(
                 item_index=command.item_index,
-                equipped=command.equipped,
-                equipped_quantity=equipped_qty,
-                message=f"{'Equipped' if command.equipped else 'Unequipped'} {command.item_index}",
+                equipped=not command.unequip,
+                slot=command.slot,
+                message=message,
             )
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-            logger.debug(f"Item {'Equipped' if command.equipped else 'Unequipped'}: {command.item_index}")
+            logger.debug(message)
 
         return result

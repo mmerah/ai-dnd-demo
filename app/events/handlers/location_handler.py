@@ -11,8 +11,7 @@ from app.events.commands.location_commands import (
     UpdateLocationStateCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services.game import IGameService, ILocationService
-from app.interfaces.services.scenario import IScenarioService
+from app.interfaces.services.game import ILocationService
 from app.models.game_state import GameState
 from app.models.tool_results import (
     ChangeLocationResult,
@@ -29,12 +28,8 @@ class LocationHandler(BaseHandler):
 
     def __init__(
         self,
-        game_service: IGameService,
-        scenario_service: IScenarioService,
         location_service: ILocationService,
     ):
-        super().__init__(game_service)
-        self.scenario_service = scenario_service
         self.location_service = location_service
 
     supported_commands = (

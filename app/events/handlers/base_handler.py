@@ -3,7 +3,6 @@
 from abc import ABC, abstractmethod
 
 from app.events.base import BaseCommand, CommandResult
-from app.interfaces.services.game import IGameService
 from app.models.game_state import GameState
 
 
@@ -11,9 +10,6 @@ class BaseHandler(ABC):
     """Base class for all command handlers."""
 
     supported_commands: tuple[type[BaseCommand], ...] = ()
-
-    def __init__(self, game_service: IGameService):
-        self.game_service = game_service
 
     @abstractmethod
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:

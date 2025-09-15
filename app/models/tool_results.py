@@ -225,7 +225,7 @@ class EquipItemResult(BaseModel):
     type: str = "equip_item"
     item_index: str
     equipped: bool
-    equipped_quantity: int
+    slot: str | None = None
     message: str
 
 

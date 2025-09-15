@@ -6,9 +6,11 @@ from app.agents.core.types import AgentType
 from app.interfaces.services.character import ICharacterComputeService
 from app.interfaces.services.game import IGameFactory, ILocationService
 from app.interfaces.services.scenario import IScenarioService
-from app.models.character import CharacterSheet
+from app.models.attributes import Abilities
+from app.models.character import CharacterSheet, Currency
 from app.models.game_state import GameState, GameTime, Message, MessageRole
 from app.models.instances.character_instance import CharacterInstance
+from app.models.instances.entity_state import EntityState, HitDice, HitPoints
 from app.models.instances.npc_instance import NPCInstance
 from app.models.instances.scenario_instance import ScenarioInstance
 from app.models.quest import QuestStatus
@@ -106,10 +108,23 @@ class GameFactory(IGameFactory):
             current_act_id=scenario.progression.acts[0].id,
         )
 
+        # Create a temporary character instance with minimal state for bootstrapping
+        temp_char_inst = CharacterInstance(
+            instance_id=generate_instance_id(character.name),
+            template_id=character.id,
+            sheet=character,
+            state=EntityState(
+                abilities=Abilities(STR=10, DEX=10, CON=10, INT=10, WIS=10, CHA=10),
+                hit_points=HitPoints(current=1, maximum=1, temporary=0),
+                hit_dice=HitDice(total=1, current=1, type="d8"),
+                currency=Currency(),
+            ),
+        )
+
         # Create a temporary game state for compute service because it needs pack-scoped repositories
         temp_game_state = GameState(
             game_id=game_id,
-            character=None,  # type: ignore[arg-type]
+            character=temp_char_inst,
             npcs=[],
             location=initial_location,
             scenario_id=scenario_id,
@@ -121,11 +136,12 @@ class GameFactory(IGameFactory):
         )
 
         # Initialize character with pack-scoped repositories
+        initialized_state = self.compute_service.initialize_entity_state(temp_game_state, character)
         char_inst = CharacterInstance(
-            instance_id=generate_instance_id(character.name),
+            instance_id=temp_char_inst.instance_id,
             template_id=character.id,
             sheet=character,
-            state=self.compute_service.initialize_entity_state(temp_game_state, character),
+            state=initialized_state,
         )
 
         # Create the real game state with the initialized character

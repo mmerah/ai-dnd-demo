@@ -3,7 +3,6 @@
 import logging
 
 from app.agents.core.types import AgentType
-from app.common.exceptions import RepositoryNotFoundError
 from app.events.base import BaseCommand, CommandResult
 from app.events.commands.broadcast_commands import BroadcastGameUpdateCommand
 from app.events.commands.combat_commands import (
@@ -16,9 +15,7 @@ from app.events.commands.combat_commands import (
     StartEncounterCombatCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services.data import IRepositoryProvider
-from app.interfaces.services.game import ICombatService, IGameService
-from app.interfaces.services.scenario import IScenarioService
+from app.interfaces.services.game import ICombatService
 from app.models.attributes import EntityType
 from app.models.combat import CombatParticipant
 from app.models.game_state import GameState
@@ -40,15 +37,9 @@ class CombatHandler(BaseHandler):
 
     def __init__(
         self,
-        game_service: IGameService,
-        scenario_service: IScenarioService,
         combat_service: ICombatService,
-        repository_provider: IRepositoryProvider,
     ):
-        super().__init__(game_service)
-        self.scenario_service = scenario_service
         self.combat_service = combat_service
-        self.repository_provider = repository_provider
 
     supported_commands = (
         StartCombatCommand,
@@ -100,15 +91,10 @@ class CombatHandler(BaseHandler):
                 participants_added.append(participant)
 
             # Add player if not already in combat
-            if game_state.combat.is_active and not any(p.is_player for p in game_state.combat.participants):
-                player_entity = game_state.character
-                combat = game_state.combat
-                participant = self.combat_service.add_participant(combat, player_entity)
-                participants_added.append(participant)
-                logger.debug(
-                    f"Auto-added player '{player_entity.display_name}' to combat with ID: {player_entity.instance_id}, "
-                    f"Initiative: {participant.initiative}"
-                )
+            if game_state.combat.is_active:
+                player_participant = self.combat_service.ensure_player_in_combat(game_state)
+                if player_participant:
+                    participants_added.append(player_participant)
 
             # Mark state as mutated
             result.mutated = True
@@ -136,9 +122,6 @@ class CombatHandler(BaseHandler):
             entities = self.combat_service.realize_spawns(
                 game_state,
                 encounter.participant_spawns,
-                self.scenario_service,
-                self.game_service,
-                self.repository_provider,
             )
             all_participants: list[CombatParticipant] = []
             if entities:
@@ -152,14 +135,9 @@ class CombatHandler(BaseHandler):
                 all_participants.extend(encounter_participants)
 
                 # Auto-add player if not present
-                if not any(p.is_player for p in game_state.combat.participants):
-                    player_entity = game_state.character
-                    player_participant = self.combat_service.add_participant(game_state.combat, player_entity)
+                player_participant = self.combat_service.ensure_player_in_combat(game_state)
+                if player_participant:
                     all_participants.append(player_participant)
-                    logger.debug(
-                        f"Auto-added player '{player_entity.display_name}' to encounter combat with ID: {player_entity.instance_id}, "
-                        f"Initiative: {player_participant.initiative}"
-                    )
 
                 # Mark state as mutated
                 result.mutated = True
@@ -193,32 +171,24 @@ class CombatHandler(BaseHandler):
         elif isinstance(command, SpawnMonstersCommand):
             spawned_monsters: list[CombatParticipant] = []
             total_spawned = 0
-
             for monster_spec in command.monsters:
-                monster_name = monster_spec.monster_name
+                monster_index = monster_spec.monster_index
                 quantity = monster_spec.quantity
-
                 for _ in range(quantity):
-                    try:
-                        # Use per-game content packs
-                        monster_repo = self.repository_provider.get_monster_repository_for(game_state)
-                        monster_data = monster_repo.get(monster_name)
-                        # Create runtime instance and add to game state (dedup name)
-                        inst = self.game_service.create_monster_instance(
-                            monster_data, game_state.scenario_instance.current_location_id
-                        )
-                        _ = game_state.add_monster_instance(inst)
+                    monster = self.combat_service.spawn_free_monster(
+                        game_state,
+                        monster_index,
+                    )
+                    if monster:
                         total_spawned += 1
-
                         # If in combat, add to combat
                         if game_state.combat.is_active:
-                            monster_entity = inst
                             combat = game_state.combat
-                            participant = self.combat_service.add_participant(combat, monster_entity)
+                            participant = self.combat_service.add_participant(combat, monster)
                             spawned_monsters.append(participant)
-                    except (KeyError, RepositoryNotFoundError) as e:
-                        logger.error(f"Failed to spawn monster '{monster_name}': {e}")
-                        raise ValueError(f"Monster '{monster_name}' not found in database") from e
+                    else:
+                        logger.error(f"Failed to spawn monster '{monster_index}'")
+                        raise ValueError(f"Monster '{monster_index}' not found in database")
 
             if total_spawned > 0:
                 result.mutated = True

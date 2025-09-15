@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 
 from app.models.attributes import Abilities, AbilityModifiers, AttackAction, SavingThrows, SkillValue
-from app.models.character import CharacterSheet
+from app.models.character import CharacterSheet, Currency
+from app.models.equipment_slots import EquipmentSlotType
 from app.models.game_state import GameState
 from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.entity_state import EntityState
@@ -41,6 +42,207 @@ class ICharacterService(ABC):
 
         Returns:
             List of validation error messages (empty if all references are valid)
+        """
+        pass
+
+    @abstractmethod
+    def recompute_character_state(self, game_state: GameState) -> None:
+        """Recompute all derived values for the player character.
+
+        Recalculates all computed fields (AC, saves, skills, attacks) based on
+        current abilities, level, equipment, and class features. Preserves
+        current resource values (HP, spell slots, etc.) while updating maximums.
+
+        Args:
+            game_state: Current game state containing the character instance
+
+        Side Effects:
+            Modifies the character's state in-place with updated computed values
+        """
+        pass
+
+    @abstractmethod
+    def equip_item(
+        self,
+        game_state: GameState,
+        entity_id: str | None,
+        item_index: str,
+        slot: EquipmentSlotType | None = None,
+        unequip: bool = False,
+    ) -> None:
+        """Equip or unequip an item for a character or NPC.
+
+        Handles the equipping/unequipping of items, automatically selecting
+        appropriate slots if not specified. Validates item constraints and
+        updates computed values (AC, attacks) after equipment changes.
+
+        Args:
+            game_state: Current game state
+            entity_id: ID of entity to equip (None for player character)
+            item_index: Index/ID of the item to equip/unequip
+            slot: Target equipment slot (auto-selects if None)
+            unequip: If True, removes item from equipment slots
+
+        Raises:
+            ValueError: If item not found, not equippable, or slot constraints violated
+
+        Side Effects:
+            - Modifies entity's equipment slots
+            - Triggers state recomputation for updated AC/attacks
+        """
+        pass
+
+    @abstractmethod
+    def modify_currency(
+        self,
+        game_state: GameState,
+        entity_id: str | None,
+        gold: int = 0,
+        silver: int = 0,
+        copper: int = 0,
+    ) -> tuple[Currency, Currency]:
+        """Modify currency for a character or NPC.
+
+        Adds or subtracts currency values, ensuring no negative results.
+
+        Args:
+            game_state: Current game state
+            entity_id: ID of entity (None for player character)
+            gold: Gold pieces to add/subtract
+            silver: Silver pieces to add/subtract
+            copper: Copper pieces to add/subtract
+
+        Returns:
+            Tuple of (old_currency, new_currency)
+
+        Raises:
+            ValueError: If entity not found
+
+        Side Effects:
+            Modifies entity's currency in-place
+        """
+        pass
+
+    @abstractmethod
+    def create_placeholder_item(
+        self,
+        game_state: GameState,
+        item_index: str,
+        quantity: int = 1,
+    ) -> InventoryItem:
+        """Create a placeholder item for AI-invented items not in repository.
+
+        Creates a basic item definition when the AI references an item
+        that doesn't exist in the repository.
+
+        Args:
+            game_state: Current game state
+            item_index: Index/ID of the item
+            quantity: Initial quantity
+
+        Returns:
+            Created InventoryItem
+        """
+        pass
+
+    @abstractmethod
+    def update_hp(
+        self,
+        game_state: GameState,
+        entity_id: str | None,
+        amount: int,
+    ) -> tuple[int, int, int]:
+        """Update HP for an entity.
+
+        Args:
+            game_state: Current game state
+            entity_id: ID of entity (None for player character)
+            amount: HP change (positive for healing, negative for damage)
+
+        Returns:
+            Tuple of (old_hp, new_hp, max_hp)
+
+        Raises:
+            ValueError: If entity not found
+
+        Side Effects:
+            - Modifies entity's HP in-place
+            - Updates combat participant active status if HP reaches 0
+        """
+        pass
+
+    @abstractmethod
+    def add_condition(
+        self,
+        game_state: GameState,
+        entity_id: str | None,
+        condition: str,
+    ) -> bool:
+        """Add a condition to an entity.
+
+        Args:
+            game_state: Current game state
+            entity_id: ID of entity (None for player character)
+            condition: Condition to add
+
+        Returns:
+            True if condition was added (not already present)
+
+        Raises:
+            ValueError: If entity not found
+
+        Side Effects:
+            Modifies entity's conditions list
+        """
+        pass
+
+    @abstractmethod
+    def remove_condition(
+        self,
+        game_state: GameState,
+        entity_id: str | None,
+        condition: str,
+    ) -> bool:
+        """Remove a condition from an entity.
+
+        Args:
+            game_state: Current game state
+            entity_id: ID of entity (None for player character)
+            condition: Condition to remove
+
+        Returns:
+            True if condition was removed (was present)
+
+        Raises:
+            ValueError: If entity not found
+
+        Side Effects:
+            Modifies entity's conditions list
+        """
+        pass
+
+    @abstractmethod
+    def update_spell_slots(
+        self,
+        game_state: GameState,
+        level: int,
+        amount: int,
+    ) -> tuple[int, int, int]:
+        """Update spell slots for the player character.
+
+        Args:
+            game_state: Current game state
+            level: Spell level
+            amount: Slot change (positive to restore, negative to use)
+
+        Returns:
+            Tuple of (old_slots, new_slots, max_slots)
+
+        Raises:
+            ValueError: If character has no spellcasting or invalid level
+
+        Side Effects:
+            Modifies character's spell slots
         """
         pass
 
@@ -131,9 +333,7 @@ class ICharacterComputeService(ABC):
         pass
 
     @abstractmethod
-    def compute_armor_class(
-        self, game_state: GameState, modifiers: AbilityModifiers, inventory: list[InventoryItem]
-    ) -> int:
+    def compute_armor_class(self, game_state: GameState, modifiers: AbilityModifiers, state: EntityState) -> int:
         """Compute armor class from equipped items and DEX modifier.
 
         Rules:
@@ -146,7 +346,7 @@ class ICharacterComputeService(ABC):
         Args:
             game_state: Game state for pack-scoped repository access
             modifiers: Ability modifiers (uses DEX)
-            inventory: List of inventory items (checks equipped armor/shields)
+            state: Entity state with equipment slots
 
         Returns:
             Computed armor class
@@ -257,7 +457,7 @@ class ICharacterComputeService(ABC):
         game_state: GameState,
         class_index: str,
         race_index: str,
-        inventory: list[InventoryItem],
+        state: EntityState,
         modifiers: AbilityModifiers,
         proficiency_bonus: int,
     ) -> list[AttackAction]:
@@ -270,7 +470,7 @@ class ICharacterComputeService(ABC):
             game_state: Game state for pack-scoped repository access
             class_index: Character class identifier
             race_index: Character race identifier
-            inventory: List of inventory items (checks equipped weapons)
+            state: Entity state with equipment slots
             modifiers: Ability modifiers
             proficiency_bonus: Character's proficiency bonus
 
@@ -280,24 +480,22 @@ class ICharacterComputeService(ABC):
         pass
 
     @abstractmethod
-    def set_item_equipped(
-        self, game_state: GameState, state: EntityState, item_index: str, equipped: bool
+    def equip_item_to_slot(
+        self,
+        game_state: GameState,
+        state: EntityState,
+        item_index: str,
+        slot_type: EquipmentSlotType | None = None,
+        unequip: bool = False,
     ) -> EntityState:
-        """Equip or unequip an inventory item by index.
-
-        Validates equippability against the item repository, performs stack split/merge
-        for multi-quantity items, and returns the updated EntityState.
-
-        Constraints (enforced):
-        - Only one shield may be equipped at a time
-        - Only one body armor (light/medium/heavy) may be equipped at a time
-        - Operation equips/unequips exactly one unit per call
+        """Equip/unequip item.
 
         Args:
             game_state: Game state for pack-scoped repository access
             state: Current entity state
             item_index: Index of the item to equip/unequip
-            equipped: True to equip, False to unequip
+            slot_type: Target slot (auto-selects if None)
+            unequip: True to remove from slots
 
         Returns:
             Updated EntityState with item equipped/unequipped

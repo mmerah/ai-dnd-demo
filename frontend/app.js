@@ -1094,6 +1094,9 @@ function updateCharacterSheet() {
         updateSpellList(charState.spellcasting.spells_known);
     }
     
+    // Equipment slots (from state)
+    updateEquipmentSlots(charState.equipment_slots);
+
     // Inventory (from state)
     updateInventory({
         gold: charState.currency?.gold || 0,
@@ -1101,7 +1104,7 @@ function updateCharacterSheet() {
         copper: charState.currency?.copper || 0,
         inventory: charState.inventory || []
     });
-    
+
     // Conditions (from state)
     updateConditions(charState.conditions);
 }
@@ -1645,15 +1648,53 @@ function updateSpellList(spells) {
     });
 }
 
-// Update inventory
+// Update equipment slots display
+function updateEquipmentSlots(equipmentSlots) {
+    if (!equipmentSlots) return;
+
+    // Update each equipment slot
+    const slots = [
+        'head', 'neck', 'chest', 'hands', 'feet', 'waist',
+        'main_hand', 'off_hand', 'ring_1', 'ring_2', 'back', 'ammunition'
+    ];
+
+    slots.forEach(slotName => {
+        const slotElement = document.getElementById(`slot-${slotName}`);
+        if (!slotElement) return;
+
+        const itemIndex = equipmentSlots[slotName];
+
+        if (itemIndex) {
+            // Find the item in inventory to get its display name
+            const item = gameState?.character?.state?.inventory?.find(it => it.index === itemIndex);
+            const displayName = item?.name || itemIndex;
+
+            slotElement.innerHTML = `
+                <span class="equipped-item">
+                    <span class="equipped-item-name">${displayName}</span>
+                </span>
+                <button class="unequip-btn" data-slot="${slotName}">×</button>
+            `;
+            // Add event listener to the unequip button
+            const unequipBtn = slotElement.querySelector('.unequip-btn');
+            if (unequipBtn) {
+                unequipBtn.addEventListener('click', () => unequipFromSlot(slotName));
+            }
+        } else {
+            slotElement.innerHTML = '<span class="empty-slot">Empty</span>';
+        }
+    });
+}
+
+// Update inventory (now simplified - no equipped section)
 function updateInventory(inventory) {
     if (!inventory) return;
-    
+
     // Update currency
     document.getElementById('goldAmount').textContent = inventory.gold || 0;
     document.getElementById('silverAmount').textContent = inventory.silver || 0;
     document.getElementById('copperAmount').textContent = inventory.copper || 0;
-    
+
     // Update items
     const inventoryList = document.getElementById('inventoryList');
     inventoryList.innerHTML = '';
@@ -1661,81 +1702,76 @@ function updateInventory(inventory) {
     if (!inventory.inventory) return;
 
     const items = inventory.inventory;
-    const equippedItems = items.filter(it => (it.equipped_quantity || 0) > 0);
-    const backpackItems = items.filter(it => ((it.quantity || 0) - (it.equipped_quantity || 0)) > 0);
 
-    // Render equipped section
-    const equippedHeader = document.createElement('div');
-    equippedHeader.className = 'inventory-section-header';
-    equippedHeader.textContent = 'Equipped';
-    inventoryList.appendChild(equippedHeader);
+    // Get equipped items from equipment_slots
+    const equipmentSlots = gameState?.character?.state?.equipment_slots || {};
+    const equippedItemIndexes = new Set(Object.values(equipmentSlots).filter(Boolean));
 
-    if (equippedItems.length === 0) {
-        const empty = document.createElement('div');
-        empty.className = 'inventory-empty';
-        empty.textContent = 'No equipped items';
-        inventoryList.appendChild(empty);
-    } else {
-        equippedItems.forEach(item => {
-            const row = document.createElement('div');
-            row.className = 'inventory-item';
-            const left = document.createElement('div');
-            left.textContent = `${item.name || item.index}`;
-            left.style.fontWeight = '600';
-            const count = document.createElement('div');
-            count.textContent = `×${item.equipped_quantity || 0}`;
-            const btn = document.createElement('button');
-            btn.className = 'btn-small';
-            btn.textContent = 'Unequip';
-            btn.addEventListener('click', async () => {
-                await equipToggle(item.index, false);
-            });
-            row.appendChild(left);
-            row.appendChild(count);
-            // Put button on its own line for consistent visuals
-            const actions = document.createElement('div');
-            actions.appendChild(btn);
-            row.appendChild(actions);
-            inventoryList.appendChild(row);
-        });
-    }
-
-    // Render backpack section
-    const backpackHeader = document.createElement('div');
-    backpackHeader.className = 'inventory-section-header';
-    backpackHeader.textContent = 'Backpack';
-    inventoryList.appendChild(backpackHeader);
-
-    if (backpackItems.length === 0) {
+    if (items.length === 0) {
         const empty = document.createElement('div');
         empty.className = 'inventory-empty';
         empty.textContent = 'Inventory empty';
         inventoryList.appendChild(empty);
     } else {
-        backpackItems.forEach(item => {
+        items.forEach(item => {
             const row = document.createElement('div');
             row.className = 'inventory-item';
+
             const left = document.createElement('div');
             left.textContent = `${item.name || item.index}`;
             left.style.fontWeight = '600';
+
+            // Show quantity
             const right = document.createElement('div');
-            const freeQty = (item.quantity || 0) - (item.equipped_quantity || 0);
-            right.textContent = `×${freeQty}`;
+            right.textContent = `×${item.quantity || 1}`;
+
             row.appendChild(left);
             row.appendChild(right);
 
-            // Equippable check (only Armor/Weapon)
-            const equippable = (item.item_type === 'Armor' || item.item_type === 'Weapon');
-            if (equippable && freeQty > 0) {
+            // Check if item is equippable based on type
+            const equippable = ['Armor', 'Weapon', 'Ammunition'].includes(item.item_type);
+            const isEquipped = equippedItemIndexes.has(item.index);
+
+            if (equippable && !isEquipped) {
+                const actions = document.createElement('div');
+                actions.style.marginLeft = 'auto';
+
+                // Create slot selector dropdown
+                const select = document.createElement('select');
+                select.className = 'slot-select';
+                select.style.marginRight = '0.5rem';
+
+                // Add options based on item type
+                select.innerHTML = '<option value="">Auto</option>';
+                const validSlots = getValidSlotsForItem(item);
+                validSlots.forEach(slot => {
+                    const slotLabel = slot.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                    select.innerHTML += `<option value="${slot}">${slotLabel}</option>`;
+                });
+
                 const btn = document.createElement('button');
                 btn.className = 'btn-small';
                 btn.textContent = 'Equip';
                 btn.addEventListener('click', async () => {
-                    await equipToggle(item.index, true);
+                    await equipItem(item.index, select.value || null);
                 });
-                const actions = document.createElement('div');
+
+                actions.appendChild(select);
                 actions.appendChild(btn);
                 row.appendChild(actions);
+            } else if (isEquipped) {
+                // Show where it's equipped
+                const equippedIn = Object.entries(equipmentSlots)
+                    .filter(([slot, index]) => index === item.index)
+                    .map(([slot]) => slot.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()))
+                    .join(', ');
+
+                const status = document.createElement('div');
+                status.style.marginLeft = 'auto';
+                status.style.color = 'var(--accent-color)';
+                status.style.fontSize = '0.9rem';
+                status.textContent = `Equipped (${equippedIn})`;
+                row.appendChild(status);
             }
 
             inventoryList.appendChild(row);
@@ -1743,20 +1779,96 @@ function updateInventory(inventory) {
     }
 }
 
-async function equipToggle(itemName, equip) {
+// Helper function to determine valid slots for an item
+function getValidSlotsForItem(item) {
+    const type = item.item_type;
+    const index = item.index;
+
+    if (type === 'Armor') {
+        // Check subtype or name for armor type
+        if (index.includes('shield')) {
+            return ['off_hand', 'main_hand'];
+        } else {
+            return ['chest']; // Simplified - could check for other armor types
+        }
+    } else if (type === 'Weapon') {
+        // Check if two-handed (simplified check)
+        const name = (item.name || index).toLowerCase();
+        if (name.includes('two-handed') || name.includes('longbow') || name.includes('greatsword')) {
+            return ['main_hand'];
+        } else {
+            return ['main_hand', 'off_hand'];
+        }
+    } else if (type === 'Ammunition') {
+        return ['ammunition'];
+    }
+
+    // Check for special items
+    if (index.startsWith('ring-')) {
+        return ['ring_1', 'ring_2'];
+    } else if (index.startsWith('amulet-')) {
+        return ['neck'];
+    }
+
+    return [];
+}
+
+// Equip item to a specific slot
+async function equipItem(itemIndex, slot) {
     if (!currentGameId) return;
+    try {
+        const body = {
+            item_index: itemIndex,
+            unequip: false
+        };
+
+        if (slot) {
+            body.slot = slot;
+        }
+
+        const res = await fetch(`/api/game/${currentGameId}/equip`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        // Refresh state to reflect changes
+        await loadGameState();
+    } catch (e) {
+        console.error('[ERROR] Equip failed:', e);
+        showError('Failed to equip item.');
+    }
+}
+
+// Unequip item from a specific slot
+async function unequipFromSlot(slotName) {
+    if (!currentGameId || !gameState) return;
+
+    const equipmentSlots = gameState?.character?.state?.equipment_slots;
+    if (!equipmentSlots) return;
+
+    const itemIndex = equipmentSlots[slotName];
+    if (!itemIndex) return;
+
     try {
         const res = await fetch(`/api/game/${currentGameId}/equip`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ item_index: itemName, equipped: equip })
+            body: JSON.stringify({
+                item_index: itemIndex,
+                unequip: true
+            })
         });
+
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        // Refresh state to reflect inventory changes and AC/attacks
+
+        // Refresh state to reflect changes
         await loadGameState();
     } catch (e) {
-        console.error('[ERROR] Equip toggle failed:', e);
-        showError('Failed to change equipment.');
+        console.error('[ERROR] Unequip failed:', e);
+        showError('Failed to unequip item.');
     }
 }
 

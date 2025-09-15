@@ -38,6 +38,93 @@ body {
     display: none !important;
 }
 
+/* Equipment Slots */
+.equipment-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.equipment-slot-group {
+    background: var(--background-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.75rem;
+}
+
+.equipment-slot-group h4 {
+    color: var(--accent-color);
+    margin-bottom: 0.75rem;
+    font-size: 0.95rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.equipment-slot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+    background: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.equipment-slot:hover {
+    border-color: var(--accent-color);
+    background: rgba(212, 175, 55, 0.05);
+}
+
+.slot-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 600;
+    min-width: 80px;
+}
+
+.slot-item {
+    flex: 1;
+    text-align: right;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+}
+
+.empty-slot {
+    color: var(--text-secondary);
+    font-style: italic;
+    font-size: 0.85rem;
+}
+
+.equipped-item {
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.equipped-item-name {
+    color: var(--accent-color);
+}
+
+.unequip-btn {
+    padding: 0.25rem 0.5rem;
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+
+.unequip-btn:hover {
+    background: #d32f2f;
+    transform: scale(1.05);
+}
+
 /* Inventory sections */
 .inventory-section-header {
     margin-top: 1rem;
@@ -555,10 +642,26 @@ body {
 
 .inventory-item {
     display: flex;
-    justify-content: space-between;
+    align-items: center;
     padding: 0.5rem;
     background: var(--background-dark);
     border-radius: 4px;
+    gap: 0.5rem;
+}
+
+.slot-select {
+    background: var(--background-light);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.slot-select:focus {
+    outline: none;
+    border-color: var(--accent-color);
 }
 
 /* Conditions */

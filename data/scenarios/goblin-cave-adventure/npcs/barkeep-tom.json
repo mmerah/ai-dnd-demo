@@ -64,8 +64,7 @@
     "starting_inventory": [
       {
         "index": "potion-of-healing",
-        "quantity": 3,
-        "equipped_quantity": 0
+        "quantity": 3
       }
     ],
     "starting_currency": {

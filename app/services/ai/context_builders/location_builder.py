@@ -71,12 +71,10 @@ class LocationContextBuilder(ContextBuilder):
                 for loot in available_loot[:3]:
                     # AI game master should see all items including hidden ones
                     # Only show items that exist in the repository
-                    if self.item_repository and self.item_repository.validate_reference(loot.item_name):
+                    if self.item_repository and self.item_repository.validate_reference(loot.item_index):
                         hidden_marker = " [HIDDEN]" if loot.hidden else ""
-                        context_parts.append(
-                            f"  - {loot.item_name} (use exact name: '{loot.item_name}'){hidden_marker}"
-                        )
+                        context_parts.append(f"  - {loot.item_index} (exact ID) {hidden_marker}")
                     else:
-                        logger.warning(f"Item '{loot.item_name}' in location loot table not found in item repository")
+                        logger.warning(f"Item '{loot.item_index}' in location loot table not found in item repository")
 
         return "\n".join(context_parts)

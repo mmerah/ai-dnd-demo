@@ -7,8 +7,6 @@ from app.events.base import BaseCommand, CommandResult
 from app.events.commands.dice_commands import RollDiceCommand
 from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.services.common import IDiceService
-from app.interfaces.services.game import IGameService
-from app.models.dice import RollType
 from app.models.game_state import GameState
 from app.models.tool_results import RollDiceResult
 
@@ -18,8 +16,7 @@ logger = logging.getLogger(__name__)
 class DiceHandler(BaseHandler):
     """Handler for dice-related commands."""
 
-    def __init__(self, game_service: IGameService, dice_service: IDiceService) -> None:
-        super().__init__(game_service)
+    def __init__(self, dice_service: IDiceService) -> None:
         self.dice_service = dice_service
 
     supported_commands = (RollDiceCommand,)
@@ -41,15 +38,7 @@ class DiceHandler(BaseHandler):
                     f"Combat roll ({command.roll_type}) made by {command.agent_type.value} agent during active combat - should be COMBAT agent only"
                 )
             # Parse special dice notations for advantage/disadvantage
-            dice_str = command.dice
-            roll_type = RollType.NORMAL
-
-            if dice_str == "2d20kh":  # Keep highest (advantage)
-                dice_str = "1d20"
-                roll_type = RollType.ADVANTAGE
-            elif dice_str == "2d20kl":  # Keep lowest (disadvantage)
-                dice_str = "1d20"
-                roll_type = RollType.DISADVANTAGE
+            dice_str, roll_type = self.dice_service.parse_special_notation(command.dice)
 
             # Construct dice formula with modifier
             if command.modifier > 0:

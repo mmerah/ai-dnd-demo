@@ -35,6 +35,14 @@ class DiceService(IDiceService):
 
         return dice_count, dice_sides, modifier
 
+    def parse_special_notation(self, dice_str: str) -> tuple[str, RollType]:
+        if dice_str == "2d20kh":
+            return "1d20", RollType.ADVANTAGE
+        elif dice_str == "2d20kl":
+            return "1d20", RollType.DISADVANTAGE
+        else:
+            return dice_str, RollType.NORMAL
+
     def roll_dice(self, formula: str, roll_type: RollType = RollType.NORMAL) -> DiceRoll:
         dice_count, dice_sides, modifier = self.parse_dice_formula(formula)
 

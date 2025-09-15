@@ -42,7 +42,7 @@
   "secrets": [],
   "loot_table": [
     {
-      "item_name": "Torch",
+      "item_index": "torch",
       "quantity_min": 1,
       "quantity_max": 3,
       "probability": 0.7,

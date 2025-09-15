@@ -80,53 +80,43 @@
   "starting_inventory": [
     {
       "index": "potion-of-healing",
-      "quantity": 2,
-      "equipped_quantity": 0
+      "quantity": 2
     },
     {
       "index": "rope-hempen-50-feet",
-      "quantity": 1,
-      "equipped_quantity": 0
+      "quantity": 1
     },
     {
       "index": "torch",
-      "quantity": 5,
-      "equipped_quantity": 0
+      "quantity": 5
     },
     {
       "index": "rations-1-day",
-      "quantity": 10,
-      "equipped_quantity": 0
+      "quantity": 10
     },
     {
       "index": "longbow",
-      "quantity": 1,
-      "equipped_quantity": 1
+      "quantity": 1
     },
     {
       "index": "arrow",
-      "quantity": 40,
-      "equipped_quantity": 0
+      "quantity": 40
     },
     {
       "index": "shortsword",
-      "quantity": 1,
-      "equipped_quantity": 1
+      "quantity": 1
     },
     {
       "index": "leather-armor",
-      "quantity": 1,
-      "equipped_quantity": 1
+      "quantity": 1
     },
     {
       "index": "explorers-pack",
-      "quantity": 1,
-      "equipped_quantity": 0
+      "quantity": 1
     },
     {
       "index": "component-pouch",
-      "quantity": 1,
-      "equipped_quantity": 0
+      "quantity": 1
     }
   ],
   "starting_currency": {

@@ -4,8 +4,6 @@ from pathlib import Path
 
 from app.agents.core.types import AgentType
 from app.common.types import JSONSerializable
-from app.interfaces.services.data import IRepositoryProvider
-from app.interfaces.services.scenario import IScenarioService
 from app.models.character import CharacterSheet
 from app.models.combat import CombatParticipant, CombatState
 from app.models.entity import IEntity
@@ -14,6 +12,25 @@ from app.models.instances.monster_instance import MonsterInstance
 from app.models.location import EncounterParticipantSpawn
 from app.models.monster import MonsterSheet
 from app.models.scenario import ScenarioLocation
+
+
+class IGameEnrichmentService(ABC):
+    """Display enrichment."""
+
+    @abstractmethod
+    def enrich_for_display(self, game_state: GameState) -> GameState:
+        """Add display names to items for frontend.
+
+        Populates item names from definitions for inventory items that
+        only have indexes. This is used when sending game state to frontend.
+
+        Args:
+            game_state: The game state to enrich
+
+        Returns:
+            The enriched game state (modified in place)
+        """
+        pass
 
 
 class IGameFactory(ABC):
@@ -110,21 +127,6 @@ class IGameService(ABC):
         pass
 
     @abstractmethod
-    def enrich_for_display(self, game_state: GameState) -> GameState:
-        """Enrich game state with display names for frontend presentation.
-
-        Populates item names from definitions for inventory items that
-        only have indexes. This is used when sending game state to frontend.
-
-        Args:
-            game_state: The game state to enrich
-
-        Returns:
-            The enriched game state (modified in place)
-        """
-        pass
-
-    @abstractmethod
     def list_saved_games(self) -> list[GameState]:
         """List all saved games.
 
@@ -142,28 +144,22 @@ class IGameService(ABC):
         """
         pass
 
+
+class IMonsterFactory(ABC):
+    """Factory for creating MonsterInstance objects from templates."""
+
     @abstractmethod
-    def create_monster_instance(self, sheet: MonsterSheet, current_location_id: str) -> MonsterInstance:
+    def create(self, sheet: MonsterSheet, current_location_id: str) -> MonsterInstance:
         """Create a MonsterInstance from a MonsterSheet template.
+
+        Initializes entity state with computed values based on monster stats.
 
         Args:
             sheet: Monster template with base stats
-            current_location_id: ID of the location where monster spawns
+            current_location_id: ID of spawn location
 
         Returns:
-            New MonsterInstance with initialized entity state
-        """
-        pass
-
-    @abstractmethod
-    def recompute_character_state(self, game_state: GameState) -> None:
-        """Recompute derived values for the player character.
-
-        Updates computed values like AC, initiative, saves, skills based on
-        current character sheet and state. Preserves current HP and resources.
-
-        Args:
-            game_state: Game state containing character to update (modified in-place)
+            MonsterInstance with initialized EntityState
         """
         pass
 
@@ -219,9 +215,6 @@ class ICombatService(ABC):
         self,
         game_state: GameState,
         spawns: list[EncounterParticipantSpawn],
-        scenario_service: IScenarioService,
-        game_service: IGameService,
-        repository_provider: IRepositoryProvider,
     ) -> list[IEntity]:
         """Convert encounter spawns into concrete entities.
 
@@ -289,6 +282,40 @@ class ICombatService(ABC):
         """Reset internal combat tracking state.
 
         Called when combat ends to clear any cached state.
+        """
+        pass
+
+    @abstractmethod
+    def ensure_player_in_combat(self, game_state: GameState) -> CombatParticipant | None:
+        """Ensure player is added to combat if not already present.
+
+        Automatically adds the player character to combat if they're not
+        already a participant.
+
+        Args:
+            game_state: Current game state with active combat
+
+        Returns:
+            CombatParticipant if player was added, None if already present
+
+        Raises:
+            ValueError: If combat is not active
+        """
+        pass
+
+    @abstractmethod
+    def spawn_free_monster(self, game_state: GameState, monster_index: str) -> IEntity | None:
+        """Spawn a free-roaming monster from the repository.
+
+        Creates a monster instance from repository data and adds it to game state.
+        Does not add to combat automatically.
+
+        Args:
+            game_state: Current game state
+            monster_index: ID of monster to spawn
+
+        Returns:
+            Created monster entity or None if not found
         """
         pass
 
@@ -512,25 +539,6 @@ class IMetadataService(ABC):
 
         Returns:
             Current combat round number or None if not in combat
-        """
-        pass
-
-
-class IMonsterFactory(ABC):
-    """Factory for creating MonsterInstance objects from templates."""
-
-    @abstractmethod
-    def create(self, sheet: MonsterSheet, current_location_id: str) -> MonsterInstance:
-        """Create a MonsterInstance from a MonsterSheet template.
-
-        Initializes entity state with computed values based on monster stats.
-
-        Args:
-            sheet: Monster template with base stats
-            current_location_id: ID of spawn location
-
-        Returns:
-            MonsterInstance with initialized EntityState
         """
         pass
 

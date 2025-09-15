@@ -62,18 +62,22 @@ async def modify_inventory(ctx: RunContext[AgentDependencies], item_index: str, 
 
 
 @tool_handler(EquipItemCommand)
-async def equip_item(ctx: RunContext[AgentDependencies], item_index: str, equipped: bool = True) -> BaseModel:
+async def equip_item(
+    ctx: RunContext[AgentDependencies], item_index: str, slot: str | None = None, unequip: bool = False
+) -> BaseModel:
     # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
-    """Equip or unequip an item in the player's inventory.
+    """Equip or unequip an item.
 
     Args:
-        item_index: The index identifier of the item to equip/unequip (e.g., "longsword", "leather-armor")
-        equipped: True to equip, False to unequip
+        item_index: Item to equip/unequip
+        slot: Target slot (main_hand, off_hand, chest, etc). Auto-selects if not specified.
+        unequip: True to remove from all slots
 
     Examples:
-        - Equip a sword: item_index="longsword", equipped=True
-        - Unequip armor: item_index="leather-armor", equipped=False
-        - Put on a shield: item_index="shield", equipped=True
-        - Take off a helmet: item_index="helmet", equipped=False
+        - Equip sword: item_index="longsword"
+        - Dual-wield: item_index="shortsword", slot="off_hand"
+        - Unequip armor: item_index="leather-armor", unequip=True
+        - Equip shield in off-hand: item_index="shield", slot="off_hand"
+        - Wear amulet: item_index="amulet-of-health", slot="neck"
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")

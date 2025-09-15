@@ -126,6 +126,23 @@ class IDiceService(ABC):
         pass
 
     @abstractmethod
+    def parse_special_notation(self, dice_str: str) -> tuple[str, RollType]:
+        """Parse special dice notations for advantage/disadvantage.
+
+        Handles:
+        - '2d20kh' (keep highest) -> ('1d20', ADVANTAGE)
+        - '2d20kl' (keep lowest) -> ('1d20', DISADVANTAGE)
+        - '1d20' -> ('1d20', NORMAL)
+
+        Args:
+            dice_str: Dice string with potential special notation
+
+        Returns:
+            Tuple of (normalized_dice_str, roll_type)
+        """
+        pass
+
+    @abstractmethod
     def roll_dice(self, formula: str, roll_type: RollType = RollType.NORMAL) -> DiceRoll:
         """Roll dice based on formula with optional advantage/disadvantage.
 

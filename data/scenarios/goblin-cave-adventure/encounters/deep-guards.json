@@ -7,7 +7,7 @@
     {
       "entity_type": "monster",
       "spawn_type": "repository",
-      "entity_id": "Goblin",
+      "entity_id": "goblin",
       "quantity_min": 2,
       "quantity_max": 3,
       "probability": 1.0

@@ -9,6 +9,7 @@ from app.interfaces.services.character import ICharacterComputeService
 from app.interfaces.services.data import IRepositoryProvider
 from app.models.attributes import Abilities, AbilityModifiers, AttackAction, SavingThrows, SkillValue
 from app.models.character import CharacterSheet
+from app.models.equipment_slots import EquipmentSlotType
 from app.models.game_state import GameState
 from app.models.instances.entity_state import EntityState, HitDice, HitPoints
 from app.models.item import InventoryItem, ItemDefinition, ItemSubtype, ItemType
@@ -28,7 +29,6 @@ class CharacterComputeService(ICharacterComputeService):
         """
         self.repository_provider = repository_provider
 
-    # Interface implementation
     def compute_ability_modifiers(self, abilities: Abilities) -> AbilityModifiers:
         def mod(score: int) -> int:
             return (score - 10) // 2
@@ -110,55 +110,40 @@ class CharacterComputeService(ICharacterComputeService):
             out.append(SkillValue(index=key, value=value))
         return out
 
-    def compute_armor_class(
-        self, game_state: GameState, modifiers: AbilityModifiers, inventory: list[InventoryItem]
-    ) -> int:
-        # Minimal equipment handling: pick best equipped armor; add one shield if equipped
-        base_unarmored = 10 + modifiers.DEX
+    def compute_armor_class(self, game_state: GameState, modifiers: AbilityModifiers, state: EntityState) -> int:
+        base_ac = 10 + modifiers.DEX
         item_repo = self.repository_provider.get_item_repository_for(game_state)
 
-        equipped_defs: list[tuple[InventoryItem, ItemDefinition]] = []
-        for it in inventory:
-            if (it.equipped_quantity or 0) <= 0:
-                continue
+        # Check chest slot for armor
+        chest_item = state.equipment_slots.chest
+        if chest_item:
             try:
-                item_def = item_repo.get(it.index)
-                equipped_defs.append((it, item_def))
+                armor_def = item_repo.get(chest_item)
+                if armor_def.armor_class:
+                    base_ac = armor_def.armor_class
+                    if armor_def.subtype == ItemSubtype.MEDIUM:
+                        base_ac += min(2, modifiers.DEX)
+                    elif armor_def.subtype == ItemSubtype.LIGHT:
+                        base_ac += modifiers.DEX
+                    # Heavy armor ignores DEX
             except RepositoryNotFoundError:
-                logger.warning(f"Can't compute new armor class as {it.index} not found in ItemRepository")
-                continue
+                logger.warning(f"Armor item '{chest_item}' not found in repository")
+                pass
 
-        # Separate shields and body armor
-        best_body_ac: int | None = None
-        best_body_item = None
+        # Check for shields
         shield_bonus = 0
-        for _inv, idef in equipped_defs:
-            if idef.type != ItemType.ARMOR:
-                continue
-            if idef.subtype == ItemSubtype.SHIELD and idef.armor_class:
-                # Only one shield applies; use the max if multiple
-                shield_bonus = max(shield_bonus, idef.armor_class)
-            elif (
-                idef.subtype in (ItemSubtype.LIGHT, ItemSubtype.MEDIUM, ItemSubtype.HEAVY)
-                and idef.armor_class is not None
-                and (best_body_ac is None or idef.armor_class > best_body_ac)
-            ):
-                best_body_ac = idef.armor_class
-                best_body_item = idef
+        for slot in [EquipmentSlotType.MAIN_HAND, EquipmentSlotType.OFF_HAND]:
+            item_index = state.equipment_slots.get_slot(slot)
+            if item_index:
+                try:
+                    item_def = item_repo.get(item_index)
+                    if item_def.subtype == ItemSubtype.SHIELD and item_def.armor_class:
+                        shield_bonus = max(shield_bonus, item_def.armor_class)
+                except RepositoryNotFoundError:
+                    logger.warning(f"Shield item '{item_index}' not found in repository")
+                    pass
 
-        if best_body_item is None:
-            return base_unarmored + shield_bonus
-
-        # Compute armor AC with Dex rules
-        ac = best_body_ac or 10
-        if best_body_item.dex_bonus:
-            if best_body_item.subtype == ItemSubtype.MEDIUM:
-                ac += min(2, max(0, modifiers.DEX))
-            else:  # LIGHT
-                ac += modifiers.DEX
-        # HEAVY ignores Dex
-
-        return ac + shield_bonus
+        return base_ac + shield_bonus
 
     def compute_initiative_bonus(self, modifiers: AbilityModifiers) -> int:
         return modifiers.DEX
@@ -221,15 +206,11 @@ class CharacterComputeService(ICharacterComputeService):
             modifiers=modifiers,
             proficiency_bonus=proficiency,
         )
-        armor_class = self.compute_armor_class(game_state, modifiers, sheet.starting_inventory)
         initiative_bonus = self.compute_initiative_bonus(modifiers)
-
-        # HP / Hit Dice
+        speed = self.compute_speed(game_state, sheet.race, sheet.starting_inventory)
         max_hp, hit_dice_total, hit_die_type = self.compute_hit_points_and_dice(
             game_state, sheet.class_index, level, modifiers.CON
         )
-
-        # Spellcasting copy with computed numbers
         spellcasting = None
         if sheet.starting_spellcasting is not None:
             sc = sheet.starting_spellcasting.model_copy(deep=True)
@@ -238,30 +219,19 @@ class CharacterComputeService(ICharacterComputeService):
             sc.spell_attack_bonus = atk
             spellcasting = sc
 
-        # Speed from race (minimal rule)
-        speed = self.compute_speed(game_state, sheet.race, sheet.starting_inventory)
-
-        attacks = self.compute_attacks(
-            game_state,
-            sheet.class_index,
-            sheet.race,
-            sheet.starting_inventory,
-            modifiers,
-            proficiency,
-        )
-
-        return EntityState(
+        # Create state with all computed values. AC and attacks will be computed after auto-equip
+        state = EntityState(
             abilities=abilities,
             level=level,
             experience_points=sheet.starting_experience_points,
             hit_points=HitPoints(current=max_hp, maximum=max_hp, temporary=0),
             hit_dice=HitDice(total=hit_dice_total, current=hit_dice_total, type=hit_die_type),
-            armor_class=armor_class,
+            armor_class=10,
             initiative_bonus=initiative_bonus,
             speed=speed,
             saving_throws=saving_throws,
             skills=skills,
-            attacks=attacks,
+            attacks=[],
             conditions=[],
             exhaustion_level=0,
             inspiration=False,
@@ -269,6 +239,22 @@ class CharacterComputeService(ICharacterComputeService):
             currency=sheet.starting_currency,
             spellcasting=spellcasting,
         )
+
+        # Auto-equip initial items if equipment slots are empty
+        self._auto_equip_initial_items(game_state, state)
+
+        # Compute AC and attacks after auto-equipping items
+        state.armor_class = self.compute_armor_class(game_state, modifiers, state)
+        state.attacks = self.compute_attacks(
+            game_state,
+            sheet.class_index,
+            sheet.race,
+            state,
+            modifiers,
+            proficiency,
+        )
+
+        return state
 
     def recompute_entity_state(self, game_state: GameState, sheet: CharacterSheet, state: EntityState) -> EntityState:
         # Compute all derived fields based on current state + sheet
@@ -280,7 +266,7 @@ class CharacterComputeService(ICharacterComputeService):
         selected_skills = sheet.starting_skill_indexes
         skills = self.compute_skills(game_state, sheet.class_index, selected_skills, modifiers, proficiency)
 
-        armor_class = self.compute_armor_class(game_state, modifiers, state.inventory)
+        armor_class = self.compute_armor_class(game_state, modifiers, state)
         initiative_bonus = self.compute_initiative_bonus(modifiers)
         speed = self.compute_speed(game_state, sheet.race, state.inventory)
 
@@ -313,7 +299,7 @@ class CharacterComputeService(ICharacterComputeService):
             game_state,
             sheet.class_index,
             sheet.race,
-            new_state.inventory,
+            new_state,
             modifiers,
             proficiency,
         )
@@ -379,20 +365,22 @@ class CharacterComputeService(ICharacterComputeService):
         game_state: GameState,
         class_index: str,
         race_index: str,
-        inventory: list[InventoryItem],
+        state: EntityState,
         modifiers: AbilityModifiers,
         proficiency_bonus: int,
     ) -> list[AttackAction]:
         attacks: list[AttackAction] = []
         item_repo = self.repository_provider.get_item_repository_for(game_state)
-        # Build from equipped weapons
-        for inv in inventory:
-            if (inv.equipped_quantity or 0) <= 0:
+
+        # Build from equipped weapons in hand slots
+        for slot in [EquipmentSlotType.MAIN_HAND, EquipmentSlotType.OFF_HAND]:
+            item_index = state.equipment_slots.get_slot(slot)
+            if not item_index:
                 continue
             try:
-                idef = item_repo.get(inv.index)
+                idef = item_repo.get(item_index)
             except RepositoryNotFoundError:
-                logger.warning(f"Can't compute attacks as {inv.index} not found in ItemRepository")
+                logger.warning(f"Can't compute attacks as {item_index} not found in ItemRepository")
                 continue
             if idef.type != ItemType.WEAPON:
                 continue
@@ -431,69 +419,129 @@ class CharacterComputeService(ICharacterComputeService):
 
         return attacks
 
-    def _is_shield(self, idef: ItemDefinition) -> bool:
-        return idef.type == ItemType.ARMOR and idef.subtype == ItemSubtype.SHIELD
-
-    def _is_body_armor(self, idef: ItemDefinition) -> bool:
-        return idef.type == ItemType.ARMOR and idef.subtype in (
-            ItemSubtype.LIGHT,
-            ItemSubtype.MEDIUM,
-            ItemSubtype.HEAVY,
-        )
-
-    def _enforce_equip_constraints(
-        self, game_state: GameState, inventory: list[InventoryItem], equipping_def: ItemDefinition
-    ) -> None:
-        """
-        Enforce simple equipment constraints.
-
-        - Only one shield may be equipped
-        - Only one body armor (light/medium/heavy) may be equipped
-        """
-        if self._is_shield(equipping_def):
-            item_repo = self.repository_provider.get_item_repository_for(game_state)
-            for it in inventory:
-                if (it.equipped_quantity or 0) <= 0:
-                    continue
-                current_def = item_repo.get(it.index)
-                if self._is_shield(current_def):
-                    raise ValueError("Cannot equip more than one shield at a time")
-        elif self._is_body_armor(equipping_def):
-            item_repo = self.repository_provider.get_item_repository_for(game_state)
-            for it in inventory:
-                if (it.equipped_quantity or 0) <= 0:
-                    continue
-                current_def = item_repo.get(it.index)
-                if self._is_body_armor(current_def):
-                    raise ValueError("Already wearing body armor; unequip it first")
-
-    def set_item_equipped(
-        self, game_state: GameState, state: EntityState, item_index: str, equipped: bool
+    def equip_item_to_slot(
+        self,
+        game_state: GameState,
+        state: EntityState,
+        item_index: str,
+        slot_type: EquipmentSlotType | None = None,
+        unequip: bool = False,
     ) -> EntityState:
-        inventory = state.inventory
-        # Locate item by index
-        item = next((it for it in inventory if it.index == item_index), None)
+        # Validate item exists in inventory
+        item = next((it for it in state.inventory if it.index == item_index), None)
         if not item:
-            raise ValueError(f"Item with index '{item_index}' not found in inventory")
+            raise ValueError(f"Item '{item_index}' not found in inventory")
 
-        # Validate using item repository
+        # Get item definition
         item_repo = self.repository_provider.get_item_repository_for(game_state)
         try:
-            item_def = item_repo.get(item.index)
+            item_def = item_repo.get(item_index)
         except RepositoryNotFoundError as e:
-            raise ValueError(f"Unknown item definition for '{item.index}'") from e
-        if item_def.type not in (ItemType.WEAPON, ItemType.ARMOR):
-            raise ValueError(f"Item '{item_def.name}' is not equippable")
+            logger.warning(f"Item definition for '{item_index}' not found in repository")
+            raise ValueError(f"Unknown item definition: '{item_index}'") from e
 
-        # Single-entry model: adjust equipped_quantity by one
-        if equipped:
-            # TODO(MVP2): move to a slot-based equipment system (typed slots, constraints)
-            self._enforce_equip_constraints(game_state, inventory, item_def)
-            if item.equipped_quantity < item.quantity:
-                item.equipped_quantity += 1
-        else:
-            if item.equipped_quantity > 0:
-                item.equipped_quantity -= 1
+        if unequip:
+            cleared = state.equipment_slots.clear_item(item_index)
+            if not cleared:
+                raise ValueError(f"Item '{item_index}' is not equipped")
+            return state
 
-        # Return updated state
+        # Validate item is equippable
+        valid_slots = item_def.get_valid_slots()
+        if not valid_slots:
+            raise ValueError(f"Item '{item_def.name}' cannot be equipped")
+
+        # Auto-select slot if not specified
+        if slot_type is None:
+            # Pick first valid empty slot, or first valid slot
+            for slot in valid_slots:
+                if state.equipment_slots.get_slot(slot) is None:
+                    slot_type = slot
+                    break
+            if slot_type is None:
+                slot_type = valid_slots[0]
+
+        # Validate requested slot
+        if slot_type not in valid_slots:
+            raise ValueError(f"Item '{item_def.name}' cannot be equipped in {slot_type}")
+
+        # Check quantity available
+        equipped_count = len(state.equipment_slots.find_item_slots(item_index))
+        if equipped_count >= item.quantity:
+            raise ValueError(f"All {item.quantity} '{item_def.name}' are already equipped")
+
+        # Handle two-handed weapons
+        if item_def.is_two_handed and slot_type == EquipmentSlotType.MAIN_HAND and state.equipment_slots.off_hand:
+            raise ValueError("Cannot equip two-handed weapon: off-hand slot occupied")
+
+        # Clear current item in slot if any
+        current = state.equipment_slots.get_slot(slot_type)
+        if current:
+            logger.warning(f"Replacing '{current}' in slot {slot_type} with '{item_index}'")
+            state.equipment_slots.set_slot(slot_type, None)
+
+        # Equip the item
+        state.equipment_slots.set_slot(slot_type, item_index)
+
+        # Block off-hand for two-handed weapons
+        if item_def.is_two_handed and slot_type == EquipmentSlotType.MAIN_HAND:
+            state.equipment_slots.off_hand = None
+
         return state
+
+    def _auto_equip_initial_items(self, game_state: GameState, state: EntityState) -> None:
+        """Auto-equip items on initial load (replaces equipped_quantity)."""
+        item_repo = self.repository_provider.get_item_repository_for(game_state)
+
+        # Priority order for auto-equipping
+        for item in state.inventory:
+            if state.equipment_slots.chest is None:
+                # Try to equip armor
+                try:
+                    item_def = item_repo.get(item.index)
+                    if item_def.type == ItemType.ARMOR and item_def.subtype in (
+                        ItemSubtype.LIGHT,
+                        ItemSubtype.MEDIUM,
+                        ItemSubtype.HEAVY,
+                    ):
+                        state.equipment_slots.chest = item.index
+                        continue
+                except RepositoryNotFoundError:
+                    pass
+
+            if state.equipment_slots.main_hand is None:
+                # Try to equip primary weapon
+                try:
+                    item_def = item_repo.get(item.index)
+                    if item_def.type == ItemType.WEAPON:
+                        state.equipment_slots.main_hand = item.index
+                        if item_def.is_two_handed:
+                            # Block off-hand
+                            state.equipment_slots.off_hand = None
+                        continue
+                except RepositoryNotFoundError:
+                    pass
+
+            if state.equipment_slots.off_hand is None and state.equipment_slots.main_hand:
+                # Try to equip shield or secondary weapon
+                try:
+                    item_def = item_repo.get(item.index)
+                    main_def = item_repo.get(state.equipment_slots.main_hand)
+                    if (
+                        not main_def.is_two_handed
+                        and item_def.subtype == ItemSubtype.SHIELD
+                        or (item_def.type == ItemType.WEAPON and item.index != state.equipment_slots.main_hand)
+                    ):
+                        state.equipment_slots.off_hand = item.index
+                        continue
+                except RepositoryNotFoundError:
+                    pass
+
+            if state.equipment_slots.ammunition is None:
+                # Try to equip ammunition
+                try:
+                    item_def = item_repo.get(item.index)
+                    if item_def.type == ItemType.AMMUNITION:
+                        state.equipment_slots.ammunition = item.index
+                except RepositoryNotFoundError:
+                    pass

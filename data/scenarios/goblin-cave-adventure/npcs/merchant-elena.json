@@ -62,8 +62,7 @@
     "starting_inventory": [
       {
         "index": "rations-1-day",
-        "quantity": 5,
-        "equipped_quantity": 0
+        "quantity": 5
       }
     ],
     "starting_currency": {

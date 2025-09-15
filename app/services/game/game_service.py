@@ -1,21 +1,14 @@
 """Game state management service for D&D 5e game sessions."""
 
-from app.interfaces.services.character import ICharacterComputeService
 from app.interfaces.services.game import (
     IGameFactory,
     IGameService,
     IGameStateManager,
-    ILocationService,
-    IMonsterFactory,
     IPreSaveSanitizer,
     ISaveManager,
 )
-from app.interfaces.services.scenario import IScenarioService
 from app.models.character import CharacterSheet
 from app.models.game_state import GameState
-from app.models.instances.monster_instance import MonsterInstance
-from app.models.monster import MonsterSheet
-from app.services.data.repository_factory import RepositoryFactory
 
 
 class GameService(IGameService):
@@ -27,37 +20,25 @@ class GameService(IGameService):
 
     def __init__(
         self,
-        scenario_service: IScenarioService,
         save_manager: ISaveManager,
         pre_save_sanitizer: IPreSaveSanitizer,
         game_state_manager: IGameStateManager,
-        compute_service: ICharacterComputeService,
-        monster_factory: IMonsterFactory,
-        location_service: ILocationService,
         game_factory: IGameFactory,
-        repository_factory: RepositoryFactory,
     ) -> None:
         """
         Initialize the game service.
 
         Args:
-            scenario_service: Service for managing scenarios
             save_manager: Service for managing saves
+            pre_save_sanitizer: Service to sanitize saves before saving to disk
             game_state_manager: Manager for active game states
-            compute_service: Service for computing derived character values
-            monster_factory: Factory to MonsterInstance from a MonsterSheet
             location_service: Service for managing location state
             game_factory: Factory for creating new game instances
         """
-        self.scenario_service = scenario_service
         self.save_manager = save_manager
         self.pre_save_sanitizer = pre_save_sanitizer
         self.game_state_manager = game_state_manager
-        self.compute_service = compute_service
-        self.monster_factory = monster_factory
-        self.location_service = location_service
         self.game_factory = game_factory
-        self.repository_factory = repository_factory
 
     def initialize_game(
         self,
@@ -113,36 +94,6 @@ class GameService(IGameService):
         # Try loading from disk
         return self.load_game(game_id)
 
-    def enrich_for_display(self, game_state: GameState) -> GameState:
-        """Enrich game state with display names for frontend presentation."""
-        item_repo = self.repository_factory.get_item_repository_for(game_state)
-
-        # Enrich player inventory
-        for item in game_state.character.state.inventory:
-            if not item.name or not item.item_type:
-                try:
-                    item_def = item_repo.get(item.index)
-                    item.name = item_def.name
-                    item.item_type = item_def.type
-                except Exception:
-                    # Use a formatted version of the index as fallback
-                    if not item.name:
-                        item.name = item.index.replace("-", " ").title()
-
-        # Enrich NPC inventories
-        for npc in game_state.npcs:
-            for item in npc.state.inventory:
-                if not item.name or not item.item_type:
-                    try:
-                        item_def = item_repo.get(item.index)
-                        item.name = item_def.name
-                        item.item_type = item_def.type
-                    except Exception:
-                        if not item.name:
-                            item.name = item.index.replace("-", " ").title()
-
-        return game_state
-
     def list_saved_games(self) -> list[GameState]:
         games = []
         saved_games = self.save_manager.list_saved_games()
@@ -160,13 +111,3 @@ class GameService(IGameService):
 
     def remove_game(self, game_id: str) -> None:
         self.game_state_manager.remove_game(game_id)
-
-    def create_monster_instance(self, sheet: MonsterSheet, current_location_id: str) -> MonsterInstance:
-        return self.monster_factory.create(sheet, current_location_id)
-
-    def recompute_character_state(self, game_state: GameState) -> None:
-        """Recompute using repositories scoped to the game's content packs."""
-        char = game_state.character
-        new_state = self.compute_service.recompute_entity_state(game_state, char.sheet, char.state)
-        char.state = new_state
-        char.touch()

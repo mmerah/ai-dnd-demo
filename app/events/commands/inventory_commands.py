@@ -33,11 +33,12 @@ class ModifyInventoryCommand(BaseCommand):
 
 @dataclass
 class EquipItemCommand(BaseCommand):
-    """Command to equip or unequip an item."""
+    """Command to equip/unequip items using slot system."""
 
     agent_type: AgentType | None = field(default=None)
     item_index: str = ""
-    equipped: bool = True
+    slot: str | None = None
+    unequip: bool = False
 
     def get_handler_name(self) -> str:
         return "inventory"

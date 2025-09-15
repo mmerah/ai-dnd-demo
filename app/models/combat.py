@@ -112,5 +112,5 @@ class CombatState(BaseModel):
 class MonsterSpawnInfo(BaseModel):
     """Information for spawning monsters from the database."""
 
-    monster_name: str
+    monster_index: str
     quantity: int = Field(default=1, ge=1)
