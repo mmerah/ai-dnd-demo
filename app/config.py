@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from pydantic import Field
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -30,12 +30,11 @@ class Settings(BaseSettings):
     debug_ai: bool = Field(default=False, alias="DEBUG_AI")
     debug_agent_context: bool = Field(default=False, alias="DEBUG_AGENT_CONTEXT")
 
-    class Config:
-        """Pydantic configuration."""
-
-        env_file = ".env"
-        env_file_encoding = "utf-8"
-        case_sensitive = False
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+    )
 
     def __init__(self, **kwargs: Any) -> None:
         """Initialize settings and ensure save directory exists."""

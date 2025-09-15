@@ -1,6 +1,6 @@
 """Character model for D&D 5e character sheet."""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.attributes import Abilities
 from app.models.item import InventoryItem
@@ -80,10 +80,10 @@ class CharacterSheet(BaseModel):
     backstory: str
     languages: list[str]
 
-    model_config = {
-        "populate_by_name": True,
-        "extra": "ignore",
-    }
+    model_config = ConfigDict(
+        populate_by_name=True,
+        extra="ignore",
+    )
 
     @property
     def class_display(self) -> str:

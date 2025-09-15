@@ -86,3 +86,6 @@ repository.md
 
 # Debug Logs
 logs/
+
+# User packs
+user-data
