@@ -1,10 +1,10 @@
 """Unit tests for `PreSaveSanitizer`."""
 
-from unittest.mock import MagicMock
+from unittest.mock import create_autospec
 
 from app.models.game_state import GameState
-from app.models.instances.monster_instance import MonsterInstance
 from app.services.game.pre_save_sanitizer import PreSaveSanitizer
+from tests.factories import make_monster_instance
 
 
 class TestPreSaveSanitizer:
@@ -14,12 +14,10 @@ class TestPreSaveSanitizer:
         self.sanitizer = PreSaveSanitizer()
 
     def test_sanitize_removes_dead_monsters(self) -> None:
-        alive = MagicMock(spec=MonsterInstance)
-        alive.is_alive.return_value = True
-        dead = MagicMock(spec=MonsterInstance)
-        dead.is_alive.return_value = False
+        alive = make_monster_instance(hp_current=5)
+        dead = make_monster_instance(instance_id="dead-1", hp_current=0)
 
-        game_state = MagicMock(spec=GameState)
+        game_state = create_autospec(GameState, instance=True)
         game_state.monsters = [alive, dead]
         game_state.game_id = "g1"
 

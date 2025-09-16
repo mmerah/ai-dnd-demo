@@ -193,8 +193,8 @@ class TestGameCreationFlow:
                 # Verify character instance was created
                 assert game_state.character is not None
                 assert isinstance(game_state.character, CharacterInstance)
-                assert game_state.character.sheet.name == "Aldric Swiftarrow"
-                assert game_state.character.sheet.class_index == "ranger"
+                assert game_state.character.sheet.name == test_character.name
+                assert game_state.character.sheet.class_index == test_character.class_index
 
                 # Verify entity state was initialized
                 assert game_state.character.state is not None
@@ -221,7 +221,7 @@ class TestGameCreationFlow:
 
                 # Verify loaded game matches original
                 assert loaded_game.game_id == game_state.game_id
-                assert loaded_game.character.sheet.name == "Aldric Swiftarrow"
+                assert loaded_game.character.sheet.name == test_character.name
                 assert loaded_game.scenario_id == goblin_scenario_id
 
     def test_game_state_persistence(self) -> None:
@@ -261,7 +261,8 @@ class TestGameCreationFlow:
 
             # Modify game state
             game_state.character.state.hit_points.current -= 5
-            game_state.location = "Deep Forest"
+            new_location_name = "Deep Forest"
+            game_state.location = new_location_name
             game_state.combat.is_active = True
             game_state.combat.round_number = 2
 
@@ -272,7 +273,7 @@ class TestGameCreationFlow:
             loaded_game = game_service.load_game(game_state.game_id)
 
             assert loaded_game.character.state.hit_points.current == original_hp - 5
-            assert loaded_game.location == "Deep Forest"
+            assert loaded_game.location == new_location_name
             assert loaded_game.combat.is_active is True
             assert loaded_game.combat.round_number == 2
 

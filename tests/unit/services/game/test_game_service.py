@@ -2,7 +2,8 @@
 
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import MagicMock, create_autospec
+from typing import cast
+from unittest.mock import create_autospec
 
 import pytest
 
@@ -12,9 +13,9 @@ from app.interfaces.services.game import (
     IPreSaveSanitizer,
     ISaveManager,
 )
-from app.models.character import CharacterSheet
 from app.models.game_state import GameState
 from app.services.game.game_service import GameService
+from tests.factories import make_character_sheet
 
 
 class TestGameService:
@@ -35,10 +36,10 @@ class TestGameService:
 
     @staticmethod
     def _make_game_state(game_id: str = "game-123", scenario_id: str = "scenario-001") -> GameState:
-        state = MagicMock(spec=GameState)
+        state = create_autospec(GameState, instance=True)
         state.game_id = game_id
         state.scenario_id = scenario_id
-        return state
+        return cast(GameState, state)
 
     def test_initialize_game_creates_and_saves_state(self) -> None:
         game_state = self._make_game_state()
@@ -46,7 +47,7 @@ class TestGameService:
         self.save_manager.save_game.return_value = Path("/tmp/save-dir")
 
         result = self.service.initialize_game(
-            character=MagicMock(spec=CharacterSheet),
+            character=make_character_sheet(),
             scenario_id="scenario-001",
             content_packs=["srd"],
         )

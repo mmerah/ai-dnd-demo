@@ -6,6 +6,8 @@ from collections.abc import Iterable, Sequence
 
 from app.models.attributes import Abilities
 from app.models.character import CharacterSheet, Currency, Personality
+from app.models.instances.character_instance import CharacterInstance
+from app.models.instances.entity_state import EntityState, HitDice, HitPoints
 from app.models.item import InventoryItem
 from app.models.spell import Spellcasting
 
@@ -54,4 +56,34 @@ def make_character_sheet(
         starting_skill_indexes=starting_skill_indexes,
         starting_spellcasting=spellcasting,
         content_packs=content_packs,
+    )
+
+
+def make_character_instance(
+    *,
+    sheet: CharacterSheet | None = None,
+    instance_id: str = "char-1",
+    hp_current: int | None = None,
+) -> CharacterInstance:
+    """Create a CharacterInstance with a sensible default EntityState.
+
+    Mirrors the pattern used in GameState factory but is reusable for tests
+    that need a standalone instance.
+    """
+    sheet = sheet or make_character_sheet()
+    hp = HitPoints(current=hp_current if hp_current is not None else 12, maximum=12, temporary=0)
+    state = EntityState(
+        abilities=sheet.starting_abilities,
+        level=sheet.starting_level,
+        experience_points=sheet.starting_experience_points,
+        hit_points=hp,
+        hit_dice=HitDice(total=1, current=1, type="d10"),
+        currency=sheet.starting_currency.model_copy(),
+        spellcasting=sheet.starting_spellcasting,
+    )
+    return CharacterInstance(
+        instance_id=instance_id,
+        template_id=sheet.id,
+        sheet=sheet,
+        state=state,
     )

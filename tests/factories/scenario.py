@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
 
-from app.models.location import DangerLevel, LocationConnection
+from app.models.location import ConnectionRequirement, DangerLevel, LocationConnection
 from app.models.quest import Quest, QuestObjective
 from app.models.scenario import (
     LocationDescriptions,
@@ -13,6 +13,26 @@ from app.models.scenario import (
     ScenarioProgression,
     ScenarioSheet,
 )
+
+
+def make_location_connection(
+    *,
+    to_location_id: str,
+    description: str,
+    direction: str | None = None,
+    requirements: Sequence[ConnectionRequirement] | None = None,
+    is_visible: bool = True,
+    is_accessible: bool = True,
+) -> LocationConnection:
+    """Create a LocationConnection."""
+    return LocationConnection(
+        to_location_id=to_location_id,
+        description=description,
+        direction=direction,
+        requirements=list(requirements) if requirements else [],
+        is_visible=is_visible,
+        is_accessible=is_accessible,
+    )
 
 
 def make_location(

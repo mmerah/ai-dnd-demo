@@ -3,11 +3,10 @@
 from app.models.combat import CombatState
 from app.models.game_state import GameState
 from app.models.instances.character_instance import CharacterInstance
-from app.models.instances.entity_state import EntityState, HitDice, HitPoints
 from app.models.instances.scenario_instance import ScenarioInstance
 from app.models.location import LocationState
 from app.services.game.metadata_service import MetadataService
-from tests.factories import make_character_sheet, make_location, make_scenario
+from tests.factories import make_character_instance, make_character_sheet, make_location, make_scenario
 
 
 class TestMetadataService:
@@ -20,20 +19,7 @@ class TestMetadataService:
     def _create_character_instance(self) -> CharacterInstance:
         """Create a CharacterInstance backed by real models."""
         sheet = make_character_sheet()
-        state = EntityState(
-            abilities=sheet.starting_abilities,
-            level=sheet.starting_level,
-            experience_points=sheet.starting_experience_points,
-            hit_points=HitPoints(current=10, maximum=10, temporary=0),
-            hit_dice=HitDice(total=1, current=1, type="d10"),
-            currency=sheet.starting_currency.model_copy(),
-        )
-        return CharacterInstance(
-            instance_id="test-character",
-            template_id=sheet.id,
-            sheet=sheet,
-            state=state,
-        )
+        return make_character_instance(sheet=sheet, instance_id="test-character")
 
     def _create_scenario_instance(self) -> ScenarioInstance:
         """Create a ScenarioInstance with default location state."""

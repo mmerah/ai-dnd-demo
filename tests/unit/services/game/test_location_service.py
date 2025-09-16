@@ -3,22 +3,26 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import cast
-from unittest.mock import MagicMock
 
 import pytest
 
 from app.interfaces.services.game import IMonsterFactory
 from app.models.game_state import GameState, GameTime
-from app.models.instances.character_instance import CharacterInstance
-from app.models.instances.entity_state import EntityState, HitDice, HitPoints
 from app.models.instances.monster_instance import MonsterInstance
 from app.models.instances.scenario_instance import ScenarioInstance
 from app.models.location import DangerLevel, LocationConnection, LocationState
 from app.models.monster import MonsterSheet
 from app.models.scenario import LocationDescriptions, ScenarioMonster
 from app.services.game.location_service import LocationService
-from tests.factories import make_character_sheet, make_location, make_monster_sheet, make_scenario
+from tests.factories import (
+    make_character_instance,
+    make_character_sheet,
+    make_location,
+    make_monster_instance,
+    make_monster_sheet,
+    make_npc_instance,
+    make_scenario,
+)
 
 
 @dataclass
@@ -30,9 +34,7 @@ class _FakeMonsterFactory(IMonsterFactory):
     def create(
         self, sheet: MonsterSheet, current_location_id: str
     ) -> MonsterInstance:  # pragma: no cover - simple glue
-        monster = cast(MonsterInstance, MagicMock(spec=MonsterInstance))
-        monster.sheet = sheet
-        monster.current_location_id = current_location_id
+        monster = make_monster_instance(sheet=sheet, current_location_id=current_location_id)
         self.created.append(monster)
         return monster
 
@@ -68,23 +70,9 @@ class TestLocationService:
             locations=[self.start_location, forest_location],
         )
 
-        char_state = EntityState(
-            abilities=self.character_sheet.starting_abilities,
-            level=1,
-            experience_points=0,
-            hit_points=HitPoints(current=10, maximum=10, temporary=0),
-            hit_dice=HitDice(total=1, current=1, type="d8"),
-            currency=self.character_sheet.starting_currency.model_copy(),
-        )
-
         self.game_state = GameState(
             game_id="hero-game",
-            character=CharacterInstance(
-                instance_id="hero-1",
-                template_id=self.character_sheet.id,
-                sheet=self.character_sheet,
-                state=char_state,
-            ),
+            character=make_character_instance(sheet=self.character_sheet, instance_id="hero-1"),
             npcs=[],
             monsters=[],
             scenario_id=scenario.id,
@@ -121,9 +109,7 @@ class TestLocationService:
         assert self.game_state.scenario_instance.location_states[self.start_location.id].visited is True
 
     def test_move_npc_between_known_locations(self) -> None:
-        npc = MagicMock()
-        npc.instance_id = "npc-1"
-        npc.current_location_id = self.start_location.id
+        npc = make_npc_instance(instance_id="npc-1", current_location_id=self.start_location.id)
         self.game_state.npcs.append(npc)
 
         self.service.move_entity(self.game_state, entity_id="npc-1", to_location_id=self.start_location.id)
@@ -158,8 +144,8 @@ class TestLocationService:
 
         assert self.monster_factory.created
         created = self.monster_factory.created[0]
-        assert created.current_location_id == "wolves-den"
-        assert created.sheet.name == "Wolf"
+        assert created.current_location_id == target_loc.id
+        assert created.sheet.name == monster.name
 
     def test_update_location_state_defaults_to_current_location(self) -> None:
         self.game_state.scenario_instance.current_location_id = self.start_location.id
@@ -168,12 +154,13 @@ class TestLocationService:
             danger_level=DangerLevel.LOW,
         )
 
+        effect = "Blessed"
         location_id, updates = self.service.update_location_state(
             self.game_state,
             danger_level=DangerLevel.CLEARED.value,
-            add_effect="Blessed",
+            add_effect=effect,
         )
 
         assert location_id == self.start_location.id
         assert "Danger level" in " ".join(updates)
-        assert "Blessed" in updates[-1]
+        assert effect in updates[-1]

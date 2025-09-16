@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from app.models.attributes import Abilities
-from app.models.instances.entity_state import HitPoints
+from app.models.character import Currency
+from app.models.instances.entity_state import EntityState, HitDice, HitPoints
+from app.models.instances.monster_instance import MonsterInstance
 from app.models.monster import MonsterSheet
 
 
@@ -32,4 +34,35 @@ def make_monster_sheet(
         attacks=[],
         languages=[],
         content_pack="srd",
+    )
+
+
+def make_monster_instance(
+    *,
+    sheet: MonsterSheet | None = None,
+    instance_id: str = "monster-1",
+    current_location_id: str = "start",
+    hp_current: int | None = None,
+) -> MonsterInstance:
+    """Create a MonsterInstance from a sheet with sensible defaults."""
+    sheet = sheet or make_monster_sheet()
+    hp = HitPoints(
+        current=hp_current if hp_current is not None else sheet.hit_points.current,
+        maximum=sheet.hit_points.maximum,
+        temporary=sheet.hit_points.temporary,
+    )
+    state = EntityState(
+        abilities=sheet.abilities,
+        level=1,
+        experience_points=0,
+        hit_points=hp,
+        hit_dice=HitDice(total=1, current=1, type="d8"),
+        currency=Currency(),
+    )
+    return MonsterInstance(
+        instance_id=instance_id,
+        template_id=sheet.index,
+        sheet=sheet,
+        state=state,
+        current_location_id=current_location_id,
     )

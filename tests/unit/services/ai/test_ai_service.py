@@ -28,14 +28,15 @@ class _StubOrchestrator:
 @pytest.mark.asyncio
 async def test_ai_service_yields_complete_response(monkeypatch: pytest.MonkeyPatch) -> None:
     game_state = make_game_state()
-    events = [StreamEvent(type=StreamEventType.COMPLETE, content=NarrativeResponse(narrative="Greetings"))]
+    expected_narrative = "Greetings"
+    events = [StreamEvent(type=StreamEventType.COMPLETE, content=NarrativeResponse(narrative=expected_narrative))]
     service = AIService(orchestrator=cast(AgentOrchestrator, _StubOrchestrator(events)))
 
     responses = [resp async for resp in service.generate_response("hi", game_state)]
 
     assert len(responses) == 1
     assert isinstance(responses[0], CompleteResponse)
-    assert responses[0].narrative == "Greetings"
+    assert responses[0].narrative == expected_narrative
 
 
 @pytest.mark.asyncio

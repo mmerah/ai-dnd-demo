@@ -1,15 +1,22 @@
-"""Integration tests combining `AIService` and `AgentOrchestrator`."""
+"""Integration tests combining AIService and AgentOrchestrator."""
 
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock, create_autospec
 
 import pytest
 
 from app.agents.core.base import BaseAgent, ToolFunction
 from app.agents.core.types import AgentType
-from app.models.ai_response import CompleteResponse, NarrativeResponse, StreamEvent, StreamEventType
+from app.interfaces.events import IEventBus
+from app.interfaces.services.game import ICombatService, IGameService
+from app.models.ai_response import (
+    CompleteResponse,
+    NarrativeResponse,
+    StreamEvent,
+    StreamEventType,
+)
 from app.models.game_state import GameState
 from app.services.ai.ai_service import AIService
 from app.services.ai.orchestrator_service import AgentOrchestrator
@@ -46,13 +53,14 @@ class _StubAgent(BaseAgent):
 
 @pytest.mark.asyncio
 async def test_ai_service_with_orchestrator_emits_response(monkeypatch: pytest.MonkeyPatch) -> None:
-    narrative_events = [StreamEvent(type=StreamEventType.COMPLETE, content=NarrativeResponse(narrative="Hi"))]
+    narrative_response = NarrativeResponse(narrative="Hi")
+    narrative_events = [StreamEvent(type=StreamEventType.COMPLETE, content=narrative_response)]
     narrative_agent = _StubAgent(narrative_events)
     combat_agent = _StubAgent([])
     summarizer = _StubSummarizer()
-    combat_service = MagicMock()
-    event_bus = MagicMock()
-    game_service = MagicMock()
+    combat_service = create_autospec(ICombatService, instance=True)
+    event_bus = create_autospec(IEventBus, instance=True)
+    game_service = create_autospec(IGameService, instance=True)
 
     monkeypatch.setattr("app.services.ai.orchestrator.agent_router.select", lambda _: AgentType.NARRATIVE)
     monkeypatch.setattr("app.services.ai.orchestrator.state_reload.reload", lambda service, state: state)
@@ -77,9 +85,10 @@ async def test_ai_service_with_orchestrator_emits_response(monkeypatch: pytest.M
     ai_service = AIService(orchestrator)
     game_state = make_game_state()
 
-    responses = [resp async for resp in ai_service.generate_response("hello", game_state)]
+    user_message = "hello"
+    responses = [resp async for resp in ai_service.generate_response(user_message, game_state)]
 
     assert responses and isinstance(responses[0], CompleteResponse)
-    assert responses[0].narrative == "Hi"
-    assert narrative_agent.calls == ["hello"]
+    assert responses[0].narrative == narrative_response.narrative
+    assert narrative_agent.calls == [user_message]
     assert combat_agent.calls == []

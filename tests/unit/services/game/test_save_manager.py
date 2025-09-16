@@ -6,14 +6,18 @@ import tempfile
 from pathlib import Path
 
 from app.models.game_state import GameEvent, GameEventType, GameState, Message, MessageRole
-from app.models.instances.character_instance import CharacterInstance
-from app.models.instances.entity_state import EntityState, HitDice, HitPoints
-from app.models.instances.monster_instance import MonsterInstance
 from app.models.instances.scenario_instance import ScenarioInstance
 from app.models.location import LocationState
 from app.services.common.path_resolver import PathResolver
 from app.services.game.save_manager import SaveManager
-from tests.factories import make_character_sheet, make_location, make_monster_sheet, make_scenario
+from tests.factories import (
+    make_character_instance,
+    make_character_sheet,
+    make_location,
+    make_monster_instance,
+    make_monster_sheet,
+    make_scenario,
+)
 
 
 class _TempPathResolver(PathResolver):
@@ -32,20 +36,7 @@ class TestSaveManager:
         self.manager = SaveManager(self.path_resolver)
 
         sheet = make_character_sheet()
-        state = EntityState(
-            abilities=sheet.starting_abilities,
-            level=sheet.starting_level,
-            experience_points=sheet.starting_experience_points,
-            hit_points=HitPoints(current=10, maximum=12, temporary=0),
-            hit_dice=HitDice(total=1, current=1, type="d10"),
-            currency=sheet.starting_currency.model_copy(),
-        )
-        self.character = CharacterInstance(
-            instance_id="char-1",
-            template_id=sheet.id,
-            sheet=sheet,
-            state=state,
-        )
+        self.character = make_character_instance(sheet=sheet, instance_id="char-1")
 
         start_location = make_location(
             location_id="town-square",
@@ -123,19 +114,11 @@ class TestSaveManager:
 
     def test_save_game_skips_dead_monsters_files(self) -> None:
         monster_sheet = make_monster_sheet(name="Wolf")
-        monster = MonsterInstance(
-            instance_id="mon-1",
-            template_id=monster_sheet.index,
+        monster = make_monster_instance(
             sheet=monster_sheet,
-            state=EntityState(
-                abilities=monster_sheet.abilities,
-                level=1,
-                experience_points=0,
-                hit_points=HitPoints(current=0, maximum=monster_sheet.hit_points.maximum, temporary=0),
-                hit_dice=HitDice(total=1, current=0, type="d8"),
-                currency=self.character.state.currency.model_copy(),
-            ),
+            instance_id="mon-1",
             current_location_id=self.scenario_instance.current_location_id,
+            hp_current=0,
         )
         self.game_state.monsters = [monster]
 

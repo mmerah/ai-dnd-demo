@@ -5,12 +5,10 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from app.models.game_state import GameState
-from app.models.instances.character_instance import CharacterInstance
-from app.models.instances.entity_state import EntityState, HitDice, HitPoints
 from app.models.instances.scenario_instance import ScenarioInstance
 from app.models.location import LocationState
 
-from .characters import make_character_sheet
+from .characters import make_character_instance, make_character_sheet
 from .scenario import make_location, make_scenario
 
 
@@ -24,20 +22,7 @@ def make_game_state(
 ) -> GameState:
     """Create a GameState with a single character and scenario."""
     sheet = make_character_sheet(character_id=character_id)
-    state = EntityState(
-        abilities=sheet.starting_abilities,
-        level=sheet.starting_level,
-        experience_points=sheet.starting_experience_points,
-        hit_points=HitPoints(current=12, maximum=12, temporary=0),
-        hit_dice=HitDice(total=1, current=1, type="d10"),
-        currency=sheet.starting_currency.model_copy(),
-    )
-    character = CharacterInstance(
-        instance_id=f"{character_id}-inst",
-        template_id=sheet.id,
-        sheet=sheet,
-        state=state,
-    )
+    character = make_character_instance(sheet=sheet, instance_id=f"{character_id}-inst")
 
     base_location = make_location(
         location_id=location_id,
