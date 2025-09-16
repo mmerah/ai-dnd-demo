@@ -1,0 +1,83 @@
+"""Factory helpers for building GameState instances for tests."""
+
+from __future__ import annotations
+
+from collections.abc import Sequence
+
+from app.models.game_state import GameState
+from app.models.instances.character_instance import CharacterInstance
+from app.models.instances.entity_state import EntityState, HitDice, HitPoints
+from app.models.instances.scenario_instance import ScenarioInstance
+from app.models.location import LocationState
+
+from .characters import make_character_sheet
+from .scenario import make_location, make_scenario
+
+
+def make_game_state(
+    *,
+    game_id: str = "game-test",
+    character_id: str = "hero",
+    location_id: str = "start",
+    location_name: str = "Start",
+    additional_locations: Sequence[str] | None = None,
+) -> GameState:
+    """Create a GameState with a single character and scenario."""
+    sheet = make_character_sheet(character_id=character_id)
+    state = EntityState(
+        abilities=sheet.starting_abilities,
+        level=sheet.starting_level,
+        experience_points=sheet.starting_experience_points,
+        hit_points=HitPoints(current=12, maximum=12, temporary=0),
+        hit_dice=HitDice(total=1, current=1, type="d10"),
+        currency=sheet.starting_currency.model_copy(),
+    )
+    character = CharacterInstance(
+        instance_id=f"{character_id}-inst",
+        template_id=sheet.id,
+        sheet=sheet,
+        state=state,
+    )
+
+    base_location = make_location(
+        location_id=location_id,
+        name=location_name,
+        description=f"Location {location_name}",
+    )
+
+    locations = [base_location]
+    if additional_locations:
+        for loc in additional_locations:
+            locations.append(
+                make_location(
+                    location_id=loc,
+                    name=loc.title(),
+                    description=f"Location {loc}",
+                )
+            )
+
+    scenario = make_scenario(
+        scenario_id="scenario-test",
+        title="Scenario Test",
+        description="Scenario for GameState factory",
+        starting_location_id=base_location.id,
+        locations=locations,
+    )
+    scenario_instance = ScenarioInstance(
+        instance_id="scenario-inst",
+        template_id=scenario.id,
+        sheet=scenario,
+        current_location_id=base_location.id,
+        current_act_id=scenario.progression.acts[0].id,
+    )
+    scenario_instance.location_states[base_location.id] = LocationState(location_id=base_location.id)
+
+    return GameState(
+        game_id=game_id,
+        character=character,
+        scenario_id=scenario.id,
+        scenario_title=scenario.title,
+        scenario_instance=scenario_instance,
+        location=base_location.name,
+        content_packs=list(scenario.content_packs),
+    )
