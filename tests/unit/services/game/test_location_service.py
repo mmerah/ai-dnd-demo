@@ -1,0 +1,179 @@
+"""Unit tests for `LocationService`."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import cast
+from unittest.mock import MagicMock
+
+import pytest
+
+from app.interfaces.services.game import IMonsterFactory
+from app.models.game_state import GameState, GameTime
+from app.models.instances.character_instance import CharacterInstance
+from app.models.instances.entity_state import EntityState, HitDice, HitPoints
+from app.models.instances.monster_instance import MonsterInstance
+from app.models.instances.scenario_instance import ScenarioInstance
+from app.models.location import DangerLevel, LocationConnection, LocationState
+from app.models.monster import MonsterSheet
+from app.models.scenario import LocationDescriptions, ScenarioMonster
+from app.services.game.location_service import LocationService
+from tests.factories import make_character_sheet, make_location, make_monster_sheet, make_scenario
+
+
+@dataclass
+class _FakeMonsterFactory(IMonsterFactory):
+    """Minimal monster factory stub to record creations."""
+
+    created: list[MonsterInstance]
+
+    def create(
+        self, sheet: MonsterSheet, current_location_id: str
+    ) -> MonsterInstance:  # pragma: no cover - simple glue
+        monster = cast(MonsterInstance, MagicMock(spec=MonsterInstance))
+        monster.sheet = sheet
+        monster.current_location_id = current_location_id
+        self.created.append(monster)
+        return monster
+
+
+class TestLocationService:
+    """Unit tests exercising high-level location behaviour."""
+
+    def setup_method(self) -> None:
+        self.monster_factory = _FakeMonsterFactory(created=[])
+        self.service = LocationService(monster_factory=self.monster_factory)
+
+        self.character_sheet = make_character_sheet()
+
+        self.start_location = make_location(
+            location_id="town-square",
+            name="Town Square",
+            description="The bustling heart of town.",
+            connections=[LocationConnection(to_location_id="old-forest", description="Trail to the woods")],
+            descriptions=LocationDescriptions(
+                first_visit="Cobblestones shine in the morning light.",
+                return_visit="The townsfolk nod as you pass.",
+            ),
+        )
+        forest_location = make_location(
+            location_id="old-forest",
+            name="Old Forest",
+            description="Gnarled trees whisper in the wind.",
+            connections=[LocationConnection(to_location_id="town-square", description="Back to town")],
+        )
+
+        scenario = make_scenario(
+            starting_location_id=self.start_location.id,
+            locations=[self.start_location, forest_location],
+        )
+
+        char_state = EntityState(
+            abilities=self.character_sheet.starting_abilities,
+            level=1,
+            experience_points=0,
+            hit_points=HitPoints(current=10, maximum=10, temporary=0),
+            hit_dice=HitDice(total=1, current=1, type="d8"),
+            currency=self.character_sheet.starting_currency.model_copy(),
+        )
+
+        self.game_state = GameState(
+            game_id="hero-game",
+            character=CharacterInstance(
+                instance_id="hero-1",
+                template_id=self.character_sheet.id,
+                sheet=self.character_sheet,
+                state=char_state,
+            ),
+            npcs=[],
+            monsters=[],
+            scenario_id=scenario.id,
+            scenario_title=scenario.title,
+            scenario_instance=ScenarioInstance(
+                instance_id="scn-1",
+                template_id=scenario.id,
+                sheet=scenario,
+                current_location_id=self.start_location.id,
+                current_act_id="act1",
+            ),
+            content_packs=list(scenario.content_packs),
+            location=self.start_location.name,
+            conversation_history=[],
+            game_time=GameTime(),
+            description="",
+            story_notes=[],
+            game_events=[],
+        )
+
+    def test_validate_traversal_blocks_unconnected_locations(self) -> None:
+        with pytest.raises(ValueError) as exc:
+            self.service.validate_traversal(self.game_state, self.start_location.id, "hidden-cave")
+
+        assert "Valid destinations" in str(exc.value)
+
+    def test_move_entity_updates_location_and_description(self) -> None:
+        self.service.move_entity(self.game_state, entity_id=None, to_location_id=self.start_location.id)
+
+        assert self.game_state.location == self.start_location.name
+        descriptions = self.start_location.descriptions
+        assert descriptions is not None
+        assert descriptions.first_visit in self.game_state.description
+        assert self.game_state.scenario_instance.location_states[self.start_location.id].visited is True
+
+    def test_move_npc_between_known_locations(self) -> None:
+        npc = MagicMock()
+        npc.instance_id = "npc-1"
+        npc.current_location_id = self.start_location.id
+        self.game_state.npcs.append(npc)
+
+        self.service.move_entity(self.game_state, entity_id="npc-1", to_location_id=self.start_location.id)
+
+        assert npc.current_location_id == self.start_location.id
+
+    def test_discover_secret_records_secret(self) -> None:
+        loc_state = LocationState(location_id=self.start_location.id)
+        self.game_state.scenario_instance.location_states[self.start_location.id] = loc_state
+
+        description = self.service.discover_secret(self.game_state, "secret-door", "Hidden passage")
+
+        assert description == "Hidden passage"
+        assert "secret-door" in loc_state.discovered_secrets
+
+    def test_initialize_location_populates_monsters(self) -> None:
+        monster = make_monster_sheet(name="Wolf")
+        target_loc = make_location(
+            location_id="wolves-den",
+            name="Wolves' Den",
+            description="A den hidden in the brush.",
+        )
+        target_loc.notable_monsters.append(
+            ScenarioMonster(
+                id="wolf-1",
+                display_name="Wolf",
+                monster=monster,
+            )
+        )
+
+        self.service.initialize_location_from_scenario(self.game_state, target_loc)
+
+        assert self.monster_factory.created
+        created = self.monster_factory.created[0]
+        assert created.current_location_id == "wolves-den"
+        assert created.sheet.name == "Wolf"
+
+    def test_update_location_state_defaults_to_current_location(self) -> None:
+        self.game_state.scenario_instance.current_location_id = self.start_location.id
+        self.game_state.scenario_instance.location_states[self.start_location.id] = LocationState(
+            location_id=self.start_location.id,
+            danger_level=DangerLevel.LOW,
+        )
+
+        location_id, updates = self.service.update_location_state(
+            self.game_state,
+            danger_level=DangerLevel.CLEARED.value,
+            add_effect="Blessed",
+        )
+
+        assert location_id == self.start_location.id
+        assert "Danger level" in " ".join(updates)
+        assert "Blessed" in updates[-1]

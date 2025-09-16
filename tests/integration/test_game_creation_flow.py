@@ -7,19 +7,14 @@ from unittest.mock import patch
 
 from app.container import Container
 from app.models.attributes import Abilities
-from app.models.character import CharacterSheet, Currency, Personality
+from app.models.character import Currency, Personality
 from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.entity_state import EntityState
 from app.models.instances.scenario_instance import ScenarioInstance
 from app.models.location import DangerLevel
-from app.models.scenario import (
-    LocationDescriptions,
-    ScenarioAct,
-    ScenarioLocation,
-    ScenarioProgression,
-    ScenarioSheet,
-)
+from app.models.scenario import LocationDescriptions, ScenarioAct, ScenarioSheet
 from app.models.spell import Spellcasting, SpellcastingAbility, SpellSlot
+from tests.factories import make_character_sheet, make_location, make_scenario
 
 
 class TestGameCreationFlow:
@@ -44,88 +39,82 @@ class TestGameCreationFlow:
         self.mock_scenarios = {}
 
         # Goblin cave adventure scenario
-        goblin_location = ScenarioLocation(
-            id="goblin-cave",
+        goblin_location = make_location(
+            location_id="goblin-cave",
             name="Goblin Cave Entrance",
             description="A dark cave entrance looms before you.",
+            danger_level=DangerLevel.MODERATE,
             descriptions=LocationDescriptions(
                 first_visit="You stand at the entrance of a dark cave.",
                 return_visit="The familiar cave entrance awaits.",
             ),
-            danger_level=DangerLevel.MODERATE,
         )
 
-        self.mock_scenarios["goblin-cave-adventure"] = ScenarioSheet(
-            id="goblin-cave-adventure",
+        goblin_act = ScenarioAct(
+            id="act1",
+            name="Act 1",
+            locations=[goblin_location.id],
+            objectives=["Explore the cave"],
+        )
+        goblin_scenario_id = "goblin-cave-adventure"
+        self.mock_scenarios[goblin_scenario_id] = make_scenario(
+            scenario_id=goblin_scenario_id,
             title="Goblin Cave Adventure",
             description="A classic adventure in a goblin-infested cave.",
-            starting_location_id="goblin-cave",
+            starting_location_id=goblin_location.id,
             locations=[goblin_location],
-            progression=ScenarioProgression(
-                acts=[
-                    ScenarioAct(
-                        id="act1",
-                        name="Act 1",
-                        locations=["goblin-cave"],
-                        objectives=["Explore the cave"],
-                    )
-                ]
-            ),
+            acts=[goblin_act],
             content_packs=["srd"],
         )
 
         # Test scenario for persistence test
-        test_location = ScenarioLocation(
-            id="test-location",
+        test_location = make_location(
+            location_id="test-location",
             name="Test Location",
             description="A test location.",
             danger_level=DangerLevel.SAFE,
         )
 
-        self.mock_scenarios["test-scenario"] = ScenarioSheet(
-            id="test-scenario",
+        test_act = ScenarioAct(
+            id="act1",
+            name="Act 1",
+            locations=[test_location.id],
+            objectives=["Test objective"],
+        )
+        self.mock_scenarios["test-scenario"] = make_scenario(
+            scenario_id="test-scenario",
             title="Test Scenario",
             description="A test scenario.",
-            starting_location_id="test-location",
+            starting_location_id=test_location.id,
             locations=[test_location],
-            progression=ScenarioProgression(
-                acts=[
-                    ScenarioAct(
-                        id="act1",
-                        name="Act 1",
-                        locations=["test-location"],
-                        objectives=["Test objective"],
-                    )
-                ]
-            ),
+            acts=[test_act],
             content_packs=["srd"],
         )
 
         # Generic test scenarios for list test
         for i in range(3):
-            location = ScenarioLocation(
-                id=f"location-{i}",
+            location_id = f"location-{i}"
+            scenario_id = f"scenario-{i}"
+            location = make_location(
+                location_id=location_id,
                 name=f"Location {i}",
                 description=f"Location {i} description.",
                 danger_level=DangerLevel.SAFE,
             )
+            act = ScenarioAct(
+                id="act1",
+                name="Act 1",
+                locations=[location_id],
+                objectives=[f"Objective {i}"],
+            )
 
-            self.mock_scenarios[f"scenario-{i}"] = ScenarioSheet(
-                id=f"scenario-{i}",
+            self.mock_scenarios[scenario_id] = make_scenario(
+                scenario_id=scenario_id,
                 title=f"Scenario {i}",
                 description=f"Test scenario {i}.",
-                starting_location_id=f"location-{i}",
+                starting_location_id=location_id,
                 locations=[location],
-                progression=ScenarioProgression(
-                    acts=[
-                        ScenarioAct(
-                            id="act1",
-                            name="Act 1",
-                            locations=[f"location-{i}"],
-                            objectives=[f"Objective {i}"],
-                        )
-                    ]
-                ),
+                acts=[act],
                 content_packs=["srd"],
             )
 
@@ -152,28 +141,25 @@ class TestGameCreationFlow:
             character_service = self.container.character_service
 
             # Create a test character
-            test_character = CharacterSheet(
-                id="test-ranger",
+            ranger_personality = Personality(
+                traits=["I am always cautious", "Nature is my friend"],
+                ideals=["Balance in all things"],
+                bonds=["I must protect the forest"],
+                flaws=["I trust too easily"],
+            )
+            test_character = make_character_sheet(
+                character_id="test-ranger",
                 name="Aldric Swiftarrow",
                 race="wood-elf",
                 class_index="ranger",
                 starting_level=3,
                 background="outlander",
                 alignment="neutral-good",
-                personality=Personality(
-                    traits=["I am always cautious", "Nature is my friend"],
-                    ideals=["Balance in all things"],
-                    bonds=["I must protect the forest"],
-                    flaws=["I trust too easily"],
-                ),
-                backstory="A ranger from the deep woods",
-                languages=["common", "elvish"],
-                starting_abilities=Abilities(STR=13, DEX=16, CON=14, INT=12, WIS=15, CHA=10),
+                abilities=Abilities(STR=13, DEX=16, CON=14, INT=12, WIS=15, CHA=10),
                 starting_skill_indexes=["survival", "nature"],
-                starting_inventory=[],
                 starting_currency=Currency(gold=10, silver=5, copper=20),
                 starting_experience_points=900,
-                starting_spellcasting=Spellcasting(
+                spellcasting=Spellcasting(
                     ability=SpellcastingAbility.WIS,
                     spell_save_dc=13,
                     spell_attack_bonus=5,
@@ -183,21 +169,26 @@ class TestGameCreationFlow:
                         2: SpellSlot(level=2, total=0, current=0),
                     },
                 ),
+                personality=ranger_personality,
+                languages=["common", "elvish"],
             )
 
             # Mock character service to return our test character
             with patch.object(character_service, "get_character", return_value=test_character):
                 # Initialize a new game
+                goblin_scenario_id = "goblin-cave-adventure"
                 game_state = game_service.initialize_game(
-                    character=test_character, scenario_id="goblin-cave-adventure", content_packs=["srd"]
+                    character=test_character,
+                    scenario_id=goblin_scenario_id,
+                    content_packs=["srd"],
                 )
 
                 # Verify game state was created correctly
                 assert game_state is not None
                 assert game_state.game_id is not None
-                assert game_state.scenario_id == "goblin-cave-adventure"
-                # Content packs include scenario-specific pack
-                assert game_state.content_packs == ["srd", "scenario:goblin-cave-adventure"]
+                assert game_state.scenario_id == goblin_scenario_id
+                expected_packs = ["srd", f"scenario:{goblin_scenario_id}"]
+                assert game_state.content_packs == expected_packs
 
                 # Verify character instance was created
                 assert game_state.character is not None
@@ -222,7 +213,7 @@ class TestGameCreationFlow:
 
                 # Verify save file was created
                 # Save structure is: saves_dir / scenario_id / game_id / metadata.json
-                save_file = self.save_path / "goblin-cave-adventure" / game_state.game_id / "metadata.json"
+                save_file = self.save_path / goblin_scenario_id / game_state.game_id / "metadata.json"
                 assert save_file.exists()
 
                 # Load the saved game
@@ -231,7 +222,7 @@ class TestGameCreationFlow:
                 # Verify loaded game matches original
                 assert loaded_game.game_id == game_state.game_id
                 assert loaded_game.character.sheet.name == "Aldric Swiftarrow"
-                assert loaded_game.scenario_id == "goblin-cave-adventure"
+                assert loaded_game.scenario_id == goblin_scenario_id
 
     def test_game_state_persistence(self) -> None:
         """Test that game state changes persist correctly."""
@@ -243,26 +234,21 @@ class TestGameCreationFlow:
             game_service = self.container.game_service
 
             # Create a minimal test character
-            test_character = CharacterSheet(
-                id="test-fighter",
+            fighter_personality = Personality(
+                traits=["Brave"],
+                ideals=["Honor"],
+                bonds=["My sword is my life"],
+                flaws=["Too proud"],
+            )
+            test_character = make_character_sheet(
+                character_id="test-fighter",
                 name="Test Fighter",
-                race="human",
                 class_index="fighter",
                 starting_level=1,
-                background="soldier",
-                alignment="lawful-good",
-                personality=Personality(
-                    traits=["Brave"],
-                    ideals=["Honor"],
-                    bonds=["My sword is my life"],
-                    flaws=["Too proud"],
-                ),
-                backstory="A seasoned warrior",
-                languages=["common"],
-                starting_abilities=Abilities(STR=16, DEX=12, CON=14, INT=10, WIS=12, CHA=8),
+                abilities=Abilities(STR=16, DEX=12, CON=14, INT=10, WIS=12, CHA=8),
                 starting_skill_indexes=["athletics"],
-                starting_inventory=[],
                 starting_currency=Currency(gold=15, silver=0, copper=0),
+                personality=fighter_personality,
                 starting_experience_points=0,
             )
 
@@ -305,26 +291,21 @@ class TestGameCreationFlow:
 
             # Create multiple test games
             for i in range(3):
-                test_character = CharacterSheet(
-                    id=f"test-char-{i}",
+                generic_personality = Personality(
+                    traits=["Test"],
+                    ideals=["Test"],
+                    bonds=["Test"],
+                    flaws=["Test"],
+                )
+                test_character = make_character_sheet(
+                    character_id=f"test-char-{i}",
                     name=f"Test Character {i}",
-                    race="human",
                     class_index="fighter",
                     starting_level=1,
-                    background="soldier",
                     alignment="neutral",
-                    personality=Personality(
-                        traits=["Test"],
-                        ideals=["Test"],
-                        bonds=["Test"],
-                        flaws=["Test"],
-                    ),
-                    backstory="Test backstory",
-                    languages=["common"],
-                    starting_abilities=Abilities(STR=10, DEX=10, CON=10, INT=10, WIS=10, CHA=10),
-                    starting_skill_indexes=[],
-                    starting_inventory=[],
+                    abilities=Abilities(STR=10, DEX=10, CON=10, INT=10, WIS=10, CHA=10),
                     starting_currency=Currency(gold=10, silver=0, copper=0),
+                    personality=generic_personality,
                     starting_experience_points=0,
                 )
 

@@ -1,12 +1,13 @@
 """Unit tests for MetadataService."""
 
-from unittest.mock import MagicMock, Mock
-
 from app.models.combat import CombatState
 from app.models.game_state import GameState
 from app.models.instances.character_instance import CharacterInstance
+from app.models.instances.entity_state import EntityState, HitDice, HitPoints
 from app.models.instances.scenario_instance import ScenarioInstance
+from app.models.location import LocationState
 from app.services.game.metadata_service import MetadataService
+from tests.factories import make_character_sheet, make_location, make_scenario
 
 
 class TestMetadataService:
@@ -16,21 +17,47 @@ class TestMetadataService:
         """Set up test fixtures."""
         self.service = MetadataService()
 
-    def _create_mock_character_instance(self) -> CharacterInstance:
-        """Create a mock CharacterInstance for testing."""
-        character = MagicMock(spec=CharacterInstance)
-        character.instance_id = "test-character"
-        character.sheet = Mock()
-        character.state = Mock()
-        return character
+    def _create_character_instance(self) -> CharacterInstance:
+        """Create a CharacterInstance backed by real models."""
+        sheet = make_character_sheet()
+        state = EntityState(
+            abilities=sheet.starting_abilities,
+            level=sheet.starting_level,
+            experience_points=sheet.starting_experience_points,
+            hit_points=HitPoints(current=10, maximum=10, temporary=0),
+            hit_dice=HitDice(total=1, current=1, type="d10"),
+            currency=sheet.starting_currency.model_copy(),
+        )
+        return CharacterInstance(
+            instance_id="test-character",
+            template_id=sheet.id,
+            sheet=sheet,
+            state=state,
+        )
 
-    def _create_mock_scenario_instance(self) -> ScenarioInstance:
-        """Create a mock ScenarioInstance for testing."""
-        scenario = MagicMock(spec=ScenarioInstance)
-        scenario.locations = []
-        scenario.npcs = []
-        scenario.monsters = []
-        return scenario
+    def _create_scenario_instance(self) -> ScenarioInstance:
+        """Create a ScenarioInstance with default location state."""
+        location = make_location(
+            location_id="test-location",
+            name="Test Location",
+            description="A simple test location.",
+        )
+        scenario = make_scenario(
+            scenario_id="test-scenario",
+            title="Test Scenario",
+            description="A scenario used for metadata tests.",
+            starting_location_id=location.id,
+            locations=[location],
+        )
+        scenario_instance = ScenarioInstance(
+            instance_id="scenario-instance-1",
+            template_id=scenario.id,
+            sheet=scenario,
+            current_location_id=location.id,
+            current_act_id=scenario.progression.acts[0].id,
+        )
+        scenario_instance.location_states[location.id] = LocationState(location_id=location.id)
+        return scenario_instance
 
     def test_extract_npcs_mentioned_single_npc(self) -> None:
         """Test extracting a single mentioned NPC."""
@@ -93,39 +120,46 @@ class TestMetadataService:
 
     def test_get_current_location(self) -> None:
         """Test getting current location from game state."""
+        character = self._create_character_instance()
+        scenario_instance = self._create_scenario_instance()
+        location_label = "Goblin Cave Entrance"
         game_state = GameState(
             game_id="test-game",
-            character=self._create_mock_character_instance(),
-            scenario_id="test-scenario",
+            character=character,
+            scenario_id=scenario_instance.template_id,
             scenario_title="Test Scenario",
-            scenario_instance=self._create_mock_scenario_instance(),
-            location="Goblin Cave Entrance",
+            scenario_instance=scenario_instance,
+            location=location_label,
         )
         location = self.service.get_current_location(game_state)
-        assert location == "Goblin Cave Entrance"
+        assert location == location_label
 
     def test_get_current_location_default(self) -> None:
         """Test getting location with default value."""
         # Location has a default value of "Unknown"
+        character = self._create_character_instance()
+        scenario_instance = self._create_scenario_instance()
         game_state = GameState(
             game_id="test-game",
-            character=self._create_mock_character_instance(),
-            scenario_id="test-scenario",
+            character=character,
+            scenario_id=scenario_instance.template_id,
             scenario_title="Test Scenario",
-            scenario_instance=self._create_mock_scenario_instance(),
+            scenario_instance=scenario_instance,
         )
         location = self.service.get_current_location(game_state)
-        assert location == "Unknown"
+        assert location == GameState.model_fields["location"].default
 
     def test_get_combat_round_active_combat(self) -> None:
         """Test getting combat round during active combat."""
         combat_state = CombatState(is_active=True, round_number=3)
+        character = self._create_character_instance()
+        scenario_instance = self._create_scenario_instance()
         game_state = GameState(
             game_id="test-game",
-            character=self._create_mock_character_instance(),
-            scenario_id="test-scenario",
+            character=character,
+            scenario_id=scenario_instance.template_id,
             scenario_title="Test Scenario",
-            scenario_instance=self._create_mock_scenario_instance(),
+            scenario_instance=scenario_instance,
             combat=combat_state,
         )
         round_num = self.service.get_combat_round(game_state)
@@ -134,12 +168,14 @@ class TestMetadataService:
     def test_get_combat_round_inactive_combat(self) -> None:
         """Test getting combat round when combat is inactive."""
         combat_state = CombatState(is_active=False, round_number=1)
+        character = self._create_character_instance()
+        scenario_instance = self._create_scenario_instance()
         game_state = GameState(
             game_id="test-game",
-            character=self._create_mock_character_instance(),
-            scenario_id="test-scenario",
+            character=character,
+            scenario_id=scenario_instance.template_id,
             scenario_title="Test Scenario",
-            scenario_instance=self._create_mock_scenario_instance(),
+            scenario_instance=scenario_instance,
             combat=combat_state,
         )
         round_num = self.service.get_combat_round(game_state)
@@ -149,12 +185,14 @@ class TestMetadataService:
         """Test combat round tracking across multiple rounds."""
         for round_number in [1, 5, 10, 99]:
             combat_state = CombatState(is_active=True, round_number=round_number)
+            character = self._create_character_instance()
+            scenario_instance = self._create_scenario_instance()
             game_state = GameState(
                 game_id="test-game",
-                character=self._create_mock_character_instance(),
-                scenario_id="test-scenario",
+                character=character,
+                scenario_id=scenario_instance.template_id,
                 scenario_title="Test Scenario",
-                scenario_instance=self._create_mock_scenario_instance(),
+                scenario_instance=scenario_instance,
                 combat=combat_state,
             )
             round_num = self.service.get_combat_round(game_state)

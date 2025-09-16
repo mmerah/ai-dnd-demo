@@ -60,19 +60,26 @@ uvicorn app.main:app --reload --port 8123
 http://localhost:8123
 ```
 
-3. Select the pre-generated character and begin your adventure!
+3. Select a character, a scenario and begin your adventure!
 
 ## Project Structure
 
 ```
-├── app/                    # Backend application
+├── app/                   # Backend application
+|   ├── agents/            # Pydantic-AI agents
+|   ├── api/               # FastAPI routes
+|   ├── common/            # Common exception and types
+|   ├── events/            # Event system (command definition, event bus and handlers)
+|   ├── interfaces/        # Abstract interfaces
 │   ├── models/            # Pydantic data models
 │   ├── services/          # Business logic services
 │   ├── tools/             # D&D game tools
-│   ├── api/               # API routes
-│   └── data/              # Static game data (spells, items, etc.)
+│   └── utils/             # Utility functions
+├── data/                  # Static game data (characters, scenarios, spells, items, etc.)
 ├── frontend/              # Web interface
 ├── saves/                 # Game save files
+├── tests/                 # Test folder for integration and unit-tests of the backend
+├── user-data/             # User-defined static game data
 └── requirements.txt       # Python dependencies
 ```
 
