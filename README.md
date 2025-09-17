@@ -99,6 +99,28 @@ This is an MVP implementation focusing on core functionality. Key architectural 
 - Fail-fast error handling
 - Sequential tool processing
 
+### Pre-commit Hooks
+
+This project uses pre-commit hooks to ensure code quality. The following checks run automatically before each commit:
+
+1. `ruff format` - Code formatting
+2. `ruff check --fix` - Linting with auto-fixes
+3. `mypy --strict app tests` - Type checking
+4. `pytest` - Test suite
+
+To set up pre-commit hooks:
+```bash
+# Install pre-commit (already in requirements.txt)
+source venv/bin/activate
+pip install -r requirements.txt
+
+# Install the git hooks
+pre-commit install
+
+# Run manually on all files
+pre-commit run --all-files
+```
+
 ## Technologies
 
 - **Backend**: FastAPI, Python

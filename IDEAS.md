@@ -6,10 +6,7 @@ Full D&D 5e functionality with scenario management, character management, functi
 
 ## Ideas
 
-1. Review manually the code
-2. Add unit-tests
-3. Add pre-commit
-4. Update CLAUDE.md
+1. Update CLAUDE.md
 
 # MVP 2
 
