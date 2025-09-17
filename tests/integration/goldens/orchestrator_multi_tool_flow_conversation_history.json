@@ -1,0 +1,66 @@
+[
+  {
+    "role": "dm",
+    "content": "The heroes arrive at the Moonlit Library.",
+    "timestamp": "<timestamp>",
+    "agent_type": "narrative",
+    "location": "Moonlit Library",
+    "npcs_mentioned": [],
+    "combat_round": null,
+    "combat_occurrence": null
+  },
+  {
+    "role": "dm",
+    "content": "[Summary: combat summary]",
+    "timestamp": "<timestamp>",
+    "agent_type": "combat",
+    "location": null,
+    "npcs_mentioned": [],
+    "combat_round": 1,
+    "combat_occurrence": 1
+  },
+  {
+    "role": "dm",
+    "content": "A roaring fireball engulfs the ogre in lunar light.",
+    "timestamp": "<timestamp>",
+    "agent_type": "combat",
+    "location": "Moonlit Library",
+    "npcs_mentioned": [
+      "Ogre"
+    ],
+    "combat_round": 1,
+    "combat_occurrence": 1
+  },
+  {
+    "role": "dm",
+    "content": "With a final blast, the ogre falls and the spoils are claimed.",
+    "timestamp": "<timestamp>",
+    "agent_type": "combat",
+    "location": "Moonlit Library",
+    "npcs_mentioned": [
+      "Ogre"
+    ],
+    "combat_round": 2,
+    "combat_occurrence": 1
+  },
+  {
+    "role": "dm",
+    "content": "[Summary: combat end summary]",
+    "timestamp": "<timestamp>",
+    "agent_type": "narrative",
+    "location": null,
+    "npcs_mentioned": [],
+    "combat_round": null,
+    "combat_occurrence": null
+  },
+  {
+    "role": "dm",
+    "content": "Calm returns as the Moonlit Library settles after the clash.",
+    "timestamp": "<timestamp>",
+    "agent_type": "narrative",
+    "location": "Moonlit Library",
+    "npcs_mentioned": [],
+    "combat_round": null,
+    "combat_occurrence": null
+  }
+]

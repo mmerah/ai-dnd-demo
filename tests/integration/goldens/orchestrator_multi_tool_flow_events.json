@@ -1,0 +1,530 @@
+[
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "change_location",
+    "parameters": {
+      "location_id": "moonlit-library"
+    },
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "change_location",
+    "parameters": {},
+    "result": {
+      "type": "change_location",
+      "location_id": "moonlit-library",
+      "location_name": "Moonlit Library",
+      "description": "Soft blue flames illuminate the towering shelves.",
+      "message": "Moved to Moonlit Library"
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "discover_secret",
+    "parameters": {
+      "secret_id": "moonlit-archive"
+    },
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "discover_secret",
+    "parameters": {},
+    "result": {
+      "type": "discover_secret",
+      "secret_id": "moonlit-archive",
+      "description": "Secret 'moonlit-archive'",
+      "message": "Discovered secret: Secret 'moonlit-archive'"
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "update_location_state",
+    "parameters": {
+      "danger_level": "low",
+      "add_effect": "soothing-luminescence"
+    },
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "update_location_state",
+    "parameters": {},
+    "result": {
+      "type": "update_location_state",
+      "location_id": "moonlit-library",
+      "updates": [
+        "Danger level: low",
+        "Added effect: soothing-luminescence"
+      ],
+      "message": "Location (ID: moonlit-library) state updated: Danger level: low, Added effect: soothing-luminescence"
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "start_quest",
+    "parameters": {
+      "quest_id": "moonlit-knowledge"
+    },
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "start_quest",
+    "parameters": {},
+    "result": {
+      "type": "start_quest",
+      "quest_id": "moonlit-knowledge",
+      "quest_name": "Secrets of the Moonlit Library",
+      "objectives": [
+        {
+          "id": "objective-moonlit-knowledge",
+          "description": "Reach the forest edge.",
+          "status": "active"
+        }
+      ],
+      "message": "Quest started: Secrets of the Moonlit Library"
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "roll_dice",
+    "parameters": {
+      "dice": "2d20kh",
+      "modifier": 4,
+      "roll_type": "ability_check",
+      "purpose": "Moonlit Perception",
+      "ability": "Wisdom",
+      "skill": "Perception"
+    },
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "roll_dice",
+    "parameters": {},
+    "result": {
+      "type": "dice_roll_ability_check",
+      "roll_type": "ability_check",
+      "dice": "2d20kh",
+      "modifier": 4,
+      "rolls": [
+        20,
+        18
+      ],
+      "total": 24,
+      "ability": "Wisdom",
+      "skill": "Perception",
+      "critical": true
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "spawn_monsters",
+    "parameters": {
+      "monsters": [
+        {
+          "monster_index": "ogre",
+          "quantity": 1
+        }
+      ]
+    },
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "spawn_monsters",
+    "parameters": {},
+    "result": {
+      "type": "spawn_monsters",
+      "monsters_spawned": [],
+      "message": "Spawned 0 monster(s)"
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "start_combat",
+    "parameters": {
+      "entity_ids": [
+        "ogre-6994"
+      ]
+    },
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "start_combat",
+    "parameters": {},
+    "result": {
+      "type": "start_combat",
+      "combat_started": true,
+      "participants": [
+        {
+          "entity_id": "ogre-6994",
+          "entity_type": "monster",
+          "name": "Ogre",
+          "initiative": 18,
+          "is_player": false,
+          "is_active": true
+        },
+        {
+          "entity_id": "hero-inst",
+          "entity_type": "player",
+          "name": "Hero",
+          "initiative": 19,
+          "is_player": true,
+          "is_active": true
+        }
+      ],
+      "message": "Combat has begun!"
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "roll_dice",
+    "parameters": {
+      "dice": "8d6",
+      "modifier": 5,
+      "roll_type": "damage",
+      "purpose": "Wizard's Fireball"
+    },
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "roll_dice",
+    "parameters": {},
+    "result": {
+      "type": "dice_roll_damage",
+      "roll_type": "damage",
+      "dice": "8d6",
+      "modifier": 5,
+      "rolls": [
+        6,
+        2,
+        3,
+        4,
+        6,
+        3,
+        3,
+        4
+      ],
+      "total": 36,
+      "ability": null,
+      "skill": null,
+      "critical": false
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "roll_dice",
+    "parameters": {
+      "dice": "2d20kh",
+      "modifier": 6,
+      "roll_type": "attack",
+      "purpose": "Ogre Counterattack",
+      "ability": "Dexterity"
+    },
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "roll_dice",
+    "parameters": {},
+    "result": {
+      "type": "dice_roll_attack",
+      "roll_type": "attack",
+      "dice": "2d20kh",
+      "modifier": 6,
+      "rolls": [
+        7,
+        12
+      ],
+      "total": 18,
+      "ability": "Dexterity",
+      "skill": null,
+      "critical": false
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "update_hp",
+    "parameters": {
+      "entity_id": "ogre-6994",
+      "entity_type": "monster",
+      "amount": -36,
+      "damage_type": "fire"
+    },
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "update_hp",
+    "parameters": {},
+    "result": {
+      "type": "hp_update",
+      "target": "Ogre",
+      "old_hp": 59,
+      "new_hp": 23,
+      "max_hp": 59,
+      "amount": -36,
+      "damage_type": "fire",
+      "is_healing": false,
+      "is_unconscious": false
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "next_turn",
+    "parameters": {},
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "next_turn",
+    "parameters": {},
+    "result": {
+      "type": "next_turn",
+      "round_number": 1,
+      "current_turn": {
+        "entity_id": "ogre-6994",
+        "entity_type": "monster",
+        "name": "Ogre",
+        "initiative": 18,
+        "is_player": false,
+        "is_active": true
+      },
+      "message": "Turn advanced to Ogre (Round 1)"
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "roll_dice",
+    "parameters": {
+      "dice": "3d6",
+      "modifier": 2,
+      "roll_type": "damage",
+      "purpose": "Ogre Smash"
+    },
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "roll_dice",
+    "parameters": {},
+    "result": {
+      "type": "dice_roll_damage",
+      "roll_type": "damage",
+      "dice": "3d6",
+      "modifier": 2,
+      "rolls": [
+        1,
+        4,
+        6
+      ],
+      "total": 13,
+      "ability": null,
+      "skill": null,
+      "critical": false
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "update_hp",
+    "parameters": {
+      "entity_id": "hero-inst",
+      "entity_type": "player",
+      "amount": -13,
+      "damage_type": "bludgeoning"
+    },
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "update_hp",
+    "parameters": {},
+    "result": {
+      "type": "hp_update",
+      "target": "Hero",
+      "old_hp": 11,
+      "new_hp": 0,
+      "max_hp": 11,
+      "amount": -13,
+      "damage_type": "bludgeoning",
+      "is_healing": false,
+      "is_unconscious": true
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "next_turn",
+    "parameters": {},
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "next_turn",
+    "parameters": {},
+    "result": {
+      "type": "next_turn",
+      "round_number": 2,
+      "current_turn": {
+        "entity_id": "ogre-6994",
+        "entity_type": "monster",
+        "name": "Ogre",
+        "initiative": 18,
+        "is_player": false,
+        "is_active": true
+      },
+      "message": "Turn advanced to Ogre (Round 2)"
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "update_hp",
+    "parameters": {
+      "entity_id": "ogre-6994",
+      "entity_type": "monster",
+      "amount": -23,
+      "damage_type": "force"
+    },
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "update_hp",
+    "parameters": {},
+    "result": {
+      "type": "hp_update",
+      "target": "Ogre",
+      "old_hp": 23,
+      "new_hp": 0,
+      "max_hp": 59,
+      "amount": -23,
+      "damage_type": "force",
+      "is_healing": false,
+      "is_unconscious": true
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "end_combat",
+    "parameters": {},
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "end_combat",
+    "parameters": {},
+    "result": {
+      "type": "end_combat",
+      "message": "Combat ended"
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "modify_inventory",
+    "parameters": {
+      "item_index": "potion-of-healing",
+      "quantity": 1
+    },
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "modify_inventory",
+    "parameters": {},
+    "result": {
+      "type": "item_added",
+      "item_index": "potion-of-healing",
+      "quantity": 1,
+      "total_quantity": 1
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "modify_currency",
+    "parameters": {
+      "gold": 5
+    },
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "modify_currency",
+    "parameters": {},
+    "result": {
+      "type": "currency_update",
+      "old_gold": 0,
+      "old_silver": 0,
+      "old_copper": 0,
+      "new_gold": 5,
+      "new_silver": 0,
+      "new_copper": 0,
+      "change_gold": 5,
+      "change_silver": 0,
+      "change_copper": 0
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "complete_objective",
+    "parameters": {
+      "quest_id": "moonlit-knowledge",
+      "objective_id": "objective-moonlit-knowledge"
+    },
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "complete_objective",
+    "parameters": {},
+    "result": {
+      "type": "complete_objective",
+      "quest_id": "moonlit-knowledge",
+      "objective_id": "objective-moonlit-knowledge",
+      "quest_complete": true,
+      "progress": 100.0,
+      "message": "Objective completed: objective-moonlit-knowledge"
+    }
+  }
+]
