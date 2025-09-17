@@ -15,8 +15,6 @@ def add_pack_fields(items: list[dict[str, Any]], pack_id: str = "srd") -> list[d
     Mutates the input list, returns it for convenience/chaining.
     """
     for it in items:
-        if not isinstance(it, dict):
-            continue
         it.setdefault("content_pack", pack_id)
         it.setdefault("reference_packs", [])
     return items

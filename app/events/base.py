@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from uuid import uuid4
 
@@ -23,7 +23,7 @@ class BaseCommand(ABC):
 
     game_id: str = ""  # Required field first
     command_id: str = field(default_factory=lambda: str(uuid4()))
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     priority: CommandPriority = field(default=CommandPriority.NORMAL)
 
     @abstractmethod
@@ -36,7 +36,7 @@ class BaseEvent(ABC):
     """Base class for events that are broadcast to frontend."""
 
     event_id: str = field(default_factory=lambda: str(uuid4()))
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     game_id: str = ""
 
     @abstractmethod

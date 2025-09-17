@@ -325,7 +325,7 @@ def to_pydantic_models(root_name: str, schema: Schema, sample_count: int) -> lis
                 return (False, None)
         return (True, next(iter(props.values())))
 
-    def collect(prefix: str, s: Schema):
+    def collect(prefix: str, s: Schema) -> None:
         if s.get("anyOf"):
             for v in s["anyOf"]:
                 collect(prefix, v)
@@ -365,7 +365,7 @@ def to_pydantic_models(root_name: str, schema: Schema, sample_count: int) -> lis
             return f"list[{pyd_field_type(prefix + '_item', s.get('items', {'type': 'unknown'}))}]"
         return pyd_primitive(t)
 
-    def render_model(name: str, s: Schema):
+    def render_model(name: str, s: Schema) -> None:
         props = s.get("properties", {})
         req_counts = s.get("required_counts", {})
         lines.append(f"class {pascal(name)}(BaseModel):")
@@ -451,7 +451,7 @@ def generate_markdown(path: Path, out_dir: Path, max_items: int = 5) -> Path | N
     return out_path
 
 
-def main():
+def main() -> None:
     base = Path("docs/5e-database-snippets/src/2014")
     out = Path("docs/data-models")
     out.mkdir(parents=True, exist_ok=True)
