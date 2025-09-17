@@ -1,12 +1,4 @@
-# MVP 1
-
-Full D&D 5e functionality with scenario management, character management, functional combat, quest, inventory with only the Narrative agent
-
 ## Current Issues [CRITICAL]
-
-## Ideas
-
-1. Update CLAUDE.md
 
 # MVP 2
 
