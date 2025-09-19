@@ -9,6 +9,7 @@ Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic 
 ### Frontend
 1. Frontend should use typescript with ban of 'any'. Or flutter ? How to use our models directly in the frontend to help type safety ?
 2. Frontend: ASCII map of the location and connection ? (frontend)
+3. Character Sheet on the side of game view should be a level deeper. Basically leave general game information on side (location, quests, combat element when active, ...) and have a party screen with summarized cards for each member of the party. When you click on a member then you get his details as we do get right now (stats, skills, inventory, spells, ...)
 
 ### Backend
 1. Refine the concept of the dynamic memory system. NPCs, Locations have memory ? How/When to store memory ? How/When to load memory ?
