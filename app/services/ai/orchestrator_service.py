@@ -5,7 +5,7 @@ from collections.abc import AsyncIterator
 
 from app.agents.core.base import BaseAgent
 from app.agents.core.types import AgentType
-from app.agents.summarizer.agent import SummarizerAgent
+from app.interfaces.agents.summarizer import ISummarizerAgent
 from app.interfaces.events import IEventBus
 from app.interfaces.services.game import ICombatService, IGameService
 from app.models.ai_response import StreamEvent
@@ -22,7 +22,7 @@ class AgentOrchestrator:
         self,
         narrative_agent: BaseAgent,
         combat_agent: BaseAgent,
-        summarizer_agent: SummarizerAgent,
+        summarizer_agent: ISummarizerAgent,
         combat_service: ICombatService,
         event_bus: IEventBus,
         game_service: IGameService,

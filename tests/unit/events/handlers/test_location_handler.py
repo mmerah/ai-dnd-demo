@@ -12,6 +12,8 @@ from app.events.commands.location_commands import (
 )
 from app.events.handlers.location_handler import LocationHandler
 from app.interfaces.services.game import ILocationService
+from app.interfaces.services.memory import IMemoryService
+from app.models.memory import MemoryEventKind, WorldEventContext
 from app.models.tool_results import (
     ChangeLocationResult,
     DiscoverSecretResult,
@@ -27,7 +29,8 @@ class TestLocationHandler:
     def setup_method(self) -> None:
         """Set up test environment."""
         self.location_service = create_autospec(ILocationService, instance=True)
-        self.handler = LocationHandler(self.location_service)
+        self.memory_service = create_autospec(IMemoryService, instance=True)
+        self.handler = LocationHandler(self.location_service, self.memory_service)
         self.game_state = make_game_state()
 
     @pytest.mark.asyncio
@@ -57,6 +60,7 @@ class TestLocationHandler:
             location_name=new_location.name,
             description=command.description,
         )
+        self.memory_service.on_location_exit.assert_awaited_once_with(self.game_state)
 
         assert result.mutated
         assert isinstance(result.data, ChangeLocationResult)
@@ -139,6 +143,13 @@ class TestLocationHandler:
         assert isinstance(result.data, UpdateLocationStateResult)
         assert result.data.location_id == location_id
         assert result.data.updates == updates
+        await_calls = self.memory_service.on_world_event.await_args_list
+        assert len(await_calls) == 2
+        event_kinds = [call.kwargs["event_kind"] for call in await_calls]
+        assert MemoryEventKind.LOCATION_CLEARED in event_kinds
+        assert MemoryEventKind.ENCOUNTER_COMPLETED in event_kinds
+        contexts = [call.kwargs["context"] for call in await_calls]
+        assert all(isinstance(ctx, WorldEventContext) for ctx in contexts)
 
     @pytest.mark.asyncio
     async def test_invalid_npc_error(self) -> None:

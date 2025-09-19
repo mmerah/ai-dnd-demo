@@ -1,6 +1,7 @@
 """Factory for creating specialized agents."""
 
 import logging
+from typing import cast
 
 import httpx
 from pydantic_ai import Agent
@@ -15,6 +16,7 @@ from app.agents.core.types import AgentType
 from app.agents.narrative.agent import NarrativeAgent
 from app.agents.summarizer.agent import SummarizerAgent
 from app.config import get_settings
+from app.interfaces.agents.summarizer import ISummarizerAgent
 from app.interfaces.events import IEventBus
 from app.interfaces.services.ai import IContextService, IEventLoggerService, IToolCallExtractorService
 from app.interfaces.services.common import IActionService
@@ -172,12 +174,12 @@ class AgentFactory:
                 retries=settings.max_retries,
             )
 
-            summarizer_agent = SummarizerAgent(
+            summarizer_agent: ISummarizerAgent = SummarizerAgent(
                 agent=agent,
                 context_service=context_service,
                 debug_logger=debug_logger,
             )
             # Summarizer doesn't need tools
-            return summarizer_agent
+            return cast(BaseAgent, summarizer_agent)
 
         raise ValueError(f"Unknown agent type: {agent_type}")

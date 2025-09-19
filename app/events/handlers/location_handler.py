@@ -12,7 +12,9 @@ from app.events.commands.location_commands import (
 )
 from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.services.game import ILocationService
+from app.interfaces.services.memory import IMemoryService
 from app.models.game_state import GameState
+from app.models.memory import MemoryEventKind, WorldEventContext
 from app.models.tool_results import (
     ChangeLocationResult,
     DiscoverSecretResult,
@@ -29,8 +31,10 @@ class LocationHandler(BaseHandler):
     def __init__(
         self,
         location_service: ILocationService,
+        memory_service: IMemoryService,
     ):
         self.location_service = location_service
+        self.memory_service = memory_service
 
     supported_commands = (
         ChangeLocationCommand,
@@ -52,6 +56,8 @@ class LocationHandler(BaseHandler):
             if game_state.scenario_instance.is_in_known_location():
                 current_location_id = game_state.scenario_instance.current_location_id
                 self.location_service.validate_traversal(game_state, current_location_id, command.location_id)
+
+            await self.memory_service.on_location_exit(game_state)
 
             # entity=None means player
             self.location_service.move_entity(
@@ -152,5 +158,24 @@ class LocationHandler(BaseHandler):
             # Broadcast update
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
             logger.debug(f"Location state updated: {updates}")
+
+            context = WorldEventContext(location_id=location_id)
+            if command.danger_level and command.danger_level.lower() == "cleared":
+                await self.memory_service.on_world_event(
+                    game_state,
+                    event_kind=MemoryEventKind.LOCATION_CLEARED,
+                    context=context,
+                )
+
+            if command.complete_encounter:
+                encounter_context = WorldEventContext(
+                    location_id=location_id,
+                    encounter_id=command.complete_encounter,
+                )
+                await self.memory_service.on_world_event(
+                    game_state,
+                    event_kind=MemoryEventKind.ENCOUNTER_COMPLETED,
+                    context=encounter_context,
+                )
 
         return result

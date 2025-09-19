@@ -1,10 +1,10 @@
 """Centralized container for dependency injection."""
 
 from functools import cached_property
+from typing import cast
 
 from app.agents.core.types import AgentType
 from app.agents.factory import AgentFactory
-from app.agents.summarizer.agent import SummarizerAgent
 from app.config import get_settings
 from app.events.event_bus import EventBus
 from app.events.handlers.broadcast_handler import BroadcastHandler
@@ -15,6 +15,7 @@ from app.events.handlers.inventory_handler import InventoryHandler
 from app.events.handlers.location_handler import LocationHandler
 from app.events.handlers.quest_handler import QuestHandler
 from app.events.handlers.time_handler import TimeHandler
+from app.interfaces.agents.summarizer import ISummarizerAgent
 from app.interfaces.events import IEventBus
 from app.interfaces.services.ai import IAIService, IContextService, IEventLoggerService, IMessageService
 from app.interfaces.services.character import ICharacterComputeService, ICharacterService, ILevelProgressionService
@@ -41,6 +42,7 @@ from app.interfaces.services.game import (
     IPreSaveSanitizer,
     ISaveManager,
 )
+from app.interfaces.services.memory import IMemoryService
 from app.interfaces.services.scenario import IScenarioService
 from app.models.character import CharacterSheet
 from app.models.item import ItemDefinition
@@ -86,6 +88,7 @@ from app.services.game.enrichment_service import GameEnrichmentService
 from app.services.game.event_manager import EventManager
 from app.services.game.game_factory import GameFactory
 from app.services.game.game_state_manager import GameStateManager
+from app.services.game.memory_service import MemoryService
 from app.services.game.message_manager import MessageManager as GameMessageManager
 from app.services.game.metadata_service import MetadataService
 from app.services.game.monster_factory import MonsterFactory
@@ -100,6 +103,12 @@ class Container:
     It manages the creation and lifecycle of services and agents.
     Uses @cached_property for lazy initialization without | None pattern.
     """
+
+    def __init__(self, *, summarizer_agent: ISummarizerAgent | None = None) -> None:
+        # Allow tests and alternate runtimes to inject a lightweight summarizer stub before
+        # cached properties materialize. This avoids circular imports and real API calls when
+        # the orchestrator or memory service just need an object that matches the protocol.
+        self._external_summarizer_agent = summarizer_agent
 
     @cached_property
     def game_factory(self) -> IGameFactory:
@@ -390,6 +399,7 @@ class Container:
             "location",
             LocationHandler(
                 self.location_service,
+                self.memory_service,
             ),
         )
         event_bus.register_handler(
@@ -398,7 +408,7 @@ class Container:
                 self.combat_service,
             ),
         )
-        event_bus.register_handler("quest", QuestHandler())
+        event_bus.register_handler("quest", QuestHandler(self.memory_service))
 
         # Verify handlers can handle all commands
         event_bus.verify_handlers()
@@ -453,8 +463,23 @@ class Container:
             debug=settings.debug_ai,
         )
 
-        # Create summarizer agent
-        summarizer_agent = AgentFactory.create_agent(
+        orchestrator = AgentOrchestrator(
+            narrative_agent=narrative_agent,
+            combat_agent=combat_agent,
+            summarizer_agent=self.summarizer_agent,
+            combat_service=self.combat_service,
+            event_bus=self.event_bus,
+            game_service=self.game_service,
+        )
+        return AIService(orchestrator)
+
+    @cached_property
+    def summarizer_agent(self) -> ISummarizerAgent:
+        if self._external_summarizer_agent is not None:
+            return self._external_summarizer_agent
+
+        settings = get_settings()
+        summarizer = AgentFactory.create_agent(
             AgentType.SUMMARIZER,
             event_bus=self.event_bus,
             scenario_service=self.scenario_service,
@@ -466,22 +491,11 @@ class Container:
             conversation_service=self.conversation_service,
             context_service=self.context_service,
             event_logger_service=self.event_logger_service,
-            action_service=self.action_service,
             tool_call_extractor_service=self.tool_call_extractor_service,
+            action_service=self.action_service,
             debug=settings.debug_ai,
         )
-        # The orchestrator requires a summarizer and not just a BaseAgent
-        assert isinstance(summarizer_agent, SummarizerAgent)
-
-        orchestrator = AgentOrchestrator(
-            narrative_agent=narrative_agent,
-            combat_agent=combat_agent,
-            summarizer_agent=summarizer_agent,
-            combat_service=self.combat_service,
-            event_bus=self.event_bus,
-            game_service=self.game_service,
-        )
-        return AIService(orchestrator)
+        return cast(ISummarizerAgent, summarizer)
 
     @cached_property
     def message_service(self) -> IMessageService:
@@ -510,6 +524,10 @@ class Container:
             metadata_service=self.metadata_service,
             save_manager=self.save_manager,
         )
+
+    @cached_property
+    def memory_service(self) -> IMemoryService:
+        return MemoryService(lambda: self.summarizer_agent)
 
     @cached_property
     def context_service(self) -> IContextService:

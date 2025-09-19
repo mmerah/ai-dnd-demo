@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 
 from app.common.types import JSONSerializable
 from app.models.location import LocationState
+from app.models.memory import MemoryEntry
 from app.models.quest import Quest
 from app.models.scenario import ScenarioSheet
 
@@ -34,8 +35,11 @@ class ScenarioInstance(BaseModel):
     completed_quest_ids: list[str] = Field(default_factory=list)
     quest_flags: dict[str, JSONSerializable] = Field(default_factory=dict)
 
-    # DM notes/tags
-    notes: list[str] = Field(default_factory=list)
+    # Structured memory system
+    world_memories: list[MemoryEntry] = Field(default_factory=list)
+    last_world_message_index: int = -1
+    last_location_message_index: dict[str, int] = Field(default_factory=dict)
+    last_npc_message_index: dict[str, int] = Field(default_factory=dict)
     tags: list[str] = Field(default_factory=list)
 
     def touch(self) -> None:

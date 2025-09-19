@@ -6,6 +6,7 @@ from pydantic import Field
 
 from app.models.instances.base_instance import BaseInstance
 from app.models.instances.entity_state import EntityState
+from app.models.memory import MemoryEntry
 from app.models.npc import NPCSheet
 
 
@@ -20,7 +21,7 @@ class NPCInstance(BaseInstance):
     # Runtime location and state
     current_location_id: str
     attitude: str | None = None
-    notes: list[str] = Field(default_factory=list)
+    npc_memories: list[MemoryEntry] = Field(default_factory=list)
 
     # Dynamic character state (mirrors CharacterInstance.state)
     state: EntityState

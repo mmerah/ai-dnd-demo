@@ -1,3 +1,5 @@
+from unittest.mock import create_autospec
+
 import pytest
 
 from app.events.commands.quest_commands import (
@@ -7,6 +9,8 @@ from app.events.commands.quest_commands import (
     StartQuestCommand,
 )
 from app.events.handlers.quest_handler import QuestHandler
+from app.interfaces.services.memory import IMemoryService
+from app.models.memory import MemoryEventKind, WorldEventContext
 from app.models.quest import ObjectiveStatus, Quest, QuestObjective
 from app.models.scenario import ScenarioAct
 from app.models.tool_results import CompleteObjectiveResult, CompleteQuestResult
@@ -16,7 +20,8 @@ from tests.factories.scenario import make_scenario
 
 class TestQuestHandler:
     def setup_method(self) -> None:
-        self.handler = QuestHandler()
+        self.memory_service = create_autospec(IMemoryService, instance=True)
+        self.handler = QuestHandler(self.memory_service)
         self.game_state = make_game_state()
         locations = self.game_state.scenario_instance.sheet.locations
         location_ids = [loc.id for loc in locations]
@@ -113,6 +118,14 @@ class TestQuestHandler:
         assert quest is not None
         objective = next(o for o in quest.objectives if o.id == "track")
         assert objective.status == ObjectiveStatus.COMPLETED
+        calls = self.memory_service.on_world_event.await_args_list
+        assert len(calls) == 1
+        call = calls[0]
+        assert call.kwargs["event_kind"] == MemoryEventKind.OBJECTIVE_COMPLETED
+        context = call.kwargs["context"]
+        assert isinstance(context, WorldEventContext)
+        assert context.quest_id == self.quest_intro.id
+        assert context.objective_id == "track"
 
     @pytest.mark.asyncio
     async def test_complete_all_objectives_completes_quest(self) -> None:
@@ -136,6 +149,9 @@ class TestQuestHandler:
         assert isinstance(result.data, CompleteObjectiveResult)
         assert result.data.quest_complete
         assert self.quest_intro.id in gs.scenario_instance.completed_quest_ids
+        calls = self.memory_service.on_world_event.await_args_list
+        assert len(calls) == len(quest.objectives)
+        assert all(call.kwargs["event_kind"] == MemoryEventKind.OBJECTIVE_COMPLETED for call in calls)
 
     @pytest.mark.asyncio
     async def test_complete_quest_directly(self) -> None:
@@ -156,6 +172,10 @@ class TestQuestHandler:
         assert isinstance(result.data, CompleteQuestResult)
         assert result.data.quest_name == self.quest_finale.name
         assert self.quest_finale.id in gs.scenario_instance.completed_quest_ids
+        calls = self.memory_service.on_world_event.await_args_list
+        event_kinds = [call.kwargs["event_kind"] for call in calls]
+        assert event_kinds.count(MemoryEventKind.QUEST_COMPLETED) == 2
+        assert MemoryEventKind.ACT_PROGRESSED in event_kinds
 
     @pytest.mark.asyncio
     async def test_progress_act(self) -> None:
@@ -171,6 +191,11 @@ class TestQuestHandler:
 
         assert result.mutated
         assert gs.scenario_instance.current_act_id == "act2"
+        last_call = self.memory_service.on_world_event.await_args_list[-1]
+        assert last_call.kwargs["event_kind"] == MemoryEventKind.ACT_PROGRESSED
+        context = last_call.kwargs["context"]
+        assert isinstance(context, WorldEventContext)
+        assert context.act_id == "act2"
 
     @pytest.mark.asyncio
     async def test_cannot_complete_nonexistent_quest(self) -> None:

@@ -4,8 +4,8 @@ import logging
 from datetime import datetime
 
 from app.agents.core.types import AgentType
-from app.agents.summarizer.agent import SummarizerAgent
 from app.events.commands.broadcast_commands import BroadcastNarrativeCommand
+from app.interfaces.agents.summarizer import ISummarizerAgent
 from app.interfaces.events import IEventBus
 from app.models.game_state import GameState, Message, MessageRole
 
@@ -16,7 +16,7 @@ async def handle_transition(
     game_state: GameState,
     from_type: AgentType,
     to_type: AgentType,
-    summarizer_agent: SummarizerAgent,
+    summarizer_agent: ISummarizerAgent,
     event_bus: IEventBus,
 ) -> None:
     """Handle context summarization when switching agents.

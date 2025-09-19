@@ -11,7 +11,9 @@ from app.events.commands.quest_commands import (
     StartQuestCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
+from app.interfaces.services.memory import IMemoryService
 from app.models.game_state import GameState
+from app.models.memory import MemoryEventKind, WorldEventContext
 from app.models.quest import ObjectiveStatus, QuestStatus
 from app.models.tool_results import (
     CompleteObjectiveResult,
@@ -25,6 +27,9 @@ logger = logging.getLogger(__name__)
 
 class QuestHandler(BaseHandler):
     """Handler for quest management commands."""
+
+    def __init__(self, memory_service: IMemoryService) -> None:
+        self.memory_service = memory_service
 
     supported_commands = (
         StartQuestCommand,
@@ -107,6 +112,15 @@ class QuestHandler(BaseHandler):
                 # If quest is complete, move it to completed list
                 if quest_complete:
                     game_state.complete_quest(command.quest_id)
+
+                await self.memory_service.on_world_event(
+                    game_state,
+                    event_kind=MemoryEventKind.OBJECTIVE_COMPLETED,
+                    context=WorldEventContext(
+                        quest_id=command.quest_id,
+                        objective_id=command.objective_id,
+                    ),
+                )
             else:
                 raise ValueError(f"Objective '{command.objective_id}' not found in quest")
 
@@ -138,6 +152,12 @@ class QuestHandler(BaseHandler):
                 logger.debug(f"Quest completed: {quest.name}")
             else:
                 raise RuntimeError(f"Failed to complete quest '{command.quest_id}'")
+
+            await self.memory_service.on_world_event(
+                game_state,
+                event_kind=MemoryEventKind.QUEST_COMPLETED,
+                context=WorldEventContext(quest_id=command.quest_id),
+            )
 
         elif isinstance(command, ProgressActCommand):
             # Get scenario from embedded sheet
@@ -174,5 +194,11 @@ class QuestHandler(BaseHandler):
                     raise RuntimeError("Failed to get new act after progression")
             else:
                 raise ValueError("No more acts to progress to")
+
+            await self.memory_service.on_world_event(
+                game_state,
+                event_kind=MemoryEventKind.ACT_PROGRESSED,
+                context=WorldEventContext(act_id=game_state.scenario_instance.current_act_id),
+            )
 
         return result

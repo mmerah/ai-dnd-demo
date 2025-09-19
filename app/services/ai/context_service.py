@@ -10,14 +10,17 @@ from .context_builders import (
     CurrentStateContextBuilder,
     InventoryContextBuilder,
     LocationContextBuilder,
+    LocationMemoryContextBuilder,
     MonstersAtLocationContextBuilder,
     MonstersInCombatContextBuilder,
     NPCDetailContextBuilder,
     NPCItemsContextBuilder,
+    NPCMemoryContextBuilder,
     NPCsAtLocationContextBuilder,
     QuestContextBuilder,
     ScenarioContextBuilder,
     SpellContextBuilder,
+    WorldMemoryContextBuilder,
 )
 
 
@@ -34,6 +37,7 @@ class ContextService(IContextService):
         self.scenario_builder = ScenarioContextBuilder()
         # Builders will receive per-game repositories at build time
         self.location_builder = LocationContextBuilder(item_repository=None)
+        self.location_memory_builder = LocationMemoryContextBuilder()
         self.npcs_at_location_builder = NPCsAtLocationContextBuilder()
         self.monsters_at_location_builder = MonstersAtLocationContextBuilder()
         self.quest_builder = QuestContextBuilder()
@@ -44,16 +48,21 @@ class ContextService(IContextService):
         self.spell_builder = SpellContextBuilder(spell_repository=None)
         self.inventory_builder = InventoryContextBuilder()
         self.npc_items_builder = NPCItemsContextBuilder(item_repository=None)
+        self.npc_memory_builder = NPCMemoryContextBuilder()
+        self.world_memory_builder = WorldMemoryContextBuilder()
 
         # Full builder list for narrative agent
         self.builders = [
             self.scenario_builder,
             self.location_builder,
+            self.location_memory_builder,
             self.npcs_at_location_builder,
             self.monsters_at_location_builder,
             self.quest_builder,
             self.current_state_builder,
             self.npc_detail_builder,
+            self.npc_memory_builder,
+            self.world_memory_builder,
             self.combat_builder,
             self.spell_builder,
             self.inventory_builder,

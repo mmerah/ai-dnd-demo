@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 import random
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncIterator, Callable, Sequence
 from pathlib import Path
 from types import SimpleNamespace
 from typing import TypedDict, cast
@@ -14,14 +14,16 @@ import pytest
 from app.agents.core.base import BaseAgent, ToolFunction
 from app.agents.core.dependencies import AgentDependencies
 from app.agents.core.types import AgentType
-from app.agents.summarizer.agent import SummarizerAgent
 from app.container import Container
+from app.interfaces.agents.summarizer import ISummarizerAgent
 from app.models.ai_response import CompleteResponse, NarrativeResponse, StreamEvent, StreamEventType
 from app.models.attributes import EntityType
 from app.models.combat import MonsterSpawnInfo
-from app.models.game_state import GameEventType, GameState, MessageRole
+from app.models.game_state import GameEventType, GameState, Message, MessageRole
 from app.models.instances.monster_instance import MonsterInstance
+from app.models.instances.npc_instance import NPCInstance
 from app.models.location import DangerLevel
+from app.models.memory import MemoryEventKind, WorldEventContext
 from app.models.scenario import LocationDescriptions
 from app.models.tool_results import RollDiceResult
 from app.services.ai.ai_service import AIService
@@ -341,6 +343,31 @@ class _StubSummarizer(BaseAgent):
     async def summarize_combat_end(self, game_state: GameState) -> str:
         return "combat end summary"
 
+    async def summarize_location_session(
+        self,
+        game_state: GameState,
+        location_id: str,
+        messages: Sequence[Message],
+    ) -> str:
+        return "location summary"
+
+    async def summarize_npc_interactions(
+        self,
+        game_state: GameState,
+        npc: NPCInstance,
+        messages: Sequence[Message],
+    ) -> str:
+        return "npc summary"
+
+    async def summarize_world_update(
+        self,
+        game_state: GameState,
+        event_kind: MemoryEventKind,
+        messages: Sequence[Message],
+        context: WorldEventContext,
+    ) -> str:
+        return "world summary"
+
     async def process(self, prompt: str, game_state: GameState, stream: bool = True) -> AsyncIterator[StreamEvent]:
         if game_state.game_id == "__noop__":
             yield StreamEvent(
@@ -372,7 +399,8 @@ def _scrub_history_timestamps(messages: list[dict[str, object]]) -> list[dict[st
 async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
     random.seed(1337)
 
-    container = Container()
+    summarizer_stub = _StubSummarizer()
+    container = Container(summarizer_agent=cast(ISummarizerAgent, summarizer_stub))
     saves_dir = tmp_path / "saves"
     saves_dir.mkdir()
     path_resolver = cast(PathResolver, container.path_resolver)
@@ -479,12 +507,10 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
         opening_text="A roaring fireball engulfs the ogre in lunar light.",
         resolution_text="With a final blast, the ogre falls and the spoils are claimed.",
     )
-    summarizer_stub = _StubSummarizer()
-
     orchestrator = AgentOrchestrator(
         narrative_agent=narrative_agent,
         combat_agent=combat_agent,
-        summarizer_agent=cast(SummarizerAgent, summarizer_stub),
+        summarizer_agent=summarizer_stub,
         combat_service=container.combat_service,
         event_bus=container.event_bus,
         game_service=container.game_service,

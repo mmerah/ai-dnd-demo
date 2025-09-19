@@ -239,7 +239,6 @@ class GameFactory(IGameFactory):
                 state=self.compute_service.initialize_entity_state(game_state, npc_sheet.character),
                 current_location_id=npc_sheet.initial_location_id,
                 attitude=npc_sheet.initial_attitude,
-                notes=list(npc_sheet.initial_notes) if npc_sheet.initial_notes else [],
             )
 
             game_state.npcs.append(npc_instance)

@@ -5,6 +5,7 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 from app.models.attributes import EntityType
+from app.models.memory import MemoryEntry
 
 
 class DangerLevel(str, Enum):
@@ -88,7 +89,7 @@ class LocationState(BaseModel):
     discovered_secrets: list[str] = Field(default_factory=list)
     looted_items: list[str] = Field(default_factory=list)
     active_effects: list[str] = Field(default_factory=list)
-    notes: list[str] = Field(default_factory=list)
+    location_memories: list[MemoryEntry] = Field(default_factory=list)
 
     def mark_visited(self) -> None:
         """Mark location as visited."""
