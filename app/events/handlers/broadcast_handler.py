@@ -6,6 +6,7 @@ from app.events.base import BaseCommand, CommandResult
 from app.events.commands.broadcast_commands import (
     BroadcastGameUpdateCommand,
     BroadcastNarrativeCommand,
+    BroadcastNPCDialogueCommand,
     BroadcastPolicyWarningCommand,
     BroadcastToolCallCommand,
     BroadcastToolResultCommand,
@@ -27,6 +28,7 @@ class BroadcastHandler(BaseHandler):
             BroadcastNarrativeCommand,
             BroadcastToolCallCommand,
             BroadcastToolResultCommand,
+            BroadcastNPCDialogueCommand,
             BroadcastGameUpdateCommand,
             BroadcastPolicyWarningCommand,
         )
@@ -62,6 +64,16 @@ class BroadcastHandler(BaseHandler):
                 logger.debug(f"Broadcast tool result: {command.tool_name}")
             else:
                 logger.warning(f"Tool result for {command.tool_name} is None, skipping broadcast")
+
+        elif isinstance(command, BroadcastNPCDialogueCommand):
+            await self.message_service.send_npc_dialogue(
+                command.game_id,
+                command.npc_id,
+                command.npc_name,
+                command.content,
+                complete=command.complete,
+            )
+            logger.debug("Broadcast NPC dialogue")
 
         elif isinstance(command, BroadcastGameUpdateCommand):
             await self.message_service.send_game_update(

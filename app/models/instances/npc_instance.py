@@ -7,7 +7,7 @@ from pydantic import Field
 from app.models.instances.base_instance import BaseInstance
 from app.models.instances.entity_state import EntityState
 from app.models.memory import MemoryEntry
-from app.models.npc import NPCSheet
+from app.models.npc import NPCImportance, NPCSheet
 
 
 class NPCInstance(BaseInstance):
@@ -30,3 +30,8 @@ class NPCInstance(BaseInstance):
     def display_name(self) -> str:
         """Human-readable name for UI/combat."""
         return self.sheet.character.name
+
+    @property
+    def importance(self) -> NPCImportance:
+        """Proxy importance from NPC sheet (major vs minor)."""
+        return self.sheet.importance

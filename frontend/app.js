@@ -825,6 +825,14 @@ function initializeSSE() {
         }
     });
 
+    sseSource.addEventListener('npc_dialogue', (event) => {
+        console.log('[SSE] NPC dialogue event received');
+        const data = JSON.parse(event.data);
+        const speaker = data.npc_name || 'NPC';
+        const content = data.content || '';
+        addNpcDialogueBubble(speaker, content);
+    });
+
     // Policy warnings (distinct UI treatment)
     sseSource.addEventListener('policy_warning', (event) => {
         const data = JSON.parse(event.data);
@@ -987,22 +995,42 @@ function parseMarkdown(text) {
 // Add message to chat
 function addMessage(text, type) {
     console.log(`[CHAT] Adding ${type} message: ${text.substring(0, 50)}...`);
-    
+
     const message = document.createElement('div');
     message.className = `message ${type}`;
     const p = document.createElement('p');
-    
+
     // Use innerHTML for DM messages to support markdown, textContent for others
     if (type === 'dm' && text) {
         p.innerHTML = parseMarkdown(text);
     } else {
         p.textContent = text;
     }
-    
+
     message.appendChild(p);
     elements.chatMessages.appendChild(message);
     elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
-    
+
+    return message;
+}
+
+function addNpcDialogueBubble(speaker, content) {
+    console.log(`[CHAT] Adding npc message from ${speaker}: ${content.substring(0, 50)}...`);
+    const message = document.createElement('div');
+    message.className = 'message npc';
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'npc-speaker';
+    nameEl.textContent = speaker;
+    message.appendChild(nameEl);
+
+    const bodyEl = document.createElement('p');
+    bodyEl.textContent = content;
+    message.appendChild(bodyEl);
+
+    elements.chatMessages.appendChild(message);
+    elements.chatMessages.scrollTop = elements.chatMessages.scrollHeight;
+
     return message;
 }
 

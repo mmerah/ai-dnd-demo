@@ -9,6 +9,7 @@ from .monsters_location_builder import MonstersAtLocationContextBuilder
 from .npc_detail_builder import NPCDetailContextBuilder
 from .npc_items_builder import NPCItemsContextBuilder
 from .npc_memory_builder import NPCMemoryContextBuilder
+from .npc_persona_builder import NPCPersonaContextBuilder
 from .npcs_location_builder import NPCsAtLocationContextBuilder
 from .quest_builder import QuestContextBuilder
 from .scenario_builder import ScenarioContextBuilder
@@ -31,5 +32,6 @@ __all__ = [
     "NPCDetailContextBuilder",
     "CurrentStateContextBuilder",
     "NPCMemoryContextBuilder",
+    "NPCPersonaContextBuilder",
     "WorldMemoryContextBuilder",
 ]

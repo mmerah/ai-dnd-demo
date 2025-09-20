@@ -514,6 +514,9 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
         combat_service=container.combat_service,
         event_bus=container.event_bus,
         game_service=container.game_service,
+        metadata_service=container.metadata_service,
+        conversation_service=container.conversation_service,
+        agent_lifecycle_service=container.agent_lifecycle_service,
     )
     ai_service = AIService(orchestrator)
 

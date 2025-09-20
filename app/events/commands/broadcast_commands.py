@@ -42,6 +42,19 @@ class BroadcastToolResultCommand(BaseCommand):
 
 
 @dataclass
+class BroadcastNPCDialogueCommand(BaseCommand):
+    """Command to broadcast NPC dialogue to the frontend."""
+
+    npc_id: str = ""
+    npc_name: str = ""
+    content: str = ""
+    complete: bool = True
+
+    def get_handler_name(self) -> str:
+        return "broadcast"
+
+
+@dataclass
 class BroadcastGameUpdateCommand(BaseCommand):
     """Command to broadcast game state update."""
 

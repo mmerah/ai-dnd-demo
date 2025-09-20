@@ -6,7 +6,7 @@ from app.models.attributes import Abilities
 from app.models.character import CharacterSheet
 from app.models.instances.entity_state import EntityState, HitDice, HitPoints
 from app.models.instances.npc_instance import NPCInstance
-from app.models.npc import NPCSheet
+from app.models.npc import NPCImportance, NPCSheet
 
 from .characters import make_character_sheet
 
@@ -19,6 +19,7 @@ def make_npc_sheet(
     description: str = "A stalwart town guard",
     initial_location_id: str = "town-square",
     character: CharacterSheet | None = None,
+    importance: NPCImportance = NPCImportance.MINOR,
 ) -> NPCSheet:
     """Create an NPCSheet embedding a CharacterSheet.
 
@@ -31,6 +32,7 @@ def make_npc_sheet(
         role=role,
         description=description,
         initial_location_id=initial_location_id,
+        importance=importance,
         character=character,
     )
 

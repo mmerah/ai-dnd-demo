@@ -4,6 +4,7 @@
   "role": "Barkeep",
   "description": "A stout, friendly man with a graying beard and knowing eyes.",
   "initial_location_id": "tavern",
+  "importance": "minor",
   "initial_dialogue_hints": [
     "Knows about the goblin attacks on the road",
     "Can provide information about the missing merchant",

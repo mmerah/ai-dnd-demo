@@ -1,12 +1,21 @@
 """Unit tests for MetadataService."""
 
+import pytest
+
 from app.models.combat import CombatState
 from app.models.game_state import GameState
 from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.scenario_instance import ScenarioInstance
 from app.models.location import LocationState
 from app.services.game.metadata_service import MetadataService
-from tests.factories import make_character_instance, make_character_sheet, make_location, make_scenario
+from tests.factories import (
+    make_character_instance,
+    make_character_sheet,
+    make_location,
+    make_npc_instance,
+    make_npc_sheet,
+    make_scenario,
+)
 
 
 class TestMetadataService:
@@ -44,6 +53,35 @@ class TestMetadataService:
         )
         scenario_instance.location_states[location.id] = LocationState(location_id=location.id)
         return scenario_instance
+
+    def _build_game_state_with_npcs(self, npc_names: list[str]) -> GameState:
+        character = self._create_character_instance()
+        scenario_instance = self._create_scenario_instance()
+        location_model = scenario_instance.sheet.get_location(scenario_instance.current_location_id)
+        location_label = location_model.name if location_model else "Unknown"
+        npcs = []
+        for idx, name in enumerate(npc_names, start=1):
+            sheet = make_npc_sheet(
+                npc_id=f"npc-{idx}",
+                display_name=name,
+                initial_location_id=scenario_instance.current_location_id,
+            )
+            npc = make_npc_instance(
+                npc_sheet=sheet,
+                instance_id=sheet.id,
+                current_location_id=scenario_instance.current_location_id,
+            )
+            npcs.append(npc)
+
+        return GameState(
+            game_id="test-game",
+            character=character,
+            scenario_id=scenario_instance.template_id,
+            scenario_title=scenario_instance.sheet.title,
+            scenario_instance=scenario_instance,
+            location=location_label,
+            npcs=npcs,
+        )
 
     def test_extract_npcs_mentioned_single_npc(self) -> None:
         """Test extracting a single mentioned NPC."""
@@ -183,3 +221,28 @@ class TestMetadataService:
             )
             round_num = self.service.get_combat_round(game_state)
             assert round_num == round_number
+
+    def test_extract_targeted_npcs_explicit_tokens_preserve_order(self) -> None:
+        game_state = self._build_game_state_with_npcs(["Lia", "Tomas"])
+        targets = self.service.extract_targeted_npcs("@Tomas and @Lia, we need a plan", game_state)
+        assert targets == ["npc-2", "npc-1"]
+
+    def test_extract_targeted_npcs_ignores_non_explicit_mentions(self) -> None:
+        game_state = self._build_game_state_with_npcs(["Lia", "Tomas"])
+        targets = self.service.extract_targeted_npcs("Lia, could you scout ahead?", game_state)
+        assert targets == []
+
+    def test_extract_targeted_npcs_deduplicates_multiple_mentions(self) -> None:
+        game_state = self._build_game_state_with_npcs(["Lia"])
+        targets = self.service.extract_targeted_npcs("@Lia, @Lia please respond", game_state)
+        assert targets == ["npc-1"]
+
+    def test_extract_targeted_npcs_returns_empty_when_no_match(self) -> None:
+        game_state = self._build_game_state_with_npcs(["Lia"])
+        targets = self.service.extract_targeted_npcs("The party regroups at camp.", game_state)
+        assert targets == []
+
+    def test_extract_targeted_npcs_unknown_explicit_name_raises(self) -> None:
+        game_state = self._build_game_state_with_npcs(["Lia"])
+        with pytest.raises(ValueError):
+            self.service.extract_targeted_npcs("@Unknown, guide us.", game_state)

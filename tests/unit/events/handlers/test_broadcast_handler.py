@@ -6,6 +6,7 @@ import pytest
 from app.events.commands.broadcast_commands import (
     BroadcastGameUpdateCommand,
     BroadcastNarrativeCommand,
+    BroadcastNPCDialogueCommand,
     BroadcastPolicyWarningCommand,
     BroadcastToolCallCommand,
     BroadcastToolResultCommand,
@@ -153,4 +154,25 @@ class TestBroadcastHandler:
             message,
             tool_name,
             "narrative",
+        )
+
+    @pytest.mark.asyncio
+    async def test_broadcast_npc_dialogue(self) -> None:
+        gs = self.game_state
+        command = BroadcastNPCDialogueCommand(
+            game_id=gs.game_id,
+            npc_id="npc-1",
+            npc_name="Lia",
+            content="Stay sharp, everyone.",
+        )
+
+        result = await self.handler.handle(command, gs)
+
+        assert not result.mutated
+        self.message_service.send_npc_dialogue.assert_called_once_with(
+            gs.game_id,
+            "npc-1",
+            "Lia",
+            "Stay sharp, everyone.",
+            complete=True,
         )

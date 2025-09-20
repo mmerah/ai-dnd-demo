@@ -101,6 +101,44 @@ def tool_handler(
 
                     return BlockedToolResult(message=error_msg, tool_name=tool_name, type="blocked")
 
+            if agent_type == AgentType.NPC:
+                npc_allowed_tools = {
+                    "start_quest",
+                    "complete_objective",
+                    "complete_quest",
+                    "modify_inventory",
+                    "update_location_state",
+                    "discover_secret",
+                    "move_npc_to_location",
+                }
+
+                if tool_name not in npc_allowed_tools:
+                    error_msg = (
+                        f"BLOCKED: NPC agent attempted to use '{tool_name}'. "
+                        "NPC agents may only use quest, inventory, or safe location tools."
+                    )
+                    logger.error(error_msg)
+                    try:
+                        await event_bus.submit_and_wait(
+                            [
+                                BroadcastPolicyWarningCommand(
+                                    game_id=game_state.game_id,
+                                    message="Blocked tool usage for NPC agent",
+                                    tool_name=tool_name,
+                                    agent_type=agent_type.value,
+                                )
+                            ]
+                        )
+                    except Exception:
+                        logger.debug("Failed to broadcast blocked-tool system message", exc_info=True)
+
+                    class BlockedToolResultNPC(BaseModel):
+                        type: str = "blocked"
+                        message: str
+                        tool_name: str
+
+                    return BlockedToolResultNPC(message=error_msg, tool_name=tool_name)
+
             original_kwargs: dict[str, JSONSerializable] = cast(dict[str, JSONSerializable], dict(kwargs))
 
             # Optionally transform kwargs for command construction and/or broadcast

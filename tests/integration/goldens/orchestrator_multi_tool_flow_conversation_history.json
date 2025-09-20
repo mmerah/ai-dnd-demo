@@ -7,7 +7,9 @@
     "location": "Moonlit Library",
     "npcs_mentioned": [],
     "combat_round": null,
-    "combat_occurrence": null
+    "combat_occurrence": null,
+    "speaker_npc_id": null,
+    "speaker_npc_name": null
   },
   {
     "role": "dm",
@@ -17,7 +19,9 @@
     "location": null,
     "npcs_mentioned": [],
     "combat_round": 1,
-    "combat_occurrence": 1
+    "combat_occurrence": 1,
+    "speaker_npc_id": null,
+    "speaker_npc_name": null
   },
   {
     "role": "dm",
@@ -29,7 +33,9 @@
       "Ogre"
     ],
     "combat_round": 1,
-    "combat_occurrence": 1
+    "combat_occurrence": 1,
+    "speaker_npc_id": null,
+    "speaker_npc_name": null
   },
   {
     "role": "dm",
@@ -41,7 +47,9 @@
       "Ogre"
     ],
     "combat_round": 2,
-    "combat_occurrence": 1
+    "combat_occurrence": 1,
+    "speaker_npc_id": null,
+    "speaker_npc_name": null
   },
   {
     "role": "dm",
@@ -51,7 +59,9 @@
     "location": null,
     "npcs_mentioned": [],
     "combat_round": null,
-    "combat_occurrence": null
+    "combat_occurrence": null,
+    "speaker_npc_id": null,
+    "speaker_npc_name": null
   },
   {
     "role": "dm",
@@ -61,6 +71,8 @@
     "location": "Moonlit Library",
     "npcs_mentioned": [],
     "combat_round": null,
-    "combat_occurrence": null
+    "combat_occurrence": null,
+    "speaker_npc_id": null,
+    "speaker_npc_name": null
   }
 ]

@@ -14,6 +14,7 @@ from app.models.sse_events import (
     GameUpdateData,
     InitialNarrativeData,
     NarrativeData,
+    NPCDialogueData,
     PolicyWarningData,
     ScenarioInfoData,
     SSEEvent,
@@ -63,6 +64,23 @@ class MessageService(IMessageService):
     async def send_tool_result(self, game_id: str, tool_name: str, result: ToolResult) -> None:
         data = ToolResultData(tool_name=tool_name, result=result)
         await self.broadcast_service.publish(game_id, SSEEventType.TOOL_RESULT.value, data)
+
+    async def send_npc_dialogue(
+        self,
+        game_id: str,
+        npc_id: str,
+        npc_name: str,
+        content: str,
+        complete: bool = True,
+    ) -> None:
+        # Broadcast dedicated NPC dialogue payload so the frontend can render distinct styling.
+        data = NPCDialogueData(
+            npc_id=npc_id,
+            npc_name=npc_name,
+            content=content,
+            complete=complete,
+        )
+        await self.broadcast_service.publish(game_id, SSEEventType.NPC_DIALOGUE.value, data)
 
     async def send_error(self, game_id: str, error: str, error_type: str | None = None) -> None:
         data = ErrorData(error=error, type=error_type)

@@ -17,7 +17,13 @@ from app.events.handlers.quest_handler import QuestHandler
 from app.events.handlers.time_handler import TimeHandler
 from app.interfaces.agents.summarizer import ISummarizerAgent
 from app.interfaces.events import IEventBus
-from app.interfaces.services.ai import IAIService, IContextService, IEventLoggerService, IMessageService
+from app.interfaces.services.ai import (
+    IAgentLifecycleService,
+    IAIService,
+    IContextService,
+    IEventLoggerService,
+    IMessageService,
+)
 from app.interfaces.services.character import ICharacterComputeService, ICharacterService, ILevelProgressionService
 from app.interfaces.services.common import (
     IActionService,
@@ -50,6 +56,7 @@ from app.models.monster import MonsterSheet
 from app.models.scenario import ScenarioSheet
 from app.models.spell import SpellDefinition
 from app.services.ai import AIService, MessageService
+from app.services.ai.agent_lifecycle_service import AgentLifecycleService
 from app.services.ai.context_service import ContextService
 from app.services.ai.event_logger_service import EventLoggerService
 from app.services.ai.orchestrator_service import AgentOrchestrator
@@ -470,6 +477,9 @@ class Container:
             combat_service=self.combat_service,
             event_bus=self.event_bus,
             game_service=self.game_service,
+            metadata_service=self.metadata_service,
+            conversation_service=self.conversation_service,
+            agent_lifecycle_service=self.agent_lifecycle_service,
         )
         return AIService(orchestrator)
 
@@ -500,6 +510,25 @@ class Container:
     @cached_property
     def message_service(self) -> IMessageService:
         return MessageService(self.broadcast_service)
+
+    @cached_property
+    def agent_lifecycle_service(self) -> IAgentLifecycleService:
+        settings = get_settings()
+        return AgentLifecycleService(
+            event_bus=self.event_bus,
+            scenario_service=self.scenario_service,
+            repository_provider=self.repository_factory,
+            metadata_service=self.metadata_service,
+            message_manager=self.game_message_manager,
+            event_manager=self.event_manager,
+            save_manager=self.save_manager,
+            conversation_service=self.conversation_service,
+            context_service=self.context_service,
+            event_logger_service=self.event_logger_service,
+            action_service=self.action_service,
+            message_service=self.message_service,
+            debug=settings.debug_ai,
+        )
 
     @cached_property
     def broadcast_service(self) -> IBroadcastService:

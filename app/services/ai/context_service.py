@@ -4,6 +4,7 @@ from app.agents.core.types import AgentType
 from app.interfaces.services.ai import IContextService
 from app.interfaces.services.data import IRepositoryProvider
 from app.models.game_state import GameState
+from app.models.instances.npc_instance import NPCInstance
 
 from .context_builders import (
     CombatContextBuilder,
@@ -16,6 +17,7 @@ from .context_builders import (
     NPCDetailContextBuilder,
     NPCItemsContextBuilder,
     NPCMemoryContextBuilder,
+    NPCPersonaContextBuilder,
     NPCsAtLocationContextBuilder,
     QuestContextBuilder,
     ScenarioContextBuilder,
@@ -50,6 +52,7 @@ class ContextService(IContextService):
         self.npc_items_builder = NPCItemsContextBuilder(item_repository=None)
         self.npc_memory_builder = NPCMemoryContextBuilder()
         self.world_memory_builder = WorldMemoryContextBuilder()
+        self.npc_persona_builder = NPCPersonaContextBuilder()
 
         # Full builder list for narrative agent
         self.builders = [
@@ -102,3 +105,34 @@ class ContextService(IContextService):
                 context_parts.append(part)
 
         return "\n\n".join(context_parts)
+
+    def build_context_for_npc(self, game_state: GameState) -> str:
+        """NPC-specific slice of the shared game context."""
+
+        item_repo = self.repository_provider.get_item_repository_for(game_state)
+        self.location_builder.item_repository = item_repo
+        self.npc_items_builder.item_repository = item_repo
+
+        selected_builders = [
+            self.scenario_builder,
+            self.location_builder,
+            self.location_memory_builder,
+            self.npcs_at_location_builder,
+            self.quest_builder,
+            self.current_state_builder,
+            self.npc_memory_builder,
+            self.world_memory_builder,
+            self.inventory_builder,
+        ]
+
+        context_parts: list[str] = []
+        for builder in selected_builders:
+            part = builder.build(game_state)
+            if part:
+                context_parts.append(part)
+        return "\n\n".join(context_parts)
+
+    def build_npc_persona(self, npc: NPCInstance) -> str:
+        """Render persona details for a specific NPC."""
+
+        return self.npc_persona_builder.build(npc)

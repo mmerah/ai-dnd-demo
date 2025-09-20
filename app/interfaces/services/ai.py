@@ -2,10 +2,12 @@ from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator, AsyncIterator
 from typing import Any
 
+from app.agents.core.base import BaseAgent
 from app.agents.core.types import AgentType
 from app.common.types import JSONSerializable
 from app.models.ai_response import AIResponse
 from app.models.game_state import GameState
+from app.models.instances.npc_instance import NPCInstance
 from app.models.scenario import ScenarioSheet
 from app.models.tool_results import ToolResult
 
@@ -77,6 +79,18 @@ class IMessageService(ABC):
             tool_name: Name of the tool that was called
             result: Tool execution result
         """
+        pass
+
+    @abstractmethod
+    async def send_npc_dialogue(
+        self,
+        game_id: str,
+        npc_id: str,
+        npc_name: str,
+        content: str,
+        complete: bool = True,
+    ) -> None:
+        """Broadcast an NPC dialogue event."""
         pass
 
     @abstractmethod
@@ -160,6 +174,30 @@ class IContextService(ABC):
             Context string optimized for the specified agent type
         """
         pass
+
+    @abstractmethod
+    def build_context_for_npc(self, game_state: GameState) -> str:
+        """Build shared context slice for NPC agents."""
+
+    @abstractmethod
+    def build_npc_persona(self, npc: NPCInstance) -> str:
+        """Build persona description for a specific NPC."""
+
+
+class IAgentLifecycleService(ABC):
+    """Lifecycle management for dynamic NPC agents."""
+
+    @abstractmethod
+    def get_npc_agent(self, game_state: GameState, npc: NPCInstance) -> BaseAgent:
+        """Return the agent that should speak for the given NPC."""
+
+    @abstractmethod
+    def release_npc_agent(self, game_id: str, npc_id: str) -> None:
+        """Release cached agent state for a specific NPC."""
+
+    @abstractmethod
+    def release_for_game(self, game_id: str) -> None:
+        """Clear all cached agents associated with a game."""
 
 
 class IEventLoggerService(ABC):

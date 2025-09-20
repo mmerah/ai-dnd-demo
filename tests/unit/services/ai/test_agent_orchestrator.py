@@ -3,18 +3,20 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-from unittest.mock import AsyncMock, create_autospec
+from unittest.mock import AsyncMock, MagicMock, create_autospec
 
 import pytest
 
 from app.agents.core.base import BaseAgent, ToolFunction
 from app.agents.core.types import AgentType
 from app.interfaces.events import IEventBus
-from app.interfaces.services.game import ICombatService, IGameService
+from app.interfaces.services.ai import IAgentLifecycleService
+from app.interfaces.services.game import ICombatService, IConversationService, IGameService, IMetadataService
 from app.models.ai_response import StreamEvent, StreamEventType
-from app.models.game_state import GameState
+from app.models.game_state import GameState, MessageRole
+from app.models.instances.npc_instance import NPCInstance
 from app.services.ai.orchestrator_service import AgentOrchestrator
-from tests.factories import make_game_state
+from tests.factories import make_game_state, make_npc_instance
 
 
 class _StubAgent(BaseAgent):
@@ -47,6 +49,56 @@ class _StubSummarizer(BaseAgent):
         raise NotImplementedError
 
 
+class _StubNPCAgent(BaseAgent):
+    def __init__(self, reply: str) -> None:
+        self.reply = reply
+        self.calls: list[str] = []
+        self.active_npc_id: str | None = None
+
+    def get_required_tools(self) -> list[ToolFunction]:
+        return []
+
+    async def process(
+        self,
+        user_message: str,
+        game_state: GameState,
+        stream: bool = True,
+    ) -> AsyncIterator[StreamEvent]:
+        if self.active_npc_id is not None:
+            self.calls.append(self.active_npc_id)
+        yield StreamEvent(type=StreamEventType.COMPLETE, content=self.reply)
+
+    def prepare_for_npc(self, npc: NPCInstance) -> None:
+        self.active_npc_id = npc.instance_id
+
+
+def _build_orchestrator(
+    narrative_agent: BaseAgent,
+    combat_agent: BaseAgent,
+    summarizer: _StubSummarizer,
+    combat_service: ICombatService,
+    event_bus: IEventBus,
+    game_service: IGameService,
+) -> tuple[AgentOrchestrator, MagicMock, MagicMock, MagicMock]:
+    metadata_service: MagicMock = create_autospec(IMetadataService, instance=True)
+    metadata_service.extract_targeted_npcs.return_value = []
+    conversation_service: MagicMock = create_autospec(IConversationService, instance=True)
+    agent_lifecycle: MagicMock = create_autospec(IAgentLifecycleService, instance=True)
+
+    orchestrator = AgentOrchestrator(
+        narrative_agent=narrative_agent,
+        combat_agent=combat_agent,
+        summarizer_agent=summarizer,  # type: ignore[arg-type]
+        combat_service=combat_service,
+        event_bus=event_bus,
+        game_service=game_service,
+        metadata_service=metadata_service,
+        conversation_service=conversation_service,
+        agent_lifecycle_service=agent_lifecycle,
+    )
+    return orchestrator, metadata_service, conversation_service, agent_lifecycle
+
+
 @pytest.mark.asyncio
 async def test_orchestrator_uses_narrative_agent(monkeypatch: pytest.MonkeyPatch) -> None:
     game_state = make_game_state()
@@ -73,13 +125,13 @@ async def test_orchestrator_uses_narrative_agent(monkeypatch: pytest.MonkeyPatch
 
     monkeypatch.setattr("app.services.ai.orchestrator.combat_loop.run", _empty_combat_loop)
 
-    orchestrator = AgentOrchestrator(
-        narrative_agent=narrative_agent,
-        combat_agent=combat_agent,
-        summarizer_agent=summarizer,  # type: ignore[arg-type]
-        combat_service=combat_service,
-        event_bus=event_bus,
-        game_service=game_service,
+    orchestrator, metadata_service, conversation_service, agent_lifecycle = _build_orchestrator(
+        narrative_agent,
+        combat_agent,
+        summarizer,
+        combat_service,
+        event_bus,
+        game_service,
     )
 
     user_message = "hello"
@@ -88,6 +140,9 @@ async def test_orchestrator_uses_narrative_agent(monkeypatch: pytest.MonkeyPatch
     assert events == narrative_events
     assert narrative_agent.messages == [user_message]
     assert combat_agent.messages == []
+    metadata_service.extract_targeted_npcs.assert_called_with(user_message, game_state)
+    conversation_service.record_message.assert_not_called()
+    agent_lifecycle.get_npc_agent.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -130,13 +185,13 @@ async def test_orchestrator_handles_combat_transition(monkeypatch: pytest.Monkey
 
     monkeypatch.setattr("app.services.ai.orchestrator.combat_loop.run", _fake_combat_loop)
 
-    orchestrator = AgentOrchestrator(
-        narrative_agent=narrative_agent,
-        combat_agent=combat_agent,
-        summarizer_agent=summarizer,  # type: ignore[arg-type]
-        combat_service=combat_service,
-        event_bus=event_bus,
-        game_service=game_service,
+    orchestrator, *_ = _build_orchestrator(
+        narrative_agent,
+        combat_agent,
+        summarizer,
+        combat_service,
+        event_bus,
+        game_service,
     )
 
     events = [event async for event in orchestrator.process("advance", game_state)]
@@ -194,13 +249,13 @@ async def test_orchestrator_handles_npc_combat_turns(monkeypatch: pytest.MonkeyP
 
     monkeypatch.setattr("app.services.ai.orchestrator.combat_loop.run", _tracked_combat_loop)
 
-    orchestrator = AgentOrchestrator(
-        narrative_agent=narrative_agent,
-        combat_agent=combat_agent,
-        summarizer_agent=summarizer,  # type: ignore[arg-type]
-        combat_service=combat_service,
-        event_bus=event_bus,
-        game_service=game_service,
+    orchestrator, *_ = _build_orchestrator(
+        narrative_agent,
+        combat_agent,
+        summarizer,
+        combat_service,
+        event_bus,
+        game_service,
     )
 
     events = [event async for event in orchestrator.process("I attack", game_state)]
@@ -264,13 +319,13 @@ async def test_orchestrator_handles_combat_ending_mid_loop(monkeypatch: pytest.M
 
     monkeypatch.setattr("app.services.ai.orchestrator.combat_loop.run", _empty_combat_loop)
 
-    orchestrator = AgentOrchestrator(
-        narrative_agent=narrative_agent,
-        combat_agent=combat_agent,
-        summarizer_agent=summarizer,  # type: ignore[arg-type]
-        combat_service=combat_service,
-        event_bus=event_bus,
-        game_service=game_service,
+    orchestrator, *_ = _build_orchestrator(
+        narrative_agent,
+        combat_agent,
+        summarizer,
+        combat_service,
+        event_bus,
+        game_service,
     )
 
     events = [event async for event in orchestrator.process("final strike", game_state)]
@@ -317,13 +372,13 @@ async def test_orchestrator_skips_combat_loop_when_not_active(monkeypatch: pytes
 
     monkeypatch.setattr("app.services.ai.orchestrator.combat_loop.run", _tracking_combat_loop)
 
-    orchestrator = AgentOrchestrator(
-        narrative_agent=narrative_agent,
-        combat_agent=combat_agent,
-        summarizer_agent=summarizer,  # type: ignore[arg-type]
-        combat_service=combat_service,
-        event_bus=event_bus,
-        game_service=game_service,
+    orchestrator, metadata_service, conversation_service, agent_lifecycle = _build_orchestrator(
+        narrative_agent,
+        combat_agent,
+        summarizer,
+        combat_service,
+        event_bus,
+        game_service,
     )
 
     user_message = "look around"
@@ -339,6 +394,9 @@ async def test_orchestrator_skips_combat_loop_when_not_active(monkeypatch: pytes
     # Only narrative agent should be used
     assert narrative_agent.messages == [user_message]
     assert combat_agent.messages == []
+    metadata_service.extract_targeted_npcs.assert_called_with(user_message, game_state)
+    conversation_service.record_message.assert_not_called()
+    agent_lifecycle.get_npc_agent.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -379,13 +437,13 @@ async def test_orchestrator_handles_multiple_state_reloads(monkeypatch: pytest.M
 
     monkeypatch.setattr("app.services.ai.orchestrator.combat_loop.run", _empty_combat_loop)
 
-    orchestrator = AgentOrchestrator(
-        narrative_agent=narrative_agent,
-        combat_agent=combat_agent,
-        summarizer_agent=summarizer,  # type: ignore[arg-type]
-        combat_service=combat_service,
-        event_bus=event_bus,
-        game_service=game_service,
+    orchestrator, *_ = _build_orchestrator(
+        narrative_agent,
+        combat_agent,
+        summarizer,
+        combat_service,
+        event_bus,
+        game_service,
     )
 
     events = [event async for event in orchestrator.process("test", game_state)]
@@ -440,13 +498,13 @@ async def test_orchestrator_combat_continuation_in_active_combat(monkeypatch: py
 
     monkeypatch.setattr("app.services.ai.orchestrator.combat_loop.run", _multi_turn_combat_loop)
 
-    orchestrator = AgentOrchestrator(
-        narrative_agent=narrative_agent,
-        combat_agent=combat_agent,
-        summarizer_agent=summarizer,  # type: ignore[arg-type]
-        combat_service=combat_service,
-        event_bus=event_bus,
-        game_service=game_service,
+    orchestrator, *_ = _build_orchestrator(
+        narrative_agent,
+        combat_agent,
+        summarizer,
+        combat_service,
+        event_bus,
+        game_service,
     )
 
     events = [event async for event in orchestrator.process("continue combat", game_state)]
@@ -455,3 +513,49 @@ async def test_orchestrator_combat_continuation_in_active_combat(monkeypatch: py
     assert len(events) >= 2
     assert events[0].content == combat_agent.events[0].content
     assert any(evt.content in expected_loop_contents for evt in events)
+
+
+@pytest.mark.asyncio
+async def test_orchestrator_routes_to_npc_agents(monkeypatch: pytest.MonkeyPatch) -> None:
+    game_state = make_game_state()
+    npc = make_npc_instance(instance_id="npc-1")
+    npc.current_location_id = game_state.scenario_instance.current_location_id
+    game_state.npcs.append(npc)
+
+    narrative_agent = _StubAgent([])
+    combat_agent = _StubAgent([])
+    summarizer = _StubSummarizer()
+    combat_service = create_autospec(ICombatService, instance=True)
+    event_bus = create_autospec(IEventBus, instance=True)
+    game_service = create_autospec(IGameService, instance=True)
+
+    monkeypatch.setattr("app.services.ai.orchestrator.agent_router.select", lambda _: AgentType.NARRATIVE)
+    monkeypatch.setattr("app.services.ai.orchestrator.state_reload.reload", lambda service, state: state)
+
+    orchestrator, metadata_service, conversation_service, agent_lifecycle = _build_orchestrator(
+        narrative_agent,
+        combat_agent,
+        summarizer,
+        combat_service,
+        event_bus,
+        game_service,
+    )
+
+    metadata_service.extract_targeted_npcs.return_value = [npc.instance_id]
+    npc_agent = _StubNPCAgent("NPC reply")
+    agent_lifecycle.get_npc_agent.return_value = npc_agent
+
+    events = [event async for event in orchestrator.process("@Tom hello", game_state)]
+
+    assert len(events) == 1
+    assert events[0].content == "NPC reply"
+    conversation_service.record_message.assert_called_once()
+    args, kwargs = conversation_service.record_message.call_args
+    assert args[0] is game_state
+    assert args[1] is MessageRole.PLAYER
+    assert kwargs["agent_type"] == AgentType.NPC
+    agent_lifecycle.get_npc_agent.assert_called_once()
+    called_game_state, called_npc = agent_lifecycle.get_npc_agent.call_args.args
+    assert called_game_state is game_state
+    assert called_npc is npc
+    assert npc_agent.calls == [npc.instance_id]

@@ -716,6 +716,21 @@ body {
     align-self: flex-start;
 }
 
+.message.npc {
+    background: rgba(139, 90, 60, 0.18);
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    align-self: flex-start;
+    box-shadow: 0 0 6px rgba(212, 175, 55, 0.15);
+    border-left: 3px solid var(--accent-color);
+}
+
+.message.npc .npc-speaker {
+    font-weight: 600;
+    color: var(--accent-color);
+    margin-bottom: 0.35rem;
+    letter-spacing: 0.02em;
+}
+
 /* Markdown styling for DM messages */
 .message.dm strong {
     color: var(--accent-color);

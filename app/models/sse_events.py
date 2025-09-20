@@ -25,6 +25,7 @@ class SSEEventType(str, Enum):
     DICE_ROLL = "dice_roll"
     COMBAT_UPDATE = "combat_update"
     SYSTEM = "system"
+    NPC_DIALOGUE = "npc_dialogue"
     POLICY_WARNING = "policy_warning"
     ERROR = "error"
     GAME_UPDATE = "game_update"
@@ -79,6 +80,15 @@ class ToolResultData(BaseSSEData):
 
     tool_name: str
     result: ToolResult
+
+
+class NPCDialogueData(BaseSSEData):
+    """Data for NPC dialogue events."""
+
+    npc_id: str
+    npc_name: str
+    content: str
+    complete: bool = True
 
 
 class CombatUpdateData(BaseSSEData):
@@ -136,6 +146,7 @@ SSEData = (
     | InitialNarrativeData
     | ToolCallData
     | ToolResultData
+    | NPCDialogueData
     | CombatUpdateData
     | SystemMessageData
     | PolicyWarningData

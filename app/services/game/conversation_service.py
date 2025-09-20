@@ -24,9 +24,15 @@ class ConversationService(IConversationService):
         role: MessageRole,
         content: str,
         agent_type: AgentType = AgentType.NARRATIVE,
+        speaker_npc_id: str | None = None,
+        speaker_npc_name: str | None = None,
     ) -> Message:
         known_npcs = [npc.sheet.character.name for npc in game_state.npcs]
         npcs_mentioned = self.metadata_service.extract_npcs_mentioned(content, known_npcs)
+
+        if role == MessageRole.NPC and speaker_npc_name and speaker_npc_name not in npcs_mentioned:
+            npcs_mentioned.append(speaker_npc_name)
+
         location = self.metadata_service.get_current_location(game_state) or "Unknown"
         combat_round = self.metadata_service.get_combat_round(game_state) or 0
         combat_occurrence = game_state.combat.combat_occurrence if game_state.combat.is_active else None
@@ -41,6 +47,8 @@ class ConversationService(IConversationService):
             npcs_mentioned=npcs_mentioned,
             combat_round=combat_round,
             combat_occurrence=combat_occurrence,
+            speaker_npc_id=speaker_npc_id,
+            speaker_npc_name=speaker_npc_name,
         )
         self.save_manager.save_game(game_state)
         return message

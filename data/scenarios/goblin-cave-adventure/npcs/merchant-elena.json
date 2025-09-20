@@ -4,6 +4,7 @@
   "role": "Merchant",
   "description": "A weary traveling merchant searching for missing goods.",
   "initial_location_id": "forest-path",
+  "importance": "minor",
   "initial_dialogue_hints": [
     "Was ambushed by goblins on the road",
     "Offers reward for recovering stolen wares"

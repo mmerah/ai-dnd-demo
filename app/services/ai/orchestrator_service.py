@@ -2,14 +2,21 @@
 
 import logging
 from collections.abc import AsyncIterator
+from datetime import datetime
 
 from app.agents.core.base import BaseAgent
 from app.agents.core.types import AgentType
 from app.interfaces.agents.summarizer import ISummarizerAgent
 from app.interfaces.events import IEventBus
-from app.interfaces.services.game import ICombatService, IGameService
+from app.interfaces.services.ai import IAgentLifecycleService
+from app.interfaces.services.game import (
+    ICombatService,
+    IConversationService,
+    IGameService,
+    IMetadataService,
+)
 from app.models.ai_response import StreamEvent
-from app.models.game_state import GameState
+from app.models.game_state import DialogueSessionMode, GameState, MessageRole
 from app.services.ai.orchestrator import agent_router, combat_loop, state_reload, system_broadcasts, transitions
 
 logger = logging.getLogger(__name__)
@@ -26,6 +33,9 @@ class AgentOrchestrator:
         combat_service: ICombatService,
         event_bus: IEventBus,
         game_service: IGameService,
+        metadata_service: IMetadataService,
+        conversation_service: IConversationService,
+        agent_lifecycle_service: IAgentLifecycleService,
     ) -> None:
         self.narrative_agent = narrative_agent
         self.combat_agent = combat_agent
@@ -33,6 +43,9 @@ class AgentOrchestrator:
         self.combat_service = combat_service
         self.event_bus = event_bus
         self.game_service = game_service
+        self.metadata_service = metadata_service
+        self.conversation_service = conversation_service
+        self.agent_lifecycle_service = agent_lifecycle_service
 
     async def process(
         self,
@@ -46,6 +59,15 @@ class AgentOrchestrator:
         """
         # Store whether combat was active before processing
         combat_was_active = game_state.combat.is_active
+
+        if not game_state.combat.is_active:
+            targeted_npcs = self._extract_targeted_npcs(user_message, game_state)
+            if targeted_npcs:
+                async for event in self._handle_npc_dialogue(user_message, game_state, targeted_npcs, stream):
+                    yield event
+                game_state = state_reload.reload(self.game_service, game_state)
+                return
+            self._maybe_end_dialogue_session(game_state)
 
         # Determine current agent type based on game state
         current_agent_type = agent_router.select(game_state)
@@ -74,8 +96,8 @@ class AgentOrchestrator:
             initial_prompt = self.combat_service.generate_combat_prompt(game_state)
             if initial_prompt:
                 await system_broadcasts.send_initial_combat_prompt(self.event_bus, game_state.game_id, initial_prompt)
-                async for event in self.combat_agent.process(initial_prompt, game_state, stream=stream):
-                    yield event
+            async for event in self.combat_agent.process(initial_prompt, game_state, stream=stream):
+                yield event
 
             # Handle any subsequent NPC/Monster turns or combat ending
             async for event in combat_loop.run(
@@ -140,3 +162,58 @@ class AgentOrchestrator:
 
             async for event in self.narrative_agent.process(continuation_prompt, game_state, stream=stream):
                 yield event
+
+    def _extract_targeted_npcs(self, user_message: str, game_state: GameState) -> list[str]:
+        try:
+            return self.metadata_service.extract_targeted_npcs(user_message, game_state)
+        except ValueError as exc:
+            logger.warning("Failed to resolve targeted NPCs: %s", exc)
+            raise
+
+    async def _handle_npc_dialogue(
+        self,
+        user_message: str,
+        game_state: GameState,
+        targeted_npc_ids: list[str],
+        stream: bool,
+    ) -> AsyncIterator[StreamEvent]:
+        session = game_state.dialogue_session
+        now = datetime.now()
+        session.active = True
+        session.mode = DialogueSessionMode.EXPLICIT_ONLY
+        session.target_npc_ids = targeted_npc_ids
+        session.last_interaction_at = now
+        if session.started_at is None:
+            session.started_at = now
+
+        game_state.active_agent = AgentType.NPC
+
+        self.conversation_service.record_message(
+            game_state,
+            MessageRole.PLAYER,
+            user_message,
+            agent_type=AgentType.NPC,
+        )
+
+        for npc_id in targeted_npc_ids:
+            npc = game_state.get_npc_by_id(npc_id)
+            if npc is None:
+                raise ValueError(f"NPC with id '{npc_id}' not found")
+
+            agent = self.agent_lifecycle_service.get_npc_agent(game_state, npc)
+            prepare_fn = getattr(agent, "prepare_for_npc", None)
+            if callable(prepare_fn):
+                prepare_fn(npc)
+            async for event in agent.process(user_message, game_state, stream=stream):
+                yield event
+            session.last_interaction_at = datetime.now()
+
+    def _maybe_end_dialogue_session(self, game_state: GameState) -> None:
+        session = game_state.dialogue_session
+        if session.active and session.mode is DialogueSessionMode.EXPLICIT_ONLY:
+            logger.debug("Ending explicit dialogue session for game %s", game_state.game_id)
+            session.active = False
+            session.target_npc_ids = []
+            session.started_at = None
+            session.last_interaction_at = None
+            game_state.active_agent = AgentType.NARRATIVE

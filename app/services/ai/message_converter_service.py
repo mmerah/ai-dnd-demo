@@ -36,7 +36,7 @@ class MessageConverterService:
 
             if msg.role == MessageRole.PLAYER:
                 pydantic_messages.append(ModelRequest(parts=[UserPromptPart(content=msg.content)]))
-            elif msg.role == MessageRole.DM:
+            elif msg.role in (MessageRole.DM, MessageRole.NPC):
                 pydantic_messages.append(ModelResponse(parts=[TextPart(content=msg.content)]))
 
         return pydantic_messages

@@ -10,7 +10,8 @@ import pytest
 from app.agents.core.base import BaseAgent, ToolFunction
 from app.agents.core.types import AgentType
 from app.interfaces.events import IEventBus
-from app.interfaces.services.game import ICombatService, IGameService
+from app.interfaces.services.ai import IAgentLifecycleService
+from app.interfaces.services.game import ICombatService, IConversationService, IGameService, IMetadataService
 from app.models.ai_response import (
     CompleteResponse,
     NarrativeResponse,
@@ -61,6 +62,10 @@ async def test_ai_service_with_orchestrator_emits_response(monkeypatch: pytest.M
     combat_service = create_autospec(ICombatService, instance=True)
     event_bus = create_autospec(IEventBus, instance=True)
     game_service = create_autospec(IGameService, instance=True)
+    metadata_service = create_autospec(IMetadataService, instance=True)
+    metadata_service.extract_targeted_npcs.return_value = []
+    conversation_service = create_autospec(IConversationService, instance=True)
+    agent_lifecycle = create_autospec(IAgentLifecycleService, instance=True)
 
     monkeypatch.setattr("app.services.ai.orchestrator.agent_router.select", lambda _: AgentType.NARRATIVE)
     monkeypatch.setattr("app.services.ai.orchestrator.state_reload.reload", lambda service, state: state)
@@ -80,6 +85,9 @@ async def test_ai_service_with_orchestrator_emits_response(monkeypatch: pytest.M
         combat_service=combat_service,
         event_bus=event_bus,
         game_service=game_service,
+        metadata_service=metadata_service,
+        conversation_service=conversation_service,
+        agent_lifecycle_service=agent_lifecycle,
     )
 
     ai_service = AIService(orchestrator)

@@ -436,6 +436,8 @@ class IConversationService(ABC):
         role: MessageRole,
         content: str,
         agent_type: AgentType = AgentType.NARRATIVE,
+        speaker_npc_id: str | None = None,
+        speaker_npc_name: str | None = None,
     ) -> Message:
         """Add a message to the conversation, auto-extract metadata from game state, and save.
 
@@ -459,6 +461,8 @@ class IMessageManager(ABC):
         npcs_mentioned: list[str],
         combat_round: int,
         combat_occurrence: int | None = None,
+        speaker_npc_id: str | None = None,
+        speaker_npc_name: str | None = None,
     ) -> Message:
         """Add a message to conversation history.
 
@@ -517,6 +521,10 @@ class IMetadataService(ABC):
             List of mentioned NPC names
         """
         pass
+
+    @abstractmethod
+    def extract_targeted_npcs(self, message: str, game_state: GameState) -> list[str]:
+        """Determine which NPCs are being directly addressed in a player message."""
 
     @abstractmethod
     def get_current_location(self, game_state: GameState) -> str | None:

@@ -24,10 +24,11 @@ class MessageRole(str, Enum):
 
     PLAYER = "player"
     DM = "dm"
+    NPC = "npc"
 
 
 class Message(BaseModel):
-    """Chat message in game history - narrative only."""
+    """Chat message in game history (player, DM, or NPC)."""
 
     role: MessageRole
     content: str
@@ -37,6 +38,8 @@ class Message(BaseModel):
     npcs_mentioned: list[str] = Field(default_factory=list)
     combat_round: int | None = None
     combat_occurrence: int | None = None
+    speaker_npc_id: str | None = None
+    speaker_npc_name: str | None = None
 
 
 class GameEventType(str, Enum):
@@ -88,6 +91,23 @@ class GameTime(BaseModel):
         self.advance_hours(8)
 
 
+class DialogueSessionMode(str, Enum):
+    """Supported dialogue session modes."""
+
+    EXPLICIT_ONLY = "explicit_only"
+    STICKY = "sticky"
+
+
+class DialogueSessionState(BaseModel):
+    """Tracks state for ongoing NPC dialogue sessions."""
+
+    active: bool = False
+    target_npc_ids: list[str] = Field(default_factory=list)
+    started_at: datetime | None = None
+    last_interaction_at: datetime | None = None
+    mode: DialogueSessionMode = DialogueSessionMode.EXPLICIT_ONLY
+
+
 class GameState(BaseModel):
     """Complete game state for a D&D session."""
 
@@ -120,11 +140,14 @@ class GameState(BaseModel):
     # Story tracking
     story_notes: list[str] = Field(default_factory=list)
 
-    # Conversation history (narrative only)
+    # Conversation history (player/DM/NPC dialogue)
     conversation_history: list[Message] = Field(default_factory=list)
 
     # Game events (mechanics and tool calls)
     game_events: list[GameEvent] = Field(default_factory=list)
+
+    # Dialogue session tracking
+    dialogue_session: DialogueSessionState = Field(default_factory=DialogueSessionState)
 
     # Agent tracking for multi-agent support
     active_agent: AgentType = AgentType.NARRATIVE

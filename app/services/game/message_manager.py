@@ -20,6 +20,8 @@ class MessageManager(IMessageManager):
         npcs_mentioned: list[str],
         combat_round: int,
         combat_occurrence: int | None = None,
+        speaker_npc_id: str | None = None,
+        speaker_npc_name: str | None = None,
     ) -> Message:
         message = Message(
             role=role,
@@ -30,6 +32,8 @@ class MessageManager(IMessageManager):
             npcs_mentioned=npcs_mentioned,
             combat_round=combat_round if combat_round > 0 else None,
             combat_occurrence=combat_occurrence,
+            speaker_npc_id=speaker_npc_id,
+            speaker_npc_name=speaker_npc_name,
         )
 
         game_state.add_message(message)

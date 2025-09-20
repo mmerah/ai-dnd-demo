@@ -11,14 +11,26 @@ from pydantic_ai.providers.openai import OpenAIProvider
 from app.agents.combat.agent import CombatAgent
 from app.agents.core.base import BaseAgent, ToolFunction
 from app.agents.core.dependencies import AgentDependencies
-from app.agents.core.prompts import COMBAT_SYSTEM_PROMPT, NARRATIVE_SYSTEM_PROMPT, SUMMARIZER_SYSTEM_PROMPT
+from app.agents.core.prompts import (
+    COMBAT_SYSTEM_PROMPT,
+    NARRATIVE_SYSTEM_PROMPT,
+    NPC_SYSTEM_PROMPT,
+    PUPPETEER_SYSTEM_PROMPT,
+    SUMMARIZER_SYSTEM_PROMPT,
+)
 from app.agents.core.types import AgentType
 from app.agents.narrative.agent import NarrativeAgent
+from app.agents.npc import IndividualMindAgent, PuppeteerAgent
 from app.agents.summarizer.agent import SummarizerAgent
 from app.config import get_settings
 from app.interfaces.agents.summarizer import ISummarizerAgent
 from app.interfaces.events import IEventBus
-from app.interfaces.services.ai import IContextService, IEventLoggerService, IToolCallExtractorService
+from app.interfaces.services.ai import (
+    IContextService,
+    IEventLoggerService,
+    IMessageService,
+    IToolCallExtractorService,
+)
 from app.interfaces.services.common import IActionService
 from app.interfaces.services.data import IRepositoryProvider
 from app.interfaces.services.game import (
@@ -183,3 +195,117 @@ class AgentFactory:
             return cast(BaseAgent, summarizer_agent)
 
         raise ValueError(f"Unknown agent type: {agent_type}")
+
+    @classmethod
+    def create_individual_mind_agent(
+        cls,
+        *,
+        event_bus: IEventBus,
+        scenario_service: IScenarioService,
+        repository_provider: IRepositoryProvider,
+        metadata_service: IMetadataService,
+        message_manager: IMessageManager,
+        event_manager: IEventManager,
+        save_manager: ISaveManager,
+        conversation_service: IConversationService,
+        context_service: IContextService,
+        event_logger_service: IEventLoggerService,
+        action_service: IActionService,
+        message_service: IMessageService,
+        debug: bool = False,
+    ) -> IndividualMindAgent:
+        settings = get_settings()
+        model = cls._create_model(settings.get_narrative_model())
+        model_settings = OpenAIModelSettings(
+            temperature=0.7,
+            max_tokens=2048,
+            parallel_tool_calls=False,
+            openai_reasoning_effort="medium",
+        )
+        debug_logger = AgentDebugLogger(enabled=settings.debug_agent_context)
+
+        npc_agent_core: Agent[AgentDependencies, str] = Agent(
+            model=model,
+            deps_type=AgentDependencies,
+            system_prompt=NPC_SYSTEM_PROMPT,
+            model_settings=model_settings,
+            retries=settings.max_retries,
+        )
+
+        individual_agent = IndividualMindAgent(
+            agent=npc_agent_core,
+            context_service=context_service,
+            message_converter=MessageConverterService(),
+            event_logger=event_logger_service,
+            metadata_service=metadata_service,
+            event_bus=event_bus,
+            conversation_service=conversation_service,
+            scenario_service=scenario_service,
+            repository_provider=repository_provider,
+            message_manager=message_manager,
+            event_manager=event_manager,
+            save_manager=save_manager,
+            action_service=action_service,
+            message_service=message_service,
+            debug_logger=debug_logger,
+        )
+
+        cls._register_agent_tools(npc_agent_core, individual_agent.get_required_tools())
+        return individual_agent
+
+    @classmethod
+    def create_puppeteer_agent(
+        cls,
+        *,
+        event_bus: IEventBus,
+        scenario_service: IScenarioService,
+        repository_provider: IRepositoryProvider,
+        metadata_service: IMetadataService,
+        message_manager: IMessageManager,
+        event_manager: IEventManager,
+        save_manager: ISaveManager,
+        conversation_service: IConversationService,
+        context_service: IContextService,
+        event_logger_service: IEventLoggerService,
+        action_service: IActionService,
+        message_service: IMessageService,
+        debug: bool = False,
+    ) -> PuppeteerAgent:
+        settings = get_settings()
+        model = cls._create_model(settings.get_narrative_model())
+        model_settings = OpenAIModelSettings(
+            temperature=0.8,
+            max_tokens=2048,
+            parallel_tool_calls=False,
+            openai_reasoning_effort="medium",
+        )
+        debug_logger = AgentDebugLogger(enabled=settings.debug_agent_context)
+
+        puppeteer_core: Agent[AgentDependencies, str] = Agent(
+            model=model,
+            deps_type=AgentDependencies,
+            system_prompt=PUPPETEER_SYSTEM_PROMPT,
+            model_settings=model_settings,
+            retries=settings.max_retries,
+        )
+
+        puppeteer_agent = PuppeteerAgent(
+            agent=puppeteer_core,
+            context_service=context_service,
+            message_converter=MessageConverterService(),
+            event_logger=event_logger_service,
+            metadata_service=metadata_service,
+            event_bus=event_bus,
+            conversation_service=conversation_service,
+            scenario_service=scenario_service,
+            repository_provider=repository_provider,
+            message_manager=message_manager,
+            event_manager=event_manager,
+            save_manager=save_manager,
+            action_service=action_service,
+            message_service=message_service,
+            debug_logger=debug_logger,
+        )
+
+        cls._register_agent_tools(puppeteer_core, puppeteer_agent.get_required_tools())
+        return puppeteer_agent
