@@ -25,3 +25,4 @@ Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic 
 11. SSE events utility review: Audit frontend usage of SSE events and remove unused ones
 12. NPC population optimization: Currently all NPCs are loaded at game start - consider lazy loading based on location
 13. TODO(MVP2): Solve all those todos
+14. Review completely all system prompts for the agents (narrative should only describe what is going on in engaging way, never embodies NPCs. Combat should be OK, maybe more example of full tool call turns. NPC agent system prompt + context + prompt should be reviewed)

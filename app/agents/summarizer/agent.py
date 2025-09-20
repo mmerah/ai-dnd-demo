@@ -156,7 +156,7 @@ class SummarizerAgent(BaseAgent, ISummarizerAgent):
                 system_prompt=SUMMARIZER_SYSTEM_PROMPT,
                 conversation_history=[msg.model_dump() for msg in messages],
                 user_prompt=prompt,
-                context=f"location:{location_id}",
+                context=snapshot,
             )
 
         return await self._summarize_with_retry(
@@ -191,7 +191,7 @@ class SummarizerAgent(BaseAgent, ISummarizerAgent):
                 system_prompt=SUMMARIZER_SYSTEM_PROMPT,
                 conversation_history=[msg.model_dump() for msg in messages],
                 user_prompt=prompt,
-                context=f"npc:{npc.instance_id}",
+                context=snapshot,
             )
 
         return await self._summarize_with_retry(
@@ -233,7 +233,7 @@ class SummarizerAgent(BaseAgent, ISummarizerAgent):
                 system_prompt=SUMMARIZER_SYSTEM_PROMPT,
                 conversation_history=[msg.model_dump() for msg in messages],
                 user_prompt=prompt,
-                context=f"world:{event_kind.value}",
+                context=snapshot,
             )
 
         return await self._summarize_with_retry(

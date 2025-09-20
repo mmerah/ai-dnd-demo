@@ -7,7 +7,12 @@ from abc import ABC, abstractmethod
 from collections.abc import AsyncIterable, AsyncIterator
 
 from pydantic_ai import Agent, RunContext
-from pydantic_ai.messages import ModelMessage
+from pydantic_ai.messages import (
+    ModelMessage,
+    ModelRequest,
+    TextPart,
+    UserPromptPart,
+)
 
 from app.agents.core.base import BaseAgent, ToolFunction
 from app.agents.core.dependencies import AgentDependencies
@@ -58,6 +63,7 @@ class BaseNPCAgent(BaseAgent, ABC):
         action_service: IActionService,
         message_service: IMessageService,
         debug_logger: AgentDebugLogger | None = None,
+        system_prompt: str = "",
     ) -> None:
         self.agent = agent
         self.context_service = context_service
@@ -76,6 +82,7 @@ class BaseNPCAgent(BaseAgent, ABC):
         self._action_service = action_service
         self._event_processor: EventStreamProcessor | None = None
         self._active_npc: NPCInstance | None = None
+        self._system_prompt = system_prompt
 
     @property
     def event_processor(self) -> EventStreamProcessor:
@@ -127,13 +134,12 @@ class BaseNPCAgent(BaseAgent, ABC):
         npc_prompt = self._build_prompt(prompt, npc, game_state, context_text)
 
         if self.debug_logger:
-            system_prompt = self._get_system_prompt()
             self.debug_logger.log_agent_call(
                 agent_type=AgentType.NPC,
                 game_id=game_state.game_id,
-                system_prompt=system_prompt,
+                system_prompt=self._get_system_prompt(),
                 conversation_history=[self._model_message_to_dict(msg) for msg in message_history],
-                user_prompt=npc_prompt,
+                user_prompt=prompt,
                 context=context_text,
             )
 
@@ -235,41 +241,23 @@ class BaseNPCAgent(BaseAgent, ABC):
 
     def prepare_for_npc(self, npc: NPCInstance) -> None:
         """Assign the NPC this agent should embody for the next response."""
-
         self._active_npc = npc
 
     def _require_active_npc(self) -> NPCInstance:
-        if self._active_npc is None:  # pragma: no cover - defensive programming
+        if self._active_npc is None:  # pragma: no cover
             raise RuntimeError("NPC agent invoked without an active NPC context")
         return self._active_npc
 
     @staticmethod
     def _model_message_to_dict(message: ModelMessage) -> dict[str, str]:
-        if hasattr(message, "parts"):
-            parts = message.parts
-            content = "".join(str(part.content) for part in parts if hasattr(part, "content"))
-        else:  # pragma: no cover - fallback path for unexpected message types
-            content = str(message)
-        role = getattr(message, "role", "unknown")
-        return {"role": role, "content": content}
+        """Convert pydantic_ai ModelMessage to dict for logging."""
+        if isinstance(message, ModelRequest):
+            chunks = [str(part.content) for part in message.parts if isinstance(part, UserPromptPart)]
+            return {"role": "user", "content": "".join(chunks)}
+        else:
+            chunks = [str(part.content) for part in message.parts if isinstance(part, TextPart)]
+            return {"role": "assistant", "content": "".join(chunks)}
 
     def _get_system_prompt(self) -> str:
-        """Safely resolve the agent's system prompt as text for logging."""
-
-        prompt_attr = getattr(self.agent, "system_prompt", "")
-        prompt_value: object = ""
-
-        if callable(prompt_attr):
-            try:
-                prompt_value = prompt_attr()
-            except Exception as exc:  # pragma: no cover - defensive logging path
-                logger.debug("Failed to call system_prompt for %s: %s", self.agent, exc)
-                prompt_value = prompt_attr
-        else:
-            prompt_value = prompt_attr
-
-        if isinstance(prompt_value, str):
-            return prompt_value
-        if prompt_value is None:
-            return ""
-        return str(prompt_value)
+        """Return the configured system prompt for debug logging."""
+        return self._system_prompt

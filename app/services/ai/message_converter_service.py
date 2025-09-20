@@ -29,14 +29,27 @@ class MessageConverterService:
         """
         pydantic_messages: list[ModelMessage] = []
 
+        allowed_agent_types = {agent_type}
+        if agent_type is AgentType.NARRATIVE:
+            # Narrative agent needs to hear NPC conversations as well
+            allowed_agent_types.add(AgentType.NPC)
+
         for msg in messages:
-            # Filter by agent type if specified
-            if msg.agent_type != agent_type:
+            if msg.agent_type not in allowed_agent_types:
                 continue
 
             if msg.role == MessageRole.PLAYER:
                 pydantic_messages.append(ModelRequest(parts=[UserPromptPart(content=msg.content)]))
-            elif msg.role in (MessageRole.DM, MessageRole.NPC):
+            elif msg.role == MessageRole.NPC:
+                speaker = msg.speaker_npc_name or msg.speaker_npc_id
+                content = msg.content
+                if speaker:
+                    trimmed_content = content.lstrip()
+                    prefix = f"{speaker}:"
+                    if not trimmed_content.startswith(prefix):
+                        content = f"{speaker}: {content}"
+                pydantic_messages.append(ModelResponse(parts=[TextPart(content=content)]))
+            elif msg.role == MessageRole.DM:
                 pydantic_messages.append(ModelResponse(parts=[TextPart(content=msg.content)]))
 
         return pydantic_messages

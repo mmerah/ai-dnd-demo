@@ -5,6 +5,7 @@ from __future__ import annotations
 from pydantic_ai import Agent
 
 from app.agents.core.dependencies import AgentDependencies
+from app.agents.core.prompts import NPC_SYSTEM_PROMPT
 from app.agents.core.types import AgentType
 from app.agents.npc.base import BaseNPCAgent
 from app.interfaces.events import IEventBus
@@ -63,6 +64,7 @@ class IndividualMindAgent(BaseNPCAgent):
             action_service=action_service,
             message_service=message_service,
             debug_logger=debug_logger,
+            system_prompt=NPC_SYSTEM_PROMPT,
         )
 
     def _build_context(self, game_state: GameState, npc: NPCInstance) -> str:
