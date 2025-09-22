@@ -2,7 +2,6 @@
 
 import logging
 
-from app.common.exceptions import RepositoryNotFoundError
 from app.events.base import BaseCommand, CommandResult
 from app.events.commands.broadcast_commands import BroadcastGameUpdateCommand
 from app.events.commands.inventory_commands import (
@@ -11,11 +10,11 @@ from app.events.commands.inventory_commands import (
     ModifyInventoryCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services.character import ICharacterService, IEntityStateService
+from app.interfaces.services.character import IEntityStateService
 from app.interfaces.services.data import IRepositoryProvider
+from app.interfaces.services.game import IItemFactory
 from app.models.equipment_slots import EquipmentSlotType
 from app.models.game_state import GameState
-from app.models.item import InventoryItem
 from app.models.tool_results import (
     AddItemResult,
     EquipItemResult,
@@ -31,11 +30,11 @@ class InventoryHandler(BaseHandler):
 
     def __init__(
         self,
-        character_service: ICharacterService,
+        item_factory: IItemFactory,
         entity_state_service: IEntityStateService,
         repository_provider: IRepositoryProvider,
     ):
-        self.character_service = character_service
+        self.item_factory = item_factory
         self.entity_state_service = entity_state_service
         self.repository_provider = repository_provider
 
@@ -93,25 +92,8 @@ class InventoryHandler(BaseHandler):
             if existing_item:
                 existing_item.quantity += command.quantity
             else:
-                # Try to get item from repository, or create placeholder if it doesn't exist
-                item_repo = self.repository_provider.get_item_repository_for(game_state)
-                if not item_repo.validate_reference(command.item_index):
-                    # Create a placeholder item for dynamic items not in the repository
-                    logger.warning(f"Creating placeholder item for AI-invented item: '{command.item_index}'")
-                    # TODO(MVP2): Implement dynamic item creation tool for AI to define custom items
-                    # TODO(MVP2): Should already be put in some kind of ISandbox or ICreator interface
-                    new_item = self.character_service.create_placeholder_item(
-                        game_state, command.item_index, command.quantity
-                    )
-                    character.inventory.append(new_item)
-                else:
-                    # Get item definition from repository
-                    try:
-                        item_def = item_repo.get(command.item_index)
-                        new_item = InventoryItem.from_definition(item_def, quantity=command.quantity)
-                        character.inventory.append(new_item)
-                    except RepositoryNotFoundError as e:
-                        raise ValueError(f"Failed to load item definition: {command.item_index}") from e
+                new_item = self.item_factory.create_inventory_item(game_state, command.item_index, command.quantity)
+                character.inventory.append(new_item)
 
             result.mutated = True
 

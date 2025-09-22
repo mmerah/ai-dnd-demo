@@ -239,28 +239,6 @@ class ICharacterService(ABC):
         """
         pass
 
-    @abstractmethod
-    def create_placeholder_item(
-        self,
-        game_state: GameState,
-        item_index: str,
-        quantity: int = 1,
-    ) -> InventoryItem:
-        """Create a placeholder item for AI-invented items not in repository.
-
-        Creates a basic item definition when the AI references an item
-        that doesn't exist in the repository.
-
-        Args:
-            game_state: Current game state
-            item_index: Index/ID of the item
-            quantity: Initial quantity
-
-        Returns:
-            Created InventoryItem
-        """
-        pass
-
 
 class ICharacterComputeService(ABC):
     """Interface for computing derived character values (SOLID + DRY).

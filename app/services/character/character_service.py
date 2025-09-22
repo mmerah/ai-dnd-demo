@@ -12,8 +12,7 @@ from app.models.character import CharacterSheet
 from app.models.class_definitions import ClassDefinition, SubclassDefinition
 from app.models.feat import FeatDefinition
 from app.models.feature import FeatureDefinition
-from app.models.game_state import GameState
-from app.models.item import InventoryItem, ItemDefinition, ItemRarity, ItemType
+from app.models.item import ItemDefinition
 from app.models.language import Language
 from app.models.race import RaceDefinition, SubraceDefinition
 from app.models.skill import Skill
@@ -206,23 +205,3 @@ class CharacterSheetService(ICharacterService):
                     errors.append(f"Unknown feat index: {f}")
 
         return errors
-
-    def create_placeholder_item(
-        self,
-        game_state: GameState,
-        item_index: str,
-        quantity: int = 1,
-    ) -> InventoryItem:
-        # Use index as name for placeholder items
-        item_name = item_index.replace("-", " ").title()
-        item_def = ItemDefinition(
-            index=item_index,
-            name=item_name,
-            type=ItemType.ADVENTURING_GEAR,
-            rarity=ItemRarity.COMMON,
-            description=f"A unique item: {item_name}",
-            weight=0.5,
-            value=1,
-            content_pack="sandbox",
-        )
-        return InventoryItem.from_definition(item_def, quantity=quantity)

@@ -38,15 +38,27 @@ Implementing the 5-issue refactoring plan from REPORT.md to enhance the project'
 
 ---
 
-### ⏳ Issue 2.1: Create Dedicated ItemFactory
-**Status**: NOT STARTED
+### ✅ Issue 2.1: Create Dedicated ItemFactory
+**Status**: COMPLETED ✅
 **Risk**: Medium
-**Files to Modify**:
-- [ ] app/interfaces/services/game/item_factory.py (NEW)
-- [ ] app/services/game/item_factory.py (NEW)
-- [ ] app/container.py
-- [ ] app/services/character/character_service.py
-- [ ] app/events/handlers/inventory_handler.py
+**Files Modified**:
+- [x] app/interfaces/services/game/item_factory.py (NEW)
+- [x] app/services/game/item_factory.py (NEW)
+- [x] app/container.py
+- [x] app/services/character/character_service.py (removed create_placeholder_item)
+- [x] app/events/handlers/inventory_handler.py
+- [x] Reorganized app/interfaces/services/game.py into folder structure
+
+**Changes Implemented**:
+- Created IItemFactory interface ✓
+- Implemented ItemFactory service with placeholder support ✓
+- Registered ItemFactory as singleton in container ✓
+- Updated InventoryHandler to use ItemFactory instead of CharacterService ✓
+- Removed create_placeholder_item from CharacterService (SRP) ✓
+- Split monolithic game.py interface file into modular files ✓
+- Created minimal unit tests for ItemFactory ✓
+- Updated inventory_handler tests to use IItemFactory ✓
+- All tests passing, mypy validation passed ✓
 
 ---
 

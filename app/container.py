@@ -46,6 +46,7 @@ from app.interfaces.services.game import (
     IGameFactory,
     IGameService,
     IGameStateManager,
+    IItemFactory,
     ILocationService,
     IMetadataService,
     IMonsterFactory,
@@ -100,6 +101,7 @@ from app.services.game.enrichment_service import GameEnrichmentService
 from app.services.game.event_manager import EventManager
 from app.services.game.game_factory import GameFactory
 from app.services.game.game_state_manager import GameStateManager
+from app.services.game.item_factory import ItemFactory
 from app.services.game.memory_service import MemoryService
 from app.services.game.metadata_service import MetadataService
 from app.services.game.monster_factory import MonsterFactory
@@ -221,6 +223,10 @@ class Container:
             content_pack_registry=self.content_pack_registry,
             content_packs=self.all_pack_ids,
         )
+
+    @cached_property
+    def item_factory(self) -> IItemFactory:
+        return ItemFactory(repository_provider=self.repository_factory)
 
     @cached_property
     def monster_factory(self) -> IMonsterFactory:
@@ -405,7 +411,7 @@ class Container:
         event_bus.register_handler("dice", DiceHandler(self.dice_service))
         event_bus.register_handler(
             "inventory",
-            InventoryHandler(self.character_service, self.entity_state_service, self.repository_factory),
+            InventoryHandler(self.item_factory, self.entity_state_service, self.repository_factory),
         )
         event_bus.register_handler("time", TimeHandler())
         event_bus.register_handler("broadcast", BroadcastHandler(self.message_service))
