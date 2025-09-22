@@ -4,91 +4,96 @@
 Ship a strongly typed, AI-assisted Dungeon Master that junior devs can extend without fear. Every change should keep the narrative agents sharp, the data validated, and the tooling green.
 
 ## Core Principles
-- **SOLID first**: drive behavior through interfaces in `app/interfaces`, keep classes narrowly scoped, inject dependencies via `app/container.py`.
-- **Fail fast**: raise immediately, validate data at startup (`app/main.py` lifespan preloads/validates assets), never swallow exceptions.
-- **Type safety**: Pydantic v2 models everywhere, `mypy --strict` is non-negotiable, prefer `Protocol`/`TypedDict` over structural duck typing.
-- **DRY & explicit flow**: common logic lives in services (`app/services`), share via event bus or dedicated services, not helper duplication.
-- **No backwards compatibility promises**: when requirements shift, replace old code fully and cleanly.
-- **Ban `Any`**: config forbids it; if unavoidable, justify in-code with context and isolate usage.
-- **Tool-driven agents**: business rules live in services and tool functions, agents orchestrate behavior only.
-- **Event-sourced side effects**: game state mutations go through the event bus + handlers so UI, saves, and AI stay in sync.
-- **Content is data**: game assets live in JSON/content packs, never hard-code lore in services.
+- **SOLID first**: interfaces in `app/interfaces`, narrowly scoped classes, DI via `app/container.py`
+- **Fail fast**: raise immediately, validate at startup, never swallow exceptions
+- **Type safety**: Pydantic v2 everywhere, `mypy --strict` required
+- **DRY & explicit**: shared logic in services, communicate via event bus, no helper duplication
+- **No backwards compatibility**: replace old code fully when requirements shift
+- **Ban `Any`**: forbidden by config; if unavoidable, justify and isolate
+- **Tool-driven agents**: business rules in services/tools, agents only orchestrate
+- **Event-sourced**: mutations via event bus + handlers for UI/save/AI sync
+- **Content is data**: assets in JSON/content packs, no hardcoded lore
 
 ## Stack
-- **Runtime**: Python 3.10+, FastAPI, uvicorn, Pydantic v2, Pydantic Settings, httpx, SSE via `sse-starlette`.
-- **AI**: pydantic-ai agents (Narrative, Combat, Summarizer) using OpenRouter GPT-OSS models with tool calling.
-- **Frontend**: Vanilla HTML/CSS/JS served from `frontend/`, consumes `/api` + SSE stream.
-- **Data**: JSON repositories in `data/` plus user overrides in `user-data/packs`.
-- **Quality**: Ruff (format + lint), mypy strict, pytest + pytest-asyncio, coverage, pre-commit.
+- **Runtime**: Python 3.10+, FastAPI, uvicorn, Pydantic v2 + Settings, httpx, SSE via sse-starlette
+- **AI**: pydantic-ai agents (Narrative/Combat/Summarizer/NPC) via OpenRouter models
+- **Frontend**: Vanilla HTML/CSS/JS from `frontend/`, consumes `/api` + SSE
+- **Data**: JSON repos in `data/` + user overrides in `user-data/packs`
+- **Quality**: Ruff (format/lint), mypy strict, pytest/pytest-asyncio, coverage, pre-commit
 
-## Environment & Secrets
-- Copy `.env.example` to `.env` and fill: `OPENROUTER_API_KEY`, `NARRATIVE_MODEL`, `COMBAT_MODEL`, `SUMMARIZER_MODEL`, `MAX_RETRIES`, `SAVE_DIRECTORY`, `PORT`, `DEBUG_AI`, `DEBUG_AGENT_CONTEXT`.
-- Save directory is auto-created; set `DEBUG_AI=true` only when tracing errors (enables traceback payloads).
+## Environment
+Copy `.env.example` to `.env`: `OPENROUTER_API_KEY`, `NARRATIVE_MODEL`, `COMBAT_MODEL`, `SUMMARIZER_MODEL`, `MAX_RETRIES`, `SAVE_DIRECTORY`, `PORT`, `DEBUG_AI`, `DEBUG_AGENT_CONTEXT`
 
-## Project Structure
+## Structure
 
 ### Backend (`app/`)
 ```
 app/
-├── main.py                    # FastAPI entrypoint with lifespan validation + SSE static hosting
-├── config.py                  # Strongly typed env loader (Pydantic Settings)
-├── container.py               # Cached dependency injector wiring every service/repo
+├── main.py                    # FastAPI entry with lifespan validation + SSE
+├── config.py                  # Typed env loader (Pydantic Settings)
+├── container.py               # Dependency injector wiring all services/repos
 ├── agents/
-│   ├── factory.py             # Builds agents, fetches OpenRouter models, registers tools
+│   ├── factory.py             # Builds all agents (Narrative, Combat, NPC, etc.)
 │   ├── core/
-│   │   ├── base.py            # Abstract agent contract
-│   │   ├── dependencies.py    # Tool dependency payload (GameState, repos, bus)
-│   │   ├── prompts.py         # System prompts per agent type
-│   │   └── event_stream/      # Handler framework for thinking/tool events
-│   ├── narrative/agent.py     # Narrative agent orchestrating story tools
-│   ├── combat/agent.py        # Combat agent handling initiative + combat-only tools
-│   └── summarizer/agent.py    # Context bridge between narrative/combat flows
+│   │   ├── base.py            # Abstract agent contract (BaseAgent)
+│   │   ├── dependencies.py    # Tool dependency payload (GameState, services, etc.)
+│   │   ├── prompts.py         # System prompts for each agent type
+│   │   ├── types.py           # AgentType enum
+│   │   └── event_stream/      # Pydantic-AI stream handlers (thinking/tools)
+│   ├── narrative/             # Story progression agent
+│   ├── combat/                # Tactical combat agent
+│   ├── summarizer/            # Context bridge agent
+│   └── npc/                   # Sub-package for NPC agents
+│       ├── base.py            # Shared base class for all NPC agents
+│       ├── individual_agent.py # Agent for major NPCs with persistent state
+│       └── puppeteer_agent.py # Shared agent for minor, role-played NPCs
 ├── api/
-│   ├── routes.py              # Root `/api` router composition
-│   ├── dependencies.py        # FastAPI dependencies resolving services/game state
-│   ├── player_actions.py      # Executes manual player actions through ActionService
-│   ├── tasks.py               # Background task to run AI + broadcast responses
-│   ├── routers/               # `game.py`, `scenarios.py`, `characters.py`, `catalogs.py`, `content_packs.py`
-│   └── schemas/               # Pydantic response DTOs (content pack metadata, etc.)
-├── common/                    # Shared exceptions + narrow helper types
+│   ├── routes.py              # Root router composition
+│   ├── dependencies.py        # FastAPI deps resolving services
+│   ├── player_actions.py      # Manual actions via ActionService
+│   ├── tasks.py               # Background AI task + SSE broadcast
+│   ├── routers/               # game/scenarios/characters/catalogs/content_packs
+│   └── schemas/               # Response DTOs
+├── common/                    # exceptions.py, types.py
 ├── events/
-│   ├── base.py                # Command/handler base classes and mixins
+│   ├── base.py                # Command/handler base classes
 │   ├── event_bus.py           # Async pub/sub dispatcher
-│   ├── commands/              # Broadcast, character, combat, dice, inventory, location, quest, time payloads
-│   └── handlers/              # Mutate game state + push SSE per command family
-├── interfaces/                # Protocols for services, repositories, event bus
+│   ├── commands/              # Payloads (broadcast/character/combat/dice/inventory/location/quest/time)
+│   └── handlers/              # State mutations + SSE per command family
+├── interfaces/                # Service/repo/event protocols
 ├── models/
-│   ├── ai_response.py         # Streaming/complete/error payloads from agents
-│   ├── character.py           # Player sheet (stats, inventory, spell slots)
-│   ├── combat.py              # Combat state (initiative, turns, conditions)
-│   ├── game_state.py          # Root aggregate with helpers for history slicing
-│   ├── instances/             # Display-facing snapshots (player, monster, scenario)
-│   └── ...                    # Damage types, spells, quests, races, traits, etc.
+│   ├── ai_response.py         # Streaming/complete/error payloads
+│   ├── character.py           # Player sheet (stats/inventory/spells)
+│   ├── combat.py              # Combat state (initiative/turns/conditions)
+│   ├── game_state.py          # Root aggregate with history helpers
+│   ├── memory.py              # Structured memory models
+│   ├── instances/             # Display snapshots (player/monster/scenario)
+│   └── ...                    # damage_types/spells/quests/races/traits
 ├── services/
 │   ├── ai/
-│   │   ├── ai_service.py      # Public generate_response API
-│   │   ├── context_service.py # Structured prompts per agent
-│   │   ├── context_builders/  # Structured prompts per agent
-│   │   ├── orchestrator/      # Agent routing, combat loop, transitions
-│   │   ├── message_service.py # SSE emitter
-│   │   └── logging tools      # Debug/event logging, tool call extraction
-│   ├── character/             # Sheet loading, derived stat computation, leveling
-│   ├── common/                # DiceService, BroadcastService, ActionService, PathResolver
+│   │   ├── ai_service.py                   # Top-level agent orchestration
+│   │   ├── agent_lifecycle_service.py      # NPC agent cache/factory
+│   │   ├── context_service.py              # Context composition via builders
+│   │   ├── message_service.py              # SSE broadcast handler
+│   │   ├── orchestrator_service.py         # Agent routing logic
+│   │   ├── orchestrator/                   # agent_router/combat_loop/transitions/state_reload
+│   │   ├── context_builders/               # Granular context builders (18 builders)
+│   │   └── debug_logger/event_logger/message_converter/tool_call_extractor
+│   ├── character/             # Sheet loading, stat compute, leveling
+│   ├── common/                # DiceService/BroadcastService/ActionService/PathResolver
 │   ├── data/
-│   │   ├── content_pack_registry.py # Discovers `data/` + `user-data/` packs
-│   │   ├── loaders/           # JSON loaders for characters + scenarios
-│   │   ├── repositories/      # Typed repositories (items, spells, monsters, etc.)
-│   │   └── repository_factory.py # Picks repo set per game/content pack
+│   │   ├── content_pack_registry.py        # Discovers data + user packs
+│   │   ├── loaders/                        # Character/scenario JSON loaders
+│   │   ├── repositories/                   # Typed repos (20 entity types)
+│   │   └── repository_factory.py           # Repo set per game/pack
 │   └── game/
-│       ├── game_factory.py       # Builds initial state from scenario + character
-│       ├── game_service.py       # Create/load/save orchestrator
-│       ├── combat_service.py     # Turn management + damage application
-│       ├── location_service.py   # Location transitions + lookups
-│       ├── message_manager.py    # SSE payload assembly
-│       ├── metadata_service.py   # Display name enrichment
-│       ├── monster_factory.py    # Encounter monster instantiation
-│       ├── pre_save_sanitizer.py # Strip volatile fields before persistence
-│       └── save_manager.py       # Filesystem persistence adapter
+│       ├── game_factory.py                 # Initial state from scenario+character
+│       ├── game_service.py                 # Create/load/save orchestration
+│       ├── combat_service.py               # Turn management, damage, flow
+│       ├── location_service.py             # Location transitions
+│       ├── memory_service.py               # Conversation → structured memory
+│       ├── message_manager/metadata_service/monster_factory
+│       ├── pre_save_sanitizer/save_manager # Persistence layer
 ├── tools/
 │   ├── decorators.py      # Wraps commands as tools with event logging
 │   ├── dice_tools.py      # Dice rolling interface for agents
@@ -98,7 +103,7 @@ app/
 │   ├── location_tools.py  # Location state changes + NPC moves
 │   ├── quest_tools.py     # Quest/objective progression
 │   └── time_tools.py      # Rests + time advancement
-└── utils/                 # Ability math, entity resolution, deterministic id + name helpers
+└── utils/                 # ability_utils/entity_resolver/id_generator/names
 ```
 
 ### Data (`data/`)
@@ -127,58 +132,50 @@ data/
 ├── characters/            # Canonical playable PCs (`aldric-swiftarrow.json`)
 └── scenarios/             # Scenario bundles (encounters, quests, locations)
 ```
-
-### Other Top-Level Directories
-- `frontend/`: static client consuming SSE + REST.
-- `logs/`: runtime log output (gitignored).
-- `saves/`: JSON save files written per game id (gitignored).
-- `scripts/`: SRD ingestion/migration utilities (alignments, spells, monsters, etc.).
-- `tests/`: factories, integration flows, and unit suites.
-- `user-data/`: custom content packs mirroring `data/` structure (`packs/custom-example`).
-- Root configs: `pyproject.toml`, `requirements.txt`, `.pre-commit-config.yaml`, `.env.example`.
+### Other Directories
+- `frontend/`: Static client (SSE + REST)
+- `logs/`, `saves/`: Runtime output (gitignored)
+- `scripts/`: SRD ingestion/migration utilities
+- `tests/`: Factories, integration, unit suites
+- `user-data/packs/`: Custom content mirroring `data/`
+- Root: `pyproject.toml`, `requirements.txt`, `.pre-commit-config.yaml`, `.env.example`
 
 ## Runtime Flow
-1. `uvicorn app.main:app --reload --port 8123` boots FastAPI, loads env, builds the container, validates data repositories.
-2. Requests hit `/api/...` routers which delegate to services resolved via the container.
-3. Agents (`app/services/ai`) orchestrate Narrative/Combat/Summarizer flows, call tool functions, emit events.
-4. Event bus dispatches commands to handlers (broadcast, character, combat, inventory, quest, time) which mutate state and notify SSE clients.
-5. Game state is persisted through `SaveManager`, enriched via repositories, and streamed to the frontend.
+1. `uvicorn app.main:app --reload --port 8123` boots FastAPI, initializes Container, validates all data
+2. Player action → `/api/game/{game_id}/action` → background task → GameService + AIService
+3. Request → AgentOrchestrator:
+   - **NPC dialogue** (@npc_name): AgentLifecycleService → IndividualMindAgent (major) or PuppeteerAgent (minor)
+   - **Non-combat**: NarrativeAgent
+   - **Combat active**: CombatAgent
+4. Agent builds context (ContextService), processes prompt, calls tools
+5. Tool → @tool_handler → Command → EventBus → Handler → mutate GameState → dispatch follow-ups
+6. **Transitions**:
+   - Narrative→Combat: SummarizerAgent creates context bridge
+   - Combat runs NPC/monster turns until player turn/end
+   - Location change: MemoryService summarizes events → MemoryEntry
+7. SaveManager persists, MessageService broadcasts SSE
 
-## Data & Content Packs
-- Core assets live in `data/*.json`; keep them normalized and validated via repositories.
-- Custom packs belong in `user-data/packs/<pack-id>/` mirroring `data/` file names; discovered via `ContentPackRegistry`.
-- Use scripts in `scripts/` (e.g., `migrate_spells_from_srd.py`, `ingest_srd_to_internal.py`) for bulk imports—always stage output to `user-data` first.
+## Commands
+- **Format**: `ruff format .`
+- **Lint**: `ruff check --fix .`
+- **Types**: `mypy --strict app tests`
+- **Tests**: `pytest`
+- **Coverage**: `coverage run -m pytest && coverage report`
+- **Full**: `pre-commit run --all-files`
 
-## Development Workflow
-1. `python -m venv venv && source venv/bin/activate`
-2. `pip install -r requirements.txt`
-3. `pre-commit install`
-4. Export OpenRouter key before running commands.
-5. Run the app: `uvicorn app.main:app --reload --port 8123`
-6. Watch logs in `logs/` or console; SSE/UI is served at `http://localhost:8123` (static) + `/api/...` (JSON).
-
-## Quality Gates & Commands
-- Format: `ruff format .`
-- Lint: `ruff check --fix .`
-- Types: `mypy --strict app tests`
-- Tests: `pytest` (or `pytest tests/unit`, `pytest tests/integration`)
-- Coverage: `coverage run -m pytest && coverage report`
-- Full sweep: `pre-commit run --all-files`
-- Regenerate requirements lockstep by editing pins here (no automation yet).
-
-## Tips for New Contributors
-- Read related interfaces before changing a service; implementations live alongside their protocol.
-- Favor extending tool modules or service methods over embedding logic in agents.
-- When adding data, run the app once to trigger startup validation—failures surface immediately.
-- Keep SSE payloads small: reuse models in `app/api/schemas` and `app/models/instances`.
-- Tests expect deterministic dice—use the dice service helpers instead of `random`.
-- Commit generated content packs separately so reviews stay focused on code.
-
-## Reference APIs
-- Base path: `/api`
-- Game lifecycle: `/game/new`, `/game/{game_id}`, `/game/{game_id}/action`, `/game/{game_id}/sse`
-- Catalog endpoints: `/scenarios`, `/characters`, `/catalogs/*`, `/content-packs/*`
+## APIs
+- Base: `/api`
+- Game: `/game/new`, `/game/{id}`, `/game/{id}/action`, `/game/{id}/sse`
+- Catalogs: `/scenarios`, `/characters`, `/catalogs/*`, `/content-packs/*`
 - Health: `/health`
 
+## Dev Tips
+- Read interfaces before changing services
+- Extend tools/services, not agents
+- Run app once to validate new data
+- Use existing models for SSE payloads
+- Use dice service (not `random`) for deterministic tests
+- Separate content pack commits from code
+
 ## When In Doubt
-Consult `app/services` + `app/tools` for the canonical behavior, run mypy and pytest locally, and prefer deleting or rewriting legacy code over layering patches.
+Consult `app/services` + `app/tools` for canonical behavior. Run mypy and pytest locally. Delete/rewrite legacy code over patches.
