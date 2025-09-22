@@ -32,6 +32,10 @@ async def run(
     max_iterations = 50
     iterations = 0
 
+    # State management in the orchestrator
+    last_prompted_entity_id: str | None = None
+    last_prompted_round: int = 0
+
     while iterations < max_iterations:
         iterations += 1
 
@@ -61,10 +65,20 @@ async def run(
             logger.info("Not auto-continuing: Player's turn or combat ended")
             break
 
-        # Generate appropriate prompt for NPC/Monster turn
-        auto_prompt = combat_service.generate_combat_prompt(game_state)
+        # Get current turn for tracking
+        current_turn = game_state.combat.get_current_turn()
+
+        # Generate prompt with tracking parameters
+        auto_prompt = combat_service.generate_combat_prompt(
+            game_state, last_entity_id=last_prompted_entity_id, last_round=last_prompted_round
+        )
         if not auto_prompt:
             break
+
+        # Update tracking state in orchestrator
+        if current_turn:
+            last_prompted_entity_id = current_turn.entity_id
+            last_prompted_round = game_state.combat.round_number
 
         logger.info("Auto-continuing combat (iteration %d)", iterations)
 

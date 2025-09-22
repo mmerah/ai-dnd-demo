@@ -66,16 +66,25 @@ class SaveManager(ISaveManager):
 
         try:
             # Load metadata first
-            metadata = self._load_metadata(save_dir)
+            try:
+                metadata = self._load_metadata(save_dir)
+            except FileNotFoundError as e:
+                raise FileNotFoundError(f"Cannot load game {game_id}: {e}") from e
+            except ValueError as e:
+                raise ValueError(f"Cannot load game {game_id}: {e}") from e
 
             # Load instances and other components
-            character = self._load_character_instance(save_dir)
-            scenario_instance = self._load_scenario_instance(save_dir)
-            if scenario_instance is None:
-                raise ValueError(
-                    f"Missing scenario.json in save {scenario_id}/{game_id}. "
-                    "This save is incompatible with the current version."
-                )
+            try:
+                character = self._load_character_instance(save_dir)
+            except FileNotFoundError as e:
+                raise FileNotFoundError(f"Cannot load game {game_id}: {e}") from e
+            except ValueError as e:
+                raise ValueError(f"Cannot load game {game_id}: {e}") from e
+            try:
+                scenario_instance = self._load_scenario_instance(save_dir)
+            except FileNotFoundError as e:
+                # Re-raise with game context
+                raise FileNotFoundError(f"Cannot load game {game_id}: {e}") from e
 
             # Remove convenience fields that were added for UI
             metadata.pop("current_location_id", None)
@@ -237,26 +246,55 @@ class SaveManager(ISaveManager):
         """Load game metadata.
 
         Returns dict from JSON - proper typing is handled by the caller.
+
+        Raises:
+            FileNotFoundError: If metadata.json is missing (save corrupted)
+            ValueError: If metadata.json is corrupted or invalid
         """
-        with open(save_dir / "metadata.json", encoding="utf-8") as f:
-            # json.load returns Any, which is what we need for metadata
-            data: dict[str, Any] = json.load(f)
-            return data
+        file_path = save_dir / "metadata.json"
+        if not file_path.exists():
+            raise FileNotFoundError(f"Missing metadata.json in {save_dir}. Save is corrupted.")
+        try:
+            with open(file_path, encoding="utf-8") as f:
+                # json.load returns Any, which is what we need for metadata
+                data: dict[str, Any] = json.load(f)
+                return data
+        except (json.JSONDecodeError, ValueError) as e:
+            raise ValueError(f"Corrupted metadata.json in {save_dir}: {e}") from e
 
     def _load_character_instance(self, save_dir: Path) -> CharacterInstance:
-        """Load character instance."""
-        file_path = save_dir / "instances" / "character.json"
-        with open(file_path, encoding="utf-8") as f:
-            data = json.load(f)
-        return CharacterInstance(**data)
+        """Load character instance.
 
-    def _load_scenario_instance(self, save_dir: Path) -> ScenarioInstance | None:
+        Raises:
+            FileNotFoundError: If character.json is missing (save corrupted)
+            ValueError: If character.json is corrupted or invalid
+        """
+        file_path = save_dir / "instances" / "character.json"
+        if not file_path.exists():
+            raise FileNotFoundError(f"Missing character.json in {save_dir}. Save is corrupted.")
+        try:
+            with open(file_path, encoding="utf-8") as f:
+                data = json.load(f)
+            return CharacterInstance(**data)
+        except (json.JSONDecodeError, ValueError) as e:
+            raise ValueError(f"Corrupted character.json in {save_dir}: {e}") from e
+
+    def _load_scenario_instance(self, save_dir: Path) -> ScenarioInstance:
+        """Load scenario instance from save directory.
+
+        Raises:
+            FileNotFoundError: If scenario.json is missing (save corrupted)
+            ValueError: If scenario.json is corrupted or invalid
+        """
         file_path = save_dir / "instances" / "scenario.json"
         if not file_path.exists():
-            return None
-        with open(file_path, encoding="utf-8") as f:
-            data = json.load(f)
-        return ScenarioInstance(**data)
+            raise FileNotFoundError(f"Missing scenario.json in {save_dir}. Save is corrupted.")
+        try:
+            with open(file_path, encoding="utf-8") as f:
+                data = json.load(f)
+            return ScenarioInstance(**data)
+        except (json.JSONDecodeError, ValueError) as e:
+            raise ValueError(f"Corrupted scenario.json in {save_dir}: {e}") from e
 
     def _load_conversation_history(self, save_dir: Path) -> list[Message]:
         """Load conversation history."""
@@ -307,12 +345,20 @@ class SaveManager(ISaveManager):
         return monsters
 
     def _load_combat(self, save_dir: Path) -> CombatState:
-        """Load combat state."""
+        """Load combat state.
+
+        Returns empty CombatState if file doesn't exist (combat not active).
+
+        Raises:
+            ValueError: If combat.json exists but is corrupted
+        """
         file_path = save_dir / "combat.json"
         if not file_path.exists():
             return CombatState()
 
-        with open(file_path, encoding="utf-8") as f:
-            data = json.load(f)
-
-        return CombatState(**data)
+        try:
+            with open(file_path, encoding="utf-8") as f:
+                data = json.load(f)
+            return CombatState(**data)
+        except (json.JSONDecodeError, ValueError) as e:
+            raise ValueError(f"Corrupted combat.json in {save_dir}: {e}") from e

@@ -33,9 +33,6 @@ class CombatService(ICombatService):
         self.scenario_service = scenario_service
         self.monster_factory = monster_factory
         self.repository_provider = repository_provider
-        # Flow tracking to detect missing next_turn calls
-        self._last_prompted_entity_id: str | None = None
-        self._last_prompted_round: int = 0
 
     def roll_initiative(self, entity: IEntity) -> int:
         # d20 + initiative modifier from state
@@ -157,7 +154,12 @@ class CombatService(ICombatService):
 
         return realized
 
-    def generate_combat_prompt(self, game_state: GameState) -> str:
+    def generate_combat_prompt(
+        self,
+        game_state: GameState,
+        last_entity_id: str | None = None,
+        last_round: int = 0,
+    ) -> str:
         if not game_state.combat.is_active:
             return ""
 
@@ -167,9 +169,9 @@ class CombatService(ICombatService):
 
         round_num = game_state.combat.round_number
 
-        # Check if we're prompting for the same entity again (likely forgot next_turn)
+        # Check for duplicate prompt
         reminder = ""
-        if self._last_prompted_entity_id == current_turn.entity_id and self._last_prompted_round == round_num:
+        if last_entity_id == current_turn.entity_id and last_round == round_num:
             reminder = (
                 "\n\nIMPORTANT: You are still processing the same turn. "
                 "Did you forget to call next_turn after the previous action? "
@@ -178,10 +180,6 @@ class CombatService(ICombatService):
             logger.warning(
                 f"Same entity prompted twice: {current_turn.name} (Round {round_num}) - likely missing next_turn call"
             )
-
-        # Update tracking
-        self._last_prompted_entity_id = current_turn.entity_id
-        self._last_prompted_round = round_num
 
         if current_turn.is_player:
             return (
@@ -211,11 +209,6 @@ class CombatService(ICombatService):
             return False
         active_enemies = [p for p in game_state.combat.participants if p.is_active and not p.is_player]
         return len(active_enemies) == 0
-
-    def reset_combat_tracking(self) -> None:
-        self._last_prompted_entity_id = None
-        self._last_prompted_round = 0
-        logger.debug("Combat tracking state reset")
 
     def ensure_player_in_combat(self, game_state: GameState) -> CombatParticipant | None:
         if not game_state.combat.is_active:

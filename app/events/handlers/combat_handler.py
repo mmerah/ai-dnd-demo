@@ -266,8 +266,6 @@ class CombatHandler(BaseHandler):
 
                 game_state.end_combat()
                 game_state.active_agent = AgentType.NARRATIVE
-                # Reset combat flow tracking
-                self.combat_service.reset_combat_tracking()
                 result.mutated = True
                 result.data = EndCombatResult(message="Combat ended")
                 result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))

@@ -234,14 +234,21 @@ class ICombatService(ABC):
         pass
 
     @abstractmethod
-    def generate_combat_prompt(self, game_state: GameState) -> str:
+    def generate_combat_prompt(
+        self,
+        game_state: GameState,
+        last_entity_id: str | None = None,
+        last_round: int = 0,
+    ) -> str:
         """Generate a prompt for the combat agent based on current turn.
 
         Creates contextual prompt including current combatant, available
-        actions, and tactical situation.
+        actions, and tactical situation. Supports duplicate turn detection.
 
         Args:
             game_state: Current game state with combat info
+            last_entity_id: Previously prompted entity ID for duplicate detection
+            last_round: Previously prompted round number
 
         Returns:
             Formatted prompt string for AI agent
@@ -274,14 +281,6 @@ class ICombatService(ABC):
 
         Returns:
             True if combat should end
-        """
-        pass
-
-    @abstractmethod
-    def reset_combat_tracking(self) -> None:
-        """Reset internal combat tracking state.
-
-        Called when combat ends to clear any cached state.
         """
         pass
 

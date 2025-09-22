@@ -149,7 +149,6 @@ class TestCombatHandler:
         assert self.game_state.active_agent == AgentType.NARRATIVE
         assert result.mutated
         assert isinstance(result.data, EndCombatResult)
-        self.combat_service.reset_combat_tracking.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_invalid_entity_error(self) -> None:
