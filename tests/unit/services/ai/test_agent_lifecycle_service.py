@@ -17,7 +17,6 @@ from app.interfaces.services.data import IRepositoryProvider
 from app.interfaces.services.game import (
     IConversationService,
     IEventManager,
-    IMessageManager,
     IMetadataService,
     ISaveManager,
 )
@@ -33,7 +32,7 @@ def lifecycle_service(monkeypatch: pytest.MonkeyPatch) -> tuple[IAgentLifecycleS
     scenario_service = create_autospec(IScenarioService, instance=True)
     repository_provider = create_autospec(IRepositoryProvider, instance=True)
     metadata_service = create_autospec(IMetadataService, instance=True)
-    message_manager = create_autospec(IMessageManager, instance=True)
+    conversation_service = create_autospec(IConversationService, instance=True)
     event_manager = create_autospec(IEventManager, instance=True)
     save_manager = create_autospec(ISaveManager, instance=True)
     conversation_service = create_autospec(IConversationService, instance=True)
@@ -61,7 +60,6 @@ def lifecycle_service(monkeypatch: pytest.MonkeyPatch) -> tuple[IAgentLifecycleS
         scenario_service=scenario_service,
         repository_provider=repository_provider,
         metadata_service=metadata_service,
-        message_manager=message_manager,
         event_manager=event_manager,
         save_manager=save_manager,
         conversation_service=conversation_service,

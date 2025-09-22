@@ -1,6 +1,6 @@
 # Architecture Refactoring Progress
 
-## Status: Phase 1 & Partial Phase 2 Complete (2025-09-22)
+## Status: Phase 1 Complete, Phase 2 Complete (2025-09-22)
 
 This document tracks the implementation progress for the architectural improvements outlined in REPORT.md.
 
@@ -26,7 +26,7 @@ This document tracks the implementation progress for the architectural improveme
   - `tests/unit/events/handlers/test_location_handler.py`: Expects player instance_id instead of None
 - **Impact**: All entity operations now require explicit entity IDs, improving code clarity and preventing ambiguous None handling
 
-### Phase 2: Code Simplification (Partial) ✅
+### Phase 2: Code Simplification ✅
 
 #### 1. Combat Logic Extraction in AgentOrchestrator
 - **File**: `app/services/ai/orchestrator_service.py`
@@ -36,13 +36,16 @@ This document tracks the implementation progress for the architectural improveme
   - `_handle_combat_end()`: Handles transition back to narrative after combat
 - **Impact**: Main `process()` method is cleaner and more readable, with clear separation of concerns
 
-## Remaining Tasks (From REPORT.md)
+#### 2. MessageManager Merged into ConversationService ✅
+- **Key Changes**:
+  - Deleted `app/services/game/message_manager.py` and `IMessageManager` interface
+  - Moved `add_message()` method directly into `ConversationService`
+  - Updated all agents and dependencies to use `conversation_service` instead of `message_manager`
+  - Updated `AgentDependencies` dataclass to use `conversation_service`
+- **Files Modified**: 14 files including container, agents, interfaces, and tests
+- **Impact**: Eliminated redundant abstraction, single responsibility for message operations
 
-### Phase 2: Code Simplification
-- [ ] **Merge MessageManager into ConversationService**
-  - Remove `MessageManager` class and `IMessageManager` interface
-  - Move `add_message` logic directly into `ConversationService`
-  - Update Container and all dependencies
+## Remaining Tasks (From REPORT.md)
 
 ### Phase 3: Major Refactoring
 - [ ] **Refactor CharacterService to use centralized entity_resolver**
@@ -73,7 +76,13 @@ This document tracks the implementation progress for the architectural improveme
 To continue the work:
 1. Read REPORT.md for the full architectural plan
 2. Review this PROGRESS.md for completed items
-3. Start with Phase 2 remaining tasks (MessageManager merge)
-4. Then proceed to Phase 3 major refactoring
+3. Start with Phase 3 tasks:
+   - Refactor CharacterService to use centralized entity_resolver
+   - Split CharacterService into CharacterSheetService and EntityStateService
 
-The codebase is stable after Phase 1 changes. All entity operations now require explicit IDs, which is a significant improvement in code clarity and type safety.
+## Current State
+- Phase 1 (Fail-Fast): ✅ COMPLETE
+- Phase 2 (Code Simplification): ✅ COMPLETE
+- Phase 3 (Major Refactoring): ⏳ NOT STARTED
+- All 164 tests passing
+- Type checking with `mypy --strict` passing

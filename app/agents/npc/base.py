@@ -27,7 +27,6 @@ from app.interfaces.services.data import IRepositoryProvider
 from app.interfaces.services.game import (
     IConversationService,
     IEventManager,
-    IMessageManager,
     IMetadataService,
     ISaveManager,
 )
@@ -57,7 +56,6 @@ class BaseNPCAgent(BaseAgent, ABC):
         conversation_service: IConversationService,
         scenario_service: IScenarioService,
         repository_provider: IRepositoryProvider,
-        message_manager: IMessageManager,
         event_manager: IEventManager,
         save_manager: ISaveManager,
         action_service: IActionService,
@@ -76,7 +74,6 @@ class BaseNPCAgent(BaseAgent, ABC):
         self.debug_logger = debug_logger
         self._scenario_service = scenario_service
         self._repository_provider = repository_provider
-        self._message_manager = message_manager
         self._event_manager = event_manager
         self._save_manager = save_manager
         self._action_service = action_service
@@ -189,7 +186,7 @@ class BaseNPCAgent(BaseAgent, ABC):
             item_repository=self._repository_provider.get_item_repository_for(game_state),
             monster_repository=self._repository_provider.get_monster_repository_for(game_state),
             spell_repository=self._repository_provider.get_spell_repository_for(game_state),
-            message_manager=self._message_manager,
+            conversation_service=self.conversation_service,
             event_manager=self._event_manager,
             metadata_service=self.metadata_service,
             save_manager=self._save_manager,

@@ -22,7 +22,6 @@ from app.interfaces.services.data import IRepositoryProvider
 from app.interfaces.services.game import (
     IConversationService,
     IEventManager,
-    IMessageManager,
     IMetadataService,
     ISaveManager,
 )
@@ -48,7 +47,6 @@ class CombatAgent(BaseAgent):
     event_bus: IEventBus
     scenario_service: IScenarioService
     repository_provider: IRepositoryProvider
-    message_manager: IMessageManager
     save_manager: ISaveManager
     event_manager: IEventManager
     conversation_service: IConversationService
@@ -128,7 +126,7 @@ class CombatAgent(BaseAgent):
             item_repository=item_repo,
             monster_repository=monster_repo,
             spell_repository=spell_repo,
-            message_manager=self.message_manager,
+            conversation_service=self.conversation_service,
             event_manager=self.event_manager,
             metadata_service=self.metadata_service,
             save_manager=self.save_manager,

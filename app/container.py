@@ -42,7 +42,6 @@ from app.interfaces.services.game import (
     IGameService,
     IGameStateManager,
     ILocationService,
-    IMessageManager,
     IMetadataService,
     IMonsterFactory,
     IPreSaveSanitizer,
@@ -96,7 +95,6 @@ from app.services.game.event_manager import EventManager
 from app.services.game.game_factory import GameFactory
 from app.services.game.game_state_manager import GameStateManager
 from app.services.game.memory_service import MemoryService
-from app.services.game.message_manager import MessageManager as GameMessageManager
 from app.services.game.metadata_service import MetadataService
 from app.services.game.monster_factory import MonsterFactory
 from app.services.game.pre_save_sanitizer import PreSaveSanitizer
@@ -368,10 +366,6 @@ class Container:
         return GameStateManager()
 
     @cached_property
-    def game_message_manager(self) -> IMessageManager:
-        return GameMessageManager()
-
-    @cached_property
     def event_manager(self) -> IEventManager:
         return EventManager()
 
@@ -441,7 +435,6 @@ class Container:
             scenario_service=self.scenario_service,
             repository_provider=self.repository_factory,
             metadata_service=self.metadata_service,
-            message_manager=self.game_message_manager,
             event_manager=self.event_manager,
             save_manager=self.save_manager,
             conversation_service=self.conversation_service,
@@ -459,7 +452,6 @@ class Container:
             scenario_service=self.scenario_service,
             repository_provider=self.repository_factory,
             metadata_service=self.metadata_service,
-            message_manager=self.game_message_manager,
             event_manager=self.event_manager,
             save_manager=self.save_manager,
             conversation_service=self.conversation_service,
@@ -495,7 +487,6 @@ class Container:
             scenario_service=self.scenario_service,
             repository_provider=self.repository_factory,
             metadata_service=self.metadata_service,
-            message_manager=self.game_message_manager,
             event_manager=self.event_manager,
             save_manager=self.save_manager,
             conversation_service=self.conversation_service,
@@ -519,7 +510,6 @@ class Container:
             scenario_service=self.scenario_service,
             repository_provider=self.repository_factory,
             metadata_service=self.metadata_service,
-            message_manager=self.game_message_manager,
             event_manager=self.event_manager,
             save_manager=self.save_manager,
             conversation_service=self.conversation_service,
@@ -549,7 +539,6 @@ class Container:
     @cached_property
     def conversation_service(self) -> IConversationService:
         return ConversationService(
-            message_manager=self.game_message_manager,
             metadata_service=self.metadata_service,
             save_manager=self.save_manager,
         )

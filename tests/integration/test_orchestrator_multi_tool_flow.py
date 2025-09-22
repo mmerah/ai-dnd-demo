@@ -126,7 +126,7 @@ class _NarrativeScriptAgent(BaseAgent):
 
             await combat_tools.start_combat(ctx, entity_ids=[spawned.instance_id])
 
-            deps.message_manager.add_message(
+            deps.conversation_service.add_message(
                 game_state=game_state,
                 role=MessageRole.DM,
                 content=self._response_text,
@@ -144,7 +144,7 @@ class _NarrativeScriptAgent(BaseAgent):
             )
             return
 
-        deps.message_manager.add_message(
+        deps.conversation_service.add_message(
             game_state=game_state,
             role=MessageRole.DM,
             content=self._aftermath_text,
@@ -212,7 +212,7 @@ class _CombatScriptAgent(BaseAgent):
             )
             self._shared["fireball_total"] = fireball.total
 
-            deps.message_manager.add_message(
+            deps.conversation_service.add_message(
                 game_state=game_state,
                 role=MessageRole.DM,
                 content=self._opening_text,
@@ -306,7 +306,7 @@ class _CombatScriptAgent(BaseAgent):
                 raise AssertionError("Quest identifiers missing from shared state")
             await quest_tools.complete_objective(ctx, quest_id=quest_id, objective_id=objective_id)
 
-            deps.message_manager.add_message(
+            deps.conversation_service.add_message(
                 game_state=game_state,
                 role=MessageRole.DM,
                 content=self._resolution_text,
@@ -457,7 +457,7 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
             item_repository=repository_provider.get_item_repository_for(state),
             monster_repository=repository_provider.get_monster_repository_for(state),
             spell_repository=repository_provider.get_spell_repository_for(state),
-            message_manager=container.game_message_manager,
+            conversation_service=container.conversation_service,
             event_manager=container.event_manager,
             metadata_service=container.metadata_service,
             save_manager=container.save_manager,
@@ -473,7 +473,7 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
             item_repository=repository_provider.get_item_repository_for(state),
             monster_repository=repository_provider.get_monster_repository_for(state),
             spell_repository=repository_provider.get_spell_repository_for(state),
-            message_manager=container.game_message_manager,
+            conversation_service=container.conversation_service,
             event_manager=container.event_manager,
             metadata_service=container.metadata_service,
             save_manager=container.save_manager,

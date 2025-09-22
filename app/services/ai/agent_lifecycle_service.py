@@ -14,7 +14,6 @@ from app.interfaces.services.data import IRepositoryProvider
 from app.interfaces.services.game import (
     IConversationService,
     IEventManager,
-    IMessageManager,
     IMetadataService,
     ISaveManager,
 )
@@ -36,7 +35,6 @@ class AgentLifecycleService(IAgentLifecycleService):
         scenario_service: IScenarioService,
         repository_provider: IRepositoryProvider,
         metadata_service: IMetadataService,
-        message_manager: IMessageManager,
         event_manager: IEventManager,
         save_manager: ISaveManager,
         conversation_service: IConversationService,
@@ -50,7 +48,6 @@ class AgentLifecycleService(IAgentLifecycleService):
         self._scenario_service = scenario_service
         self._repository_provider = repository_provider
         self._metadata_service = metadata_service
-        self._message_manager = message_manager
         self._event_manager = event_manager
         self._save_manager = save_manager
         self._conversation_service = conversation_service
@@ -91,7 +88,6 @@ class AgentLifecycleService(IAgentLifecycleService):
                 scenario_service=self._scenario_service,
                 repository_provider=self._repository_provider,
                 metadata_service=self._metadata_service,
-                message_manager=self._message_manager,
                 event_manager=self._event_manager,
                 save_manager=self._save_manager,
                 conversation_service=self._conversation_service,
@@ -112,7 +108,6 @@ class AgentLifecycleService(IAgentLifecycleService):
                 scenario_service=self._scenario_service,
                 repository_provider=self._repository_provider,
                 metadata_service=self._metadata_service,
-                message_manager=self._message_manager,
                 event_manager=self._event_manager,
                 save_manager=self._save_manager,
                 conversation_service=self._conversation_service,

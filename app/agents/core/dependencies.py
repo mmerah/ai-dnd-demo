@@ -6,7 +6,7 @@ from app.agents.core.types import AgentType
 from app.interfaces.events import IEventBus
 from app.interfaces.services.common import IActionService
 from app.interfaces.services.data import IRepository
-from app.interfaces.services.game import IEventManager, IMessageManager, IMetadataService, ISaveManager
+from app.interfaces.services.game import IConversationService, IEventManager, IMetadataService, ISaveManager
 from app.interfaces.services.scenario import IScenarioService
 from app.models.game_state import GameState
 from app.models.item import ItemDefinition
@@ -25,7 +25,7 @@ class AgentDependencies:
     item_repository: IRepository[ItemDefinition]
     monster_repository: IRepository[MonsterSheet]
     spell_repository: IRepository[SpellDefinition]
-    message_manager: IMessageManager
+    conversation_service: IConversationService
     event_manager: IEventManager
     metadata_service: IMetadataService
     save_manager: ISaveManager

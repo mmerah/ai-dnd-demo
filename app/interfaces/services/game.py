@@ -446,10 +446,6 @@ class IConversationService(ABC):
         """
         pass
 
-
-class IMessageManager(ABC):
-    """Interface for managing conversation history."""
-
     @abstractmethod
     def add_message(
         self,
@@ -475,6 +471,8 @@ class IMessageManager(ABC):
             npcs_mentioned: NPCs referenced
             combat_round: Combat round if in combat
             combat_occurrence: Which combat occurrence this message belongs to
+            speaker_npc_id: ID of NPC speaker (if applicable)
+            speaker_npc_name: Name of NPC speaker (if applicable)
 
         Returns:
             Created message

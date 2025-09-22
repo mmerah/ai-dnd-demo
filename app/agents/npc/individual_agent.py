@@ -15,7 +15,6 @@ from app.interfaces.services.data import IRepositoryProvider
 from app.interfaces.services.game import (
     IConversationService,
     IEventManager,
-    IMessageManager,
     IMetadataService,
     ISaveManager,
 )
@@ -41,7 +40,6 @@ class IndividualMindAgent(BaseNPCAgent):
         conversation_service: IConversationService,
         scenario_service: IScenarioService,
         repository_provider: IRepositoryProvider,
-        message_manager: IMessageManager,
         event_manager: IEventManager,
         save_manager: ISaveManager,
         action_service: IActionService,
@@ -58,7 +56,6 @@ class IndividualMindAgent(BaseNPCAgent):
             conversation_service=conversation_service,
             scenario_service=scenario_service,
             repository_provider=repository_provider,
-            message_manager=message_manager,
             event_manager=event_manager,
             save_manager=save_manager,
             action_service=action_service,
