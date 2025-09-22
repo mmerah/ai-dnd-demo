@@ -4,7 +4,6 @@ from app.models.attributes import Abilities, AbilityModifiers, AttackAction, Sav
 from app.models.character import CharacterSheet, Currency
 from app.models.equipment_slots import EquipmentSlotType
 from app.models.game_state import GameState
-from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.entity_state import EntityState
 from app.models.item import InventoryItem
 
@@ -156,13 +155,15 @@ class IEntityStateService(ABC):
     def update_spell_slots(
         self,
         game_state: GameState,
+        entity_id: str,
         level: int,
         amount: int,
     ) -> tuple[int, int, int]:
-        """Update spell slots for the player character.
+        """Update spell slots for an entity.
 
         Args:
             game_state: Current game state
+            entity_id: ID of entity
             level: Spell level
             amount: Slot change (positive to restore, negative to use)
 
@@ -170,10 +171,34 @@ class IEntityStateService(ABC):
             Tuple of (old_slots, new_slots, max_slots)
 
         Raises:
-            ValueError: If character has no spellcasting or invalid level
+            ValueError: If entity not found, has no spellcasting, or invalid level
 
         Side Effects:
-            Modifies character's spell slots
+            Modifies entity's spell slots
+        """
+        pass
+
+    @abstractmethod
+    def recompute_entity_state(
+        self,
+        game_state: GameState,
+        entity_id: str,
+    ) -> None:
+        """Recompute all derived values for an entity.
+
+        Recalculates all computed fields (AC, saves, skills, attacks) based on
+        current abilities, level, equipment, and class features. Preserves
+        current resource values (HP, spell slots, etc.) while updating maximums.
+
+        Args:
+            game_state: Current game state
+            entity_id: ID of entity to recompute
+
+        Raises:
+            ValueError: If entity not found
+
+        Side Effects:
+            Modifies the entity's state in-place with updated computed values
         """
         pass
 
@@ -211,22 +236,6 @@ class ICharacterService(ABC):
 
         Returns:
             List of validation error messages (empty if all references are valid)
-        """
-        pass
-
-    @abstractmethod
-    def recompute_character_state(self, game_state: GameState) -> None:
-        """Recompute all derived values for the player character.
-
-        Recalculates all computed fields (AC, saves, skills, attacks) based on
-        current abilities, level, equipment, and class features. Preserves
-        current resource values (HP, spell slots, etc.) while updating maximums.
-
-        Args:
-            game_state: Current game state containing the character instance
-
-        Side Effects:
-            Modifies the character's state in-place with updated computed values
         """
         pass
 
@@ -513,19 +522,26 @@ class ICharacterComputeService(ABC):
 
 
 class ILevelProgressionService(ABC):
-    """Interface for minimal character level-up progression."""
+    """Interface for minimal entity level-up progression."""
 
     @abstractmethod
-    def level_up_character(self, game_state: GameState, character: CharacterInstance) -> None:
-        """Level up a character, adjusting HP, hit dice, and derived values.
+    def level_up_entity(self, game_state: GameState, entity_id: str) -> None:
+        """Level up an entity, adjusting HP, hit dice, and derived values.
 
         Process:
-        1. Increment character level
+        1. Increment entity level
         2. Increase max HP (average hit die + CON modifier)
         3. Add one hit die to the pool
         4. Recompute all derived values (AC, saves, skills, etc.)
 
         Args:
-            character: Character instance to level up (modified in-place)
+            game_state: Current game state
+            entity_id: ID of entity to level up
+
+        Raises:
+            ValueError: If entity not found
+
+        Side Effects:
+            Modifies the entity in-place
         """
         pass

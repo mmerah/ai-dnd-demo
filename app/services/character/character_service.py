@@ -207,12 +207,6 @@ class CharacterSheetService(ICharacterService):
 
         return errors
 
-    def recompute_character_state(self, game_state: GameState) -> None:
-        char = game_state.character
-        new_state = self.compute_service.recompute_entity_state(game_state, char.sheet, char.state)
-        char.state = new_state
-        char.touch()
-
     def create_placeholder_item(
         self,
         game_state: GameState,

@@ -83,32 +83,42 @@ async def update_condition(
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 
-# TODO(MVP2): Apply spell slots up generally to any entity
 @tool_handler(UpdateSpellSlotsCommand)
-async def update_spell_slots(ctx: RunContext[AgentDependencies], level: int, amount: int) -> BaseModel:
+async def update_spell_slots(
+    ctx: RunContext[AgentDependencies], entity_id: str, entity_type: EntityType, level: int, amount: int
+) -> BaseModel:
     # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
-    """Update spell slots for the entity.
+    """Update spell slots for an entity.
 
     Use when spells are cast or slots are restored.
 
     Args:
+        entity_id: Instance ID of target
+        entity_type: One of 'player' | 'npc' | 'monster'
         level: Spell level (1-9)
         amount: Change in slots (negative to use, positive to restore)
 
     Examples:
-        - Cast level 1 spell: level=1, amount=-1
-        - Restore level 2 slot: level=2, amount=1
-        - Cast Hunter's Mark: level=1, amount=-1
+        - Cast level 1 spell (player): entity_type="player", entity_id="<player-id>", level=1, amount=-1
+        - Restore level 2 slot (NPC): entity_type="npc", entity_id="<npc-id>", level=2, amount=1
+        - NPC casts fireball: entity_type="npc", entity_id="<npc-id>", level=3, amount=-1
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 
-# TODO(MVP2): Apply level up generally to any entity
 @tool_handler(LevelUpCommand)
-async def level_up(ctx: RunContext[AgentDependencies]) -> BaseModel:
+async def level_up(ctx: RunContext[AgentDependencies], entity_id: str, entity_type: EntityType) -> BaseModel:
     # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
-    """Level up the entity by one level.
+    """Level up an entity by one level.
 
-    Use when the entity has earned enough XP or for testing progression.
+    Use when an entity has earned enough XP or for testing progression.
+
+    Args:
+        entity_id: Instance ID of target
+        entity_type: One of 'player' | 'npc' | 'monster'
+
+    Examples:
+        - Level up player: entity_type="player", entity_id="<player-id>"
+        - Level up NPC: entity_type="npc", entity_id="<npc-id>"
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")

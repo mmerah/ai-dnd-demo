@@ -130,13 +130,19 @@ class EntityHandler(BaseHandler):
             logger.debug(f"Condition Removed: {entity.display_name} is no longer {command.condition}")
 
         elif isinstance(command, UpdateSpellSlotsCommand):
+            entity, resolved_type = resolve_entity_with_fallback(game_state, command.entity_id, command.entity_type)
+            if not entity or not resolved_type:
+                etype = command.entity_type.value if command.entity_type else "unknown"
+                raise ValueError(f"Entity with ID '{command.entity_id}' of type '{etype}' not found")
+
             old_slots, new_slots, max_slots = self.entity_state_service.update_spell_slots(
-                game_state, command.level, command.amount
+                game_state, entity.instance_id, command.level, command.amount
             )
 
             result.mutated = old_slots != new_slots
 
             result.data = UpdateSpellSlotsResult(
+                target=entity.display_name,
                 level=command.level,
                 old_slots=old_slots,
                 new_slots=new_slots,
@@ -148,26 +154,30 @@ class EntityHandler(BaseHandler):
             logger.debug(f"Spell Slots: Level {command.level} - {old_slots} → {new_slots}/{max_slots}")
 
         elif isinstance(command, LevelUpCommand):
-            character_instance = game_state.character
+            entity, resolved_type = resolve_entity_with_fallback(game_state, command.entity_id, command.entity_type)
+            if not entity or not resolved_type:
+                etype = command.entity_type.value if command.entity_type else "unknown"
+                raise ValueError(f"Entity with ID '{command.entity_id}' of type '{etype}' not found")
 
-            old_level = character_instance.state.level
-            old_max_hp = character_instance.state.hit_points.maximum
+            old_level = entity.state.level
+            old_max_hp = entity.state.hit_points.maximum
 
-            self.level_service.level_up_character(game_state, character_instance)
+            self.level_service.level_up_entity(game_state, entity.instance_id)
 
-            new_level = character_instance.state.level
-            new_max_hp = character_instance.state.hit_points.maximum
+            new_level = entity.state.level
+            new_max_hp = entity.state.hit_points.maximum
             hp_increase = max(0, new_max_hp - old_max_hp)
 
             result.mutated = True
 
             result.data = LevelUpResult(
+                target=entity.display_name,
                 old_level=old_level,
                 new_level=new_level,
                 old_max_hp=old_max_hp,
                 new_max_hp=new_max_hp,
                 hp_increase=hp_increase,
-                message=f"Leveled up to {new_level}! HP +{hp_increase}",
+                message=f"{entity.display_name} leveled up to {new_level}! HP +{hp_increase}",
             )
 
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))

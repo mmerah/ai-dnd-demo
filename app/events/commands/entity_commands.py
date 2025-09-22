@@ -41,6 +41,8 @@ class UpdateSpellSlotsCommand(BaseCommand):
     """Command to update entity spell slots."""
 
     agent_type: AgentType | None = field(default=None)
+    entity_id: str = ""  # required: instance id of target
+    entity_type: EntityType = EntityType.PLAYER
     level: int = 1
     amount: int = 0
 
@@ -53,6 +55,8 @@ class LevelUpCommand(BaseCommand):
     """Command to level up an entity by one level."""
 
     agent_type: AgentType | None = field(default=None)
+    entity_id: str = ""  # required: instance id of target
+    entity_type: EntityType = EntityType.PLAYER
 
     def get_handler_name(self) -> str:
         return "entity"

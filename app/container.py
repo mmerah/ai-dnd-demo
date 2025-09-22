@@ -395,7 +395,7 @@ class Container:
 
     @cached_property
     def event_bus(self) -> IEventBus:
-        event_bus = EventBus(self.game_service, self.character_service)
+        event_bus = EventBus(self.game_service, self.entity_state_service)
 
         # Register all handlers
         event_bus.register_handler(

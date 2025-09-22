@@ -9,7 +9,7 @@ from pydantic import BaseModel
 from app.events.base import BaseCommand, CommandResult
 from app.events.event_bus import EventBus
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services.character import ICharacterService
+from app.interfaces.services.character import IEntityStateService
 from app.interfaces.services.game import IGameService
 from app.models.game_state import GameState
 from tests.factories import make_game_state
@@ -61,11 +61,11 @@ class StubGameService:
         self.saved = True
 
 
-class StubCharacterService:
+class StubEntityStateService:
     def __init__(self) -> None:
         self.calls = 0
 
-    def recompute_character_state(self, game_state: GameState) -> None:
+    def recompute_entity_state(self, game_state: GameState, entity_id: str) -> None:
         self.calls += 1
 
 
@@ -74,10 +74,10 @@ class TestEventBus:
     def setup_method(self) -> None:
         self.game_state = make_game_state()
         self.game_service = StubGameService(self.game_state)
-        self.character_service = StubCharacterService()
+        self.entity_state_service = StubEntityStateService()
         self.bus = EventBus(
             cast(IGameService, self.game_service),
-            cast(ICharacterService, self.character_service),
+            cast(IEntityStateService, self.entity_state_service),
         )
         self.handler = StubHandler()
         self.bus.register_handler("core", self.handler)
@@ -94,7 +94,7 @@ class TestEventBus:
 
         assert len(self.handler.handled) == 2
         assert self.game_service.saved
-        assert self.character_service.calls == 1
+        assert self.entity_state_service.calls == 1
 
     async def test_execute_command_returns_model(self) -> None:
         command = StubCommand(game_id=self.game_state.game_id)

@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from app.events.base import BaseCommand, CommandResult
 from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.events import IEventBus
-from app.interfaces.services.character import ICharacterService
+from app.interfaces.services.character import IEntityStateService
 from app.interfaces.services.game import IGameService
 
 logger = logging.getLogger(__name__)
@@ -20,9 +20,9 @@ logger = logging.getLogger(__name__)
 class EventBus(IEventBus):
     """Central event bus for processing commands sequentially using a handler registration pattern."""
 
-    def __init__(self, game_service: IGameService, character_service: ICharacterService):
+    def __init__(self, game_service: IGameService, entity_state_service: IEntityStateService):
         self.game_service = game_service
-        self.character_service = character_service
+        self.entity_state_service = entity_state_service
         self._handlers: dict[str, BaseHandler] = {}
 
         self.command_queue: asyncio.PriorityQueue[tuple[int, datetime, BaseCommand]] = asyncio.PriorityQueue()
@@ -93,7 +93,7 @@ class EventBus(IEventBus):
 
         # Recompute character state if needed
         if result.mutated or result.recompute_state:
-            self.character_service.recompute_character_state(game_state)
+            self.entity_state_service.recompute_entity_state(game_state, game_state.character.instance_id)
 
         # Centralized persistence: save once if handler mutated state
         if result.mutated:

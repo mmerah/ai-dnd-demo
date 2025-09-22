@@ -12,7 +12,6 @@ from app.events.commands.entity_commands import (
 from app.events.handlers.entity_handler import EntityHandler
 from app.interfaces.services.character import IEntityStateService, ILevelProgressionService
 from app.models.attributes import EntityType
-from app.models.instances.character_instance import CharacterInstance
 from app.models.tool_results import (
     AddConditionResult,
     LevelUpResult,
@@ -139,34 +138,41 @@ class TestCharacterHandler:
     @pytest.mark.asyncio
     async def test_update_spell_slots(self) -> None:
         gs = self.game_state
+        cid = gs.character.instance_id
 
         self.entity_state_service.update_spell_slots.return_value = (3, 2, 3)
 
-        command = UpdateSpellSlotsCommand(game_id=gs.game_id, level=2, amount=-1)
+        command = UpdateSpellSlotsCommand(
+            game_id=gs.game_id, entity_id=cid, entity_type=EntityType.PLAYER, level=2, amount=-1
+        )
         result = await self.handler.handle(command, gs)
 
         assert isinstance(result.data, UpdateSpellSlotsResult)
         assert result.data.new_slots == 2
         assert result.data.old_slots == 3
         assert result.data.level == 2
+        assert result.data.target == gs.character.display_name
 
     @pytest.mark.asyncio
     async def test_level_up(self) -> None:
         gs = self.game_state
+        cid = gs.character.instance_id
         old_level = gs.character.state.level
         old_max_hp = gs.character.state.hit_points.maximum
 
-        def _level_up(_: object, character_instance: CharacterInstance) -> None:
-            character_instance.state.level = old_level + 1
-            character_instance.state.hit_points.maximum = old_max_hp + 5
+        def _level_up(_: object, entity_id: str) -> None:
+            if entity_id == cid:
+                gs.character.state.level = old_level + 1
+                gs.character.state.hit_points.maximum = old_max_hp + 5
 
-        self.level_service.level_up_character.side_effect = _level_up
+        self.level_service.level_up_entity.side_effect = _level_up
 
-        command = LevelUpCommand(game_id=gs.game_id)
+        command = LevelUpCommand(game_id=gs.game_id, entity_id=cid, entity_type=EntityType.PLAYER)
         result = await self.handler.handle(command, gs)
 
         assert isinstance(result.data, LevelUpResult)
         assert result.data.hp_increase == 5
         assert result.data.new_level == old_level + 1
+        assert result.data.target == gs.character.display_name
         assert gs.character.state.level == old_level + 1
         assert result.mutated

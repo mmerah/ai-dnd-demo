@@ -173,15 +173,20 @@ class EntityStateService(IEntityStateService):
     def update_spell_slots(
         self,
         game_state: GameState,
+        entity_id: str,
         level: int,
         amount: int,
     ) -> tuple[int, int, int]:
-        character = game_state.character.state
+        entity, entity_type = resolve_entity_with_fallback(game_state, entity_id)
+        if not entity:
+            raise ValueError(f"Entity '{entity_id}' not found")
 
-        if not character.spellcasting:
-            raise ValueError("Character has no spellcasting ability")
+        state = entity.state
 
-        spell_slots = character.spellcasting.spell_slots
+        if not state.spellcasting:
+            raise ValueError(f"Entity '{entity_id}' has no spellcasting ability")
+
+        spell_slots = state.spellcasting.spell_slots
 
         if level not in spell_slots:
             raise ValueError(f"No spell slots for level {level}")
@@ -192,6 +197,29 @@ class EntityStateService(IEntityStateService):
         new_slots = slot.current
         max_slots = slot.total
 
-        game_state.character.touch()
+        # Touch player if it was modified
+        if entity.instance_id == game_state.character.instance_id:
+            game_state.character.touch()
 
         return old_slots, new_slots, max_slots
+
+    def recompute_entity_state(self, game_state: GameState, entity_id: str) -> None:
+        entity, entity_type = resolve_entity_with_fallback(game_state, entity_id)
+        if not entity:
+            raise ValueError(f"Entity '{entity_id}' not found")
+
+        # For player character, use the character sheet
+        if entity.instance_id == game_state.character.instance_id:
+            char = game_state.character
+            new_state = self.compute_service.recompute_entity_state(game_state, char.sheet, char.state)
+            char.state = new_state
+            char.touch()
+        else:
+            # For NPCs, use the NPC's character sheet from NPCSheet
+            npc = next((n for n in game_state.npcs if n.instance_id == entity_id), None)
+            if npc:
+                new_state = self.compute_service.recompute_entity_state(game_state, npc.sheet.character, npc.state)
+                npc.state = new_state
+            else:
+                # Monsters don't have character sheets to recompute from
+                logger.debug(f"Cannot recompute state for monster '{entity_id}' - no character sheet")

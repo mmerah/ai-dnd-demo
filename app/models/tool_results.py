@@ -33,6 +33,7 @@ class RemoveConditionResult(BaseModel):
 
 class UpdateSpellSlotsResult(BaseModel):
     type: str = "spell_slots_update"
+    target: str
     level: int
     old_slots: int
     new_slots: int
@@ -213,6 +214,7 @@ class RollDiceResult(BaseModel):
 
 class LevelUpResult(BaseModel):
     type: str = "level_up"
+    target: str
     old_level: int
     new_level: int
     old_max_hp: int
