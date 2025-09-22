@@ -1,4 +1,4 @@
-"""Service for managing character data."""
+"""Service for managing character sheet data (loading and validation)."""
 
 import logging
 from pathlib import Path
@@ -8,13 +8,11 @@ from app.interfaces.services.common import IPathResolver
 from app.interfaces.services.data import ILoader, IRepository
 from app.models.alignment import Alignment
 from app.models.background import BackgroundDefinition
-from app.models.character import CharacterSheet, Currency
+from app.models.character import CharacterSheet
 from app.models.class_definitions import ClassDefinition, SubclassDefinition
-from app.models.equipment_slots import EquipmentSlotType
 from app.models.feat import FeatDefinition
 from app.models.feature import FeatureDefinition
 from app.models.game_state import GameState
-from app.models.instances.entity_state import EntityState
 from app.models.item import InventoryItem, ItemDefinition, ItemRarity, ItemType
 from app.models.language import Language
 from app.models.race import RaceDefinition, SubraceDefinition
@@ -25,8 +23,12 @@ from app.models.trait import TraitDefinition
 logger = logging.getLogger(__name__)
 
 
-class CharacterService(ICharacterService):
-    """Service for loading and managing character data."""
+class CharacterSheetService(ICharacterService):
+    """Service for loading and validating character sheet data.
+
+    This service focuses solely on character sheet management (loading, validation,
+    and template operations). Runtime state mutations are handled by EntityStateService.
+    """
 
     def __init__(
         self,
@@ -48,14 +50,25 @@ class CharacterService(ICharacterService):
         feat_repository: IRepository[FeatDefinition],
     ):
         """
-        Initialize character service.
+        Initialize character sheet service.
 
         Args:
             path_resolver: Service for resolving file paths
             character_loader: Loader for character data
             compute_service: Service for computing character values
-            item_repository: Repository for validating item references (optional)
-            spell_repository: Repository for validating spell references (optional)
+            item_repository: Repository for validating item references
+            spell_repository: Repository for validating spell references
+            alignment_repository: Repository for validating alignments
+            class_repository: Repository for validating classes
+            subclass_repository: Repository for validating subclasses
+            language_repository: Repository for validating languages
+            race_repository: Repository for validating races
+            race_subrace_repository: Repository for validating subraces
+            background_repository: Repository for validating backgrounds
+            skill_repository: Repository for validating skills
+            trait_repository: Repository for validating traits
+            feature_repository: Repository for validating features
+            feat_repository: Repository for validating feats
         """
         self.path_resolver = path_resolver
         self.character_loader = character_loader
@@ -194,96 +207,11 @@ class CharacterService(ICharacterService):
 
         return errors
 
-    def _resolve_entity(self, game_state: GameState, entity_id: str) -> tuple[EntityState, bool]:
-        """Resolve an entity by ID.
-
-        Args:
-            game_state: Current game state
-            entity_id: Entity ID (must be a valid entity instance_id)
-
-        Returns:
-            Tuple of (entity_state, is_player)
-
-        Raises:
-            ValueError: If entity not found
-        """
-        # Check if this is the player
-        if entity_id == game_state.character.instance_id:
-            return game_state.character.state, True
-
-        # Try NPCs first
-        npc = next((n for n in game_state.npcs if n.instance_id == entity_id), None)
-        if npc:
-            return npc.state, False
-
-        # Try monsters
-        monster = next((m for m in game_state.monsters if m.instance_id == entity_id), None)
-        if monster:
-            return monster.state, False
-
-        raise ValueError(f"Entity '{entity_id}' not found")
-
     def recompute_character_state(self, game_state: GameState) -> None:
         char = game_state.character
         new_state = self.compute_service.recompute_entity_state(game_state, char.sheet, char.state)
         char.state = new_state
         char.touch()
-
-    def equip_item(
-        self,
-        game_state: GameState,
-        entity_id: str,
-        item_index: str,
-        slot: EquipmentSlotType | None = None,
-        unequip: bool = False,
-    ) -> None:
-        # Check if this is the player
-        if entity_id == game_state.character.instance_id:
-            state = game_state.character.state
-            updated = self.compute_service.equip_item_to_slot(game_state, state, item_index, slot, unequip)
-            game_state.character.state = updated
-            game_state.character.touch()
-        else:
-            # NPC only, monsters don't have equipment
-            npc = next((n for n in game_state.npcs if n.instance_id == entity_id), None)
-            if not npc:
-                raise ValueError(f"Entity '{entity_id}' not found")
-            updated = self.compute_service.equip_item_to_slot(game_state, npc.state, item_index, slot, unequip)
-            npc.state = updated
-
-    def modify_currency(
-        self,
-        game_state: GameState,
-        entity_id: str,
-        gold: int = 0,
-        silver: int = 0,
-        copper: int = 0,
-    ) -> tuple[Currency, Currency]:
-        state, is_player = self._resolve_entity(game_state, entity_id)
-
-        # Capture old values
-        old_currency = Currency(
-            gold=state.currency.gold,
-            silver=state.currency.silver,
-            copper=state.currency.copper,
-        )
-
-        # Apply changes
-        state.currency.gold = max(0, state.currency.gold + gold)
-        state.currency.silver = max(0, state.currency.silver + silver)
-        state.currency.copper = max(0, state.currency.copper + copper)
-
-        # Capture new values
-        new_currency = Currency(
-            gold=state.currency.gold,
-            silver=state.currency.silver,
-            copper=state.currency.copper,
-        )
-
-        if is_player:
-            game_state.character.touch()
-
-        return old_currency, new_currency
 
     def create_placeholder_item(
         self,
@@ -304,89 +232,3 @@ class CharacterService(ICharacterService):
             content_pack="sandbox",
         )
         return InventoryItem.from_definition(item_def, quantity=quantity)
-
-    def update_hp(
-        self,
-        game_state: GameState,
-        entity_id: str,
-        amount: int,
-    ) -> tuple[int, int, int]:
-        state, is_player = self._resolve_entity(game_state, entity_id)
-
-        # Normalize entity_id for combat tracking
-        if is_player:
-            entity_id = game_state.character.instance_id
-
-        old_hp = state.hit_points.current
-        max_hp = state.hit_points.maximum
-        new_hp = min(old_hp + amount, max_hp) if amount > 0 else max(0, old_hp + amount)
-        state.hit_points.current = new_hp
-
-        # Update combat participant active status if in combat and HP reaches 0
-        if game_state.combat.is_active and new_hp == 0:
-            for participant in game_state.combat.participants:
-                if participant.entity_id == entity_id:
-                    participant.is_active = False
-                    logger.debug(f"Combat participant {participant.name} marked as inactive (0 HP)")
-                    break
-
-        if is_player:
-            game_state.character.touch()
-
-        return old_hp, new_hp, max_hp
-
-    def add_condition(
-        self,
-        game_state: GameState,
-        entity_id: str,
-        condition: str,
-    ) -> bool:
-        state, is_player = self._resolve_entity(game_state, entity_id)
-
-        if condition not in state.conditions:
-            state.conditions.append(condition)
-            if is_player:
-                game_state.character.touch()
-            return True
-        return False
-
-    def remove_condition(
-        self,
-        game_state: GameState,
-        entity_id: str,
-        condition: str,
-    ) -> bool:
-        state, is_player = self._resolve_entity(game_state, entity_id)
-
-        if condition in state.conditions:
-            state.conditions.remove(condition)
-            if is_player:
-                game_state.character.touch()
-            return True
-        return False
-
-    def update_spell_slots(
-        self,
-        game_state: GameState,
-        level: int,
-        amount: int,
-    ) -> tuple[int, int, int]:
-        character = game_state.character.state
-
-        if not character.spellcasting:
-            raise ValueError("Character has no spellcasting ability")
-
-        spell_slots = character.spellcasting.spell_slots
-
-        if level not in spell_slots:
-            raise ValueError(f"No spell slots for level {level}")
-
-        slot = spell_slots[level]
-        old_slots = slot.current
-        slot.current = max(0, min(slot.total, old_slots + amount))
-        new_slots = slot.current
-        max_slots = slot.total
-
-        game_state.character.touch()
-
-        return old_slots, new_slots, max_slots

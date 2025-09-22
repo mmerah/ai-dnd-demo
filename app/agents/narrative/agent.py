@@ -31,9 +31,9 @@ from app.models.game_state import GameState, MessageRole
 from app.services.ai.debug_logger import AgentDebugLogger
 from app.services.ai.message_converter_service import MessageConverterService
 from app.tools import (
-    character_tools,
     combat_tools,
     dice_tools,
+    entity_tools,
     inventory_tools,
     location_tools,
     quest_tools,
@@ -82,10 +82,10 @@ class NarrativeAgent(BaseAgent):
         """Return list of tools this agent requires."""
         return [
             dice_tools.roll_dice,
-            character_tools.update_hp,
-            character_tools.update_condition,
-            character_tools.update_spell_slots,
-            character_tools.level_up,
+            entity_tools.update_hp,
+            entity_tools.update_condition,
+            entity_tools.update_spell_slots,
+            entity_tools.level_up,
             inventory_tools.modify_currency,
             inventory_tools.modify_inventory,
             time_tools.short_rest,

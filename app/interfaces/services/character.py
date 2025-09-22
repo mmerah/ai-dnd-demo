@@ -9,141 +9,12 @@ from app.models.instances.entity_state import EntityState
 from app.models.item import InventoryItem
 
 
-class ICharacterService(ABC):
-    """Interface for managing character data."""
+class IEntityStateService(ABC):
+    """Interface for managing entity state mutations (HP, conditions, currency, equipment).
 
-    @abstractmethod
-    def get_character(self, character_id: str) -> CharacterSheet | None:
-        """Get a character by ID.
-
-        Args:
-            character_id: ID of the character to retrieve
-
-        Returns:
-            CharacterSheet object or None if not found
-        """
-        pass
-
-    @abstractmethod
-    def get_all_characters(self) -> list[CharacterSheet]:
-        """Get all loaded characters.
-
-        Returns:
-            List of all CharacterSheet objects
-        """
-        pass
-
-    @abstractmethod
-    def validate_character_references(self, character: CharacterSheet) -> list[str]:
-        """Validate that all item and spell references in the character exist.
-
-        Args:
-            character: Character to validate
-
-        Returns:
-            List of validation error messages (empty if all references are valid)
-        """
-        pass
-
-    @abstractmethod
-    def recompute_character_state(self, game_state: GameState) -> None:
-        """Recompute all derived values for the player character.
-
-        Recalculates all computed fields (AC, saves, skills, attacks) based on
-        current abilities, level, equipment, and class features. Preserves
-        current resource values (HP, spell slots, etc.) while updating maximums.
-
-        Args:
-            game_state: Current game state containing the character instance
-
-        Side Effects:
-            Modifies the character's state in-place with updated computed values
-        """
-        pass
-
-    @abstractmethod
-    def equip_item(
-        self,
-        game_state: GameState,
-        entity_id: str,
-        item_index: str,
-        slot: EquipmentSlotType | None = None,
-        unequip: bool = False,
-    ) -> None:
-        """Equip or unequip an item for a character or NPC.
-
-        Handles the equipping/unequipping of items, automatically selecting
-        appropriate slots if not specified. Validates item constraints and
-        updates computed values (AC, attacks) after equipment changes.
-
-        Args:
-            game_state: Current game state
-            entity_id: ID of entity to equip
-            item_index: Index/ID of the item to equip/unequip
-            slot: Target equipment slot (auto-selects if None)
-            unequip: If True, removes item from equipment slots
-
-        Raises:
-            ValueError: If item not found, not equippable, or slot constraints violated
-
-        Side Effects:
-            - Modifies entity's equipment slots
-            - Triggers state recomputation for updated AC/attacks
-        """
-        pass
-
-    @abstractmethod
-    def modify_currency(
-        self,
-        game_state: GameState,
-        entity_id: str,
-        gold: int = 0,
-        silver: int = 0,
-        copper: int = 0,
-    ) -> tuple[Currency, Currency]:
-        """Modify currency for a character or NPC.
-
-        Adds or subtracts currency values, ensuring no negative results.
-
-        Args:
-            game_state: Current game state
-            entity_id: ID of entity
-            gold: Gold pieces to add/subtract
-            silver: Silver pieces to add/subtract
-            copper: Copper pieces to add/subtract
-
-        Returns:
-            Tuple of (old_currency, new_currency)
-
-        Raises:
-            ValueError: If entity not found
-
-        Side Effects:
-            Modifies entity's currency in-place
-        """
-        pass
-
-    @abstractmethod
-    def create_placeholder_item(
-        self,
-        game_state: GameState,
-        item_index: str,
-        quantity: int = 1,
-    ) -> InventoryItem:
-        """Create a placeholder item for AI-invented items not in repository.
-
-        Creates a basic item definition when the AI references an item
-        that doesn't exist in the repository.
-
-        Args:
-            game_state: Current game state
-            item_index: Index/ID of the item
-            quantity: Initial quantity
-
-        Returns:
-            Created InventoryItem
-        """
-        pass
+    Separated from ICharacterService to follow Single Responsibility Principle.
+    This service handles runtime state mutations for all entities (player, NPCs, monsters).
+    """
 
     @abstractmethod
     def update_hp(
@@ -222,6 +93,66 @@ class ICharacterService(ABC):
         pass
 
     @abstractmethod
+    def modify_currency(
+        self,
+        game_state: GameState,
+        entity_id: str,
+        gold: int = 0,
+        silver: int = 0,
+        copper: int = 0,
+    ) -> tuple[Currency, Currency]:
+        """Modify currency for a character or NPC.
+
+        Args:
+            game_state: Current game state
+            entity_id: ID of entity
+            gold: Gold pieces to add/subtract
+            silver: Silver pieces to add/subtract
+            copper: Copper pieces to add/subtract
+
+        Returns:
+            Tuple of (old_currency, new_currency)
+
+        Raises:
+            ValueError: If entity not found
+
+        Side Effects:
+            Modifies entity's currency in-place
+        """
+        pass
+
+    @abstractmethod
+    def equip_item(
+        self,
+        game_state: GameState,
+        entity_id: str,
+        item_index: str,
+        slot: EquipmentSlotType | None = None,
+        unequip: bool = False,
+    ) -> None:
+        """Equip or unequip an item for a character or NPC.
+
+        Handles the equipping/unequipping of items, automatically selecting
+        appropriate slots if not specified. Validates item constraints and
+        updates computed values (AC, attacks) after equipment changes.
+
+        Args:
+            game_state: Current game state
+            entity_id: ID of entity to equip
+            item_index: Index/ID of the item to equip/unequip
+            slot: Target equipment slot (auto-selects if None)
+            unequip: If True, removes item from equipment slots
+
+        Raises:
+            ValueError: If item not found, not equippable, or slot constraints violated
+
+        Side Effects:
+            - Modifies entity's equipment slots
+            - Triggers state recomputation for updated AC/attacks
+        """
+        pass
+
+    @abstractmethod
     def update_spell_slots(
         self,
         game_state: GameState,
@@ -243,6 +174,81 @@ class ICharacterService(ABC):
 
         Side Effects:
             Modifies character's spell slots
+        """
+        pass
+
+
+class ICharacterService(ABC):
+    """Interface for managing character data."""
+
+    @abstractmethod
+    def get_character(self, character_id: str) -> CharacterSheet | None:
+        """Get a character by ID.
+
+        Args:
+            character_id: ID of the character to retrieve
+
+        Returns:
+            CharacterSheet object or None if not found
+        """
+        pass
+
+    @abstractmethod
+    def get_all_characters(self) -> list[CharacterSheet]:
+        """Get all loaded characters.
+
+        Returns:
+            List of all CharacterSheet objects
+        """
+        pass
+
+    @abstractmethod
+    def validate_character_references(self, character: CharacterSheet) -> list[str]:
+        """Validate that all item and spell references in the character exist.
+
+        Args:
+            character: Character to validate
+
+        Returns:
+            List of validation error messages (empty if all references are valid)
+        """
+        pass
+
+    @abstractmethod
+    def recompute_character_state(self, game_state: GameState) -> None:
+        """Recompute all derived values for the player character.
+
+        Recalculates all computed fields (AC, saves, skills, attacks) based on
+        current abilities, level, equipment, and class features. Preserves
+        current resource values (HP, spell slots, etc.) while updating maximums.
+
+        Args:
+            game_state: Current game state containing the character instance
+
+        Side Effects:
+            Modifies the character's state in-place with updated computed values
+        """
+        pass
+
+    @abstractmethod
+    def create_placeholder_item(
+        self,
+        game_state: GameState,
+        item_index: str,
+        quantity: int = 1,
+    ) -> InventoryItem:
+        """Create a placeholder item for AI-invented items not in repository.
+
+        Creates a basic item definition when the AI references an item
+        that doesn't exist in the repository.
+
+        Args:
+            game_state: Current game state
+            item_index: Index/ID of the item
+            quantity: Initial quantity
+
+        Returns:
+            Created InventoryItem
         """
         pass
 

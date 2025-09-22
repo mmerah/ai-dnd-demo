@@ -30,7 +30,7 @@ from app.models.ai_response import NarrativeResponse, StreamEvent, StreamEventTy
 from app.models.game_state import GameState, MessageRole
 from app.services.ai.debug_logger import AgentDebugLogger
 from app.services.ai.message_converter_service import MessageConverterService
-from app.tools import character_tools, combat_tools, dice_tools
+from app.tools import combat_tools, dice_tools, entity_tools
 
 logger = logging.getLogger(__name__)
 
@@ -77,8 +77,8 @@ class CombatAgent(BaseAgent):
             # Dice tools for all rolls
             dice_tools.roll_dice,
             # Character state management
-            character_tools.update_hp,
-            character_tools.update_condition,
+            entity_tools.update_hp,
+            entity_tools.update_condition,
             # Combat flow management - CRITICAL
             combat_tools.next_turn,  # MANDATORY after each turn
             combat_tools.end_combat,

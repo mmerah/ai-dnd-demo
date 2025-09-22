@@ -11,7 +11,7 @@ from app.events.commands.inventory_commands import (
     ModifyInventoryCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services.character import ICharacterService
+from app.interfaces.services.character import ICharacterService, IEntityStateService
 from app.interfaces.services.data import IRepositoryProvider
 from app.models.equipment_slots import EquipmentSlotType
 from app.models.game_state import GameState
@@ -32,9 +32,11 @@ class InventoryHandler(BaseHandler):
     def __init__(
         self,
         character_service: ICharacterService,
+        entity_state_service: IEntityStateService,
         repository_provider: IRepositoryProvider,
     ):
         self.character_service = character_service
+        self.entity_state_service = entity_state_service
         self.repository_provider = repository_provider
 
     supported_commands = (
@@ -50,7 +52,7 @@ class InventoryHandler(BaseHandler):
 
         if isinstance(command, ModifyCurrencyCommand):
             # Modify currency for the player
-            old_currency, new_currency = self.character_service.modify_currency(
+            old_currency, new_currency = self.entity_state_service.modify_currency(
                 game_state,
                 entity_id=game_state.character.instance_id,
                 gold=command.gold,
@@ -97,6 +99,7 @@ class InventoryHandler(BaseHandler):
                     # Create a placeholder item for dynamic items not in the repository
                     logger.warning(f"Creating placeholder item for AI-invented item: '{command.item_index}'")
                     # TODO(MVP2): Implement dynamic item creation tool for AI to define custom items
+                    # TODO(MVP2): Should already be put in some kind of ISandbox or ICreator interface
                     new_item = self.character_service.create_placeholder_item(
                         game_state, command.item_index, command.quantity
                     )
@@ -163,7 +166,7 @@ class InventoryHandler(BaseHandler):
                 except ValueError as exc:
                     raise ValueError(f"Invalid equipment slot: {command.slot}") from exc
 
-            self.character_service.equip_item(
+            self.entity_state_service.equip_item(
                 game_state, game_state.character.instance_id, command.item_index, slot_type, command.unequip
             )
 

@@ -4,7 +4,7 @@ import pytest
 
 from app.events.commands.inventory_commands import ModifyInventoryCommand
 from app.events.handlers.inventory_handler import InventoryHandler
-from app.interfaces.services.character import ICharacterService
+from app.interfaces.services.character import ICharacterService, IEntityStateService
 from app.interfaces.services.data import IRepositoryProvider
 from app.models.equipment_slots import EquipmentSlotType
 from app.models.item import InventoryItem
@@ -15,8 +15,9 @@ from tests.factories import make_game_state
 class TestInventoryHandler:
     def setup_method(self) -> None:
         self.character_service = create_autospec(ICharacterService, instance=True)
+        self.entity_state_service = create_autospec(IEntityStateService, instance=True)
         self.repository_provider = create_autospec(IRepositoryProvider, instance=True)
-        self.handler = InventoryHandler(self.character_service, self.repository_provider)
+        self.handler = InventoryHandler(self.character_service, self.entity_state_service, self.repository_provider)
         self.game_state = make_game_state()
         self.character_state = self.game_state.character.state
 

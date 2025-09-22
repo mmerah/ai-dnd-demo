@@ -3,14 +3,14 @@ from unittest.mock import create_autospec
 import pytest
 
 from app.agents.core.types import AgentType
-from app.events.commands.character_commands import (
+from app.events.commands.entity_commands import (
     LevelUpCommand,
     UpdateConditionCommand,
     UpdateHPCommand,
     UpdateSpellSlotsCommand,
 )
-from app.events.handlers.character_handler import CharacterHandler
-from app.interfaces.services.character import ICharacterService, ILevelProgressionService
+from app.events.handlers.entity_handler import EntityHandler
+from app.interfaces.services.character import IEntityStateService, ILevelProgressionService
 from app.models.attributes import EntityType
 from app.models.instances.character_instance import CharacterInstance
 from app.models.tool_results import (
@@ -25,9 +25,9 @@ from tests.factories import make_game_state
 
 class TestCharacterHandler:
     def setup_method(self) -> None:
-        self.character_service = create_autospec(ICharacterService, instance=True)
+        self.entity_state_service = create_autospec(IEntityStateService, instance=True)
         self.level_service = create_autospec(ILevelProgressionService, instance=True)
-        self.handler = CharacterHandler(self.character_service, self.level_service)
+        self.handler = EntityHandler(self.entity_state_service, self.level_service)
         self.game_state = make_game_state()
 
     @pytest.mark.asyncio
@@ -36,7 +36,7 @@ class TestCharacterHandler:
         cid = gs.character.instance_id
         initial_hp = gs.character.state.hit_points.current
 
-        self.character_service.update_hp.return_value = (
+        self.entity_state_service.update_hp.return_value = (
             initial_hp,
             initial_hp - 3,
             gs.character.state.hit_points.maximum,
@@ -53,7 +53,7 @@ class TestCharacterHandler:
         assert isinstance(result.data, UpdateHPResult)
         assert result.data.new_hp == initial_hp - 3
         assert result.mutated
-        self.character_service.update_hp.assert_called_once()
+        self.entity_state_service.update_hp.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_update_hp_healing(self) -> None:
@@ -61,7 +61,7 @@ class TestCharacterHandler:
         cid = gs.character.instance_id
         gs.character.state.hit_points.current = 5
 
-        self.character_service.update_hp.return_value = (5, 10, gs.character.state.hit_points.maximum)
+        self.entity_state_service.update_hp.return_value = (5, 10, gs.character.state.hit_points.maximum)
 
         command = UpdateHPCommand(
             game_id=gs.game_id,
@@ -82,7 +82,7 @@ class TestCharacterHandler:
         gs.combat.is_active = True
         cid = gs.character.instance_id
 
-        self.character_service.update_hp.return_value = (12, 9, 12)
+        self.entity_state_service.update_hp.return_value = (12, 9, 12)
 
         command = UpdateHPCommand(
             game_id=gs.game_id,
@@ -99,7 +99,7 @@ class TestCharacterHandler:
         gs = self.game_state
         cid = gs.character.instance_id
 
-        self.character_service.add_condition.return_value = True
+        self.entity_state_service.add_condition.return_value = True
 
         command = UpdateConditionCommand(
             game_id=gs.game_id,
@@ -113,7 +113,7 @@ class TestCharacterHandler:
         assert isinstance(result.data, AddConditionResult)
         assert result.data.condition == "blessed"
         assert result.mutated
-        self.character_service.add_condition.assert_called_once()
+        self.entity_state_service.add_condition.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_remove_condition(self) -> None:
@@ -121,7 +121,7 @@ class TestCharacterHandler:
         cid = gs.character.instance_id
         gs.character.state.conditions = ["blessed", "poisoned"]
 
-        self.character_service.remove_condition.return_value = True
+        self.entity_state_service.remove_condition.return_value = True
 
         command = UpdateConditionCommand(
             game_id=gs.game_id,
@@ -140,7 +140,7 @@ class TestCharacterHandler:
     async def test_update_spell_slots(self) -> None:
         gs = self.game_state
 
-        self.character_service.update_spell_slots.return_value = (3, 2, 3)
+        self.entity_state_service.update_spell_slots.return_value = (3, 2, 3)
 
         command = UpdateSpellSlotsCommand(game_id=gs.game_id, level=2, amount=-1)
         result = await self.handler.handle(command, gs)

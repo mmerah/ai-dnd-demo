@@ -6,12 +6,12 @@ from app.events.commands.broadcast_commands import (
     BroadcastToolCallCommand,
     BroadcastToolResultCommand,
 )
-from app.events.commands.character_commands import (
+from app.events.commands.dice_commands import RollDiceCommand
+from app.events.commands.entity_commands import (
     UpdateConditionCommand,
     UpdateHPCommand,
     UpdateSpellSlotsCommand,
 )
-from app.events.commands.dice_commands import RollDiceCommand
 from app.events.commands.inventory_commands import (
     ModifyCurrencyCommand,
     ModifyInventoryCommand,
@@ -23,7 +23,7 @@ from app.events.commands.time_commands import (
 )
 
 __all__ = [
-    # Character commands
+    # Entity commands
     "UpdateHPCommand",
     "UpdateConditionCommand",
     "UpdateSpellSlotsCommand",

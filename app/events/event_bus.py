@@ -119,7 +119,7 @@ class EventBus(IEventBus):
         """Verify that all commands have a registered handler that can handle them."""
         # List of command modules to introspect
         modules = [
-            "app.events.commands.character_commands",
+            "app.events.commands.entity_commands",
             "app.events.commands.dice_commands",
             "app.events.commands.inventory_commands",
             "app.events.commands.time_commands",

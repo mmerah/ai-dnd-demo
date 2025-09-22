@@ -1,4 +1,4 @@
-"""Character-related command definitions."""
+"""Entity-related command definitions."""
 
 from dataclasses import dataclass, field
 
@@ -9,7 +9,7 @@ from app.models.attributes import EntityType
 
 @dataclass
 class UpdateHPCommand(BaseCommand):
-    """Command to update character or NPC hit points."""
+    """Command to update entity hit points."""
 
     agent_type: AgentType | None = field(default=None)
     entity_id: str = ""  # required: instance id of target
@@ -18,7 +18,7 @@ class UpdateHPCommand(BaseCommand):
     damage_type: str = "untyped"
 
     def get_handler_name(self) -> str:
-        return "character"
+        return "entity"
 
 
 @dataclass
@@ -33,26 +33,26 @@ class UpdateConditionCommand(BaseCommand):
     duration: int = 0
 
     def get_handler_name(self) -> str:
-        return "character"
+        return "entity"
 
 
 @dataclass
 class UpdateSpellSlotsCommand(BaseCommand):
-    """Command to update spell slots."""
+    """Command to update entity spell slots."""
 
     agent_type: AgentType | None = field(default=None)
     level: int = 1
     amount: int = 0
 
     def get_handler_name(self) -> str:
-        return "character"
+        return "entity"
 
 
 @dataclass
 class LevelUpCommand(BaseCommand):
-    """Command to level up the player character by one level."""
+    """Command to level up an entity by one level."""
 
     agent_type: AgentType | None = field(default=None)
 
     def get_handler_name(self) -> str:
-        return "character"
+        return "entity"

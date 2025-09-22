@@ -29,7 +29,7 @@ from app.models.tool_results import RollDiceResult
 from app.services.ai.ai_service import AIService
 from app.services.ai.orchestrator_service import AgentOrchestrator
 from app.services.common.path_resolver import PathResolver
-from app.tools import character_tools, combat_tools, dice_tools, inventory_tools, location_tools, quest_tools
+from app.tools import combat_tools, dice_tools, entity_tools, inventory_tools, location_tools, quest_tools
 from tests.factories import make_game_state, make_location, make_location_connection, make_quest
 
 QUEST_ID = "moonlit-knowledge"
@@ -182,7 +182,7 @@ class _CombatScriptAgent(BaseAgent):
     def get_required_tools(self) -> list[ToolFunction]:
         return [
             dice_tools.roll_dice,
-            character_tools.update_hp,
+            entity_tools.update_hp,
             combat_tools.next_turn,
             combat_tools.end_combat,
             inventory_tools.modify_inventory,
@@ -246,7 +246,7 @@ class _CombatScriptAgent(BaseAgent):
             )
             self._shared["attack_total"] = attack_roll.total
 
-            await character_tools.update_hp(
+            await entity_tools.update_hp(
                 ctx,
                 entity_id=monster_id,
                 entity_type=EntityType.MONSTER,
@@ -273,7 +273,7 @@ class _CombatScriptAgent(BaseAgent):
             )
             self._shared["player_damage_total"] = retaliation.total
 
-            await character_tools.update_hp(
+            await entity_tools.update_hp(
                 ctx,
                 entity_id=game_state.character.instance_id,
                 entity_type=EntityType.PLAYER,
@@ -284,7 +284,7 @@ class _CombatScriptAgent(BaseAgent):
             await combat_tools.next_turn(ctx)
 
             if remaining_hp > 0:
-                await character_tools.update_hp(
+                await entity_tools.update_hp(
                     ctx,
                     entity_id=monster_id,
                     entity_type=EntityType.MONSTER,

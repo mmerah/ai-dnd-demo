@@ -5,14 +5,14 @@ import logging
 from app.agents.core.types import AgentType
 from app.events.base import BaseCommand, CommandResult
 from app.events.commands.broadcast_commands import BroadcastGameUpdateCommand
-from app.events.commands.character_commands import (
+from app.events.commands.entity_commands import (
     LevelUpCommand,
     UpdateConditionCommand,
     UpdateHPCommand,
     UpdateSpellSlotsCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services.character import ICharacterService, ILevelProgressionService
+from app.interfaces.services.character import IEntityStateService, ILevelProgressionService
 from app.models.game_state import GameState
 from app.models.tool_results import (
     AddConditionResult,
@@ -26,7 +26,7 @@ from app.utils.entity_resolver import resolve_entity_with_fallback
 logger = logging.getLogger(__name__)
 
 
-class CharacterHandler(BaseHandler):
+class EntityHandler(BaseHandler):
     """Handler for character-related commands."""
 
     # Declarative list of supported commands for verification
@@ -37,8 +37,12 @@ class CharacterHandler(BaseHandler):
         LevelUpCommand,
     )
 
-    def __init__(self, character_service: ICharacterService, level_service: ILevelProgressionService):
-        self.character_service = character_service
+    def __init__(
+        self,
+        entity_state_service: IEntityStateService,
+        level_service: ILevelProgressionService,
+    ):
+        self.entity_state_service = entity_state_service
         self.level_service = level_service
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
@@ -63,7 +67,7 @@ class CharacterHandler(BaseHandler):
                 etype = command.entity_type.value if command.entity_type else "unknown"
                 raise ValueError(f"Entity with ID '{command.entity_id}' of type '{etype}' not found")
 
-            old_hp, new_hp, max_hp = self.character_service.update_hp(game_state, entity.instance_id, command.amount)
+            old_hp, new_hp, max_hp = self.entity_state_service.update_hp(game_state, entity.instance_id, command.amount)
 
             result.mutated = old_hp != new_hp
 
@@ -93,7 +97,7 @@ class CharacterHandler(BaseHandler):
                 etype = command.entity_type.value if command.entity_type else "unknown"
                 raise ValueError(f"Entity with ID '{command.entity_id}' of type '{etype}' not found")
 
-            added = self.character_service.add_condition(game_state, entity.instance_id, command.condition)
+            added = self.entity_state_service.add_condition(game_state, entity.instance_id, command.condition)
 
             result.mutated = added
 
@@ -112,7 +116,7 @@ class CharacterHandler(BaseHandler):
                 etype = command.entity_type.value if command.entity_type else "unknown"
                 raise ValueError(f"Entity with ID '{command.entity_id}' of type '{etype}' not found")
 
-            removed = self.character_service.remove_condition(game_state, entity.instance_id, command.condition)
+            removed = self.entity_state_service.remove_condition(game_state, entity.instance_id, command.condition)
 
             result.mutated = removed
 
@@ -126,7 +130,7 @@ class CharacterHandler(BaseHandler):
             logger.debug(f"Condition Removed: {entity.display_name} is no longer {command.condition}")
 
         elif isinstance(command, UpdateSpellSlotsCommand):
-            old_slots, new_slots, max_slots = self.character_service.update_spell_slots(
+            old_slots, new_slots, max_slots = self.entity_state_service.update_spell_slots(
                 game_state, command.level, command.amount
             )
 

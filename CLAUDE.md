@@ -58,7 +58,7 @@ app/
 ├── events/
 │   ├── base.py                # Command/handler base classes
 │   ├── event_bus.py           # Async pub/sub dispatcher
-│   ├── commands/              # Payloads (broadcast/character/combat/dice/inventory/location/quest/time)
+│   ├── commands/              # Payloads (broadcast/entity/combat/dice/inventory/location/quest/time)
 │   └── handlers/              # State mutations + SSE per command family
 ├── interfaces/                # Service/repo/event protocols
 ├── models/
@@ -92,13 +92,13 @@ app/
 │       ├── combat_service.py               # Turn management, damage, flow
 │       ├── location_service.py             # Location transitions
 │       ├── memory_service.py               # Conversation → structured memory
-│       ├── message_manager/metadata_service/monster_factory
+│       ├── metadata_service/monster_factory
 │       ├── pre_save_sanitizer/save_manager # Persistence layer
 ├── tools/
 │   ├── decorators.py      # Wraps commands as tools with event logging
 │   ├── dice_tools.py      # Dice rolling interface for agents
 │   ├── combat_tools.py    # Start/advance/end combat, manage combatants
-│   ├── character_tools.py # HP, conditions, spell slots, leveling
+│   ├── entity_tools.py    # HP, conditions, spell slots, leveling
 │   ├── inventory_tools.py # Currency + inventory adjustments
 │   ├── location_tools.py  # Location state changes + NPC moves
 │   ├── quest_tools.py     # Quest/objective progression

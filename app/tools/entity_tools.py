@@ -1,4 +1,4 @@
-"""Character management tools for D&D 5e AI Dungeon Master.
+"""Entity management tools for D&D 5e AI Dungeon Master.
 
 IMPORTANT: During active combat, update_hp and update_condition should ONLY be used by the combat agent.
 The narrative agent uses these for non-combat situations only.
@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from pydantic_ai import RunContext
 
 from app.agents.core.dependencies import AgentDependencies
-from app.events.commands.character_commands import (
+from app.events.commands.entity_commands import (
     LevelUpCommand,
     UpdateConditionCommand,
     UpdateHPCommand,
@@ -83,10 +83,11 @@ async def update_condition(
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 
+# TODO(MVP2): Apply spell slots up generally to any entity
 @tool_handler(UpdateSpellSlotsCommand)
 async def update_spell_slots(ctx: RunContext[AgentDependencies], level: int, amount: int) -> BaseModel:
     # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
-    """Update spell slots for the player.
+    """Update spell slots for the entity.
 
     Use when spells are cast or slots are restored.
 
@@ -102,12 +103,12 @@ async def update_spell_slots(ctx: RunContext[AgentDependencies], level: int, amo
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 
+# TODO(MVP2): Apply level up generally to any entity
 @tool_handler(LevelUpCommand)
 async def level_up(ctx: RunContext[AgentDependencies]) -> BaseModel:
     # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
-    """Level up the player character by one level.
+    """Level up the entity by one level.
 
-    Use when the player has earned enough XP or for testing progression.
-    No parameters; applies to the player character.
+    Use when the entity has earned enough XP or for testing progression.
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")

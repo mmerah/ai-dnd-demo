@@ -1,5 +1,5 @@
 """Character domain services."""
 
-from app.services.character.character_service import CharacterService
+from app.services.character.character_service import CharacterSheetService
 
-__all__ = ["CharacterService"]
+__all__ = ["CharacterSheetService"]

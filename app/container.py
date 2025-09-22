@@ -8,9 +8,9 @@ from app.agents.factory import AgentFactory
 from app.config import get_settings
 from app.events.event_bus import EventBus
 from app.events.handlers.broadcast_handler import BroadcastHandler
-from app.events.handlers.character_handler import CharacterHandler
 from app.events.handlers.combat_handler import CombatHandler
 from app.events.handlers.dice_handler import DiceHandler
+from app.events.handlers.entity_handler import EntityHandler
 from app.events.handlers.inventory_handler import InventoryHandler
 from app.events.handlers.location_handler import LocationHandler
 from app.events.handlers.quest_handler import QuestHandler
@@ -24,7 +24,12 @@ from app.interfaces.services.ai import (
     IEventLoggerService,
     IMessageService,
 )
-from app.interfaces.services.character import ICharacterComputeService, ICharacterService, ILevelProgressionService
+from app.interfaces.services.character import (
+    ICharacterComputeService,
+    ICharacterService,
+    IEntityStateService,
+    ILevelProgressionService,
+)
 from app.interfaces.services.common import (
     IActionService,
     IBroadcastService,
@@ -60,8 +65,9 @@ from app.services.ai.context_service import ContextService
 from app.services.ai.event_logger_service import EventLoggerService
 from app.services.ai.orchestrator_service import AgentOrchestrator
 from app.services.ai.tool_call_extractor_service import ToolCallExtractorService
-from app.services.character import CharacterService
+from app.services.character import CharacterSheetService
 from app.services.character.compute_service import CharacterComputeService
+from app.services.character.entity_state_service import EntityStateService
 from app.services.character.level_service import LevelProgressionService
 from app.services.common import BroadcastService, DiceService
 from app.services.common.action_service import ActionService
@@ -140,7 +146,7 @@ class Container:
 
     @cached_property
     def character_service(self) -> ICharacterService:
-        return CharacterService(
+        return CharacterSheetService(
             path_resolver=self.path_resolver,
             character_loader=self.character_loader,
             compute_service=self.character_compute_service,
@@ -157,6 +163,12 @@ class Container:
             trait_repository=self.trait_repository,
             feature_repository=self.feature_repository,
             feat_repository=self.feat_repository,
+        )
+
+    @cached_property
+    def entity_state_service(self) -> IEntityStateService:
+        return EntityStateService(
+            compute_service=self.character_compute_service,
         )
 
     @cached_property
@@ -387,12 +399,13 @@ class Container:
 
         # Register all handlers
         event_bus.register_handler(
-            "character", CharacterHandler(self.character_service, self.level_progression_service)
+            "entity",
+            EntityHandler(self.entity_state_service, self.level_progression_service),
         )
         event_bus.register_handler("dice", DiceHandler(self.dice_service))
         event_bus.register_handler(
             "inventory",
-            InventoryHandler(self.character_service, self.repository_factory),
+            InventoryHandler(self.character_service, self.entity_state_service, self.repository_factory),
         )
         event_bus.register_handler("time", TimeHandler())
         event_bus.register_handler("broadcast", BroadcastHandler(self.message_service))
