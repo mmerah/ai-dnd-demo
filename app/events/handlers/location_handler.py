@@ -59,10 +59,10 @@ class LocationHandler(BaseHandler):
 
             await self.memory_service.on_location_exit(game_state)
 
-            # entity=None means player
+            # Move the player
             self.location_service.move_entity(
                 game_state,
-                entity_id=None,
+                entity_id=game_state.character.instance_id,
                 to_location_id=command.location_id,
                 location_name=command.location_name,
                 description=command.description,

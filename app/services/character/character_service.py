@@ -194,12 +194,12 @@ class CharacterService(ICharacterService):
 
         return errors
 
-    def _resolve_entity(self, game_state: GameState, entity_id: str | None) -> tuple[EntityState, bool]:
-        """Resolve an entity by ID, handling player ID matching.
+    def _resolve_entity(self, game_state: GameState, entity_id: str) -> tuple[EntityState, bool]:
+        """Resolve an entity by ID.
 
         Args:
             game_state: Current game state
-            entity_id: Entity ID (None or player's ID for player)
+            entity_id: Entity ID (must be a valid entity instance_id)
 
         Returns:
             Tuple of (entity_state, is_player)
@@ -207,8 +207,8 @@ class CharacterService(ICharacterService):
         Raises:
             ValueError: If entity not found
         """
-        # Check if this is the player (None or matching player's instance_id)
-        if entity_id is None or entity_id == game_state.character.instance_id:
+        # Check if this is the player
+        if entity_id == game_state.character.instance_id:
             return game_state.character.state, True
 
         # Try NPCs first
@@ -232,13 +232,13 @@ class CharacterService(ICharacterService):
     def equip_item(
         self,
         game_state: GameState,
-        entity_id: str | None,
+        entity_id: str,
         item_index: str,
         slot: EquipmentSlotType | None = None,
         unequip: bool = False,
     ) -> None:
-        # Check if this is the player (None or matching player's instance_id)
-        if entity_id is None or entity_id == game_state.character.instance_id:
+        # Check if this is the player
+        if entity_id == game_state.character.instance_id:
             state = game_state.character.state
             updated = self.compute_service.equip_item_to_slot(game_state, state, item_index, slot, unequip)
             game_state.character.state = updated
@@ -254,7 +254,7 @@ class CharacterService(ICharacterService):
     def modify_currency(
         self,
         game_state: GameState,
-        entity_id: str | None,
+        entity_id: str,
         gold: int = 0,
         silver: int = 0,
         copper: int = 0,
@@ -308,7 +308,7 @@ class CharacterService(ICharacterService):
     def update_hp(
         self,
         game_state: GameState,
-        entity_id: str | None,
+        entity_id: str,
         amount: int,
     ) -> tuple[int, int, int]:
         state, is_player = self._resolve_entity(game_state, entity_id)
@@ -338,7 +338,7 @@ class CharacterService(ICharacterService):
     def add_condition(
         self,
         game_state: GameState,
-        entity_id: str | None,
+        entity_id: str,
         condition: str,
     ) -> bool:
         state, is_player = self._resolve_entity(game_state, entity_id)
@@ -353,7 +353,7 @@ class CharacterService(ICharacterService):
     def remove_condition(
         self,
         game_state: GameState,
-        entity_id: str | None,
+        entity_id: str,
         condition: str,
     ) -> bool:
         state, is_player = self._resolve_entity(game_state, entity_id)

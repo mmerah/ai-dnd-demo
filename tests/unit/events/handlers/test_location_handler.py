@@ -55,7 +55,7 @@ class TestLocationHandler:
 
         self.location_service.move_entity.assert_called_once_with(
             self.game_state,
-            entity_id=None,
+            entity_id=self.game_state.character.instance_id,
             to_location_id=new_location.id,
             location_name=new_location.name,
             description=command.description,

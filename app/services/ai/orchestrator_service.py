@@ -85,82 +85,23 @@ class AgentOrchestrator:
 
         # Check if combat just started (wasn't active before, but is now)
         if not combat_was_active and game_state.combat.is_active:
-            logger.info("Combat just started, adding transition context")
-
-            # Transition summary
-            await transitions.handle_transition(
-                game_state, AgentType.NARRATIVE, AgentType.COMBAT, self.summarizer_agent, self.event_bus
-            )
-
-            # Initial combat prompt
-            initial_prompt = self.combat_service.generate_combat_prompt(game_state)
-            if initial_prompt:
-                await system_broadcasts.send_initial_combat_prompt(self.event_bus, game_state.game_id, initial_prompt)
-            async for event in self.combat_agent.process(initial_prompt, game_state, stream=stream):
+            async for event in self._handle_combat_start(game_state, stream):
                 yield event
-
-            # Handle any subsequent NPC/Monster turns or combat ending
-            async for event in combat_loop.run(
-                game_state=game_state,
-                combat_service=self.combat_service,
-                combat_agent=self.combat_agent,
-                event_bus=self.event_bus,
-                stream=stream,
-            ):
-                yield event
-
             # Reload to check if combat ended
             game_state = state_reload.reload(self.game_service, game_state)
             logger.debug("Reloaded state to check combat end, combat.is_active=%s", game_state.combat.is_active)
 
         # If we're already in combat, check for NPC continuation
         elif game_state.combat.is_active:
-            # Reload state again to ensure latest combat info
-            game_state = state_reload.reload(self.game_service, game_state)
-            logger.debug(
-                "Reloaded state before combat continuation check, combat.is_active=%s",
-                game_state.combat.is_active,
-            )
-
-            if not game_state.combat.is_active:
-                logger.info("Combat ended during processing, skipping continuation")
-                return
-
-            async for event in combat_loop.run(
-                game_state=game_state,
-                combat_service=self.combat_service,
-                combat_agent=self.combat_agent,
-                event_bus=self.event_bus,
-                stream=stream,
-            ):
+            async for event in self._handle_combat_continuation(game_state, stream):
                 yield event
-
             # Reload again to check final combat state
             game_state = state_reload.reload(self.game_service, game_state)
             logger.debug("Reloaded state after combat continuation, combat.is_active=%s", game_state.combat.is_active)
 
         # Check if combat just ended (was active before, but not now)
         if combat_was_active and not game_state.combat.is_active:
-            logger.info("Combat just ended, transitioning back to narrative")
-
-            await transitions.handle_transition(
-                game_state, AgentType.COMBAT, AgentType.NARRATIVE, self.summarizer_agent, self.event_bus
-            )
-
-            # Prompt narrative continuation
-            continuation_prompt = (
-                "The combat has ended. Describe the aftermath of the battle and continue the narrative."
-            )
-
-            await system_broadcasts.send_system_message(
-                self.event_bus, game_state.game_id, "Continuing narrative after combat..."
-            )
-
-            # Reload state to ensure narrative agent gets the latest
-            game_state = state_reload.reload(self.game_service, game_state)
-            logger.debug("Reloaded state for narrative aftermath, combat.is_active=%s", game_state.combat.is_active)
-
-            async for event in self.narrative_agent.process(continuation_prompt, game_state, stream=stream):
+            async for event in self._handle_combat_end(game_state, stream):
                 yield event
 
     def _extract_targeted_npcs(self, user_message: str, game_state: GameState) -> list[str]:
@@ -217,3 +158,90 @@ class AgentOrchestrator:
             session.started_at = None
             session.last_interaction_at = None
             game_state.active_agent = AgentType.NARRATIVE
+
+    async def _handle_combat_start(
+        self,
+        game_state: GameState,
+        stream: bool,
+    ) -> AsyncIterator[StreamEvent]:
+        """Handle the start of combat with transition and initial prompt."""
+        logger.info("Combat just started, adding transition context")
+
+        # Transition summary from narrative to combat
+        await transitions.handle_transition(
+            game_state, AgentType.NARRATIVE, AgentType.COMBAT, self.summarizer_agent, self.event_bus
+        )
+
+        # Generate and send initial combat prompt
+        initial_prompt = self.combat_service.generate_combat_prompt(game_state)
+        if initial_prompt:
+            await system_broadcasts.send_initial_combat_prompt(self.event_bus, game_state.game_id, initial_prompt)
+
+        # Process the initial combat turn
+        async for event in self.combat_agent.process(initial_prompt, game_state, stream=stream):
+            yield event
+
+        # Handle any subsequent NPC/Monster turns or combat ending
+        async for event in combat_loop.run(
+            game_state=game_state,
+            combat_service=self.combat_service,
+            combat_agent=self.combat_agent,
+            event_bus=self.event_bus,
+            stream=stream,
+        ):
+            yield event
+
+    async def _handle_combat_continuation(
+        self,
+        game_state: GameState,
+        stream: bool,
+    ) -> AsyncIterator[StreamEvent]:
+        """Handle ongoing combat turns for NPCs and monsters."""
+        # Reload state to ensure we have the latest combat info
+        game_state = state_reload.reload(self.game_service, game_state)
+        logger.debug(
+            "Reloaded state before combat continuation check, combat.is_active=%s",
+            game_state.combat.is_active,
+        )
+
+        if not game_state.combat.is_active:
+            logger.info("Combat ended during processing, skipping continuation")
+            return
+
+        # Run the combat loop to process NPC/monster turns
+        async for event in combat_loop.run(
+            game_state=game_state,
+            combat_service=self.combat_service,
+            combat_agent=self.combat_agent,
+            event_bus=self.event_bus,
+            stream=stream,
+        ):
+            yield event
+
+    async def _handle_combat_end(
+        self,
+        game_state: GameState,
+        stream: bool,
+    ) -> AsyncIterator[StreamEvent]:
+        """Handle the transition from combat back to narrative."""
+        logger.info("Combat just ended, transitioning back to narrative")
+
+        # Transition summary from combat to narrative
+        await transitions.handle_transition(
+            game_state, AgentType.COMBAT, AgentType.NARRATIVE, self.summarizer_agent, self.event_bus
+        )
+
+        # Prepare narrative continuation prompt
+        continuation_prompt = "The combat has ended. Describe the aftermath of the battle and continue the narrative."
+
+        await system_broadcasts.send_system_message(
+            self.event_bus, game_state.game_id, "Continuing narrative after combat..."
+        )
+
+        # Reload state to ensure narrative agent gets the latest
+        game_state = state_reload.reload(self.game_service, game_state)
+        logger.debug("Reloaded state for narrative aftermath, combat.is_active=%s", game_state.combat.is_active)
+
+        # Process the narrative continuation
+        async for event in self.narrative_agent.process(continuation_prompt, game_state, stream=stream):
+            yield event

@@ -48,13 +48,13 @@ class LocationService(ILocationService):
     def move_entity(
         self,
         game_state: GameState,
-        entity_id: str | None,
+        entity_id: str,
         to_location_id: str,
         location_name: str | None = None,
         description: str | None = None,
     ) -> None:
-        # If entity_id is None, it's the player moving
-        if entity_id is None:
+        # If entity_id matches the player's id, it's the player moving
+        if entity_id == game_state.character.instance_id:
             # Prepare resolution based on scenario definitions and current visit state
             scenario_loc = None
             if game_state.scenario_id:

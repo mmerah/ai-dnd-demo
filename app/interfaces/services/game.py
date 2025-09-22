@@ -580,7 +580,7 @@ class ILocationService(ABC):
     def move_entity(
         self,
         game_state: GameState,
-        entity_id: str | None,
+        entity_id: str,
         to_location_id: str,
         location_name: str | None = None,
         description: str | None = None,
@@ -592,7 +592,7 @@ class ILocationService(ABC):
 
         Args:
             game_state: Game state to update (modified in-place)
-            entity_id: ID of entity to move (None for player)
+            entity_id: ID of entity to move
             to_location_id: New location ID
             location_name: Optional display name for location (player only)
             description: Optional location description (player only)

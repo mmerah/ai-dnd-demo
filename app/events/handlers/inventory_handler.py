@@ -49,10 +49,10 @@ class InventoryHandler(BaseHandler):
         character = game_state.character.state
 
         if isinstance(command, ModifyCurrencyCommand):
-            # Entity None is the player
+            # Modify currency for the player
             old_currency, new_currency = self.character_service.modify_currency(
                 game_state,
-                entity_id=None,
+                entity_id=game_state.character.instance_id,
                 gold=command.gold,
                 silver=command.silver,
                 copper=command.copper,
@@ -163,7 +163,9 @@ class InventoryHandler(BaseHandler):
                 except ValueError as exc:
                     raise ValueError(f"Invalid equipment slot: {command.slot}") from exc
 
-            self.character_service.equip_item(game_state, None, command.item_index, slot_type, command.unequip)
+            self.character_service.equip_item(
+                game_state, game_state.character.instance_id, command.item_index, slot_type, command.unequip
+            )
 
             result.mutated = True
             result.recompute_state = True

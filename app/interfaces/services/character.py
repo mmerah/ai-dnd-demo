@@ -65,7 +65,7 @@ class ICharacterService(ABC):
     def equip_item(
         self,
         game_state: GameState,
-        entity_id: str | None,
+        entity_id: str,
         item_index: str,
         slot: EquipmentSlotType | None = None,
         unequip: bool = False,
@@ -78,7 +78,7 @@ class ICharacterService(ABC):
 
         Args:
             game_state: Current game state
-            entity_id: ID of entity to equip (None for player character)
+            entity_id: ID of entity to equip
             item_index: Index/ID of the item to equip/unequip
             slot: Target equipment slot (auto-selects if None)
             unequip: If True, removes item from equipment slots
@@ -96,7 +96,7 @@ class ICharacterService(ABC):
     def modify_currency(
         self,
         game_state: GameState,
-        entity_id: str | None,
+        entity_id: str,
         gold: int = 0,
         silver: int = 0,
         copper: int = 0,
@@ -107,7 +107,7 @@ class ICharacterService(ABC):
 
         Args:
             game_state: Current game state
-            entity_id: ID of entity (None for player character)
+            entity_id: ID of entity
             gold: Gold pieces to add/subtract
             silver: Silver pieces to add/subtract
             copper: Copper pieces to add/subtract
@@ -149,14 +149,14 @@ class ICharacterService(ABC):
     def update_hp(
         self,
         game_state: GameState,
-        entity_id: str | None,
+        entity_id: str,
         amount: int,
     ) -> tuple[int, int, int]:
         """Update HP for an entity.
 
         Args:
             game_state: Current game state
-            entity_id: ID of entity (None for player character)
+            entity_id: ID of entity
             amount: HP change (positive for healing, negative for damage)
 
         Returns:
@@ -175,14 +175,14 @@ class ICharacterService(ABC):
     def add_condition(
         self,
         game_state: GameState,
-        entity_id: str | None,
+        entity_id: str,
         condition: str,
     ) -> bool:
         """Add a condition to an entity.
 
         Args:
             game_state: Current game state
-            entity_id: ID of entity (None for player character)
+            entity_id: ID of entity
             condition: Condition to add
 
         Returns:
@@ -200,14 +200,14 @@ class ICharacterService(ABC):
     def remove_condition(
         self,
         game_state: GameState,
-        entity_id: str | None,
+        entity_id: str,
         condition: str,
     ) -> bool:
         """Remove a condition from an entity.
 
         Args:
             game_state: Current game state
-            entity_id: ID of entity (None for player character)
+            entity_id: ID of entity
             condition: Condition to remove
 
         Returns:

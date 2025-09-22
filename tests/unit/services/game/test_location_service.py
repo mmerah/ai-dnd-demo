@@ -100,7 +100,9 @@ class TestLocationService:
         assert "Valid destinations" in str(exc.value)
 
     def test_move_entity_updates_location_and_description(self) -> None:
-        self.service.move_entity(self.game_state, entity_id=None, to_location_id=self.start_location.id)
+        self.service.move_entity(
+            self.game_state, entity_id=self.game_state.character.instance_id, to_location_id=self.start_location.id
+        )
 
         assert self.game_state.location == self.start_location.name
         descriptions = self.start_location.descriptions

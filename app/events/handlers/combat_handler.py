@@ -73,6 +73,9 @@ class CombatHandler(BaseHandler):
             )
 
         if isinstance(command, StartCombatCommand):
+            if not command.entity_ids:
+                raise ValueError("start_combat requires at least one entity_id")
+
             if not game_state.combat.is_active:
                 game_state.start_combat()
                 game_state.active_agent = AgentType.COMBAT
