@@ -1,12 +1,12 @@
 from app.models.game_state import GameState
 
-from .base import ContextBuilder
+from .base import BuildContext, ContextBuilder
 
 
 class InventoryContextBuilder(ContextBuilder):
     """List player's inventory with exact item names and quantities."""
 
-    def build(self, game_state: GameState) -> str | None:
+    def build(self, game_state: GameState, context: BuildContext) -> str | None:
         inv = game_state.character.state.inventory
         if not inv:
             return None

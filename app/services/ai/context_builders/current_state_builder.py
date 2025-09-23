@@ -1,12 +1,12 @@
 from app.models.game_state import GameState
 
-from .base import ContextBuilder
+from .base import BuildContext, ContextBuilder
 
 
 class CurrentStateContextBuilder(ContextBuilder):
     """Build the player's current state summary."""
 
-    def build(self, game_state: GameState) -> str | None:
+    def build(self, game_state: GameState, context: BuildContext) -> str | None:
         char_sheet = game_state.character.sheet
         char_state = game_state.character.state
         char_instance = game_state.character

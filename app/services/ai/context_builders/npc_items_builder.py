@@ -1,17 +1,12 @@
-from app.interfaces.services.data import IRepository
 from app.models.game_state import GameState
-from app.models.item import ItemDefinition
 
-from .base import ContextBuilder
+from .base import BuildContext, ContextBuilder
 
 
 class NPCItemsContextBuilder(ContextBuilder):
     """Build context about items NPCs have available for trade/giving."""
 
-    def __init__(self, item_repository: IRepository[ItemDefinition] | None) -> None:
-        self.item_repository = item_repository
-
-    def build(self, game_state: GameState) -> str | None:
+    def build(self, game_state: GameState, context: BuildContext) -> str | None:
         if not game_state.npcs or not game_state.scenario_instance.is_in_known_location():
             return None
 
@@ -28,7 +23,7 @@ class NPCItemsContextBuilder(ContextBuilder):
             for item in npc.state.inventory:
                 if item.index not in items_mentioned:
                     items_mentioned.add(item.index)
-                    if self.item_repository and self.item_repository.validate_reference(item.index):
+                    if context.item_repository.validate_reference(item.index):
                         npc_items.append(f"{item.index}")
 
             if npc_items:

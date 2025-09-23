@@ -6,7 +6,7 @@ from datetime import datetime
 
 from app.models.game_state import GameState
 
-from .base import ContextBuilder
+from .base import BuildContext, ContextBuilder
 
 
 class NPCMemoryContextBuilder(ContextBuilder):
@@ -14,7 +14,7 @@ class NPCMemoryContextBuilder(ContextBuilder):
 
     MAX_ENTRIES = 3
 
-    def build(self, game_state: GameState) -> str | None:
+    def build(self, game_state: GameState, context: BuildContext) -> str | None:
         if not game_state.npcs or not game_state.scenario_instance.is_in_known_location():
             return None
 

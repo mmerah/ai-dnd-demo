@@ -99,6 +99,21 @@ This is an MVP implementation focusing on core functionality. Key architectural 
 - Fail-fast error handling
 - Sequential tool processing
 
+### Testing & Coverage
+
+Run the test suite with coverage reporting:
+```bash
+# Run tests with coverage
+coverage run -m pytest
+
+# View coverage report in terminal
+coverage report
+
+# Generate HTML coverage report
+coverage html
+# Open htmlcov/index.html in your browser
+```
+
 ### Pre-commit Hooks
 
 This project uses pre-commit hooks to ensure code quality. The following checks run automatically before each commit:

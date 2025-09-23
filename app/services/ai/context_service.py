@@ -24,6 +24,7 @@ from .context_builders import (
     SpellContextBuilder,
     WorldMemoryContextBuilder,
 )
+from .context_builders.base import BuildContext
 
 
 class ContextService(IContextService):
@@ -32,13 +33,12 @@ class ContextService(IContextService):
     def __init__(self, repository_provider: IRepositoryProvider):
         self.repository_provider = repository_provider
 
-        # Instantiate builders with explicit dependencies
+        # Instantiate builders without repository dependencies
         monsters_in_combat = MonstersInCombatContextBuilder()
 
         # Store individual builders for agent-specific selection
         self.scenario_builder = ScenarioContextBuilder()
-        # Builders will receive per-game repositories at build time
-        self.location_builder = LocationContextBuilder(item_repository=None)
+        self.location_builder = LocationContextBuilder()
         self.location_memory_builder = LocationMemoryContextBuilder()
         self.npcs_at_location_builder = NPCsAtLocationContextBuilder()
         self.monsters_at_location_builder = MonstersAtLocationContextBuilder()
@@ -47,9 +47,9 @@ class ContextService(IContextService):
         self.npc_detail_builder = NPCDetailContextBuilder()
         self.combat_builder = CombatContextBuilder(monsters_in_combat_builder=monsters_in_combat)
         self.monsters_in_combat_builder = monsters_in_combat
-        self.spell_builder = SpellContextBuilder(spell_repository=None)
+        self.spell_builder = SpellContextBuilder()
         self.inventory_builder = InventoryContextBuilder()
-        self.npc_items_builder = NPCItemsContextBuilder(item_repository=None)
+        self.npc_items_builder = NPCItemsContextBuilder()
         self.npc_memory_builder = NPCMemoryContextBuilder()
         self.world_memory_builder = WorldMemoryContextBuilder()
         self.npc_persona_builder = NPCPersonaContextBuilder()
@@ -73,12 +73,13 @@ class ContextService(IContextService):
         ]
 
     def build_context(self, game_state: GameState, agent_type: AgentType) -> str:
-        # Inject per-game repositories into builders
+        # Create BuildContext with per-game repositories
         item_repo = self.repository_provider.get_item_repository_for(game_state)
         spell_repo = self.repository_provider.get_spell_repository_for(game_state)
-        self.location_builder.item_repository = item_repo
-        self.spell_builder.spell_repository = spell_repo
-        self.npc_items_builder.item_repository = item_repo
+        context = BuildContext(
+            item_repository=item_repo,
+            spell_repository=spell_repo,
+        )
         if agent_type == AgentType.COMBAT:
             # Combat agent only needs tactical information
             selected_builders = [
@@ -100,7 +101,7 @@ class ContextService(IContextService):
 
         context_parts: list[str] = []
         for builder in selected_builders:
-            part = builder.build(game_state)
+            part = builder.build(game_state, context)
             if part:
                 context_parts.append(part)
 
@@ -109,9 +110,13 @@ class ContextService(IContextService):
     def build_context_for_npc(self, game_state: GameState) -> str:
         """NPC-specific slice of the shared game context."""
 
+        # Create BuildContext with per-game repositories
         item_repo = self.repository_provider.get_item_repository_for(game_state)
-        self.location_builder.item_repository = item_repo
-        self.npc_items_builder.item_repository = item_repo
+        spell_repo = self.repository_provider.get_spell_repository_for(game_state)
+        context = BuildContext(
+            item_repository=item_repo,
+            spell_repository=spell_repo,
+        )
 
         selected_builders = [
             self.scenario_builder,
@@ -127,7 +132,7 @@ class ContextService(IContextService):
 
         context_parts: list[str] = []
         for builder in selected_builders:
-            part = builder.build(game_state)
+            part = builder.build(game_state, context)
             if part:
                 context_parts.append(part)
         return "\n\n".join(context_parts)

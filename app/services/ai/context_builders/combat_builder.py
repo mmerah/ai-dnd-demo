@@ -1,6 +1,6 @@
 from app.models.game_state import GameState
 
-from .base import ContextBuilder
+from .base import BuildContext, ContextBuilder
 
 
 class CombatContextBuilder(ContextBuilder):
@@ -9,7 +9,7 @@ class CombatContextBuilder(ContextBuilder):
     def __init__(self, monsters_in_combat_builder: ContextBuilder) -> None:
         self.monsters_in_combat_builder = monsters_in_combat_builder
 
-    def build(self, game_state: GameState) -> str | None:
+    def build(self, game_state: GameState, context: BuildContext) -> str | None:
         if not game_state.combat.is_active:
             return None
 
@@ -20,7 +20,7 @@ class CombatContextBuilder(ContextBuilder):
         context_parts.append(combat.get_turn_order_display())
 
         # Add monster details if available
-        monsters_block = self.monsters_in_combat_builder.build(game_state)
+        monsters_block = self.monsters_in_combat_builder.build(game_state, context)
         if monsters_block:
             context_parts.append("\n" + monsters_block)
 

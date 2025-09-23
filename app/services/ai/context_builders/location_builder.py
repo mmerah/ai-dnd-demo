@@ -1,11 +1,9 @@
 import logging
 
-from app.interfaces.services.data import IRepository
 from app.models.game_state import GameState
-from app.models.item import ItemDefinition
 from app.models.scenario import ScenarioSheet
 
-from .base import ContextBuilder
+from .base import BuildContext, ContextBuilder
 
 logger = logging.getLogger(__name__)
 
@@ -13,10 +11,7 @@ logger = logging.getLogger(__name__)
 class LocationContextBuilder(ContextBuilder):
     """Build enhanced location context with connections, encounters, and loot."""
 
-    def __init__(self, item_repository: IRepository[ItemDefinition] | None) -> None:
-        self.item_repository = item_repository
-
-    def build(self, game_state: GameState) -> str | None:
+    def build(self, game_state: GameState, context: BuildContext) -> str | None:
         if not game_state.scenario_instance.is_in_known_location():
             return None
 
@@ -71,7 +66,7 @@ class LocationContextBuilder(ContextBuilder):
                 for loot in available_loot[:3]:
                     # AI game master should see all items including hidden ones
                     # Only show items that exist in the repository
-                    if self.item_repository and self.item_repository.validate_reference(loot.item_index):
+                    if context.item_repository.validate_reference(loot.item_index):
                         hidden_marker = " [HIDDEN]" if loot.hidden else ""
                         context_parts.append(f"  - {loot.item_index} (exact ID) {hidden_marker}")
                     else:

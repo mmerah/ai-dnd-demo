@@ -1,13 +1,13 @@
 from app.models.game_state import GameState
 from app.models.quest import ObjectiveStatus
 
-from .base import ContextBuilder
+from .base import BuildContext, ContextBuilder
 
 
 class QuestContextBuilder(ContextBuilder):
     """Build quest context with active quests and available new quests."""
 
-    def build(self, game_state: GameState) -> str | None:
+    def build(self, game_state: GameState, context: BuildContext) -> str | None:
         if not game_state.scenario_instance.active_quests:
             return None
 

@@ -39,10 +39,17 @@ class DummyActionService:
         tool_name: str,
         command: BaseCommand,
         game_state: object,
+        agent_type: AgentType,
         broadcast_parameters: dict[str, object] | None = None,
     ) -> BaseModel:
         self.calls.append(
-            SimpleNamespace(tool_name=tool_name, command=command, game_state=game_state, broadcast=broadcast_parameters)
+            SimpleNamespace(
+                tool_name=tool_name,
+                command=command,
+                game_state=game_state,
+                broadcast=broadcast_parameters,
+                agent_type=agent_type,
+            )
         )
         if self.raise_error:
             raise ValueError(self.error_message)
@@ -160,21 +167,27 @@ class TestToolHandlerDecorator:
         async def roll_dice(ctx: object, **_: Any) -> None:  # pragma: no cover - original should not run
             raise AssertionError
 
+        # Test policy violation handling, ActionService raise with "BLOCKED"
         blocked_tool = tool_handler(command_class=DummyCommand)(roll_dice)
         self.game_state.combat.is_active = True
         self.deps.agent_type = AgentType.NARRATIVE
-        calls_before = len(self.action_service.calls)
+        self.action_service.raise_error = True
+        self.action_service.error_message = (
+            "BLOCKED: Narrative agent attempted to use 'roll_dice' during active combat."
+        )
+
+        # Dummy command expect value parameter
         blocked_result: Any = await blocked_tool(
             self.ctx,
-            dice="1d20",
-            modifier=0,
-            roll_type="attack",
-            purpose="test",
+            value=5,
         )
-        assert len(self.action_service.calls) == calls_before
-        assert self.event_bus.submissions
-        assert getattr(blocked_result, "type", "") == "blocked"
+        assert getattr(blocked_result, "type", "") == "tool_error"  # ToolErrorResult is used for policy violations
         assert getattr(blocked_result, "tool_name", "") == roll_dice.__name__
+        assert "BLOCKED:" in getattr(blocked_result, "error", "")
+        assert (
+            getattr(blocked_result, "suggestion", "")
+            == "This tool is not allowed in the current context. Check agent permissions."
+        )
 
         async def move_tool(ctx: object, **_: Any) -> None:  # pragma: no cover - original should not run
             raise AssertionError

@@ -10,3 +10,4 @@ class AgentType(Enum):
     COMBAT = "combat"
     SUMMARIZER = "summarizer"
     NPC = "npc"
+    PLAYER = "player"

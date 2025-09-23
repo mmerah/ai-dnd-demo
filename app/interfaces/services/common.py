@@ -5,6 +5,7 @@ from typing import TypeVar
 
 from pydantic import BaseModel
 
+from app.agents.core.types import AgentType
 from app.common.types import JSONSerializable
 from app.events.base import BaseCommand
 from app.models.content_pack import ContentPackMetadata, ContentPackSummary
@@ -165,11 +166,13 @@ class IActionService(ABC):
         tool_name: str,
         command: BaseCommand,
         game_state: GameState,
+        agent_type: AgentType,
         broadcast_parameters: dict[str, JSONSerializable] | None = None,
     ) -> BaseModel:
         """Execute a command as an action with unified tracking and broadcasting.
 
         This method wraps command execution with:
+        - Policy validation based on agent type
         - Event logging and persistence
         - SSE broadcasting of tool calls and results
         - Automatic game state saving after execution
@@ -178,10 +181,14 @@ class IActionService(ABC):
             tool_name: Name of the tool executing the command
             command: Command to execute
             game_state: Current game state
+            agent_type: Agent type for policy enforcement (use AgentType.PLAYER for no restrictions)
             broadcast_parameters: Optional parameters to include in broadcast
 
         Returns:
             Result model from command execution
+
+        Raises:
+            ValueError: If tool usage violates policy rules
         """
         pass
 

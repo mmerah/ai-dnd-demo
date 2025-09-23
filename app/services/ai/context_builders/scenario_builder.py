@@ -2,13 +2,13 @@
 
 from app.models.game_state import GameState
 
-from .base import ContextBuilder
+from .base import BuildContext, ContextBuilder
 
 
 class ScenarioContextBuilder(ContextBuilder):
     """Build scenario header with title, description, and current location info."""
 
-    def build(self, game_state: GameState) -> str | None:
+    def build(self, game_state: GameState, context: BuildContext) -> str | None:
         if not game_state.scenario_instance.is_in_known_location():
             return None
 

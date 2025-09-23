@@ -1,13 +1,13 @@
 from app.models.attributes import EntityType
 from app.models.game_state import GameState
 
-from .base import ContextBuilder
+from .base import BuildContext, ContextBuilder
 
 
 class MonstersInCombatContextBuilder(ContextBuilder):
     """List monsters currently participating in combat with stats and initiative."""
 
-    def build(self, game_state: GameState) -> str | None:
+    def build(self, game_state: GameState, context: BuildContext) -> str | None:
         if not game_state.combat.is_active:
             return None
 

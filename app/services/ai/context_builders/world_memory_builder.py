@@ -6,7 +6,7 @@ from datetime import datetime
 
 from app.models.game_state import GameState
 
-from .base import ContextBuilder
+from .base import BuildContext, ContextBuilder
 
 
 class WorldMemoryContextBuilder(ContextBuilder):
@@ -14,7 +14,7 @@ class WorldMemoryContextBuilder(ContextBuilder):
 
     MAX_ENTRIES = 3
 
-    def build(self, game_state: GameState) -> str | None:
+    def build(self, game_state: GameState, context: BuildContext) -> str | None:
         world_memories = game_state.scenario_instance.world_memories
         if not world_memories:
             return None

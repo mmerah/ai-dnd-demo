@@ -5,6 +5,7 @@ from typing import TypeVar
 
 from pydantic import BaseModel
 
+from app.agents.core.types import AgentType
 from app.events.base import BaseCommand
 from app.interfaces.services.common import IActionService
 from app.models.game_state import GameState
@@ -37,5 +38,7 @@ async def execute_player_action(
     Raises:
         ValueError: If command execution fails or returns invalid result
     """
-    result = await action_service.execute_command_as_action(tool_name=tool_name, command=command, game_state=game_state)
+    result = await action_service.execute_command_as_action(
+        tool_name=tool_name, command=command, game_state=game_state, agent_type=AgentType.PLAYER
+    )
     return result  # type: ignore[return-value]

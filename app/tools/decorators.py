@@ -9,12 +9,8 @@ from pydantic import BaseModel
 from pydantic_ai import RunContext
 
 from app.agents.core.dependencies import AgentDependencies
-from app.agents.core.types import AgentType
 from app.common.types import JSONSerializable
 from app.events.base import BaseCommand
-from app.events.commands.broadcast_commands import (
-    BroadcastPolicyWarningCommand,
-)
 from app.models.tool_results import ToolErrorResult
 
 logger = logging.getLogger(__name__)
@@ -52,93 +48,8 @@ def tool_handler(
         @wraps(func)
         async def wrapper(ctx: RunContext[AgentDependencies], **kwargs: Any) -> BaseModel:
             game_state = ctx.deps.game_state
-            event_bus = ctx.deps.event_bus
             tool_name = func.__name__
             agent_type = ctx.deps.agent_type
-
-            # Validation: Prevent narrative agent from using combat tools during active combat
-            if game_state.combat.is_active and agent_type == AgentType.NARRATIVE:
-                # List of tools that should ONLY be used by combat agent during combat
-                combat_only_tools = [
-                    "roll_dice",  # During combat, only combat agent should roll
-                    "update_hp",  # During combat, only combat agent should update HP
-                    "update_condition",  # During combat, only combat agent should update conditions
-                    "next_turn",  # Combat flow control
-                    "end_combat",  # Combat flow control
-                    "add_combatant",  # Combat management
-                    "remove_combatant",  # Combat management
-                ]
-
-                if tool_name in combat_only_tools:
-                    error_msg = (
-                        f"BLOCKED: Narrative agent attempted to use '{tool_name}' during active combat. "
-                        f"This tool should only be used by the combat agent during combat. "
-                        f"The narrative agent must STOP after calling start_combat or start_encounter_combat."
-                    )
-                    logger.error(error_msg)
-                    # Also broadcast a policy warning so the user can see policy enforcement
-                    try:
-                        await event_bus.submit_and_wait(
-                            [
-                                BroadcastPolicyWarningCommand(
-                                    game_id=game_state.game_id,
-                                    message="Blocked tool usage during combat",
-                                    tool_name=tool_name,
-                                    agent_type=agent_type.value,
-                                )
-                            ]
-                        )
-                    except Exception:
-                        logger.debug("Failed to broadcast blocked-tool system message", exc_info=True)
-                    # Return a dummy result to prevent the agent from crashing
-                    # but the error will be logged
-                    from pydantic import BaseModel as BlockedBaseModel
-
-                    class BlockedToolResult(BlockedBaseModel):
-                        type: str = "blocked"
-                        message: str
-                        tool_name: str
-
-                    return BlockedToolResult(message=error_msg, tool_name=tool_name, type="blocked")
-
-            if agent_type == AgentType.NPC:
-                npc_allowed_tools = {
-                    "start_quest",
-                    "complete_objective",
-                    "complete_quest",
-                    "modify_inventory",
-                    "update_location_state",
-                    "discover_secret",
-                    "move_npc_to_location",
-                }
-
-                if tool_name not in npc_allowed_tools:
-                    error_msg = (
-                        f"BLOCKED: NPC agent attempted to use '{tool_name}'. "
-                        "NPC agents may only use quest, inventory, or safe location tools."
-                    )
-                    logger.error(error_msg)
-                    try:
-                        await event_bus.submit_and_wait(
-                            [
-                                BroadcastPolicyWarningCommand(
-                                    game_id=game_state.game_id,
-                                    message="Blocked tool usage for NPC agent",
-                                    tool_name=tool_name,
-                                    agent_type=agent_type.value,
-                                )
-                            ]
-                        )
-                    except Exception:
-                        logger.debug("Failed to broadcast blocked-tool system message", exc_info=True)
-
-                    class BlockedToolResultNPC(BaseModel):
-                        type: str = "blocked"
-                        message: str
-                        tool_name: str
-
-                    return BlockedToolResultNPC(message=error_msg, tool_name=tool_name)
-
             original_kwargs: dict[str, JSONSerializable] = cast(dict[str, JSONSerializable], dict(kwargs))
 
             # Optionally transform kwargs for command construction and/or broadcast
@@ -185,25 +96,36 @@ def tool_handler(
                     command=command,
                     game_state=game_state,
                     broadcast_parameters=broadcast_kwargs,
+                    agent_type=agent_type,
                 )
             except ValueError as e:
                 # Return structured error that AI can understand and potentially correct
                 logger.warning(f"Tool {tool_name} encountered error: {str(e)}")
 
+                # Check if this is a policy violation (will contain "BLOCKED:")
+                error_msg = str(e)
+                if "BLOCKED:" in error_msg:
+                    # Policy violation - use ToolErrorResult with specific suggestion
+                    return ToolErrorResult(
+                        error=error_msg,
+                        tool_name=tool_name,
+                        suggestion="This tool is not allowed in the current context. Check agent permissions.",
+                    )
+
                 # Try to provide helpful suggestions based on common errors
                 suggestion = None
-                error_msg = str(e).lower()
-                if "not found" in error_msg:
+                error_msg_lower = error_msg.lower()
+                if "not found" in error_msg_lower:
                     suggestion = "Check the ID or name is correct. You may need to list available options first."
-                elif "cannot travel" in error_msg or "valid destinations" in error_msg:
+                elif "cannot travel" in error_msg_lower or "valid destinations" in error_msg_lower:
                     suggestion = "Check the available connections from the current location."
-                elif "empty" in error_msg:
+                elif "empty" in error_msg_lower:
                     suggestion = "Provide a value for the required parameter."
-                elif "invalid" in error_msg:
+                elif "invalid" in error_msg_lower:
                     suggestion = "Check that the provided value is in the correct format or from the allowed options."
 
                 return ToolErrorResult(
-                    error=str(e),
+                    error=error_msg,
                     tool_name=tool_name,
                     suggestion=suggestion,
                 )
