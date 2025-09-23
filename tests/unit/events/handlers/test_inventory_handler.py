@@ -6,7 +6,7 @@ from app.events.commands.inventory_commands import ModifyInventoryCommand
 from app.events.handlers.inventory_handler import InventoryHandler
 from app.interfaces.services.character import IEntityStateService
 from app.interfaces.services.data import IRepositoryProvider
-from app.interfaces.services.game import IItemFactory
+from app.interfaces.services.game import IItemManagerService
 from app.models.equipment_slots import EquipmentSlotType
 from app.models.item import InventoryItem
 from app.models.tool_results import AddItemResult, RemoveItemResult
@@ -15,10 +15,10 @@ from tests.factories import make_game_state
 
 class TestInventoryHandler:
     def setup_method(self) -> None:
-        self.item_factory = create_autospec(IItemFactory, instance=True)
+        self.item_manager_service = create_autospec(IItemManagerService, instance=True)
         self.entity_state_service = create_autospec(IEntityStateService, instance=True)
         self.repository_provider = create_autospec(IRepositoryProvider, instance=True)
-        self.handler = InventoryHandler(self.item_factory, self.entity_state_service, self.repository_provider)
+        self.handler = InventoryHandler(self.item_manager_service, self.entity_state_service, self.repository_provider)
         self.game_state = make_game_state()
         self.character_state = self.game_state.character.state
 
@@ -26,7 +26,7 @@ class TestInventoryHandler:
     async def test_add_placeholder_item(self) -> None:
         gs = self.game_state
         placeholder = InventoryItem(index="mystery-token", name="Mystery Token", quantity=2)
-        self.item_factory.create_inventory_item.return_value = placeholder
+        self.item_manager_service.create_inventory_item.return_value = placeholder
 
         command = ModifyInventoryCommand(
             game_id=gs.game_id,

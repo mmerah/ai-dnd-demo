@@ -161,3 +161,30 @@ class ICombatService(ABC):
             Created monster entity or None if not found
         """
         pass
+
+    @abstractmethod
+    def start_combat(self, game_state: GameState) -> CombatState:
+        """Initialize combat state.
+
+        Creates a new combat state and increments the combat occurrence counter.
+        This method encapsulates the business logic previously in GameState.
+
+        Args:
+            game_state: The game state to update
+
+        Returns:
+            The newly created combat state
+        """
+        pass
+
+    @abstractmethod
+    def end_combat(self, game_state: GameState) -> None:
+        """End current combat encounter.
+
+        Deactivates combat, removes dead monsters, and resets combat participants.
+        This method encapsulates the business logic previously in GameState.
+
+        Args:
+            game_state: The game state to update
+        """
+        pass

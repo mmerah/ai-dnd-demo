@@ -1,21 +1,21 @@
-"""Unit tests for ItemFactory service."""
+"""Unit tests for ItemManagerService service."""
 
 from unittest.mock import create_autospec
 
 from app.interfaces.services.data import IRepository, IRepositoryProvider
 from app.models.item import ItemDefinition, ItemRarity, ItemType
-from app.services.game.item_factory import ItemFactory
+from app.services.game.item_manager_service import ItemManagerService
 from tests.factories import make_game_state
 
 
-class TestItemFactory:
+class TestItemManagerService:
     def setup_method(self) -> None:
         """Set up test fixtures."""
         self.repository_provider = create_autospec(IRepositoryProvider, instance=True)
         self.item_repository = create_autospec(IRepository, instance=True)
         self.repository_provider.get_item_repository_for.return_value = self.item_repository
 
-        self.item_factory = ItemFactory(repository_provider=self.repository_provider)
+        self.item_manager_service = ItemManagerService(repository_provider=self.repository_provider)
         self.game_state = make_game_state()
 
     def test_create_item_from_repository(self) -> None:
@@ -33,7 +33,7 @@ class TestItemFactory:
         self.item_repository.validate_reference.return_value = True
         self.item_repository.get.return_value = item_def
 
-        result = self.item_factory.create_inventory_item(self.game_state, "longsword", quantity=2)
+        result = self.item_manager_service.create_inventory_item(self.game_state, "longsword", quantity=2)
 
         assert result.index == "longsword"
         assert result.quantity == 2
@@ -42,7 +42,7 @@ class TestItemFactory:
         """Test creating a placeholder when item doesn't exist."""
         self.item_repository.validate_reference.return_value = False
 
-        result = self.item_factory.create_inventory_item(self.game_state, "mystery-token", quantity=1)
+        result = self.item_manager_service.create_inventory_item(self.game_state, "mystery-token", quantity=1)
 
         assert result.index == "mystery-token"
         assert result.name == "Mystery Token"

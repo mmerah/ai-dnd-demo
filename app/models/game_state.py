@@ -16,7 +16,6 @@ from app.models.instances.npc_instance import NPCInstance
 from app.models.instances.scenario_instance import ScenarioInstance
 from app.models.location import LocationState
 from app.models.quest import Quest
-from app.utils.names import dedupe_display_name
 
 
 class MessageRole(str, Enum):
@@ -156,27 +155,6 @@ class GameState(BaseModel):
     session_number: int = Field(ge=1, default=1)
     total_play_time_minutes: int = Field(ge=0, default=0)
 
-    def add_message(self, message: Message) -> None:
-        """Add a message to conversation history with metadata."""
-        self.conversation_history.append(message)
-
-    def add_game_event(self, event: GameEvent) -> None:
-        """Add a game mechanics event."""
-        self.game_events.append(event)
-
-    def add_monster_instance(self, monster: MonsterInstance) -> str:
-        """Add a MonsterInstance to the game and ensure unique display name.
-
-        Returns final display name (with suffix if deduped). Mutates the instance's
-        sheet.name if deduping is applied to maintain display consistency across systems.
-        """
-        existing_names = [m.sheet.name for m in self.monsters]
-        final_name = dedupe_display_name(existing_names, monster.sheet.name)
-        monster.sheet.name = final_name
-
-        self.monsters.append(monster)
-        return final_name
-
     def get_entity_by_id(self, entity_type: EntityType, entity_id: str) -> IEntity | None:
         """Resolve an entity by type and instance id for all operations (combat, HP, conditions, etc)."""
         match entity_type:
@@ -210,61 +188,9 @@ class GameState(BaseModel):
                 return npc
         return None
 
-    def move_npc(self, npc_id: str, to_location_id: str) -> NPCInstance:
-        """Move an NPC to a different location.
-
-        Args:
-            npc_id: The NPC instance ID to move
-            to_location_id: The target location ID
-
-        Returns:
-            The moved NPC instance
-
-        Raises:
-            ValueError: If NPC not found
-        """
-        npc = self.get_npc_by_id(npc_id)
-        if not npc:
-            raise ValueError(f"NPC with id '{npc_id}' not found")
-
-        npc.current_location_id = to_location_id
-        npc.touch()
-        return npc
-
-    def start_combat(self) -> CombatState:
-        """Initialize combat state."""
-        # Increment combat occurrence counter for tracking
-        self.combat = CombatState(is_active=True, combat_occurrence=self.combat.combat_occurrence + 1)
-        return self.combat
-
-    def end_combat(self) -> None:
-        """End current combat encounter."""
-        if self.combat.is_active:
-            self.combat.end_combat()
-            # Remove dead monsters
-            self.monsters = [m for m in self.monsters if m.is_alive()]
-            # Set combat to inactive and clear participants
-            self.combat.is_active = False
-            self.combat.participants.clear()
-            self.combat.round_number = 1
-            self.combat.turn_index = 0
-
     def add_story_note(self, note: str) -> None:
         """Add a note to the story log."""
         self.story_notes.append(f"[Day {self.game_time.day}] {note}")
-
-    def change_location(self, new_location_id: str, new_location_name: str, description: str = "") -> None:
-        """Change the current location."""
-        # Update location state tracking within scenario instance
-        if new_location_id not in self.scenario_instance.location_states:
-            self.scenario_instance.location_states[new_location_id] = LocationState(location_id=new_location_id)
-        location_state = self.scenario_instance.location_states[new_location_id]
-        location_state.mark_visited()
-        self.scenario_instance.current_location_id = new_location_id
-
-        self.location = new_location_name
-        self.description = description
-        self.add_story_note(f"Moved to {new_location_name}")
 
     def get_messages_for_agent(self, agent_type: AgentType) -> list[Message]:
         """Get conversation history filtered for a specific agent."""

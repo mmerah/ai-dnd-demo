@@ -12,7 +12,7 @@ from app.events.commands.inventory_commands import (
 from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.services.character import IEntityStateService
 from app.interfaces.services.data import IRepositoryProvider
-from app.interfaces.services.game import IItemFactory
+from app.interfaces.services.game import IItemManagerService
 from app.models.equipment_slots import EquipmentSlotType
 from app.models.game_state import GameState
 from app.models.tool_results import (
@@ -30,11 +30,11 @@ class InventoryHandler(BaseHandler):
 
     def __init__(
         self,
-        item_factory: IItemFactory,
+        item_manager_service: IItemManagerService,
         entity_state_service: IEntityStateService,
         repository_provider: IRepositoryProvider,
     ):
-        self.item_factory = item_factory
+        self.item_manager_service = item_manager_service
         self.entity_state_service = entity_state_service
         self.repository_provider = repository_provider
 
@@ -92,7 +92,9 @@ class InventoryHandler(BaseHandler):
             if existing_item:
                 existing_item.quantity += command.quantity
             else:
-                new_item = self.item_factory.create_inventory_item(game_state, command.item_index, command.quantity)
+                new_item = self.item_manager_service.create_inventory_item(
+                    game_state, command.item_index, command.quantity
+                )
                 character.inventory.append(new_item)
 
             result.mutated = True

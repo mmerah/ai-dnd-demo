@@ -77,7 +77,7 @@ class CombatHandler(BaseHandler):
                 raise ValueError("start_combat requires at least one entity_id")
 
             if not game_state.combat.is_active:
-                game_state.start_combat()
+                self.combat_service.start_combat(game_state)
                 game_state.active_agent = AgentType.COMBAT
 
             participants_added: list[CombatParticipant] = []
@@ -129,7 +129,7 @@ class CombatHandler(BaseHandler):
             all_participants: list[CombatParticipant] = []
             if entities:
                 if not game_state.combat.is_active:
-                    game_state.start_combat()
+                    self.combat_service.start_combat(game_state)
                     game_state.active_agent = AgentType.COMBAT
                 combat = game_state.combat
 
@@ -264,7 +264,7 @@ class CombatHandler(BaseHandler):
                 round_count = game_state.combat.round_number
                 logger.debug(f"Ending combat after {round_count} rounds with {participant_count} participants")
 
-                game_state.end_combat()
+                self.combat_service.end_combat(game_state)
                 game_state.active_agent = AgentType.NARRATIVE
                 result.mutated = True
                 result.data = EndCombatResult(message="Combat ended")

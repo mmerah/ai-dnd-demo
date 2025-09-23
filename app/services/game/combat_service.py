@@ -7,7 +7,7 @@ import random
 
 from app.common.exceptions import RepositoryNotFoundError
 from app.interfaces.services.data import IRepositoryProvider
-from app.interfaces.services.game import ICombatService, IMonsterFactory
+from app.interfaces.services.game import ICombatService, IMonsterManagerService
 from app.interfaces.services.scenario import IScenarioService
 from app.models.attributes import EntityType
 from app.models.combat import CombatParticipant, CombatState
@@ -27,11 +27,11 @@ class CombatService(ICombatService):
     def __init__(
         self,
         scenario_service: IScenarioService,
-        monster_factory: IMonsterFactory,
+        monster_manager_service: IMonsterManagerService,
         repository_provider: IRepositoryProvider,
     ) -> None:
         self.scenario_service = scenario_service
-        self.monster_factory = monster_factory
+        self.monster_manager_service = monster_manager_service
         self.repository_provider = repository_provider
 
     def roll_initiative(self, entity: IEntity) -> int:
@@ -132,15 +132,15 @@ class CombatService(ICombatService):
                                     f"Scenario monster not found: id={spawn.entity_id} in scenario {game_state.scenario_id}"
                                 )
                                 continue
-                            inst = self.monster_factory.create(monster_sheet, current_loc)
-                            _ = game_state.add_monster_instance(inst)
+                            inst = self.monster_manager_service.create(monster_sheet, current_loc)
+                            _ = self.monster_manager_service.add_monster_to_game(game_state, inst)
                             entity = inst
                         elif spawn.spawn_type == SpawnType.REPOSITORY:
                             try:
                                 monster_repo = self.repository_provider.get_monster_repository_for(game_state)
                                 monster_sheet = monster_repo.get(spawn.entity_id)
-                                inst = self.monster_factory.create(monster_sheet, current_loc)
-                                _ = game_state.add_monster_instance(inst)
+                                inst = self.monster_manager_service.create(monster_sheet, current_loc)
+                                _ = self.monster_manager_service.add_monster_to_game(game_state, inst)
                                 entity = inst
                             except RepositoryNotFoundError:
                                 logger.warning(f"Monster not found in repository: '{spawn.entity_id}'")
@@ -233,9 +233,25 @@ class CombatService(ICombatService):
             monster_repo = self.repository_provider.get_monster_repository_for(game_state)
             monster_data = monster_repo.get(monster_name)
             # Create runtime instance and add to game state (dedup name)
-            inst = self.monster_factory.create(monster_data, game_state.scenario_instance.current_location_id)
-            _ = game_state.add_monster_instance(inst)
+            inst = self.monster_manager_service.create(monster_data, game_state.scenario_instance.current_location_id)
+            _ = self.monster_manager_service.add_monster_to_game(game_state, inst)
             return inst
         except RepositoryNotFoundError:
             logger.warning(f"Monster '{monster_name}' not found in repository")
             return None
+
+    def start_combat(self, game_state: GameState) -> CombatState:
+        # Increment combat occurrence counter for tracking
+        game_state.combat = CombatState(is_active=True, combat_occurrence=game_state.combat.combat_occurrence + 1)
+        return game_state.combat
+
+    def end_combat(self, game_state: GameState) -> None:
+        if game_state.combat.is_active:
+            game_state.combat.end_combat()
+            # Remove dead monsters
+            game_state.monsters = [m for m in game_state.monsters if m.is_alive()]
+            # Set combat to inactive and clear participants
+            game_state.combat.is_active = False
+            game_state.combat.participants.clear()
+            game_state.combat.round_number = 1
+            game_state.combat.turn_index = 0

@@ -1,7 +1,7 @@
-"""Unit tests for MonsterFactory."""
+"""Unit tests for MonsterManagerService."""
 
 from app.models.attributes import AttackAction
-from app.services.game.monster_factory import MonsterFactory
+from app.services.game.monster_manager_service import MonsterManagerService
 from tests.factories import make_monster_sheet
 
 
@@ -10,9 +10,9 @@ class BadSpeed:
         raise ValueError("unreadable speed")
 
 
-class TestMonsterFactory:
+class TestMonsterManagerService:
     def setup_method(self) -> None:
-        self.factory = MonsterFactory()
+        self.monster_manager_service = MonsterManagerService()
         self.location_id = "dungeon-entry"
         self.base_sheet = make_monster_sheet(name="Dire Wolf", hit_points=16)
 
@@ -26,7 +26,7 @@ class TestMonsterFactory:
             }
         )
 
-        instance = self.factory.create(sheet, self.location_id)
+        instance = self.monster_manager_service.create(sheet, self.location_id)
 
         assert instance.template_id == sheet.index
         assert instance.current_location_id == self.location_id
@@ -43,7 +43,7 @@ class TestMonsterFactory:
         object.__setattr__(sheet, "speed", BadSpeed())
         object.__setattr__(sheet, "attacks", ["not-an-attack"])
 
-        instance = self.factory.create(sheet, "wilds")
+        instance = self.monster_manager_service.create(sheet, "wilds")
 
         assert instance.state.hit_dice.total == 0
         assert instance.state.hit_dice.type == "d6"

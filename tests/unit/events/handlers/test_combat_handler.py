@@ -14,8 +14,9 @@ from app.events.commands.combat_commands import (
 from app.events.handlers.combat_handler import CombatHandler
 from app.interfaces.services.game import ICombatService
 from app.models.attributes import EntityType
-from app.models.combat import CombatParticipant, MonsterSpawnInfo
+from app.models.combat import CombatParticipant, CombatState, MonsterSpawnInfo
 from app.models.entity import IEntity
+from app.models.game_state import GameState
 from app.models.tool_results import (
     EndCombatResult,
     NextTurnResult,
@@ -40,8 +41,14 @@ class TestCombatHandler:
         monster_instance = make_monster_instance(
             sheet=monster_sheet, instance_id="goblin-1", current_location_id="test-location"
         )
-        self.game_state.add_monster_instance(monster_instance)
+        self.game_state.monsters.append(monster_instance)
 
+        # Mock start_combat to update game_state as the real service would
+        def start_combat_side_effect(game_state: GameState) -> CombatState:
+            game_state.combat = CombatState(is_active=True, combat_occurrence=1)
+            return game_state.combat
+
+        self.combat_service.start_combat.side_effect = start_combat_side_effect
         participant = CombatParticipant(
             name="Goblin",
             initiative=15,
@@ -49,24 +56,36 @@ class TestCombatHandler:
             entity_id=monster_instance.instance_id,
             entity_type=EntityType.MONSTER,
         )
-        self.combat_service.add_participant.return_value = participant
-        self.combat_service.ensure_player_in_combat.return_value = CombatParticipant(
+        player_participant = CombatParticipant(
             name="Test Character",
             initiative=12,
             is_player=True,
             entity_id=self.game_state.character.instance_id,
             entity_type=EntityType.PLAYER,
         )
+        self.combat_service.add_participant.return_value = participant
+        self.combat_service.ensure_player_in_combat.return_value = player_participant
 
         command = StartCombatCommand(
             game_id=self.game_state.game_id,
             entity_ids=[monster_instance.instance_id],
             agent_type=AgentType.NARRATIVE,
         )
+
+        # Set combat to inactive initially to trigger start_combat
+        self.game_state.combat.is_active = False
+
         result = await self.handler.handle(command, self.game_state)
 
-        assert self.game_state.combat.is_active
+        # Verify the handler called the service methods correctly
+        self.combat_service.start_combat.assert_called_once_with(self.game_state)
+        self.combat_service.add_participant.assert_called_once()
+        self.combat_service.ensure_player_in_combat.assert_called_once_with(self.game_state)
+
+        # Verify the handler set the active agent
         assert self.game_state.active_agent == AgentType.COMBAT
+
+        # Verify the result structure
         assert result.mutated
         assert isinstance(result.data, StartCombatResult)
         assert result.data.combat_started
@@ -145,8 +164,13 @@ class TestCombatHandler:
 
         result = await self.handler.handle(command, self.game_state)
 
-        assert not self.game_state.combat.is_active
+        # Verify the handler called the service method
+        self.combat_service.end_combat.assert_called_once_with(self.game_state)
+
+        # Verify the handler set the active agent
         assert self.game_state.active_agent == AgentType.NARRATIVE
+
+        # Verify the result structure
         assert result.mutated
         assert isinstance(result.data, EndCombatResult)
 

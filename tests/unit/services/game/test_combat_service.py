@@ -3,7 +3,7 @@
 from unittest.mock import create_autospec, patch
 
 from app.interfaces.services.data import IRepository, IRepositoryProvider
-from app.interfaces.services.game import IMonsterFactory
+from app.interfaces.services.game import IMonsterManagerService
 from app.interfaces.services.scenario import IScenarioService
 from app.models.attributes import EntityType
 from app.models.combat import CombatParticipant
@@ -20,11 +20,11 @@ class TestCombatService:
     def setup_method(self) -> None:
         """Set up test environment."""
         self.scenario_service = create_autospec(IScenarioService, instance=True)
-        self.monster_factory = create_autospec(IMonsterFactory, instance=True)
+        self.monster_manager_service = create_autospec(IMonsterManagerService, instance=True)
         self.repository_provider = create_autospec(IRepositoryProvider, instance=True)
         self.service = CombatService(
             self.scenario_service,
-            self.monster_factory,
+            self.monster_manager_service,
             self.repository_provider,
         )
         self.game_state = make_game_state()
@@ -84,13 +84,13 @@ class TestCombatService:
         goblin_instance = make_monster_instance(
             sheet=goblin_sheet, current_location_id=self.game_state.scenario_instance.current_location_id
         )
-        self.monster_factory.create.return_value = goblin_instance
+        self.monster_manager_service.create.return_value = goblin_instance
 
         realized = self.service.realize_spawns(self.game_state, spawns)
 
         assert len(realized) == 2
         assert all(e == goblin_instance for e in realized)
-        assert self.monster_factory.create.call_count == 2
+        assert self.monster_manager_service.create.call_count == 2
 
     def test_generate_combat_prompt_player_turn(self) -> None:
         """Test combat prompt for player turn."""
@@ -153,7 +153,7 @@ class TestCombatService:
         monster_instance = make_monster_instance(
             sheet=monster_sheet, current_location_id=self.game_state.scenario_instance.current_location_id
         )
-        self.monster_factory.create.return_value = monster_instance
+        self.monster_manager_service.create.return_value = monster_instance
 
         result = self.service.spawn_free_monster(self.game_state, monster_index)
 

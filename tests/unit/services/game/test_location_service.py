@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 import pytest
 
-from app.interfaces.services.game import IMonsterFactory
+from app.interfaces.services.game.monster_manager_service import IMonsterManagerService
 from app.models.game_state import GameState, GameTime
 from app.models.instances.monster_instance import MonsterInstance
 from app.models.instances.scenario_instance import ScenarioInstance
@@ -26,25 +26,27 @@ from tests.factories import (
 
 
 @dataclass
-class _FakeMonsterFactory(IMonsterFactory):
-    """Minimal monster factory stub to record creations."""
+class _FakeMonsterManagerService(IMonsterManagerService):
+    """Minimal monster service stub to record creations."""
 
     created: list[MonsterInstance]
 
-    def create(
-        self, sheet: MonsterSheet, current_location_id: str
-    ) -> MonsterInstance:  # pragma: no cover - simple glue
+    def create(self, sheet: MonsterSheet, current_location_id: str) -> MonsterInstance:  # pragma: no cover
         monster = make_monster_instance(sheet=sheet, current_location_id=current_location_id)
         self.created.append(monster)
         return monster
+
+    def add_monster_to_game(self, game_state: GameState, monster: MonsterInstance) -> str:  # pragma: no cover
+        game_state.monsters.append(monster)
+        return monster.sheet.name
 
 
 class TestLocationService:
     """Unit tests exercising high-level location behaviour."""
 
     def setup_method(self) -> None:
-        self.monster_factory = _FakeMonsterFactory(created=[])
-        self.service = LocationService(monster_factory=self.monster_factory)
+        self.monster_manager_service = _FakeMonsterManagerService(created=[])
+        self.service = LocationService(monster_manager_service=self.monster_manager_service)
 
         self.character_sheet = make_character_sheet()
 
@@ -144,8 +146,8 @@ class TestLocationService:
 
         self.service.initialize_location_from_scenario(self.game_state, target_loc)
 
-        assert self.monster_factory.created
-        created = self.monster_factory.created[0]
+        assert self.monster_manager_service.created
+        created = self.monster_manager_service.created[0]
         assert created.current_location_id == target_loc.id
         assert created.sheet.name == monster.name
 

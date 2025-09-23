@@ -48,7 +48,7 @@ async def handle_transition(
             combat_round=game_state.combat.round_number if game_state.combat.is_active else None,
             combat_occurrence=game_state.combat.combat_occurrence if game_state.combat.is_active else None,
         )
-        game_state.add_message(summary_message)
+        game_state.conversation_history.append(summary_message)
 
         # Also broadcast the summary to frontend as narrative
         await event_bus.submit_and_wait(

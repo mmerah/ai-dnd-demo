@@ -92,8 +92,14 @@ app/
 │       ├── combat_service.py               # Turn management, damage, flow
 │       ├── location_service.py             # Location transitions
 │       ├── memory_service.py               # Conversation → structured memory
-│       ├── metadata_service/monster_factory
+│       ├── metadata_service.py             # Extract information from messages
+│       ├── monster_manager_service.py      # Monster management in game
 │       ├── pre_save_sanitizer/save_manager # Persistence layer
+│       ├── item_manager_service.py         # Item management in game
+│       ├── conversation_service.py         # Record messages
+│       ├── event_manager.py                # Record events
+│       ├── enrichment_service.py           # Enrich display information for UI
+│       └── game_state_manager.py           # Manage game state in memory
 ├── tools/
 │   ├── decorators.py      # Wraps commands as tools with event logging
 │   ├── dice_tools.py      # Dice rolling interface for agents

@@ -1,21 +1,21 @@
-"""Item factory service implementation."""
+"""Item manager service implementation."""
 
 import logging
 
 from app.common.exceptions import RepositoryNotFoundError
 from app.interfaces.services.data import IRepositoryProvider
-from app.interfaces.services.game.item_factory import IItemFactory
+from app.interfaces.services.game.item_manager_service import IItemManagerService
 from app.models.game_state import GameState
 from app.models.item import InventoryItem, ItemDefinition, ItemRarity, ItemType
 
 logger = logging.getLogger(__name__)
 
 
-class ItemFactory(IItemFactory):
-    """Factory for creating inventory items with placeholder support."""
+class ItemManagerService(IItemManagerService):
+    """Service for managing items in game state."""
 
     def __init__(self, repository_provider: IRepositoryProvider):
-        """Initialize the item factory.
+        """Initialize the item service.
 
         Args:
             repository_provider: Provider for accessing item repositories
@@ -28,16 +28,6 @@ class ItemFactory(IItemFactory):
         item_index: str,
         quantity: int = 1,
     ) -> InventoryItem:
-        """Create or retrieve an inventory item, with placeholder support.
-
-        Args:
-            game_state: Current game state for repository access
-            item_index: Item index to create
-            quantity: Number of items to create
-
-        Returns:
-            InventoryItem instance, either from repository or as placeholder
-        """
         item_repo = self.repository_provider.get_item_repository_for(game_state)
 
         # Validation stays in repository

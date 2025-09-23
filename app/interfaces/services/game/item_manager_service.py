@@ -1,4 +1,4 @@
-"""Interface for item factory service."""
+"""Interface for item manager service."""
 
 from abc import ABC, abstractmethod
 
@@ -6,8 +6,8 @@ from app.models.game_state import GameState
 from app.models.item import InventoryItem
 
 
-class IItemFactory(ABC):
-    """Factory for creating inventory items with placeholder support."""
+class IItemManagerService(ABC):
+    """Service to manage item in a game."""
 
     @abstractmethod
     def create_inventory_item(

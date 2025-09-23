@@ -7,10 +7,10 @@ from app.interfaces.services.game.game_enrichment_service import IGameEnrichment
 from app.interfaces.services.game.game_factory import IGameFactory
 from app.interfaces.services.game.game_service import IGameService
 from app.interfaces.services.game.game_state_manager import IGameStateManager
-from app.interfaces.services.game.item_factory import IItemFactory
+from app.interfaces.services.game.item_manager_service import IItemManagerService
 from app.interfaces.services.game.location_service import ILocationService
 from app.interfaces.services.game.metadata_service import IMetadataService
-from app.interfaces.services.game.monster_factory import IMonsterFactory
+from app.interfaces.services.game.monster_manager_service import IMonsterManagerService
 from app.interfaces.services.game.pre_save_sanitizer import IPreSaveSanitizer
 from app.interfaces.services.game.save_manager import ISaveManager
 
@@ -22,10 +22,10 @@ __all__ = [
     "IGameFactory",
     "IGameService",
     "IGameStateManager",
-    "IItemFactory",
+    "IItemManagerService",
     "ILocationService",
     "IMetadataService",
-    "IMonsterFactory",
+    "IMonsterManagerService",
     "IPreSaveSanitizer",
     "ISaveManager",
 ]

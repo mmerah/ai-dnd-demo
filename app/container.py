@@ -46,10 +46,10 @@ from app.interfaces.services.game import (
     IGameFactory,
     IGameService,
     IGameStateManager,
-    IItemFactory,
+    IItemManagerService,
     ILocationService,
     IMetadataService,
-    IMonsterFactory,
+    IMonsterManagerService,
     IPreSaveSanitizer,
     ISaveManager,
 )
@@ -101,10 +101,10 @@ from app.services.game.enrichment_service import GameEnrichmentService
 from app.services.game.event_manager import EventManager
 from app.services.game.game_factory import GameFactory
 from app.services.game.game_state_manager import GameStateManager
-from app.services.game.item_factory import ItemFactory
+from app.services.game.item_manager_service import ItemManagerService
 from app.services.game.memory_service import MemoryService
 from app.services.game.metadata_service import MetadataService
-from app.services.game.monster_factory import MonsterFactory
+from app.services.game.monster_manager_service import MonsterManagerService
 from app.services.game.pre_save_sanitizer import PreSaveSanitizer
 from app.services.game.save_manager import SaveManager
 from app.services.scenario import ScenarioService
@@ -225,18 +225,18 @@ class Container:
         )
 
     @cached_property
-    def item_factory(self) -> IItemFactory:
-        return ItemFactory(repository_provider=self.repository_factory)
+    def item_manager_service(self) -> IItemManagerService:
+        return ItemManagerService(repository_provider=self.repository_factory)
 
     @cached_property
-    def monster_factory(self) -> IMonsterFactory:
-        return MonsterFactory()
+    def monster_manager_service(self) -> IMonsterManagerService:
+        return MonsterManagerService()
 
     @cached_property
     def location_service(self) -> ILocationService:
         from app.services.game.location_service import LocationService
 
-        return LocationService(monster_factory=self.monster_factory)
+        return LocationService(monster_manager_service=self.monster_manager_service)
 
     @cached_property
     def spell_repository(self) -> IRepository[SpellDefinition]:
@@ -411,7 +411,7 @@ class Container:
         event_bus.register_handler("dice", DiceHandler(self.dice_service))
         event_bus.register_handler(
             "inventory",
-            InventoryHandler(self.item_factory, self.entity_state_service, self.repository_factory),
+            InventoryHandler(self.item_manager_service, self.entity_state_service, self.repository_factory),
         )
         event_bus.register_handler("time", TimeHandler())
         event_bus.register_handler("broadcast", BroadcastHandler(self.message_service))
@@ -547,7 +547,7 @@ class Container:
     def combat_service(self) -> ICombatService:
         return CombatService(
             scenario_service=self.scenario_service,
-            monster_factory=self.monster_factory,
+            monster_manager_service=self.monster_manager_service,
             repository_provider=self.repository_factory,
         )
 

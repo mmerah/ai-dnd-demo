@@ -22,4 +22,4 @@ class EventManager(IEventManager):
             parameters=parameters or {},
             result=result or {},
         )
-        game_state.add_game_event(event)
+        game_state.game_events.append(event)

@@ -1,21 +1,24 @@
-"""MonsterFactory: builds MonsterInstance from a MonsterSheet template.
+"""MonsterManagerService: manages monster creation and addition to game state.
 
-Keeps GameService lean and adheres to SRP/DI by centralizing mapping logic.
+Centralizes monster instance management, including creation from templates
+and addition to game state with name deduplication.
 """
 
 from __future__ import annotations
 
-from app.interfaces.services.game import IMonsterFactory
+from app.interfaces.services.game.monster_manager_service import IMonsterManagerService
 from app.models.attributes import AttackAction, SavingThrows
 from app.models.character import Currency
+from app.models.game_state import GameState
 from app.models.instances.entity_state import EntityState, HitDice, HitPoints
 from app.models.instances.monster_instance import MonsterInstance
 from app.models.monster import MonsterSheet
 from app.utils.id_generator import generate_instance_id
+from app.utils.names import dedupe_display_name
 
 
-class MonsterFactory(IMonsterFactory):
-    """Default implementation for creating MonsterInstance objects."""
+class MonsterManagerService(IMonsterManagerService):
+    """Service for managing monster instances."""
 
     def create(self, sheet: MonsterSheet, current_location_id: str) -> MonsterInstance:
         # Parse hit dice like "2d8+2" best-effort for totals/type
@@ -89,3 +92,11 @@ class MonsterFactory(IMonsterFactory):
             ),
             current_location_id=current_location_id,
         )
+
+    def add_monster_to_game(self, game_state: GameState, monster: MonsterInstance) -> str:
+        existing_names = [m.sheet.name for m in game_state.monsters]
+        final_name = dedupe_display_name(existing_names, monster.sheet.name)
+        monster.sheet.name = final_name
+
+        game_state.monsters.append(monster)
+        return final_name

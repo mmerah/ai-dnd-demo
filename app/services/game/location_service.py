@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import logging
 
-from app.interfaces.services.game import ILocationService, IMonsterFactory
+from app.interfaces.services.game import ILocationService, IMonsterManagerService
 from app.models.attributes import EntityType
 from app.models.game_state import GameState
 from app.models.instances.monster_instance import MonsterInstance
-from app.models.location import DangerLevel
+from app.models.location import DangerLevel, LocationState
 from app.models.scenario import ScenarioLocation, ScenarioMonster
 
 logger = logging.getLogger(__name__)
@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 class LocationService(ILocationService):
     """Default implementation for location-related operations."""
 
-    def __init__(self, monster_factory: IMonsterFactory) -> None:
-        self.monster_factory = monster_factory
+    def __init__(self, monster_manager_service: IMonsterManagerService) -> None:
+        self.monster_manager_service = monster_manager_service
 
     def validate_traversal(
         self,
@@ -93,11 +93,15 @@ class LocationService(ILocationService):
                     self.initialize_location_from_scenario(game_state, scenario_loc)
 
             # Update game state's current location and mark visited
-            game_state.change_location(
-                new_location_id=to_location_id,
-                new_location_name=resolved_name,
-                description=resolved_desc,
-            )
+            # Update location state tracking within scenario instance
+            if to_location_id not in game_state.scenario_instance.location_states:
+                game_state.scenario_instance.location_states[to_location_id] = LocationState(location_id=to_location_id)
+            location_state = game_state.scenario_instance.location_states[to_location_id]
+            location_state.mark_visited()
+            game_state.scenario_instance.current_location_id = to_location_id
+            game_state.location = resolved_name
+            game_state.description = resolved_desc
+            game_state.add_story_note(f"Moved to {resolved_name}")
         else:
             # Moving an NPC or monster
             npc = game_state.get_npc_by_id(entity_id)
@@ -109,8 +113,9 @@ class LocationService(ILocationService):
                     if not target:
                         raise ValueError(f"Target location '{to_location_id}' not found in scenario")
 
-                # Move NPC using GameState
-                game_state.move_npc(entity_id, to_location_id)
+                # Move NPC
+                npc.current_location_id = to_location_id
+                npc.touch()
             else:
                 # Check if it's a monster
                 entity = game_state.get_entity_by_id(EntityType.MONSTER, entity_id)
@@ -136,11 +141,11 @@ class LocationService(ILocationService):
             if scenario_location.notable_monsters:
                 for sm in scenario_location.notable_monsters:
                     if isinstance(sm, ScenarioMonster):
-                        inst = self.monster_factory.create(
+                        inst = self.monster_manager_service.create(
                             sm.monster.model_copy(deep=True),
                             current_location_id=scenario_location.id,
                         )
-                        game_state.add_monster_instance(inst)
+                        self.monster_manager_service.add_monster_to_game(game_state, inst)
 
     def discover_secret(
         self,

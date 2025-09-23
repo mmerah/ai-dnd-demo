@@ -78,6 +78,5 @@ class ConversationService(IConversationService):
             speaker_npc_id=speaker_npc_id,
             speaker_npc_name=speaker_npc_name,
         )
-
-        game_state.add_message(message)
+        game_state.conversation_history.append(message)
         return message
