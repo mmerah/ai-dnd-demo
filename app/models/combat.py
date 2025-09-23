@@ -1,8 +1,20 @@
 """Combat-related models for D&D 5e."""
 
-from pydantic import BaseModel, Field
+from enum import Enum
+
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.models.attributes import EntityType
+from app.models.entity import IEntity
+
+
+class CombatFaction(str, Enum):
+    """Faction for combat participants."""
+
+    PLAYER = "player"
+    ALLY = "ally"
+    ENEMY = "enemy"
+    NEUTRAL = "neutral"
 
 
 class CombatParticipant(BaseModel):
@@ -11,6 +23,7 @@ class CombatParticipant(BaseModel):
     # Stable reference to an entity in GameState
     entity_id: str
     entity_type: EntityType
+    faction: CombatFaction
 
     # Display information
     name: str
@@ -36,6 +49,7 @@ class CombatState(BaseModel):
         *,
         entity_id: str,
         entity_type: EntityType,
+        faction: CombatFaction,
     ) -> None:
         """Add a participant to combat (id-aware)."""
         participant = CombatParticipant(
@@ -44,6 +58,7 @@ class CombatState(BaseModel):
             is_player=is_player,
             entity_id=entity_id,
             entity_type=entity_type,
+            faction=faction,
         )
         self.participants.append(participant)
         self.sort_by_initiative()
@@ -114,3 +129,16 @@ class MonsterSpawnInfo(BaseModel):
 
     monster_index: str
     quantity: int = Field(default=1, ge=1)
+
+
+class CombatEntry(BaseModel):
+    """Entity-faction pairing for combat initialization.
+
+    Used as an intermediate type when adding entities to combat.
+    The faction can be explicitly specified or inferred if None.
+    """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    entity: IEntity
+    faction: CombatFaction | None = None

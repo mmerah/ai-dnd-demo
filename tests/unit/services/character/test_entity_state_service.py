@@ -7,7 +7,7 @@ import pytest
 from app.interfaces.services.character import ICharacterComputeService
 from app.models.attributes import EntityType
 from app.models.character import Currency
-from app.models.combat import CombatParticipant, CombatState
+from app.models.combat import CombatFaction, CombatParticipant, CombatState
 from app.models.equipment_slots import EquipmentSlots, EquipmentSlotType
 from app.models.instances.entity_state import EntityState
 from app.models.item import InventoryItem
@@ -84,6 +84,7 @@ class TestEntityStateService:
                     entity_id=self.character_id,
                     name=self.character.display_name,
                     entity_type=EntityType.PLAYER,
+                    faction=CombatFaction.PLAYER,
                     initiative=15,
                     is_active=True,
                 )
@@ -366,12 +367,13 @@ class TestEntityStateService:
 
     @pytest.mark.asyncio
     async def test_recompute_entity_state_monster(self) -> None:
-        """Test recomputing entity state for monster (should log debug)."""
+        """Test recomputing entity state for monster (should raise error)."""
         monster = make_monster_instance()
         self.game_state.monsters.append(monster)
 
-        # Should not raise, just log debug
-        self.service.recompute_entity_state(self.game_state, monster.instance_id)
+        # Should raise an error since monsters have immutable state
+        with pytest.raises(ValueError, match="Cannot recompute state for monster"):
+            self.service.recompute_entity_state(self.game_state, monster.instance_id)
 
         # Compute service should not be called for monsters
         self.compute_service.recompute_entity_state.assert_not_called()

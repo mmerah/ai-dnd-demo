@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 
-from app.models.combat import CombatParticipant, CombatState
+from app.models.combat import CombatEntry, CombatParticipant, CombatState
 from app.models.entity import IEntity
 from app.models.game_state import GameState
 from app.models.location import EncounterParticipantSpawn
@@ -26,15 +26,15 @@ class ICombatService(ABC):
         pass
 
     @abstractmethod
-    def add_participant(self, combat: CombatState, entity: IEntity) -> CombatParticipant:
+    def add_participant(self, game_state: GameState, entry: CombatEntry) -> CombatParticipant:
         """Add an entity to combat.
 
-        Automatically rolls initiative and infers participant type
-        (PLAYER, ALLY, or ENEMY) from entity properties.
+        Automatically rolls initiative. Uses provided faction or infers from
+        entity type and party membership if not specified in entry.
 
         Args:
-            combat: Combat state to update
-            entity: Entity to add to combat
+            game_state: Current game state containing combat and party info
+            entry: CombatEntry with entity and optional faction
 
         Returns:
             Created CombatParticipant record
@@ -42,12 +42,12 @@ class ICombatService(ABC):
         pass
 
     @abstractmethod
-    def add_participants(self, combat: CombatState, entities: list[IEntity]) -> list[CombatParticipant]:
+    def add_participants(self, game_state: GameState, entries: list[CombatEntry]) -> list[CombatParticipant]:
         """Add multiple entities to combat.
 
         Args:
-            combat: Combat state to update
-            entities: List of entities to add
+            game_state: Current game state containing combat and party info
+            entries: List of CombatEntry objects (entity with optional faction)
 
         Returns:
             List of created CombatParticipant records
@@ -59,21 +59,18 @@ class ICombatService(ABC):
         self,
         game_state: GameState,
         spawns: list[EncounterParticipantSpawn],
-    ) -> list[IEntity]:
-        """Convert encounter spawns into concrete entities.
+    ) -> list[CombatEntry]:
+        """Convert encounter spawns into concrete entities with factions.
 
         Processes spawn definitions with probabilities to create actual
-        NPCs or monsters from repositories.
+        NPCs or monsters from repositories, preserving explicit faction info.
 
         Args:
             game_state: Current game state
-            spawns: List of spawn definitions with probabilities
-            scenario_service: Service for accessing scenario NPCs
-            monster_repository: Repository for accessing monster templates
-            game_service: Service for creating instances
+            spawns: List of spawn definitions with faction and probabilities
 
         Returns:
-            List of created entity instances
+            List of CombatEntry objects with entities and their factions
         """
         pass
 

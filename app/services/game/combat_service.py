@@ -10,7 +10,7 @@ from app.interfaces.services.data import IRepositoryProvider
 from app.interfaces.services.game import ICombatService, IMonsterManagerService
 from app.interfaces.services.scenario import IScenarioService
 from app.models.attributes import EntityType
-from app.models.combat import CombatParticipant, CombatState
+from app.models.combat import CombatEntry, CombatFaction, CombatParticipant, CombatState
 from app.models.entity import IEntity
 from app.models.game_state import GameState
 from app.models.instances.character_instance import CharacterInstance
@@ -47,10 +47,34 @@ class CombatService(ICombatService):
             return EntityType.MONSTER
         raise ValueError("Entity should be a player, NPC or monster")
 
-    def add_participant(self, combat: CombatState, entity: IEntity) -> CombatParticipant:
+    def _infer_faction(self, entity: IEntity, entity_type: EntityType, game_state: GameState) -> CombatFaction:
+        """Infer faction based on entity type and party membership.
+
+        - CharacterInstance: PLAYER
+        - NPCInstance in party: ALLY
+        - MonsterInstance: ENEMY
+        - Else: NEUTRAL
+        """
+        match entity_type:
+            case EntityType.PLAYER:
+                return CombatFaction.PLAYER
+            case EntityType.NPC:
+                # Check if NPC is in party (will be ALLY when party system is implemented)
+                if game_state.party.has_member(entity.instance_id):
+                    return CombatFaction.ALLY
+                return CombatFaction.NEUTRAL
+            case EntityType.MONSTER:
+                return CombatFaction.ENEMY
+
+    def add_participant(self, game_state: GameState, entry: CombatEntry) -> CombatParticipant:
+        combat = game_state.combat
+        entity = entry.entity
         etype = self._infer_entity_type(entity)
         final_init = self.roll_initiative(entity)
         is_pl = etype == EntityType.PLAYER
+
+        # Use explicit faction if provided, otherwise infer based on entity type and party membership
+        faction = entry.faction if entry.faction else self._infer_faction(entity, etype, game_state)
 
         # Mutate combat state
         combat.add_participant(
@@ -59,6 +83,7 @@ class CombatService(ICombatService):
             is_player=is_pl,
             entity_id=entity.instance_id,
             entity_type=etype,
+            faction=faction,
         )
 
         # Return a corresponding participant value-object for result payloads
@@ -68,20 +93,21 @@ class CombatService(ICombatService):
             is_player=is_pl,
             entity_id=entity.instance_id,
             entity_type=etype,
+            faction=faction,
         )
 
-    def add_participants(self, combat: CombatState, entities: list[IEntity]) -> list[CombatParticipant]:
+    def add_participants(self, game_state: GameState, entries: list[CombatEntry]) -> list[CombatParticipant]:
         participants: list[CombatParticipant] = []
-        for ent in entities:
-            participants.append(self.add_participant(combat, ent))
+        for entry in entries:
+            participants.append(self.add_participant(game_state, entry))
         return participants
 
     def realize_spawns(
         self,
         game_state: GameState,
         spawns: list[EncounterParticipantSpawn],
-    ) -> list[IEntity]:
-        realized: list[IEntity] = []
+    ) -> list[CombatEntry]:
+        entries: list[CombatEntry] = []
         current_loc = game_state.scenario_instance.current_location_id
 
         for spawn in spawns:
@@ -146,13 +172,13 @@ class CombatService(ICombatService):
                                 logger.warning(f"Monster not found in repository: '{spawn.entity_id}'")
                                 continue
                     if entity is not None:
-                        realized.append(entity)
+                        entries.append(CombatEntry(entity=entity, faction=spawn.faction))
                 except Exception as e:
                     logger.warning(
                         f"Failed to realize spawn for entity_id={spawn.entity_id} ({spawn.spawn_type}/{spawn.entity_type}): {e}"
                     )
 
-        return realized
+        return entries
 
     def generate_combat_prompt(
         self,
@@ -220,7 +246,7 @@ class CombatService(ICombatService):
 
         # Add player to combat
         player_entity = game_state.character
-        participant = self.add_participant(game_state.combat, player_entity)
+        participant = self.add_participant(game_state, CombatEntry(entity=player_entity))
         logger.debug(
             f"Auto-added player '{player_entity.display_name}' to combat with ID: {player_entity.instance_id}, "
             f"Initiative: {participant.initiative}"

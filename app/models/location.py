@@ -5,6 +5,7 @@ from enum import Enum
 from pydantic import BaseModel, Field
 
 from app.models.attributes import EntityType
+from app.models.combat import CombatFaction
 from app.models.memory import MemoryEntry
 
 
@@ -73,6 +74,7 @@ class EncounterParticipantSpawn(BaseModel):
     entity_type: EntityType
     spawn_type: SpawnType
     entity_id: str
+    faction: CombatFaction
     quantity_min: int = 1
     quantity_max: int = 1
     probability: float = 1.0

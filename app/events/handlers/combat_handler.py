@@ -17,7 +17,7 @@ from app.events.commands.combat_commands import (
 from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.services.game import ICombatService
 from app.models.attributes import EntityType
-from app.models.combat import CombatParticipant
+from app.models.combat import CombatEntry, CombatParticipant
 from app.models.game_state import GameState
 from app.models.tool_results import (
     AddParticipantResult,
@@ -89,8 +89,7 @@ class CombatHandler(BaseHandler):
                 if not entity:
                     raise ValueError(f"Entity not found for id {entity_id}")
 
-                combat = game_state.combat
-                participant = self.combat_service.add_participant(combat, entity)
+                participant = self.combat_service.add_participant(game_state, CombatEntry(entity=entity))
                 participants_added.append(participant)
 
             # Add player if not already in combat
@@ -122,19 +121,18 @@ class CombatHandler(BaseHandler):
                 raise ValueError(f"Encounter '{command.encounter_id}' not found")
 
             # Realize entities without starting combat yet
-            entities = self.combat_service.realize_spawns(
+            entries = self.combat_service.realize_spawns(
                 game_state,
                 encounter.participant_spawns,
             )
             all_participants: list[CombatParticipant] = []
-            if entities:
+            if entries:
                 if not game_state.combat.is_active:
                     self.combat_service.start_combat(game_state)
                     game_state.active_agent = AgentType.COMBAT
-                combat = game_state.combat
 
                 # Add monsters/NPCs from the encounter
-                encounter_participants = self.combat_service.add_participants(combat, entities)
+                encounter_participants = self.combat_service.add_participants(game_state, entries)
                 all_participants.extend(encounter_participants)
 
                 # Auto-add player if not present
@@ -186,8 +184,7 @@ class CombatHandler(BaseHandler):
                         total_spawned += 1
                         # If in combat, add to combat
                         if game_state.combat.is_active:
-                            combat = game_state.combat
-                            participant = self.combat_service.add_participant(combat, monster)
+                            participant = self.combat_service.add_participant(game_state, CombatEntry(entity=monster))
                             spawned_monsters.append(participant)
                     else:
                         logger.error(f"Failed to spawn monster '{monster_index}'")
@@ -279,8 +276,7 @@ class CombatHandler(BaseHandler):
             entity = game_state.get_entity_by_id(command.entity_type, command.entity_id)
             if not entity:
                 raise ValueError("Entity not found")
-            combat = game_state.combat
-            participant = self.combat_service.add_participant(combat, entity)
+            participant = self.combat_service.add_participant(game_state, CombatEntry(entity=entity))
             result.mutated = True
             result.data = AddParticipantResult(participant=participant, message=f"Added {participant.name} to combat")
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))

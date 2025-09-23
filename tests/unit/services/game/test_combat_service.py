@@ -6,7 +6,7 @@ from app.interfaces.services.data import IRepository, IRepositoryProvider
 from app.interfaces.services.game import IMonsterManagerService
 from app.interfaces.services.scenario import IScenarioService
 from app.models.attributes import EntityType
-from app.models.combat import CombatParticipant
+from app.models.combat import CombatEntry, CombatFaction, CombatParticipant
 from app.models.entity import IEntity
 from app.models.instances.entity_state import EntityState
 from app.models.location import EncounterParticipantSpawn, SpawnType
@@ -47,7 +47,7 @@ class TestCombatService:
         character = self.game_state.character
 
         with patch.object(self.service, "roll_initiative", return_value=16):
-            participant = self.service.add_participant(combat, character)
+            participant = self.service.add_participant(self.game_state, CombatEntry(entity=character))
 
         assert participant.name == character.display_name
         assert participant.initiative == 16
@@ -62,6 +62,7 @@ class TestCombatService:
                 entity_id="goblin",
                 entity_type=EntityType.MONSTER,
                 spawn_type=SpawnType.REPOSITORY,
+                faction=CombatFaction.ENEMY,
                 quantity_min=2,
                 quantity_max=2,
                 probability=1.0,
@@ -70,6 +71,7 @@ class TestCombatService:
                 entity_id="wolf",
                 entity_type=EntityType.MONSTER,
                 spawn_type=SpawnType.REPOSITORY,
+                faction=CombatFaction.ENEMY,
                 quantity_min=1,
                 quantity_max=1,
                 probability=0.0,
@@ -86,10 +88,11 @@ class TestCombatService:
         )
         self.monster_manager_service.create.return_value = goblin_instance
 
-        realized = self.service.realize_spawns(self.game_state, spawns)
+        entries = self.service.realize_spawns(self.game_state, spawns)
 
-        assert len(realized) == 2
-        assert all(e == goblin_instance for e in realized)
+        assert len(entries) == 2
+        assert all(e.entity == goblin_instance for e in entries)
+        assert all(e.faction == CombatFaction.ENEMY for e in entries)
         assert self.monster_manager_service.create.call_count == 2
 
     def test_generate_combat_prompt_player_turn(self) -> None:
@@ -103,6 +106,7 @@ class TestCombatService:
             is_player=True,
             entity_id="player-1",
             entity_type=EntityType.PLAYER,
+            faction=CombatFaction.PLAYER,
         )
         self.game_state.combat.participants = [player]
 
@@ -124,6 +128,7 @@ class TestCombatService:
                 is_player=True,
                 entity_id="player-1",
                 entity_type=EntityType.PLAYER,
+                faction=CombatFaction.PLAYER,
                 is_active=True,
             ),
             CombatParticipant(
@@ -132,6 +137,7 @@ class TestCombatService:
                 is_player=False,
                 entity_id="goblin-1",
                 entity_type=EntityType.MONSTER,
+                faction=CombatFaction.ENEMY,
                 is_active=False,
             ),
         ]

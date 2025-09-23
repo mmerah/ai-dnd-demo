@@ -177,6 +177,7 @@
         {
           "entity_id": "ogre-6994",
           "entity_type": "monster",
+          "faction": "enemy",
           "name": "Ogre",
           "initiative": 18,
           "is_player": false,
@@ -185,6 +186,7 @@
         {
           "entity_id": "hero-inst",
           "entity_type": "player",
+          "faction": "player",
           "name": "Hero",
           "initiative": 19,
           "is_player": true,
@@ -312,6 +314,7 @@
       "current_turn": {
         "entity_id": "ogre-6994",
         "entity_type": "monster",
+        "faction": "enemy",
         "name": "Ogre",
         "initiative": 18,
         "is_player": false,
@@ -400,6 +403,7 @@
       "current_turn": {
         "entity_id": "ogre-6994",
         "entity_type": "monster",
+        "faction": "enemy",
         "name": "Ogre",
         "initiative": 18,
         "is_player": false,

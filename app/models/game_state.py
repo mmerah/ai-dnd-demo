@@ -15,6 +15,7 @@ from app.models.instances.monster_instance import MonsterInstance
 from app.models.instances.npc_instance import NPCInstance
 from app.models.instances.scenario_instance import ScenarioInstance
 from app.models.location import LocationState
+from app.models.party import PartyState
 from app.models.quest import Quest
 
 
@@ -135,6 +136,9 @@ class GameState(BaseModel):
 
     # Combat state
     combat: CombatState = Field(default_factory=CombatState)
+
+    # Party state
+    party: PartyState = Field(default_factory=PartyState)
 
     # Story tracking
     story_notes: list[str] = Field(default_factory=list)

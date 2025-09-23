@@ -8,6 +8,7 @@
       "entity_type": "monster",
       "spawn_type": "scenario",
       "entity_id": "goblin-boss",
+      "faction": "enemy",
       "quantity_min": 1,
       "quantity_max": 1,
       "probability": 1.0

@@ -8,6 +8,7 @@
       "entity_type": "monster",
       "spawn_type": "repository",
       "entity_id": "goblin",
+      "faction": "enemy",
       "quantity_min": 2,
       "quantity_max": 2,
       "probability": 1.0
@@ -16,6 +17,7 @@
       "entity_type": "monster",
       "spawn_type": "repository",
       "entity_id": "wolf",
+      "faction": "enemy",
       "quantity_min": 1,
       "quantity_max": 1,
       "probability": 0.5

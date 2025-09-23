@@ -8,8 +8,10 @@ from app.interfaces.services.game import ILocationService, IMonsterManagerServic
 from app.models.attributes import EntityType
 from app.models.game_state import GameState
 from app.models.instances.monster_instance import MonsterInstance
+from app.models.instances.npc_instance import NPCInstance
 from app.models.location import DangerLevel, LocationState
 from app.models.scenario import ScenarioLocation, ScenarioMonster
+from app.utils.entity_resolver import resolve_entity_with_fallback
 
 logger = logging.getLogger(__name__)
 
@@ -104,33 +106,27 @@ class LocationService(ILocationService):
             game_state.add_story_note(f"Moved to {resolved_name}")
         else:
             # Moving an NPC or monster
-            npc = game_state.get_npc_by_id(entity_id)
-            if npc:
-                # Validate target location exists in scenario
-                if game_state.scenario_id:
-                    scenario = game_state.scenario_instance.sheet
-                    target = scenario.get_location(to_location_id)
-                    if not target:
-                        raise ValueError(f"Target location '{to_location_id}' not found in scenario")
+            entity, entity_type = resolve_entity_with_fallback(game_state, entity_id)
+            if not entity:
+                raise ValueError(f"Entity with id '{entity_id}' not found")
+            # Validate target location exists in scenario
+            if game_state.scenario_id:
+                scenario = game_state.scenario_instance.sheet
+                target = scenario.get_location(to_location_id)
+                if not target:
+                    raise ValueError(f"Target location '{to_location_id}' not found in scenario")
 
-                # Move NPC
-                npc.current_location_id = to_location_id
-                npc.touch()
+            if entity_type == EntityType.NPC:
+                if not isinstance(entity, NPCInstance):
+                    raise TypeError(f"Entity type mismatch: EntityType.NPC but got {type(entity).__name__}")
+                entity.current_location_id = to_location_id
+                entity.touch()
+            elif entity_type == EntityType.MONSTER:
+                if not isinstance(entity, MonsterInstance):
+                    raise TypeError(f"Entity type mismatch: EntityType.MONSTER but got {type(entity).__name__}")
+                entity.current_location_id = to_location_id
             else:
-                # Check if it's a monster
-                entity = game_state.get_entity_by_id(EntityType.MONSTER, entity_id)
-                if entity and isinstance(entity, MonsterInstance):
-                    # Validate target location exists in scenario
-                    if game_state.scenario_id:
-                        scenario = game_state.scenario_instance.sheet
-                        target = scenario.get_location(to_location_id)
-                        if not target:
-                            raise ValueError(f"Target location '{to_location_id}' not found in scenario")
-
-                    # Move monster
-                    entity.current_location_id = to_location_id
-                else:
-                    raise ValueError(f"Entity with id '{entity_id}' not found")
+                raise ValueError(f"Cannot move entity of type {entity_type.value if entity_type else 'unknown'}")
 
     def initialize_location_from_scenario(self, game_state: GameState, scenario_location: ScenarioLocation) -> None:
         location_state = game_state.get_location_state(scenario_location.id)

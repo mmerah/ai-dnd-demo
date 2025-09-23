@@ -3,9 +3,13 @@
 import logging
 
 from app.interfaces.services.character import ICharacterComputeService, IEntityStateService
+from app.models.attributes import EntityType
 from app.models.character import Currency
 from app.models.equipment_slots import EquipmentSlotType
 from app.models.game_state import GameState
+from app.models.instances.character_instance import CharacterInstance
+from app.models.instances.monster_instance import MonsterInstance
+from app.models.instances.npc_instance import NPCInstance
 from app.utils.entity_resolver import resolve_entity_with_fallback
 
 logger = logging.getLogger(__name__)
@@ -156,19 +160,26 @@ class EntityStateService(IEntityStateService):
         slot: EquipmentSlotType | None = None,
         unequip: bool = False,
     ) -> None:
-        # Check if this is the player
-        if entity_id == game_state.character.instance_id:
-            state = game_state.character.state
-            updated = self.compute_service.equip_item_to_slot(game_state, state, item_index, slot, unequip)
+        entity, entity_type = resolve_entity_with_fallback(game_state, entity_id)
+        if not entity:
+            raise ValueError(f"Entity '{entity_id}' not found")
+
+        # Equip item to entity
+        updated = self.compute_service.equip_item_to_slot(game_state, entity.state, item_index, slot, unequip)
+        # Update the state on the concrete instance
+        if entity_type == EntityType.PLAYER:
             game_state.character.state = updated
             game_state.character.touch()
-        else:
-            # NPC only, monsters don't have equipment
-            npc = next((n for n in game_state.npcs if n.instance_id == entity_id), None)
-            if not npc:
-                raise ValueError(f"Entity '{entity_id}' not found")
-            updated = self.compute_service.equip_item_to_slot(game_state, npc.state, item_index, slot, unequip)
-            npc.state = updated
+        elif entity_type == EntityType.NPC:
+            for npc in game_state.npcs:
+                if npc.instance_id == entity.instance_id:
+                    npc.state = updated
+                    break
+        elif entity_type == EntityType.MONSTER:
+            for monster in game_state.monsters:
+                if monster.instance_id == entity.instance_id:
+                    monster.state = updated
+                    break
 
     def update_spell_slots(
         self,
@@ -207,19 +218,25 @@ class EntityStateService(IEntityStateService):
         entity, entity_type = resolve_entity_with_fallback(game_state, entity_id)
         if not entity:
             raise ValueError(f"Entity '{entity_id}' not found")
-
-        # For player character, use the character sheet
-        if entity.instance_id == game_state.character.instance_id:
-            char = game_state.character
-            new_state = self.compute_service.recompute_entity_state(game_state, char.sheet, char.state)
-            char.state = new_state
-            char.touch()
+        if entity_type == EntityType.PLAYER:
+            if not isinstance(entity, CharacterInstance):
+                raise TypeError(f"Entity type mismatch: EntityType.PLAYER but got {type(entity).__name__}")
+            if entity.instance_id != game_state.character.instance_id:
+                raise ValueError(
+                    f"Player entity ID mismatch: {entity.instance_id} != {game_state.character.instance_id}"
+                )
+            new_state = self.compute_service.recompute_entity_state(game_state, entity.sheet, entity.state)
+            entity.state = new_state
+            entity.touch()
+        elif entity_type == EntityType.NPC:
+            if not isinstance(entity, NPCInstance):
+                raise TypeError(f"Entity type mismatch: EntityType.NPC but got {type(entity).__name__}")
+            new_state = self.compute_service.recompute_entity_state(game_state, entity.sheet.character, entity.state)
+            entity.state = new_state
+        elif entity_type == EntityType.MONSTER:
+            if not isinstance(entity, MonsterInstance):
+                raise TypeError(f"Entity type mismatch: EntityType.MONSTER but got {type(entity).__name__}")
+            # Monsters don't have character sheets to recompute from
+            raise ValueError(f"Cannot recompute state for monster '{entity_id}'")
         else:
-            # For NPCs, use the NPC's character sheet from NPCSheet
-            npc = next((n for n in game_state.npcs if n.instance_id == entity_id), None)
-            if npc:
-                new_state = self.compute_service.recompute_entity_state(game_state, npc.sheet.character, npc.state)
-                npc.state = new_state
-            else:
-                # Monsters don't have character sheets to recompute from
-                logger.debug(f"Cannot recompute state for monster '{entity_id}' - no character sheet")
+            raise ValueError(f"Unknown entity type: {entity_type}")

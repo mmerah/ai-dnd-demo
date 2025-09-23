@@ -14,7 +14,7 @@ from app.events.commands.combat_commands import (
 from app.events.handlers.combat_handler import CombatHandler
 from app.interfaces.services.game import ICombatService
 from app.models.attributes import EntityType
-from app.models.combat import CombatParticipant, CombatState, MonsterSpawnInfo
+from app.models.combat import CombatFaction, CombatParticipant, CombatState, MonsterSpawnInfo
 from app.models.entity import IEntity
 from app.models.game_state import GameState
 from app.models.tool_results import (
@@ -55,6 +55,7 @@ class TestCombatHandler:
             is_player=False,
             entity_id=monster_instance.instance_id,
             entity_type=EntityType.MONSTER,
+            faction=CombatFaction.ENEMY,
         )
         player_participant = CombatParticipant(
             name="Test Character",
@@ -62,6 +63,7 @@ class TestCombatHandler:
             is_player=True,
             entity_id=self.game_state.character.instance_id,
             entity_type=EntityType.PLAYER,
+            faction=CombatFaction.PLAYER,
         )
         self.combat_service.add_participant.return_value = participant
         self.combat_service.ensure_player_in_combat.return_value = player_participant
@@ -109,6 +111,7 @@ class TestCombatHandler:
             is_player=False,
             entity_id=mock_monster.instance_id,
             entity_type=EntityType.MONSTER,
+            faction=CombatFaction.ENEMY,
         )
         self.combat_service.add_participant.return_value = participant
 
@@ -134,6 +137,7 @@ class TestCombatHandler:
             is_player=False,
             entity_id="goblin-1",
             entity_type=EntityType.MONSTER,
+            faction=CombatFaction.ENEMY,
             is_active=True,
         )
         self.game_state.combat.participants = [current_participant]
