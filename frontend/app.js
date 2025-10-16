@@ -6,6 +6,8 @@ let selectedScenario = null;
 let selectedContentPacks = []; // Track selected content packs
 let sseSource = null;
 let isProcessing = false; // Track if agent is processing
+let selectedMemberId = 'player'; // Track selected party member ('player' or NPC ID)
+let currentSuggestion = null; // Track current combat suggestion
 
 // DOM elements - cached for performance
 const elements = {};
@@ -202,8 +204,17 @@ function setupEventListeners() {
     
     // Save game button
     elements.saveGameBtn.addEventListener('click', saveGame);
-    
-    
+
+    // Combat suggestion buttons
+    const acceptBtn = document.getElementById('acceptSuggestionBtn');
+    const overrideBtn = document.getElementById('overrideSuggestionBtn');
+    if (acceptBtn) {
+        acceptBtn.addEventListener('click', acceptSuggestion);
+    }
+    if (overrideBtn) {
+        overrideBtn.addEventListener('click', overrideSuggestion);
+    }
+
     console.log('[INIT] Event listeners setup complete');
 }
 
@@ -843,8 +854,14 @@ function initializeSSE() {
         const suffix = detail.length ? ` (${detail.join(', ')})` : '';
         addMessage(`⚠️ ${data.message}${suffix}`, 'policy-warning');
     });
-    
-    
+
+    // Combat suggestion from allied NPC
+    sseSource.addEventListener('combat_suggestion', (event) => {
+        const data = JSON.parse(event.data);
+        console.log('[SSE] Combat suggestion received:', data);
+        displayCombatSuggestion(data);
+    });
+
     // Game state updates
     sseSource.addEventListener('game_update', (event) => {
         const data = JSON.parse(event.data);
@@ -1034,15 +1051,360 @@ function addNpcDialogueBubble(speaker, content) {
     return message;
 }
 
+// Party Management Functions
+function getPartyMembers() {
+    if (!gameState) return [];
+
+    const members = [];
+
+    // Always add player as first member
+    members.push({
+        id: 'player',
+        type: 'player',
+        name: gameState.character.sheet?.name || 'Player',
+        hp: gameState.character.state?.hit_points?.current || 0,
+        maxHp: gameState.character.state?.hit_points?.maximum || 0,
+        ac: gameState.character.state?.armor_class || 10,
+        level: gameState.character.state?.level || gameState.character.sheet?.starting_level || 1,
+        className: displayClassName(gameState.character.sheet?.class_index),
+        race: displayRaceName(gameState.character.sheet?.race),
+        conditions: gameState.character.state?.conditions || [],
+        data: gameState.character
+    });
+
+    // Add NPCs that are in the party
+    if (gameState.party && gameState.party.member_ids) {
+        gameState.party.member_ids.forEach(npcId => {
+            const npc = gameState.npcs.find(n => n.id === npcId);
+            if (npc) {
+                members.push({
+                    id: npc.id,
+                    type: 'npc',
+                    name: npc.name,
+                    hp: npc.hit_points?.current || 0,
+                    maxHp: npc.hit_points?.maximum || 0,
+                    ac: npc.armor_class || 10,
+                    level: npc.level || 1,
+                    className: npc.occupation || 'NPC',
+                    race: npc.race || '',
+                    conditions: npc.conditions || [],
+                    data: npc
+                });
+            }
+        });
+    }
+
+    return members;
+}
+
+function getStatusInfo(member) {
+    const hpPercent = member.maxHp > 0 ? (member.hp / member.maxHp) * 100 : 0;
+
+    // Check for death/unconsciousness
+    if (member.hp <= 0) {
+        const isDead = member.conditions.some(c => c.condition === 'dead' || c.index === 'dead');
+        if (isDead) {
+            return { icon: '💀', text: 'Dead', class: 'dead' };
+        }
+        return { icon: '💤', text: 'Unconscious', class: 'unconscious' };
+    }
+
+    // Health status based on HP percentage
+    if (hpPercent >= 75) {
+        return { icon: '🟢', text: 'Healthy', class: 'healthy' };
+    } else if (hpPercent >= 30) {
+        return { icon: '🟡', text: 'Wounded', class: 'wounded' };
+    } else {
+        return { icon: '🔴', text: 'Critical', class: 'critical' };
+    }
+}
+
+function renderPartyMembers() {
+    const partyMembersContainer = document.getElementById('partyMembers');
+    const partyCountSpan = document.getElementById('partyCount');
+
+    if (!partyMembersContainer || !gameState) return;
+
+    const members = getPartyMembers();
+
+    // Update party count (exclude player from count)
+    const npcCount = members.length - 1;
+    const maxSize = gameState.party?.max_size || 4;
+    partyCountSpan.textContent = `${npcCount + 1}/${maxSize}`;
+
+    // Clear existing cards
+    partyMembersContainer.innerHTML = '';
+
+    // Create card for each member
+    members.forEach(member => {
+        const card = createPartyMemberCard(member);
+        partyMembersContainer.appendChild(card);
+    });
+
+    console.log(`[PARTY] Rendered ${members.length} party members`);
+}
+
+function createPartyMemberCard(member) {
+    const card = document.createElement('div');
+    card.className = 'party-member-card';
+    card.dataset.memberId = member.id;
+
+    // Mark as selected if this is the selected member
+    if (member.id === selectedMemberId) {
+        card.classList.add('selected');
+    }
+
+    const status = getStatusInfo(member);
+    const hpClass = status.class === 'critical' ? 'critical' : (status.class === 'wounded' ? 'low' : '');
+
+    card.innerHTML = `
+        <div class="party-member-name">${member.name}</div>
+        <div class="party-member-stats">
+            <div class="party-member-left">
+                <span class="party-member-hp ${hpClass}">${member.hp}/${member.maxHp} HP</span>
+                <span>AC ${member.ac}</span>
+            </div>
+            <div class="party-member-status">
+                <span class="status-icon ${status.class}">${status.icon}</span>
+                <span>${status.text}</span>
+            </div>
+        </div>
+        <div class="party-member-class-info">
+            Lv ${member.level} ${member.className}${member.race ? ` (${member.race})` : ''}
+        </div>
+    `;
+
+    // Add click handler
+    card.addEventListener('click', () => selectPartyMember(member.id));
+
+    return card;
+}
+
+function selectPartyMember(memberId) {
+    console.log(`[PARTY] Selected member: ${memberId}`);
+    selectedMemberId = memberId;
+
+    // Update card selection visuals
+    document.querySelectorAll('.party-member-card').forEach(card => {
+        if (card.dataset.memberId === memberId) {
+            card.classList.add('selected');
+        } else {
+            card.classList.remove('selected');
+        }
+    });
+
+    // Update the selected member header and character sheet
+    updateSelectedMemberDisplay();
+}
+
+function updateSelectedMemberDisplay() {
+    const members = getPartyMembers();
+    const selectedMember = members.find(m => m.id === selectedMemberId);
+
+    if (!selectedMember) {
+        console.warn('[PARTY] Selected member not found');
+        return;
+    }
+
+    // Update header
+    const headerEl = document.getElementById('selectedMemberName');
+    if (headerEl) {
+        headerEl.textContent = `${selectedMember.name} - Details`;
+    }
+
+    // Update character sheet with selected member's data
+    if (selectedMember.type === 'player') {
+        updateCharacterSheet();
+    } else {
+        updateNPCSheet(selectedMember.data);
+    }
+}
+
+function updateNPCSheet(npc) {
+    console.log('[UI] Updating NPC sheet:', npc.name);
+
+    // Basic info
+    document.getElementById('charName').textContent = npc.name;
+    document.getElementById('charRace').textContent = npc.race || 'Unknown';
+    document.getElementById('charClass').textContent = npc.occupation || 'NPC';
+
+    // Hide optional fields for NPCs
+    const subraceEl = document.getElementById('charSubrace');
+    const subraceRow = subraceEl?.parentElement;
+    if (subraceRow) subraceRow.style.display = 'none';
+
+    const subclassEl = document.getElementById('charSubclass');
+    const subclassRow = subclassEl?.parentElement;
+    if (subclassRow) subclassRow.style.display = 'none';
+
+    document.getElementById('charLevel').textContent = npc.level || 1;
+
+    // HP
+    const current_hp = npc.hit_points?.current ?? 0;
+    const max_hp = npc.hit_points?.maximum ?? 0;
+    const hpPercent = max_hp > 0 ? (current_hp / max_hp) * 100 : 0;
+    document.getElementById('hpFill').style.width = `${hpPercent}%`;
+    document.getElementById('hpText').textContent = `${current_hp}/${max_hp}`;
+
+    // Combat stats
+    document.getElementById('charAC').textContent = npc.armor_class || 10;
+    const initiative = npc.initiative || 0;
+    document.getElementById('charInitiative').textContent = initiative >= 0 ? `+${initiative}` : `${initiative}`;
+    document.getElementById('charSpeed').textContent = `${npc.speed || 30}ft`;
+
+    // Attacks - NPCs may not have attacks in the same format
+    updateAttacks(npc.attacks || []);
+
+    // Abilities - NPCs may not have abilities
+    if (npc.abilities) {
+        updateAbilities(npc.abilities);
+    } else {
+        // Clear abilities if NPC doesn't have them
+        ['strScore', 'dexScore', 'conScore', 'intScore', 'wisScore', 'chaScore'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = '-';
+        });
+        ['strMod', 'dexMod', 'conMod', 'intMod', 'wisMod', 'chaMod'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = '+0';
+        });
+    }
+
+    // Skills - clear for NPCs
+    const skillsList = document.getElementById('skillsList');
+    if (skillsList) skillsList.innerHTML = '<div class="inventory-empty">NPC skills not displayed</div>';
+
+    // Features/Traits - clear for NPCs
+    const featureIndexList = document.getElementById('featureIndexList');
+    if (featureIndexList) featureIndexList.innerHTML = '';
+    const featureTextList = document.getElementById('featureTextList');
+    if (featureTextList) featureTextList.innerHTML = '';
+    const traitIndexList = document.getElementById('traitIndexList');
+    if (traitIndexList) traitIndexList.innerHTML = '';
+    const featIndexList = document.getElementById('featIndexList');
+    if (featIndexList) featIndexList.innerHTML = '';
+
+    // Spellcasting - clear for NPCs
+    const spellSlots = document.getElementById('spellSlots');
+    if (spellSlots) spellSlots.innerHTML = '';
+    const spellList = document.getElementById('spellList');
+    if (spellList) spellList.innerHTML = '';
+
+    // Equipment/Inventory - clear for NPCs
+    updateEquipmentSlots({});
+    updateInventory({ gold: 0, silver: 0, copper: 0, inventory: [] });
+
+    // Conditions
+    updateConditions(npc.conditions || []);
+}
+
+// Combat Suggestion Functions
+function displayCombatSuggestion(data) {
+    console.log('[COMBAT] Displaying suggestion:', data);
+
+    // Store the suggestion data
+    currentSuggestion = data;
+
+    // Get UI elements
+    const suggestionCard = document.getElementById('combatSuggestion');
+    const suggestionTitle = document.getElementById('suggestionTitle');
+    const suggestionText = document.getElementById('suggestionText');
+
+    if (!suggestionCard || !suggestionTitle || !suggestionText) {
+        console.error('[COMBAT] Suggestion UI elements not found');
+        return;
+    }
+
+    // Update the card content
+    suggestionTitle.textContent = `${data.npc_name}'s Turn`;
+    suggestionText.textContent = data.action_text;
+
+    // Show the suggestion card
+    suggestionCard.style.display = 'block';
+
+    console.log('[COMBAT] Suggestion card displayed');
+}
+
+function hideCombatSuggestion() {
+    const suggestionCard = document.getElementById('combatSuggestion');
+    if (suggestionCard) {
+        suggestionCard.style.display = 'none';
+    }
+    currentSuggestion = null;
+}
+
+async function acceptSuggestion() {
+    if (!currentSuggestion || !currentGameId) {
+        console.error('[COMBAT] No suggestion to accept or no game ID');
+        return;
+    }
+
+    console.log('[COMBAT] Accepting suggestion:', currentSuggestion);
+
+    try {
+        // Send acceptance to backend
+        const response = await fetch(`/api/game/${currentGameId}/combat/suggestion/accept`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                suggestion_id: currentSuggestion.suggestion_id,
+                npc_id: currentSuggestion.npc_id,
+                npc_name: currentSuggestion.npc_name,
+                action_text: currentSuggestion.action_text
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to accept suggestion: ${response.status}`);
+        }
+
+        console.log('[COMBAT] Suggestion accepted successfully');
+
+        // Hide the suggestion card
+        hideCombatSuggestion();
+
+        // Add a system message
+        addMessage(`${currentSuggestion.npc_name} performs: ${currentSuggestion.action_text}`, 'system');
+
+    } catch (error) {
+        console.error('[COMBAT] Failed to accept suggestion:', error);
+        addMessage('Failed to execute suggested action. Please try again.', 'error');
+    }
+}
+
+function overrideSuggestion() {
+    if (!currentSuggestion) {
+        console.warn('[COMBAT] No suggestion to override');
+        return;
+    }
+
+    console.log('[COMBAT] Override suggestion, allowing manual input');
+
+    // Hide the suggestion card
+    hideCombatSuggestion();
+
+    // Add a system message
+    addMessage(`Controlling ${currentSuggestion.npc_name} manually. Type your action in the chat.`, 'system');
+
+    // Focus the input field
+    const messageInput = document.getElementById('messageInput');
+    if (messageInput) {
+        messageInput.focus();
+    }
+}
+
 // Update entire UI
 function updateUI() {
     if (!gameState) {
         console.warn('[UI] No game state to update');
         return;
     }
-    
+
     console.log('[UI] Updating UI with game state');
-    updateCharacterSheet();
+    renderPartyMembers();
+    updateSelectedMemberDisplay();
     updateLocationTime();
     updateCombatIndicator();
     updateActiveAgent();

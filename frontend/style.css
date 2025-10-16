@@ -1850,3 +1850,257 @@ body {
     font-weight: 500;
     text-transform: uppercase;
 }
+
+/* Party Section Styles */
+.party-section {
+    background: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.party-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.party-header h2 {
+    color: var(--accent-color);
+    font-size: 1.3rem;
+    margin: 0;
+}
+
+.party-count {
+    background: var(--background-dark);
+    color: var(--accent-color);
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    border: 1px solid var(--accent-color);
+}
+
+.party-members {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.party-member-card {
+    background: var(--background-dark);
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.party-member-card:hover {
+    border-color: var(--accent-color);
+    background: rgba(212, 175, 55, 0.05);
+    transform: translateX(2px);
+}
+
+.party-member-card.selected {
+    border-color: var(--accent-color);
+    background: rgba(212, 175, 55, 0.1);
+    box-shadow: 0 0 8px rgba(212, 175, 55, 0.3);
+}
+
+.party-member-card.selected::before {
+    content: '▶';
+    position: absolute;
+    left: 0.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent-color);
+    font-size: 1rem;
+}
+
+.party-member-name {
+    font-weight: bold;
+    color: var(--text-primary);
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+    padding-left: 1rem;
+}
+
+.party-member-stats {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    padding-left: 1rem;
+}
+
+.party-member-left {
+    display: flex;
+    gap: 1rem;
+}
+
+.party-member-hp {
+    color: var(--text-primary);
+}
+
+.party-member-hp.low {
+    color: var(--warning-color);
+    font-weight: bold;
+}
+
+.party-member-hp.critical {
+    color: var(--danger-color);
+    font-weight: bold;
+    animation: pulse 1.5s infinite;
+}
+
+.party-member-class-info {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    padding-left: 1rem;
+}
+
+.party-member-status {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.85rem;
+}
+
+.status-icon {
+    font-size: 1rem;
+}
+
+.status-icon.healthy {
+    color: var(--success-color);
+}
+
+.status-icon.wounded {
+    color: var(--warning-color);
+}
+
+.status-icon.critical {
+    color: var(--danger-color);
+    animation: pulse 1.5s infinite;
+}
+
+.status-icon.unconscious {
+    color: #666;
+}
+
+.status-icon.dead {
+    color: #444;
+}
+
+/* Selected Member Header */
+.selected-member-header {
+    background: var(--background-light);
+    border: 1px solid var(--accent-color);
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.selected-member-header h3 {
+    color: var(--accent-color);
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+/* Combat Suggestion Card Styles */
+.combat-suggestion {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(139, 90, 60, 0.15));
+    border: 2px solid var(--accent-color);
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem;
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.suggestion-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--accent-color);
+}
+
+.suggestion-title {
+    font-weight: bold;
+    color: var(--accent-color);
+    font-size: 1.1rem;
+}
+
+.suggestion-text {
+    background: var(--background-dark);
+    border-left: 3px solid var(--accent-color);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 4px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-style: italic;
+    line-height: 1.5;
+}
+
+.suggestion-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+}
+
+.btn-accept {
+    background: linear-gradient(135deg, var(--success-color), #45a049);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-accept:hover {
+    background: linear-gradient(135deg, #45a049, var(--success-color));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(76, 175, 80, 0.4);
+}
+
+.btn-override {
+    background: var(--background-light);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 0.75rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.btn-override:hover {
+    background: var(--secondary-color);
+    border-color: var(--accent-color);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}

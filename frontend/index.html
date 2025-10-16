@@ -75,8 +75,17 @@
         <div class="game-container">
             <!-- Character Sheet (Left) -->
             <div class="character-sheet">
-                <h2>Character Sheet</h2>
-                
+                <!-- Party Section -->
+                <div class="party-section">
+                    <div class="party-header">
+                        <h2>Party</h2>
+                        <span class="party-count" id="partyCount">1/4</span>
+                    </div>
+                    <div class="party-members" id="partyMembers">
+                        <!-- Party member cards will be populated dynamically -->
+                    </div>
+                </div>
+
                 <!-- Location Info -->
                 <div class="sheet-section">
                     <h3>Current Location</h3>
@@ -131,7 +140,12 @@
                         </div>
                     </div>
                 </div>
-                
+
+                <!-- Selected Member Details Header -->
+                <div class="selected-member-header">
+                    <h3 id="selectedMemberName">Character Details</h3>
+                </div>
+
                 <!-- Basic Info -->
                 <div class="sheet-section">
                     <h3>Basic Information</h3>
@@ -436,6 +450,20 @@
                 <div id="chatMessages" class="chat-messages">
                     <div class="message system">
                         <p>Welcome to your D&D adventure! Type your actions and the AI Dungeon Master will respond.</p>
+                    </div>
+                </div>
+
+                <!-- Combat Suggestion Card -->
+                <div id="combatSuggestion" class="combat-suggestion" style="display: none;">
+                    <div class="suggestion-header">
+                        <span class="suggestion-title" id="suggestionTitle">Ally's Turn</span>
+                    </div>
+                    <div class="suggestion-text" id="suggestionText">
+                        <!-- Suggestion text will be populated here -->
+                    </div>
+                    <div class="suggestion-actions">
+                        <button id="acceptSuggestionBtn" class="btn-accept">Use This Action</button>
+                        <button id="overrideSuggestionBtn" class="btn-override">Do Something Else</button>
                     </div>
                 </div>
 

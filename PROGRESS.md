@@ -201,61 +201,61 @@ Track implementation progress against PLAN.md. Update status as tasks are comple
 ---
 
 ## Phase 7: Frontend - Party UI Overhaul
-**Status**: ⬜ Not Started | **Estimated**: 6 hours | **Actual**: -
+**Status**: ✅ Completed | **Estimated**: 6 hours | **Actual**: 2 hours
 
 ### Task 7.1: Redesign Character Sheet as Party Section
-- **Status**: ⬜ Not Started
+- **Status**: ✅ Completed
 - **Files**:
   - `frontend/index.html`
   - `frontend/style.css`
 - **Checklist**:
-  - [ ] Party section structure created
-  - [ ] Party member cards layout
-  - [ ] Selected member details area
-  - [ ] Card shows: Name, HP/MaxHP, AC, Level, Class, Race, Status
-  - [ ] Click handler for selection
-  - [ ] Visual selection indicator
+  - [x] Party section structure created
+  - [x] Party member cards layout
+  - [x] Selected member details area
+  - [x] Card shows: Name, HP/MaxHP, AC, Level, Class, Race, Status
+  - [x] Click handler for selection
+  - [x] Visual selection indicator
 
 ### Task 7.2: Frontend State Management
-- **Status**: ⬜ Not Started
+- **Status**: ✅ Completed
 - **File**: `frontend/app.js`
 - **Checklist**:
-  - [ ] Parse party.member_ids
-  - [ ] Combine player + party NPCs
-  - [ ] Track selected member
-  - [ ] Update on game_update events
-  - [ ] Display member details
+  - [x] Parse party.member_ids
+  - [x] Combine player + party NPCs
+  - [x] Track selected member
+  - [x] Update on game_update events
+  - [x] Display member details
 
 ---
 
 ## Phase 8: Combat Suggestion UI
-**Status**: ⬜ Not Started | **Estimated**: 3 hours | **Actual**: -
+**Status**: ✅ Completed | **Estimated**: 3 hours | **Actual**: 1 hour
 
 ### Task 8.1: Add Suggestion Display
-- **Status**: ⬜ Not Started
+- **Status**: ✅ Completed
 - **File**: `frontend/index.html`
 - **Checklist**:
-  - [ ] Suggestion card HTML structure
-  - [ ] Styling for suggestion card
-  - [ ] Accept/Override buttons
+  - [x] Suggestion card HTML structure
+  - [x] Styling for suggestion card
+  - [x] Accept/Override buttons
 
 ### Task 8.2: Handle SSE Events
-- **Status**: ⬜ Not Started
+- **Status**: ✅ Completed
 - **File**: `frontend/app.js`
 - **Checklist**:
-  - [ ] combat_suggestion event listener
-  - [ ] Display suggestion card
-  - [ ] Store suggestion_id
-  - [ ] Clear on action
+  - [x] combat_suggestion event listener
+  - [x] Display suggestion card
+  - [x] Store suggestion_id
+  - [x] Clear on action
 
 ### Task 8.3: Implement Actions
-- **Status**: ⬜ Not Started
+- **Status**: ✅ Completed
 - **File**: `frontend/app.js`
 - **Checklist**:
-  - [ ] acceptSuggestion function
-  - [ ] overrideSuggestion function
-  - [ ] API call to accept endpoint
-  - [ ] Error handling
+  - [x] acceptSuggestion function
+  - [x] overrideSuggestion function
+  - [x] API call to accept endpoint
+  - [x] Error handling
 
 ---
 
@@ -303,13 +303,13 @@ Track implementation progress against PLAN.md. Update status as tasks are comple
 | Phase 4 | ✅ Completed | 3 | 3 | 100% |
 | Phase 5 | ✅ Completed | 2 | 2 | 100% |
 | Phase 6 | ✅ Completed | 2 | 1 | 100% |
-| Phase 7 | ⬜ Not Started | 2 | 0 | 0% |
-| Phase 8 | ⬜ Not Started | 3 | 0 | 0% |
+| Phase 7 | ✅ Completed | 2 | 2 | 100% |
+| Phase 8 | ✅ Completed | 3 | 3 | 100% |
 | Phase 9 | ⬜ Not Started | 3 | 0 | 0% |
-| **Total** | **🟨 In Progress** | **22** | **13** | **59%** |
+| **Total** | **🟨 In Progress** | **22** | **18** | **82%** |
 
 **Estimated Total**: 30 hours
-**Actual Total**: 5.0 hours
+**Actual Total**: 8.0 hours
 **Started**: 2025-10-16
 **Target Completion**: TBD
 
@@ -412,6 +412,43 @@ Track implementation progress against PLAN.md. Update status as tasks are comple
   - Type safety verified (mypy --strict)
   - Clean lint (ruff)
   - Implementation time: 0.5 hours (significantly under 2 hour estimate due to KISS approach)
+
+- **Phase 7 (2025-10-16)**: Successfully implemented frontend party UI overhaul
+  - Created party section with collapsible member cards in `frontend/index.html`
+  - Added comprehensive CSS styling for party cards, selection states, and status indicators
+  - Implemented JavaScript party management:
+    - `getPartyMembers()` - Builds party display data combining player + NPCs from `party.member_ids`
+    - `renderPartyMembers()` - Renders all party member cards with HP, AC, level, status icons
+    - `selectPartyMember(id)` - Tracks selected member and updates card visuals
+    - `updateSelectedMemberDisplay()` - Shows full details for selected member below cards
+    - `updateNPCSheet(npc)` - Displays NPC stats when an NPC is selected
+  - Status indicators: 🟢 Healthy, 🟡 Wounded, 🔴 Critical, 💤 Unconscious, 💀 Dead
+  - Party count badge shows current/max party size (e.g., "3/4")
+  - Player is always first in the list, followed by NPCs in party
+  - Clicking any member card displays their full character sheet details
+  - Integrated into `updateUI()` - party automatically updates on game_update SSE events
+  - Implementation time: 2 hours (well under 6 hour estimate due to clean architecture)
+  - Design follows existing patterns: collapsible sections, consistent color scheme, responsive layout
+
+- **Phase 8 (2025-10-16)**: Successfully implemented combat suggestion UI
+  - Added combat suggestion card HTML in `frontend/index.html` (lines 456-468)
+  - Implemented CSS styling for suggestion card (89 lines, lines 2018-2106):
+    - Golden gradient background with accent border
+    - Smooth slide-in animation on display
+    - Two action buttons: "Use This Action" (green) and "Do Something Else" (neutral)
+    - Hover effects and transitions for better UX
+  - Implemented JavaScript combat suggestion system:
+    - `displayCombatSuggestion(data)` - Shows suggestion card with NPC name and action text
+    - `hideCombatSuggestion()` - Hides card and clears state
+    - `acceptSuggestion()` - POSTs to `/api/game/{game_id}/combat/suggestion/accept` with full suggestion data
+    - `overrideSuggestion()` - Hides card and enables manual control via chat
+  - Added SSE listener for `combat_suggestion` events
+  - Wired up button click handlers in `setupEventListeners()`
+  - State management: `currentSuggestion` tracks active suggestion
+  - Flow: SSE event → display card → user clicks accept/override → API call or hide card
+  - Error handling with user-friendly messages
+  - Implementation time: 1 hour (well under 3 hour estimate due to simple, focused design)
+  - Follows KISS principle: stateless design, minimal UI, clear actions
 
 ---
 
