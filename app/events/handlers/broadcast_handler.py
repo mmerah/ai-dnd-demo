@@ -4,6 +4,7 @@ import logging
 
 from app.events.base import BaseCommand, CommandResult
 from app.events.commands.broadcast_commands import (
+    BroadcastCombatSuggestionCommand,
     BroadcastGameUpdateCommand,
     BroadcastNarrativeCommand,
     BroadcastNPCDialogueCommand,
@@ -13,6 +14,7 @@ from app.events.commands.broadcast_commands import (
 )
 from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.services.ai import IMessageService
+from app.models.combat import CombatSuggestion
 from app.models.game_state import GameState
 
 logger = logging.getLogger(__name__)
@@ -31,6 +33,7 @@ class BroadcastHandler(BaseHandler):
             BroadcastNPCDialogueCommand,
             BroadcastGameUpdateCommand,
             BroadcastPolicyWarningCommand,
+            BroadcastCombatSuggestionCommand,
         )
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
@@ -87,5 +90,18 @@ class BroadcastHandler(BaseHandler):
                 command.game_id, command.message, command.tool_name, command.agent_type
             )
             logger.debug("Broadcast policy warning")
+
+        elif isinstance(command, BroadcastCombatSuggestionCommand):
+            suggestion = CombatSuggestion(
+                suggestion_id=command.suggestion_id,
+                npc_id=command.npc_id,
+                npc_name=command.npc_name,
+                action_text=command.action_text,
+            )
+            await self.message_service.send_combat_suggestion(
+                command.game_id,
+                suggestion,
+            )
+            logger.debug(f"Broadcast combat suggestion from {command.npc_name}")
 
         return result

@@ -187,6 +187,7 @@ class AgentOrchestrator:
             combat_service=self.combat_service,
             combat_agent=self.combat_agent,
             event_bus=self.event_bus,
+            agent_lifecycle_service=self.agent_lifecycle_service,
             stream=stream,
         ):
             yield event
@@ -214,6 +215,7 @@ class AgentOrchestrator:
             combat_service=self.combat_service,
             combat_agent=self.combat_agent,
             event_bus=self.event_bus,
+            agent_lifecycle_service=self.agent_lifecycle_service,
             stream=stream,
         ):
             yield event

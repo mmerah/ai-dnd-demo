@@ -142,3 +142,16 @@ class CombatEntry(BaseModel):
 
     entity: IEntity
     faction: CombatFaction | None = None
+
+
+class CombatSuggestion(BaseModel):
+    """Combat action suggestion from an allied NPC.
+
+    Used when an allied NPC's turn comes up in combat to suggest an action
+    to the player for approval before execution.
+    """
+
+    suggestion_id: str = Field(description="Unique identifier for this suggestion")
+    npc_id: str = Field(description="Instance ID of the NPC making the suggestion")
+    npc_name: str = Field(description="Display name of the NPC")
+    action_text: str = Field(description="Simple description of the suggested action from NPC perspective")

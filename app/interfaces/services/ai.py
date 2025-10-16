@@ -6,6 +6,7 @@ from app.agents.core.base import BaseAgent
 from app.agents.core.types import AgentType
 from app.common.types import JSONSerializable
 from app.models.ai_response import AIResponse
+from app.models.combat import CombatSuggestion
 from app.models.game_state import GameState
 from app.models.instances.npc_instance import NPCInstance
 from app.models.scenario import ScenarioSheet
@@ -125,6 +126,16 @@ class IMessageService(ABC):
         Args:
             game_id: ID of the game
             game_state: Updated game state
+        """
+        pass
+
+    @abstractmethod
+    async def send_combat_suggestion(self, game_id: str, suggestion: CombatSuggestion) -> None:
+        """Broadcast a combat suggestion from an allied NPC.
+
+        Args:
+            game_id: ID of the game
+            suggestion: Combat suggestion with NPC action
         """
         pass
 

@@ -72,3 +72,16 @@ class BroadcastPolicyWarningCommand(BaseCommand):
 
     def get_handler_name(self) -> str:
         return "broadcast"
+
+
+@dataclass
+class BroadcastCombatSuggestionCommand(BaseCommand):
+    """Command to broadcast a combat suggestion from an allied NPC."""
+
+    suggestion_id: str = ""
+    npc_id: str = ""
+    npc_name: str = ""
+    action_text: str = ""
+
+    def get_handler_name(self) -> str:
+        return "broadcast"

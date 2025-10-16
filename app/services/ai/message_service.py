@@ -6,9 +6,11 @@ from collections.abc import AsyncGenerator
 from app.common.types import JSONSerializable
 from app.interfaces.services.ai import IMessageService
 from app.interfaces.services.common import IBroadcastService
+from app.models.combat import CombatSuggestion
 from app.models.game_state import GameState
 from app.models.scenario import ScenarioSheet
 from app.models.sse_events import (
+    CombatSuggestionData,
     CompleteData,
     ErrorData,
     GameUpdateData,
@@ -95,6 +97,11 @@ class MessageService(IMessageService):
     async def send_game_update(self, game_id: str, game_state: GameState) -> None:
         data = GameUpdateData(game_state=game_state)
         await self.broadcast_service.publish(game_id, SSEEventType.GAME_UPDATE.value, data)
+
+    async def send_combat_suggestion(self, game_id: str, suggestion: CombatSuggestion) -> None:
+        """Broadcast a combat suggestion from an allied NPC."""
+        data = CombatSuggestionData(suggestion=suggestion)
+        await self.broadcast_service.publish(game_id, SSEEventType.COMBAT_SUGGESTION.value, data)
 
     async def send_complete(self, game_id: str) -> None:
         data = CompleteData(status="success")

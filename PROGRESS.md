@@ -112,35 +112,40 @@ Track implementation progress against PLAN.md. Update status as tasks are comple
 ---
 
 ## Phase 4: Combat Suggestions (Reuse Existing)
-**Status**: ⬜ Not Started | **Estimated**: 4 hours | **Actual**: -
+**Status**: ✅ Completed | **Estimated**: 4 hours | **Actual**: 1.5 hours
 
 ### Task 4.1: Combat Suggestion Model
-- **Status**: ⬜ Not Started
-- **File**: `app/models/combat_suggestion.py`
+- **Status**: ✅ Completed
+- **File**: `app/models/combat.py`
 - **Checklist**:
-  - [ ] CombatSuggestion model created
-  - [ ] Fields: suggestion_id, npc_id, npc_name, action_text
+  - [x] CombatSuggestion model created
+  - [x] Fields: suggestion_id, npc_id, npc_name, action_text
 
 ### Task 4.2: Generate Suggestions in Orchestrator
-- **Status**: ⬜ Not Started
+- **Status**: ✅ Completed
 - **File**: `app/services/ai/orchestrator/combat_loop.py`
 - **Checklist**:
-  - [ ] Check for ALLY faction
-  - [ ] Get NPC agent via lifecycle service
-  - [ ] Prompt for combat action
-  - [ ] Create CombatSuggestion
-  - [ ] Store transiently
-  - [ ] Broadcast via SSE
-  - [ ] DO NOT auto-execute
+  - [x] Check for ALLY faction
+  - [x] Get NPC agent via lifecycle service
+  - [x] Prompt for combat action
+  - [x] Create CombatSuggestion
+  - [x] Broadcast via SSE (no storage needed - KISS)
+  - [x] DO NOT auto-execute
 
 ### Task 4.3: SSE Event for Suggestions
-- **Status**: ⬜ Not Started
+- **Status**: ✅ Completed
 - **Files**:
   - `app/models/sse_events.py`
   - `app/services/ai/message_service.py`
+  - `app/interfaces/services/ai.py`
+  - `app/events/commands/broadcast_commands.py`
+  - `app/events/handlers/broadcast_handler.py`
 - **Checklist**:
-  - [ ] SSEEventType.COMBAT_SUGGESTION added
-  - [ ] send_combat_suggestion method added
+  - [x] SSEEventType.COMBAT_SUGGESTION added
+  - [x] CombatSuggestionData model added
+  - [x] send_combat_suggestion method added to IMessageService and MessageService
+  - [x] BroadcastCombatSuggestionCommand created
+  - [x] BroadcastHandler updated to handle combat suggestions
 
 ---
 
@@ -289,16 +294,16 @@ Track implementation progress against PLAN.md. Update status as tasks are comple
 | Phase 1 | ✅ Completed | 4 | 4 | 100% |
 | Phase 2 | ✅ Completed | 1 | 1 | 100% |
 | Phase 3 | ✅ Completed | 2 | 2 | 100% |
-| Phase 4 | ⬜ Not Started | 3 | 0 | 0% |
+| Phase 4 | ✅ Completed | 3 | 3 | 100% |
 | Phase 5 | ⬜ Not Started | 2 | 0 | 0% |
 | Phase 6 | ⬜ Not Started | 2 | 0 | 0% |
 | Phase 7 | ⬜ Not Started | 2 | 0 | 0% |
 | Phase 8 | ⬜ Not Started | 3 | 0 | 0% |
 | Phase 9 | ⬜ Not Started | 3 | 0 | 0% |
-| **Total** | **🟨 In Progress** | **22** | **7** | **32%** |
+| **Total** | **🟨 In Progress** | **22** | **10** | **45%** |
 
 **Estimated Total**: 30 hours
-**Actual Total**: 2.5 hours
+**Actual Total**: 4.0 hours
 **Started**: 2025-10-16
 **Target Completion**: TBD
 
@@ -344,6 +349,24 @@ Track implementation progress against PLAN.md. Update status as tasks are comple
   - Modified `should_auto_end_combat()` to only check for ENEMY faction (not all non-players)
   - Faction inference already working correctly (NPCs in party get ALLY faction automatically)
   - Pattern follows existing `ensure_player_in_combat()` design (consistency)
+
+- **Phase 4 (2025-10-16)**: Successfully implemented combat suggestions for allied NPCs
+  - Created `CombatSuggestion` model in `app/models/combat.py` with suggestion_id, npc_id, npc_name, action_text
+  - Added `SSEEventType.COMBAT_SUGGESTION` enum value
+  - Created `CombatSuggestionData` SSE event model in `app/models/sse_events.py`
+  - Added `send_combat_suggestion()` to `IMessageService` interface and `MessageService` implementation
+  - Created `BroadcastCombatSuggestionCommand` in `app/events/commands/broadcast_commands.py`
+  - Updated `BroadcastHandler` to handle combat suggestion broadcasts
+  - Modified `combat_loop.run()` to detect ALLY turns and generate suggestions:
+    - Checks current turn faction for ALLY
+    - Retrieves NPC agent via `agent_lifecycle_service`
+    - Prompts NPC agent for combat action suggestion
+    - Broadcasts suggestion via SSE using event bus
+    - Breaks loop to wait for player decision (no auto-continue)
+  - Updated `orchestrator_service.py` to pass `agent_lifecycle_service` to combat_loop
+  - **No server-side storage needed** - client receives suggestion via SSE and sends it back in API request (KISS principle)
+  - All 218 tests passing
+  - Type safety verified (mypy --strict)
 
 ---
 

@@ -4,6 +4,7 @@ from unittest.mock import create_autospec
 import pytest
 
 from app.events.commands.broadcast_commands import (
+    BroadcastCombatSuggestionCommand,
     BroadcastGameUpdateCommand,
     BroadcastNarrativeCommand,
     BroadcastNPCDialogueCommand,
@@ -176,3 +177,26 @@ class TestBroadcastHandler:
             "Stay sharp, everyone.",
             complete=True,
         )
+
+    @pytest.mark.asyncio
+    async def test_broadcast_combat_suggestion(self) -> None:
+        gs = self.game_state
+        command = BroadcastCombatSuggestionCommand(
+            game_id=gs.game_id,
+            suggestion_id="suggestion-123",
+            npc_id="npc-ally-1",
+            npc_name="Eldrin",
+            action_text="I'll cast Magic Missile at the nearest goblin!",
+        )
+
+        result = await self.handler.handle(command, gs)
+
+        assert not result.mutated
+        self.message_service.send_combat_suggestion.assert_called_once()
+        call_args = self.message_service.send_combat_suggestion.call_args
+        assert call_args[0][0] == gs.game_id
+        suggestion = call_args[0][1]
+        assert suggestion.suggestion_id == "suggestion-123"
+        assert suggestion.npc_id == "npc-ally-1"
+        assert suggestion.npc_name == "Eldrin"
+        assert suggestion.action_text == "I'll cast Magic Missile at the nearest goblin!"

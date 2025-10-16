@@ -7,7 +7,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from app.common.types import JSONSerializable
-from app.models.combat import CombatState
+from app.models.combat import CombatState, CombatSuggestion
 from app.models.game_state import GameState
 from app.models.scenario import ScenarioSheet
 from app.models.tool_results import ToolResult
@@ -24,6 +24,7 @@ class SSEEventType(str, Enum):
     TOOL_RESULT = "tool_result"
     DICE_ROLL = "dice_roll"
     COMBAT_UPDATE = "combat_update"
+    COMBAT_SUGGESTION = "combat_suggestion"
     SYSTEM = "system"
     NPC_DIALOGUE = "npc_dialogue"
     POLICY_WARNING = "policy_warning"
@@ -97,6 +98,12 @@ class CombatUpdateData(BaseSSEData):
     combat: CombatState
 
 
+class CombatSuggestionData(BaseSSEData):
+    """Data for combat suggestion events from allied NPCs."""
+
+    suggestion: CombatSuggestion
+
+
 class SystemMessageData(BaseSSEData):
     """Data for system message events."""
 
@@ -148,6 +155,7 @@ SSEData = (
     | ToolResultData
     | NPCDialogueData
     | CombatUpdateData
+    | CombatSuggestionData
     | SystemMessageData
     | PolicyWarningData
     | ErrorData
