@@ -150,25 +150,25 @@ Track implementation progress against PLAN.md. Update status as tasks are comple
 ---
 
 ## Phase 5: Tools for Party Management
-**Status**: ⬜ Not Started | **Estimated**: 2 hours | **Actual**: -
+**Status**: ✅ Completed | **Estimated**: 2 hours | **Actual**: 0.5 hours
 
 ### Task 5.1: Create Party Tools
-- **Status**: ⬜ Not Started
+- **Status**: ✅ Completed
 - **File**: `app/tools/party_tools.py`
 - **Checklist**:
-  - [ ] add_party_member tool created
-  - [ ] remove_party_member tool created
-  - [ ] Policy: block during combat
-  - [ ] Policy: block NPC agents
-  - [ ] Uses @tool_handler decorator
+  - [x] add_party_member tool created
+  - [x] remove_party_member tool created
+  - [x] Policy: block during combat
+  - [x] Policy: block NPC agents
+  - [x] Uses @tool_handler decorator
 
 ### Task 5.2: Register with Narrative Agent
-- **Status**: ⬜ Not Started
+- **Status**: ✅ Completed
 - **File**: `app/agents/narrative/agent.py`
 - **Checklist**:
-  - [ ] Import party tools
-  - [ ] Add to tool list
-  - [ ] Test tool usage
+  - [x] Import party tools
+  - [x] Add to tool list
+  - [x] Test tool usage
 
 ---
 
@@ -295,15 +295,15 @@ Track implementation progress against PLAN.md. Update status as tasks are comple
 | Phase 2 | ✅ Completed | 1 | 1 | 100% |
 | Phase 3 | ✅ Completed | 2 | 2 | 100% |
 | Phase 4 | ✅ Completed | 3 | 3 | 100% |
-| Phase 5 | ⬜ Not Started | 2 | 0 | 0% |
+| Phase 5 | ✅ Completed | 2 | 2 | 100% |
 | Phase 6 | ⬜ Not Started | 2 | 0 | 0% |
 | Phase 7 | ⬜ Not Started | 2 | 0 | 0% |
 | Phase 8 | ⬜ Not Started | 3 | 0 | 0% |
 | Phase 9 | ⬜ Not Started | 3 | 0 | 0% |
-| **Total** | **🟨 In Progress** | **22** | **10** | **45%** |
+| **Total** | **🟨 In Progress** | **22** | **12** | **55%** |
 
 **Estimated Total**: 30 hours
-**Actual Total**: 4.0 hours
+**Actual Total**: 4.5 hours
 **Started**: 2025-10-16
 **Target Completion**: TBD
 
@@ -367,6 +367,25 @@ Track implementation progress against PLAN.md. Update status as tasks are comple
   - **No server-side storage needed** - client receives suggestion via SSE and sends it back in API request (KISS principle)
   - All 218 tests passing
   - Type safety verified (mypy --strict)
+
+- **Phase 5 (2025-10-16)**: Successfully implemented party management tools for narrative agent
+  - Created `app/tools/party_tools.py` with two tools:
+    - `add_party_member(npc_id)` - wraps AddPartyMemberCommand
+    - `remove_party_member(npc_id)` - wraps RemovePartyMemberCommand
+  - Both tools use @tool_handler decorator (DRY principle)
+  - Policy enforcement implemented at service layer (KISS):
+    - Added combat validation in `PartyService.add_member()` and `PartyService.remove_member()`
+    - NPC agents already blocked via existing `NPC_ALLOWED_TOOLS` whitelist in ActionService
+    - No special PARTY_TOOLS category needed - leverages existing architecture
+  - Registered both tools with narrative agent in `app/agents/narrative/agent.py`
+  - Added comprehensive tests for combat blocking behavior
+  - All 220 tests passing (12 party tests total)
+  - Type safety verified (mypy --strict)
+  - Clean lint (ruff)
+  - **Design decision**: Combat blocking enforced at PartyService (business logic) rather than ActionService (agent policy) because:
+    - Orchestrator already prevents narrative agent from running during combat
+    - NPC agents automatically blocked by existing whitelist mechanism
+    - Simpler, more maintainable approach following KISS principle
 
 ---
 

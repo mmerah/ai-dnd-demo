@@ -98,6 +98,28 @@
   {
     "event_type": "tool_call",
     "timestamp": "<timestamp>",
+    "tool_name": "add_party_member",
+    "parameters": {
+      "npc_id": "npc-elara-inst-1"
+    },
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "add_party_member",
+    "parameters": {},
+    "result": {
+      "type": "add_party_member",
+      "npc_id": "npc-elara-inst-1",
+      "npc_name": "Elara the Wise",
+      "party_size": 1,
+      "message": "Elara the Wise has joined the party! (1/4)"
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
     "tool_name": "roll_dice",
     "parameters": {
       "dice": "2d20kh",
@@ -191,6 +213,15 @@
           "initiative": 19,
           "is_player": true,
           "is_active": true
+        },
+        {
+          "entity_id": "npc-elara-inst-1",
+          "entity_type": "npc",
+          "faction": "ally",
+          "name": "Elara the Wise",
+          "initiative": 6,
+          "is_player": false,
+          "is_active": true
         }
       ],
       "message": "Combat has begun!"
@@ -219,14 +250,14 @@
       "dice": "8d6",
       "modifier": 5,
       "rolls": [
-        6,
-        2,
         3,
         4,
         6,
         3,
         3,
-        4
+        4,
+        6,
+        2
       ],
       "total": 36,
       "ability": null,
@@ -258,8 +289,8 @@
       "dice": "2d20kh",
       "modifier": 6,
       "rolls": [
-        7,
-        12
+        12,
+        4
       ],
       "total": 18,
       "ability": "Dexterity",
@@ -346,11 +377,11 @@
       "dice": "3d6",
       "modifier": 2,
       "rolls": [
-        1,
         4,
-        6
+        6,
+        4
       ],
-      "total": 13,
+      "total": 16,
       "ability": null,
       "skill": null,
       "critical": false
@@ -363,7 +394,7 @@
     "parameters": {
       "entity_id": "hero-inst",
       "entity_type": "player",
-      "amount": -13,
+      "amount": -16,
       "damage_type": "bludgeoning"
     },
     "result": {}
@@ -379,7 +410,7 @@
       "old_hp": 11,
       "new_hp": 0,
       "max_hp": 11,
-      "amount": -13,
+      "amount": -16,
       "damage_type": "bludgeoning",
       "is_healing": false,
       "is_unconscious": true
@@ -529,6 +560,28 @@
       "quest_complete": true,
       "progress": 100.0,
       "message": "Objective completed: objective-moonlit-knowledge"
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "remove_party_member",
+    "parameters": {
+      "npc_id": "npc-elara-inst-1"
+    },
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "remove_party_member",
+    "parameters": {},
+    "result": {
+      "type": "remove_party_member",
+      "npc_id": "npc-elara-inst-1",
+      "npc_name": "Elara the Wise",
+      "party_size": 0,
+      "message": "Elara the Wise has left the party. (0/4)"
     }
   }
 ]

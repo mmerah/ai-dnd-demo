@@ -17,6 +17,10 @@ class PartyService(IPartyService):
     """Default implementation for party-related operations."""
 
     def add_member(self, game_state: GameState, npc_id: str) -> None:
+        # Cannot modify party during combat
+        if game_state.combat.is_active:
+            raise ValueError("Cannot add party members during active combat")
+
         # Validate NPC exists
         npc = game_state.get_npc_by_id(npc_id)
         if not npc:
@@ -42,6 +46,10 @@ class PartyService(IPartyService):
             raise ValueError(f"Cannot add {npc.display_name} to party: {e}") from e
 
     def remove_member(self, game_state: GameState, npc_id: str) -> None:
+        # Cannot modify party during combat
+        if game_state.combat.is_active:
+            raise ValueError("Cannot remove party members during active combat")
+
         # Validate NPC is in party (PartyState handles this)
         npc = game_state.get_npc_by_id(npc_id)
         npc_name = npc.display_name if npc else npc_id

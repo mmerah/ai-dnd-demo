@@ -111,3 +111,25 @@ class TestPartyService:
 
     def test_is_eligible_returns_false_for_minor_npc(self) -> None:
         assert self.service.is_eligible(self.minor_npc) is False
+
+    def test_add_member_rejects_during_combat(self) -> None:
+        # Activate combat
+        self.game_state.combat.is_active = True
+
+        with pytest.raises(ValueError, match="Cannot add party members during active combat"):
+            self.service.add_member(self.game_state, self.major_npc.instance_id)
+
+        assert not self.game_state.party.has_member(self.major_npc.instance_id)
+
+    def test_remove_member_rejects_during_combat(self) -> None:
+        # Add member first
+        self.game_state.party.add_member(self.major_npc.instance_id)
+
+        # Activate combat
+        self.game_state.combat.is_active = True
+
+        with pytest.raises(ValueError, match="Cannot remove party members during active combat"):
+            self.service.remove_member(self.game_state, self.major_npc.instance_id)
+
+        # Member should still be in party
+        assert self.game_state.party.has_member(self.major_npc.instance_id)

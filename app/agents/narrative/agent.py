@@ -36,6 +36,7 @@ from app.tools import (
     entity_tools,
     inventory_tools,
     location_tools,
+    party_tools,
     quest_tools,
     time_tools,
 )
@@ -95,6 +96,8 @@ class NarrativeAgent(BaseAgent):
             location_tools.discover_secret,
             location_tools.update_location_state,
             location_tools.move_npc_to_location,
+            party_tools.add_party_member,
+            party_tools.remove_party_member,
             combat_tools.start_combat,
             combat_tools.start_encounter_combat,
             combat_tools.spawn_monsters,

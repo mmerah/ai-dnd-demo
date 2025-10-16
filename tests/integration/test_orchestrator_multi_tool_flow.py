@@ -24,13 +24,21 @@ from app.models.instances.monster_instance import MonsterInstance
 from app.models.instances.npc_instance import NPCInstance
 from app.models.location import DangerLevel
 from app.models.memory import MemoryEventKind, WorldEventContext
+from app.models.npc import NPCImportance
 from app.models.scenario import LocationDescriptions
 from app.models.tool_results import RollDiceResult
 from app.services.ai.ai_service import AIService
 from app.services.ai.orchestrator_service import AgentOrchestrator
 from app.services.common.path_resolver import PathResolver
-from app.tools import combat_tools, dice_tools, entity_tools, inventory_tools, location_tools, quest_tools
-from tests.factories import make_game_state, make_location, make_location_connection, make_quest
+from app.tools import combat_tools, dice_tools, entity_tools, inventory_tools, location_tools, party_tools, quest_tools
+from tests.factories import (
+    make_game_state,
+    make_location,
+    make_location_connection,
+    make_npc_instance,
+    make_npc_sheet,
+    make_quest,
+)
 
 QUEST_ID = "moonlit-knowledge"
 QUEST_OBJECTIVE_ID = f"objective-{QUEST_ID}"
@@ -47,6 +55,7 @@ class SharedState(TypedDict):
     player_damage_total: int
     quest_id: str
     objective_id: str
+    npc_instance_id: str
 
 
 class _NarrativeScriptAgent(BaseAgent):
@@ -76,6 +85,8 @@ class _NarrativeScriptAgent(BaseAgent):
             location_tools.update_location_state,
             quest_tools.start_quest,
             dice_tools.roll_dice,
+            party_tools.add_party_member,
+            party_tools.remove_party_member,
             combat_tools.spawn_monsters,
             combat_tools.start_combat,
         ]
@@ -97,6 +108,12 @@ class _NarrativeScriptAgent(BaseAgent):
             self._shared["quest_id"] = QUEST_ID
             self._shared["objective_id"] = QUEST_OBJECTIVE_ID
             await quest_tools.start_quest(ctx, quest_id=QUEST_ID)
+
+            # Add NPC companion to party before combat
+            npc_id = self._shared["npc_instance_id"]
+            if not npc_id:
+                raise AssertionError("NPC instance ID must be set in shared state")
+            await party_tools.add_party_member(ctx, npc_id=npc_id)
 
             ability_check = cast(
                 RollDiceResult,
@@ -143,6 +160,11 @@ class _NarrativeScriptAgent(BaseAgent):
                 content=NarrativeResponse(narrative=self._response_text),
             )
             return
+
+        # Stage 1: Remove party member after combat
+        npc_id = self._shared["npc_instance_id"]
+        if npc_id:
+            await party_tools.remove_party_member(ctx, npc_id=npc_id)
 
         deps.conversation_service.add_message(
             game_state=game_state,
@@ -446,6 +468,25 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
     )
     game_state.scenario_instance.location_states[start_location_id].mark_visited()
 
+    # Create a major NPC companion for party testing
+    # NPC starts at the library location so they can be added to party there
+    npc_sheet = make_npc_sheet(
+        npc_id="elara-companion",
+        display_name="Elara the Wise",
+        role="Wizard Companion",
+        description="A wise wizard who aids adventurers in need",
+        initial_location_id=updated_target.id,
+        importance=NPCImportance.MAJOR,
+    )
+    npc_instance = make_npc_instance(
+        npc_sheet=npc_sheet,
+        instance_id="npc-elara-inst-1",
+        scenario_npc_id="elara-companion",
+        current_location_id=updated_target.id,  # Same location as player will travel to
+    )
+    # NPCs are stored in game state, not scenario sheet
+    game_state.npcs.append(npc_instance)
+
     repository_provider = container.repository_factory
 
     def _build_narrative_deps(state: GameState) -> AgentDependencies:
@@ -492,6 +533,7 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
         "player_damage_total": 0,
         "quest_id": "",
         "objective_id": "",
+        "npc_instance_id": npc_instance.instance_id,
     }
 
     narrative_agent = _NarrativeScriptAgent(
@@ -560,6 +602,10 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
     assert not any(mon.instance_id == shared["monster_id"] for mon in game_state.monsters)
     assert game_state.combat.is_active is False
 
+    # Verify party state: NPC was added then removed
+    assert not game_state.party.has_member(npc_instance.instance_id), "NPC should be removed from party after combat"
+    assert len(game_state.party.member_ids) == 0, "Party should be empty after removal"
+
     player_damage = shared["player_damage_total"]
     final_player_hp = game_state.character.state.hit_points.current
     assert final_player_hp == max(0, initial_player_hp - player_damage)
@@ -616,6 +662,7 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
         "discover_secret",
         "update_location_state",
         "start_quest",
+        "add_party_member",
         "roll_dice",
         "spawn_monsters",
         "start_combat",
@@ -631,6 +678,7 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
         "modify_inventory",
         "modify_currency",
         "complete_objective",
+        "remove_party_member",
     ]
 
     save_dir = saves_dir / game_state.scenario_id / game_state.game_id
