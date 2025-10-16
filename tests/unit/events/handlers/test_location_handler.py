@@ -11,7 +11,7 @@ from app.events.commands.location_commands import (
     UpdateLocationStateCommand,
 )
 from app.events.handlers.location_handler import LocationHandler
-from app.interfaces.services.game import ILocationService
+from app.interfaces.services.game import ILocationService, IPartyService
 from app.interfaces.services.memory import IMemoryService
 from app.models.memory import MemoryEventKind, WorldEventContext
 from app.models.tool_results import (
@@ -30,7 +30,13 @@ class TestLocationHandler:
         """Set up test environment."""
         self.location_service = create_autospec(ILocationService, instance=True)
         self.memory_service = create_autospec(IMemoryService, instance=True)
-        self.handler = LocationHandler(self.location_service, self.memory_service)
+        self.party_service = create_autospec(IPartyService, instance=True)
+        self.party_service.get_follow_commands.return_value = []
+        self.handler = LocationHandler(
+            self.location_service,
+            self.memory_service,
+            self.party_service,
+        )
         self.game_state = make_game_state()
 
     @pytest.mark.asyncio
@@ -174,3 +180,50 @@ class TestLocationHandler:
 
         with pytest.raises(ValueError, match="Location ID cannot be empty"):
             await self.handler.handle(command, self.game_state)
+
+    @pytest.mark.asyncio
+    async def test_change_location_generates_follow_commands(self) -> None:
+        """Test that changing location generates follow commands for party members."""
+        # Setup destination location
+        new_location = make_location(
+            location_id="tavern",
+            name="The Rusty Dragon",
+            description="A cozy tavern.",
+        )
+        self.game_state.scenario_instance.sheet.progression.acts[0].locations.append(new_location.id)
+        self.game_state.scenario_instance.sheet.locations.append(new_location)
+
+        # Mock party service to return follow commands
+        follow_cmd_1 = MoveNPCCommand(
+            game_id=self.game_state.game_id,
+            npc_id="npc-companion-1",
+            to_location_id=new_location.id,
+        )
+        follow_cmd_2 = MoveNPCCommand(
+            game_id=self.game_state.game_id,
+            npc_id="npc-companion-2",
+            to_location_id=new_location.id,
+        )
+        self.party_service.get_follow_commands.return_value = [follow_cmd_1, follow_cmd_2]
+
+        command = ChangeLocationCommand(
+            game_id=self.game_state.game_id,
+            location_id=new_location.id,
+            location_name=new_location.name,
+            description="A warm and welcoming tavern.",
+        )
+
+        result = await self.handler.handle(command, self.game_state)
+
+        # Verify party service was called with correct location
+        self.party_service.get_follow_commands.assert_called_once_with(
+            self.game_state,
+            new_location.id,
+        )
+
+        # Verify follow commands were added to result
+        assert result.mutated
+        follow_commands = [cmd for cmd in result.follow_up_commands if isinstance(cmd, MoveNPCCommand)]
+        assert len(follow_commands) == 2
+        assert follow_cmd_1 in result.follow_up_commands
+        assert follow_cmd_2 in result.follow_up_commands

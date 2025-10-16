@@ -427,6 +427,7 @@ class Container:
             LocationHandler(
                 self.location_service,
                 self.memory_service,
+                self.party_service,
             ),
         )
         event_bus.register_handler(

@@ -11,7 +11,7 @@ from app.events.commands.location_commands import (
     UpdateLocationStateCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
-from app.interfaces.services.game import ILocationService
+from app.interfaces.services.game import ILocationService, IPartyService
 from app.interfaces.services.memory import IMemoryService
 from app.models.game_state import GameState
 from app.models.memory import MemoryEventKind, WorldEventContext
@@ -32,9 +32,11 @@ class LocationHandler(BaseHandler):
         self,
         location_service: ILocationService,
         memory_service: IMemoryService,
+        party_service: IPartyService,
     ):
         self.location_service = location_service
         self.memory_service = memory_service
+        self.party_service = party_service
 
     supported_commands = (
         ChangeLocationCommand,
@@ -69,6 +71,11 @@ class LocationHandler(BaseHandler):
             )
 
             result.mutated = True
+
+            # Generate follow commands for party members (DRY - PartyService handles logic)
+            follow_commands = self.party_service.get_follow_commands(game_state, command.location_id)
+            for follow_cmd in follow_commands:
+                result.add_command(follow_cmd)
 
             result.data = ChangeLocationResult(
                 location_id=command.location_id,

@@ -60,16 +60,16 @@ Track implementation progress against PLAN.md. Update status as tasks are comple
 ---
 
 ## Phase 2: Movement Integration (DRY)
-**Status**: ⬜ Not Started | **Estimated**: 2 hours | **Actual**: -
+**Status**: ✅ Completed | **Estimated**: 2 hours | **Actual**: 0.5 hours
 
 ### Task 2.1: Integrate Follow Logic
-- **Status**: ⬜ Not Started
+- **Status**: ✅ Completed
 - **File**: `app/events/handlers/location_handler.py`
 - **Checklist**:
-  - [ ] Import PartyService
-  - [ ] Call get_follow_commands after player move
-  - [ ] Add follow commands to result
-  - [ ] Test follow behavior
+  - [x] Import PartyService
+  - [x] Call get_follow_commands after player move
+  - [x] Add follow commands to result
+  - [x] Test follow behavior
 
 ---
 
@@ -271,7 +271,7 @@ Track implementation progress against PLAN.md. Update status as tasks are comple
 | Phase | Status | Tasks | Completed | Progress |
 |-------|--------|-------|-----------|----------|
 | Phase 1 | ✅ Completed | 4 | 4 | 100% |
-| Phase 2 | ⬜ Not Started | 1 | 0 | 0% |
+| Phase 2 | ✅ Completed | 1 | 1 | 100% |
 | Phase 3 | ⬜ Not Started | 2 | 0 | 0% |
 | Phase 4 | ⬜ Not Started | 3 | 0 | 0% |
 | Phase 5 | ⬜ Not Started | 2 | 0 | 0% |
@@ -279,10 +279,10 @@ Track implementation progress against PLAN.md. Update status as tasks are comple
 | Phase 7 | ⬜ Not Started | 2 | 0 | 0% |
 | Phase 8 | ⬜ Not Started | 3 | 0 | 0% |
 | Phase 9 | ⬜ Not Started | 3 | 0 | 0% |
-| **Total** | **🟨 In Progress** | **22** | **4** | **18%** |
+| **Total** | **🟨 In Progress** | **22** | **5** | **23%** |
 
 **Estimated Total**: 30 hours
-**Actual Total**: 1.5 hours
+**Actual Total**: 2.0 hours
 **Started**: 2025-10-16
 **Target Completion**: TBD
 
@@ -308,6 +308,16 @@ Track implementation progress against PLAN.md. Update status as tasks are comple
   - Container wiring with zero circular dependencies
   - All type checks pass (mypy --strict)
   - Container loads successfully with party_service accessible
+
+- **Phase 2 (2025-10-16)**: Successfully integrated follow logic into location changes
+  - Injected `IPartyService` into `LocationHandler` constructor
+  - Added follow command generation after player location change in `ChangeLocationCommand` handling
+  - PartyService handles all follow logic (DRY principle maintained)
+  - Follow commands added to `CommandResult.follow_up_commands` for event bus processing
+  - Comprehensive test added: `test_change_location_generates_follow_commands`
+  - All 214 tests pass
+  - Type safety verified (mypy --strict)
+  - Linter clean (ruff)
 
 ---
 
