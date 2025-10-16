@@ -238,6 +238,22 @@ class ToolErrorResult(BaseModel):
     suggestion: str | None = None
 
 
+class AddPartyMemberResult(BaseModel):
+    type: str = "add_party_member"
+    npc_id: str
+    npc_name: str
+    party_size: int
+    message: str
+
+
+class RemovePartyMemberResult(BaseModel):
+    type: str = "remove_party_member"
+    npc_id: str
+    npc_name: str
+    party_size: int
+    message: str
+
+
 # Union type representing any possible result from a tool
 ToolResult = (
     UpdateHPResult
@@ -269,4 +285,6 @@ ToolResult = (
     | LevelUpResult
     | EquipItemResult
     | ToolErrorResult
+    | AddPartyMemberResult
+    | RemovePartyMemberResult
 )

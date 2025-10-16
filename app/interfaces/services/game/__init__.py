@@ -11,6 +11,7 @@ from app.interfaces.services.game.item_manager_service import IItemManagerServic
 from app.interfaces.services.game.location_service import ILocationService
 from app.interfaces.services.game.metadata_service import IMetadataService
 from app.interfaces.services.game.monster_manager_service import IMonsterManagerService
+from app.interfaces.services.game.party_service import IPartyService
 from app.interfaces.services.game.pre_save_sanitizer import IPreSaveSanitizer
 from app.interfaces.services.game.save_manager import ISaveManager
 
@@ -26,6 +27,7 @@ __all__ = [
     "ILocationService",
     "IMetadataService",
     "IMonsterManagerService",
+    "IPartyService",
     "IPreSaveSanitizer",
     "ISaveManager",
 ]

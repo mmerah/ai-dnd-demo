@@ -58,15 +58,16 @@ app/
 ├── events/
 │   ├── base.py                # Command/handler base classes
 │   ├── event_bus.py           # Async pub/sub dispatcher
-│   ├── commands/              # Payloads (broadcast/entity/combat/dice/inventory/location/quest/time)
+│   ├── commands/              # Payloads (broadcast/entity/combat/dice/inventory/location/party/quest/time)
 │   └── handlers/              # State mutations + SSE per command family
 ├── interfaces/                # Service/repo/event protocols
 ├── models/
 │   ├── ai_response.py         # Streaming/complete/error payloads
 │   ├── character.py           # Player sheet (stats/inventory/spells)
-│   ├── combat.py              # Combat state (initiative/turns/conditions)
+│   ├── combat.py              # Combat state (initiative/turns/conditions/factions)
 │   ├── game_state.py          # Root aggregate with history helpers
 │   ├── memory.py              # Structured memory models
+│   ├── party.py               # Party state (member management, max size)
 │   ├── instances/             # Display snapshots (player/monster/scenario)
 │   └── ...                    # damage_types/spells/quests/races/traits
 ├── services/
@@ -89,9 +90,10 @@ app/
 │   └── game/
 │       ├── game_factory.py                 # Initial state from scenario+character
 │       ├── game_service.py                 # Create/load/save orchestration
-│       ├── combat_service.py               # Turn management, damage, flow
+│       ├── combat_service.py               # Turn management, damage, faction inference
 │       ├── location_service.py             # Location transitions
-│       ├── memory_service.py               # Conversation → structured memory
+│       ├── party_service.py                # Party membership, follow commands
+│       ├── memory_service.py               # Conversation -> structured memory
 │       ├── metadata_service.py             # Extract information from messages
 │       ├── monster_manager_service.py      # Monster management in game
 │       ├── pre_save_sanitizer/save_manager # Persistence layer
@@ -107,6 +109,7 @@ app/
 │   ├── entity_tools.py    # HP, conditions, spell slots, leveling
 │   ├── inventory_tools.py # Currency + inventory adjustments
 │   ├── location_tools.py  # Location state changes + NPC moves
+│   ├── party_tools.py     # Add/remove party members (major NPCs only)
 │   ├── quest_tools.py     # Quest/objective progression
 │   └── time_tools.py      # Rests + time advancement
 └── utils/                 # ability_utils/entity_resolver/id_generator/names
@@ -148,17 +151,17 @@ data/
 
 ## Runtime Flow
 1. `uvicorn app.main:app --reload --port 8123` boots FastAPI, initializes Container, validates all data
-2. Player action → `/api/game/{game_id}/action` → background task → GameService + AIService
-3. Request → AgentOrchestrator:
-   - **NPC dialogue** (@npc_name): AgentLifecycleService → IndividualMindAgent (major) or PuppeteerAgent (minor)
+2. Player action -> `/api/game/{game_id}/action` -> background task -> GameService + AIService
+3. Request -> AgentOrchestrator:
+   - **NPC dialogue** (@npc_name): AgentLifecycleService -> IndividualMindAgent (major) or PuppeteerAgent (minor)
    - **Non-combat**: NarrativeAgent
    - **Combat active**: CombatAgent
 4. Agent builds context (ContextService), processes prompt, calls tools
-5. Tool → @tool_handler → Command → EventBus → Handler → mutate GameState → dispatch follow-ups
+5. Tool -> @tool_handler -> Command -> EventBus -> Handler -> mutate GameState -> dispatch follow-ups
 6. **Transitions**:
-   - Narrative→Combat: SummarizerAgent creates context bridge
+   - Narrative->Combat: SummarizerAgent creates context bridge
    - Combat runs NPC/monster turns until player turn/end
-   - Location change: MemoryService summarizes events → MemoryEntry
+   - Location change: MemoryService summarizes events -> MemoryEntry
 7. SaveManager persists, MessageService broadcasts SSE
 
 ## Commands

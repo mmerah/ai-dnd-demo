@@ -13,6 +13,7 @@ from app.events.handlers.dice_handler import DiceHandler
 from app.events.handlers.entity_handler import EntityHandler
 from app.events.handlers.inventory_handler import InventoryHandler
 from app.events.handlers.location_handler import LocationHandler
+from app.events.handlers.party_handler import PartyHandler
 from app.events.handlers.quest_handler import QuestHandler
 from app.events.handlers.time_handler import TimeHandler
 from app.interfaces.agents.summarizer import ISummarizerAgent
@@ -50,6 +51,7 @@ from app.interfaces.services.game import (
     ILocationService,
     IMetadataService,
     IMonsterManagerService,
+    IPartyService,
     IPreSaveSanitizer,
     ISaveManager,
 )
@@ -105,6 +107,7 @@ from app.services.game.item_manager_service import ItemManagerService
 from app.services.game.memory_service import MemoryService
 from app.services.game.metadata_service import MetadataService
 from app.services.game.monster_manager_service import MonsterManagerService
+from app.services.game.party_service import PartyService
 from app.services.game.pre_save_sanitizer import PreSaveSanitizer
 from app.services.game.save_manager import SaveManager
 from app.services.scenario import ScenarioService
@@ -237,6 +240,10 @@ class Container:
         from app.services.game.location_service import LocationService
 
         return LocationService(monster_manager_service=self.monster_manager_service)
+
+    @cached_property
+    def party_service(self) -> IPartyService:
+        return PartyService()
 
     @cached_property
     def spell_repository(self) -> IRepository[SpellDefinition]:
@@ -429,6 +436,7 @@ class Container:
             ),
         )
         event_bus.register_handler("quest", QuestHandler(self.memory_service))
+        event_bus.register_handler("party", PartyHandler(self.party_service))
 
         # Verify handlers can handle all commands
         event_bus.verify_handlers()
