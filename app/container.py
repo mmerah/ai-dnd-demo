@@ -558,6 +558,7 @@ class Container:
             scenario_service=self.scenario_service,
             monster_manager_service=self.monster_manager_service,
             repository_provider=self.repository_factory,
+            party_service=self.party_service,
         )
 
     @cached_property

@@ -7,7 +7,7 @@ import random
 
 from app.common.exceptions import RepositoryNotFoundError
 from app.interfaces.services.data import IRepositoryProvider
-from app.interfaces.services.game import ICombatService, IMonsterManagerService
+from app.interfaces.services.game import ICombatService, IMonsterManagerService, IPartyService
 from app.interfaces.services.scenario import IScenarioService
 from app.models.attributes import EntityType
 from app.models.combat import CombatEntry, CombatFaction, CombatParticipant, CombatState
@@ -29,10 +29,12 @@ class CombatService(ICombatService):
         scenario_service: IScenarioService,
         monster_manager_service: IMonsterManagerService,
         repository_provider: IRepositoryProvider,
+        party_service: IPartyService,
     ) -> None:
         self.scenario_service = scenario_service
         self.monster_manager_service = monster_manager_service
         self.repository_provider = repository_provider
+        self.party_service = party_service
 
     def roll_initiative(self, entity: IEntity) -> int:
         # d20 + initiative modifier from state
@@ -59,7 +61,7 @@ class CombatService(ICombatService):
             case EntityType.PLAYER:
                 return CombatFaction.PLAYER
             case EntityType.NPC:
-                # Check if NPC is in party (will be ALLY when party system is implemented)
+                # Check if NPC is in party. Adding through party should already use ALLY
                 if game_state.party.has_member(entity.instance_id):
                     return CombatFaction.ALLY
                 return CombatFaction.NEUTRAL
@@ -228,12 +230,16 @@ class CombatService(ICombatService):
         if not game_state.combat.is_active:
             return False
         current_turn = game_state.combat.get_current_turn()
-        return current_turn is not None and not current_turn.is_player
+        if current_turn is None:
+            return False
+        # Player and ally turns require player input; auto-continue for enemies and neutral NPCs
+        return not (current_turn.is_player or current_turn.faction == CombatFaction.ALLY)
 
     def should_auto_end_combat(self, game_state: GameState) -> bool:
         if not game_state.combat.is_active:
             return False
-        active_enemies = [p for p in game_state.combat.participants if p.is_active and not p.is_player]
+        # Combat ends when no active enemies remain
+        active_enemies = [p for p in game_state.combat.participants if p.is_active and p.faction == CombatFaction.ENEMY]
         return len(active_enemies) == 0
 
     def ensure_player_in_combat(self, game_state: GameState) -> CombatParticipant | None:
@@ -252,6 +258,35 @@ class CombatService(ICombatService):
             f"Initiative: {participant.initiative}"
         )
         return participant
+
+    def ensure_party_in_combat(self, game_state: GameState) -> list[CombatParticipant]:
+        if not game_state.combat.is_active:
+            raise ValueError("Cannot add party members to combat: no active combat")
+
+        party_members_added: list[CombatParticipant] = []
+        party_members = self.party_service.list_members(game_state)
+        current_location = game_state.scenario_instance.current_location_id
+        for npc in party_members:
+            # Only add if at same location
+            if npc.current_location_id != current_location:
+                logger.debug(
+                    f"Skipping party member '{npc.display_name}' - not at current location "
+                    f"(at {npc.current_location_id}, combat at {current_location})"
+                )
+                continue
+            # Skip if already in combat (idempotent)
+            if any(p.entity_id == npc.instance_id for p in game_state.combat.participants):
+                logger.debug(f"Party member '{npc.display_name}' already in combat - skipping")
+                continue
+            # Add to combat
+            participant = self.add_participant(game_state, CombatEntry(entity=npc, faction=CombatFaction.ALLY))
+            party_members_added.append(participant)
+            logger.debug(
+                f"Auto-added party member '{npc.display_name}' to combat as {participant.faction.value.upper()} "
+                f"with ID: {npc.instance_id}, Initiative: {participant.initiative}"
+            )
+
+        return party_members_added
 
     def spawn_free_monster(self, game_state: GameState, monster_name: str) -> IEntity | None:
         try:

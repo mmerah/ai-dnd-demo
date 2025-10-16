@@ -144,6 +144,24 @@ class ICombatService(ABC):
         pass
 
     @abstractmethod
+    def ensure_party_in_combat(self, game_state: GameState) -> list[CombatParticipant]:
+        """Ensure party members at current location are added to combat.
+
+        Automatically adds party members who are at the current location
+        and not already in combat. Party members are added as ALLY faction.
+
+        Args:
+            game_state: Current game state with active combat
+
+        Returns:
+            List of CombatParticipant for party members added (may be empty)
+
+        Raises:
+            ValueError: If combat is not active
+        """
+        pass
+
+    @abstractmethod
     def spawn_free_monster(self, game_state: GameState, monster_index: str) -> IEntity | None:
         """Spawn a free-roaming monster from the repository.
 

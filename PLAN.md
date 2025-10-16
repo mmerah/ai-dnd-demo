@@ -117,7 +117,7 @@ Implementation plan for adding NPC party support to the D&D AI Dungeon Master, f
 **Context**: `app/models/ai_response.py`
 **Rationale**: Simple data structure for suggestions (KISS)
 **Implementation**:
-- Create `app/models/combat_suggestion.py`:
+- Create `app/models/combat_suggestion.py` or reuse `app/models/combat.py` (decide cleanest):
 ```python
 class CombatSuggestion(BaseModel):
     suggestion_id: str  # For acceptance tracking

@@ -3,7 +3,7 @@
 from unittest.mock import create_autospec, patch
 
 from app.interfaces.services.data import IRepository, IRepositoryProvider
-from app.interfaces.services.game import IMonsterManagerService
+from app.interfaces.services.game import IMonsterManagerService, IPartyService
 from app.interfaces.services.scenario import IScenarioService
 from app.models.attributes import EntityType
 from app.models.combat import CombatEntry, CombatFaction, CombatParticipant
@@ -11,7 +11,7 @@ from app.models.entity import IEntity
 from app.models.instances.entity_state import EntityState
 from app.models.location import EncounterParticipantSpawn, SpawnType
 from app.services.game.combat_service import CombatService
-from tests.factories import make_game_state, make_monster_instance, make_monster_sheet
+from tests.factories import make_game_state, make_monster_instance, make_monster_sheet, make_npc_instance
 
 
 class TestCombatService:
@@ -22,10 +22,12 @@ class TestCombatService:
         self.scenario_service = create_autospec(IScenarioService, instance=True)
         self.monster_manager_service = create_autospec(IMonsterManagerService, instance=True)
         self.repository_provider = create_autospec(IRepositoryProvider, instance=True)
+        self.party_service = create_autospec(IPartyService, instance=True)
         self.service = CombatService(
             self.scenario_service,
             self.monster_manager_service,
             self.repository_provider,
+            self.party_service,
         )
         self.game_state = make_game_state()
 
@@ -180,3 +182,61 @@ class TestCombatService:
         # Already in combat
         participant2 = self.service.ensure_player_in_combat(self.game_state)
         assert participant2 is None
+
+    def test_ensure_party_in_combat(self) -> None:
+        """Test party members added to combat as ALLY faction."""
+        self.game_state.combat.is_active = True
+        current_location = self.game_state.scenario_instance.current_location_id
+
+        npc = make_npc_instance(scenario_npc_id="npc1", current_location_id=current_location)
+        self.game_state.npcs = [npc]
+        self.game_state.party.member_ids = [npc.instance_id]
+        self.party_service.list_members.return_value = [npc]
+
+        with patch.object(self.service, "roll_initiative", return_value=15):
+            participants = self.service.ensure_party_in_combat(self.game_state)
+
+        assert len(participants) == 1
+        assert participants[0].faction == CombatFaction.ALLY
+
+    def test_should_auto_continue_false_for_ally(self) -> None:
+        """Test ALLY faction requires player confirmation (no auto-continue)."""
+        self.game_state.combat.is_active = True
+        self.game_state.combat.participants = [
+            CombatParticipant(
+                name="Ally",
+                initiative=16,
+                is_player=False,
+                entity_id="npc-1",
+                entity_type=EntityType.NPC,
+                faction=CombatFaction.ALLY,
+                is_active=True,
+            )
+        ]
+        assert not self.service.should_auto_continue(self.game_state)
+
+    def test_should_auto_end_combat_ignores_allies(self) -> None:
+        """Test combat ends when no ENEMY remains (ignores ALLY)."""
+        self.game_state.combat.is_active = True
+        self.game_state.combat.participants = [
+            CombatParticipant(
+                name="Hero",
+                initiative=16,
+                is_player=True,
+                entity_id="player-1",
+                entity_type=EntityType.PLAYER,
+                faction=CombatFaction.PLAYER,
+                is_active=True,
+            ),
+            CombatParticipant(
+                name="Ally",
+                initiative=15,
+                is_player=False,
+                entity_id="npc-1",
+                entity_type=EntityType.NPC,
+                faction=CombatFaction.ALLY,
+                is_active=True,
+            ),
+        ]
+        # Should end even though ally is still active (no enemies)
+        assert self.service.should_auto_end_combat(self.game_state)

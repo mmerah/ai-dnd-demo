@@ -98,6 +98,10 @@ class CombatHandler(BaseHandler):
                 if player_participant:
                     participants_added.append(player_participant)
 
+                # Add party members at current location
+                party_participants = self.combat_service.ensure_party_in_combat(game_state)
+                participants_added.extend(party_participants)
+
             # Mark state as mutated
             result.mutated = True
 
@@ -139,6 +143,10 @@ class CombatHandler(BaseHandler):
                 player_participant = self.combat_service.ensure_player_in_combat(game_state)
                 if player_participant:
                     all_participants.append(player_participant)
+
+                # Auto-add party members at current location
+                party_participants = self.combat_service.ensure_party_in_combat(game_state)
+                all_participants.extend(party_participants)
 
                 # Mark state as mutated
                 result.mutated = True

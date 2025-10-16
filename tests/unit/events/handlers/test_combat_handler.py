@@ -23,7 +23,7 @@ from app.models.tool_results import (
     SpawnMonstersResult,
     StartCombatResult,
 )
-from tests.factories import make_game_state, make_monster_instance, make_monster_sheet
+from tests.factories import make_game_state, make_monster_instance, make_monster_sheet, make_npc_instance
 
 
 class TestCombatHandler:
@@ -32,6 +32,7 @@ class TestCombatHandler:
     def setup_method(self) -> None:
         """Set up test environment."""
         self.combat_service = create_autospec(spec=ICombatService, instance=True)
+        self.combat_service.ensure_party_in_combat.return_value = []
         self.handler = CombatHandler(self.combat_service)
         self.game_state = make_game_state()
 
@@ -67,6 +68,7 @@ class TestCombatHandler:
         )
         self.combat_service.add_participant.return_value = participant
         self.combat_service.ensure_player_in_combat.return_value = player_participant
+        self.combat_service.ensure_party_in_combat.return_value = []
 
         command = StartCombatCommand(
             game_id=self.game_state.game_id,
@@ -83,6 +85,7 @@ class TestCombatHandler:
         self.combat_service.start_combat.assert_called_once_with(self.game_state)
         self.combat_service.add_participant.assert_called_once()
         self.combat_service.ensure_player_in_combat.assert_called_once_with(self.game_state)
+        self.combat_service.ensure_party_in_combat.assert_called_once_with(self.game_state)
 
         # Verify the handler set the active agent
         assert self.game_state.active_agent == AgentType.COMBAT
@@ -201,3 +204,64 @@ class TestCombatHandler:
         await self.handler.handle(command, self.game_state)
 
         assert "should be COMBAT only" in caplog.text
+
+    @pytest.mark.asyncio
+    async def test_start_combat_includes_party_members(self) -> None:
+        """Test StartCombatCommand adds party members as allies."""
+        monster = make_monster_instance(instance_id="goblin-1", current_location_id="test-loc")
+        npc = make_npc_instance(scenario_npc_id="npc1", current_location_id="test-loc")
+        self.game_state.monsters.append(monster)
+        self.game_state.scenario_instance.current_location_id = "test-loc"
+
+        # Mock combat service to activate combat
+        def start_combat_side_effect(game_state: GameState) -> CombatState:
+            game_state.combat = CombatState(is_active=True, combat_occurrence=1)
+            return game_state.combat
+
+        self.combat_service.start_combat.side_effect = start_combat_side_effect
+        self.combat_service.add_participant.return_value = CombatParticipant(
+            name="Goblin",
+            initiative=15,
+            is_player=False,
+            entity_id=monster.instance_id,
+            entity_type=EntityType.MONSTER,
+            faction=CombatFaction.ENEMY,
+        )
+        self.combat_service.ensure_player_in_combat.return_value = CombatParticipant(
+            name="Hero",
+            initiative=16,
+            is_player=True,
+            entity_id="player-1",
+            entity_type=EntityType.PLAYER,
+            faction=CombatFaction.PLAYER,
+        )
+        # Simulate party member being added
+        party_participant = CombatParticipant(
+            name=npc.display_name,
+            initiative=14,
+            is_player=False,
+            entity_id=npc.instance_id,
+            entity_type=EntityType.NPC,
+            faction=CombatFaction.ALLY,
+        )
+        self.combat_service.ensure_party_in_combat.return_value = [party_participant]
+
+        command = StartCombatCommand(
+            game_id=self.game_state.game_id,
+            entity_ids=[monster.instance_id],
+            agent_type=AgentType.NARRATIVE,
+        )
+        self.game_state.combat.is_active = False
+
+        result = await self.handler.handle(command, self.game_state)
+
+        # Verify party integration was called
+        self.combat_service.ensure_party_in_combat.assert_called_once_with(self.game_state)
+
+        # Verify result includes all participants (monster + player + party ally)
+        assert isinstance(result.data, StartCombatResult)
+        assert len(result.data.participants) == 3
+        factions = {p.faction for p in result.data.participants}
+        assert CombatFaction.ENEMY in factions
+        assert CombatFaction.PLAYER in factions
+        assert CombatFaction.ALLY in factions

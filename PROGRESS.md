@@ -74,24 +74,40 @@ Track implementation progress against PLAN.md. Update status as tasks are comple
 ---
 
 ## Phase 3: Combat Integration
-**Status**: ⬜ Not Started | **Estimated**: 3 hours | **Actual**: -
+**Status**: ✅ Completed | **Estimated**: 3 hours | **Actual**: 0.5 hours
 
 ### Task 3.1: Update Combat Initialization
-- **Status**: ⬜ Not Started
-- **File**: `app/events/handlers/combat_handler.py`
+- **Status**: ✅ Completed
+- **Files**:
+  - `app/interfaces/services/game/combat_service.py`
+  - `app/services/game/combat_service.py`
+  - `app/events/handlers/combat_handler.py`
+  - `app/container.py`
 - **Checklist**:
-  - [ ] Import PartyService
-  - [ ] Get party members at location
-  - [ ] Add party as ALLY faction
-  - [ ] Skip duplicates
+  - [x] Added ensure_party_in_combat to ICombatService interface
+  - [x] Implemented ensure_party_in_combat in CombatService
+  - [x] Injected IPartyService into CombatService constructor
+  - [x] Updated container to inject party_service
+  - [x] Called ensure_party_in_combat in StartCombatCommand handler
+  - [x] Called ensure_party_in_combat in StartEncounterCombatCommand handler
+  - [x] Skip duplicates (idempotent)
 
 ### Task 3.2: Stop Auto-Play for Allies
-- **Status**: ⬜ Not Started
+- **Status**: ✅ Completed
 - **File**: `app/services/game/combat_service.py`
 - **Checklist**:
-  - [ ] should_auto_continue returns False for ALLY
-  - [ ] should_auto_end_combat checks only ENEMY
-  - [ ] Tests updated
+  - [x] should_auto_continue returns False for ALLY
+  - [x] should_auto_end_combat checks only ENEMY
+  - [x] Tests updated and verified
+
+### Test Coverage Added
+- **Files**: `tests/unit/services/game/test_combat_service.py`, `tests/unit/events/handlers/test_combat_handler.py`
+- **New tests**:
+  - `test_ensure_party_in_combat` - verifies party members added as ALLY
+  - `test_should_auto_continue_false_for_ally` - verifies ALLYs don't auto-continue
+  - `test_should_auto_end_combat_ignores_allies` - verifies combat ends when no enemies remain
+  - `test_start_combat_includes_party_members` - verifies handler integration
+- **Total**: 218 tests passing (4 new tests added)
 
 ---
 
@@ -272,17 +288,17 @@ Track implementation progress against PLAN.md. Update status as tasks are comple
 |-------|--------|-------|-----------|----------|
 | Phase 1 | ✅ Completed | 4 | 4 | 100% |
 | Phase 2 | ✅ Completed | 1 | 1 | 100% |
-| Phase 3 | ⬜ Not Started | 2 | 0 | 0% |
+| Phase 3 | ✅ Completed | 2 | 2 | 100% |
 | Phase 4 | ⬜ Not Started | 3 | 0 | 0% |
 | Phase 5 | ⬜ Not Started | 2 | 0 | 0% |
 | Phase 6 | ⬜ Not Started | 2 | 0 | 0% |
 | Phase 7 | ⬜ Not Started | 2 | 0 | 0% |
 | Phase 8 | ⬜ Not Started | 3 | 0 | 0% |
 | Phase 9 | ⬜ Not Started | 3 | 0 | 0% |
-| **Total** | **🟨 In Progress** | **22** | **5** | **23%** |
+| **Total** | **🟨 In Progress** | **22** | **7** | **32%** |
 
 **Estimated Total**: 30 hours
-**Actual Total**: 2.0 hours
+**Actual Total**: 2.5 hours
 **Started**: 2025-10-16
 **Target Completion**: TBD
 
@@ -318,6 +334,16 @@ Track implementation progress against PLAN.md. Update status as tasks are comple
   - All 214 tests pass
   - Type safety verified (mypy --strict)
   - Linter clean (ruff)
+
+- **Phase 3 (2025-10-16)**: Successfully integrated party members into combat system
+  - Added `ensure_party_in_combat()` method to `ICombatService` interface
+  - Implemented method in `CombatService` with proper location checking and idempotency
+  - Injected `IPartyService` into `CombatService` via container (proper DI)
+  - Updated both `StartCombatCommand` and `StartEncounterCombatCommand` handlers
+  - Modified `should_auto_continue()` to return False for ALLY faction (requires player confirmation)
+  - Modified `should_auto_end_combat()` to only check for ENEMY faction (not all non-players)
+  - Faction inference already working correctly (NPCs in party get ALLY faction automatically)
+  - Pattern follows existing `ensure_player_in_combat()` design (consistency)
 
 ---
 
