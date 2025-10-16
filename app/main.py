@@ -67,6 +67,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         logger.info(f"  - Narrative: {settings.get_narrative_model()}")
         logger.info(f"  - Combat: {settings.get_combat_model()}")
         logger.info(f"  - Summarizer: {settings.get_summarizer_model()}")
+        logger.info(f"  - Major NPCs: {settings.get_individual_npc_model()}")
+        logger.info(f"  - Minor NPCs: {settings.get_puppeteer_npc_model()}")
     except Exception as e:
         raise RuntimeError(f"Configuration or data validation error: {e}") from e
 

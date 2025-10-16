@@ -22,7 +22,7 @@ Ship a strongly typed, AI-assisted Dungeon Master that junior devs can extend wi
 - **Quality**: Ruff (format/lint), mypy strict, pytest/pytest-asyncio, coverage, pre-commit
 
 ## Environment
-Copy `.env.example` to `.env`: `OPENROUTER_API_KEY`, `NARRATIVE_MODEL`, `COMBAT_MODEL`, `SUMMARIZER_MODEL`, `MAX_RETRIES`, `SAVE_DIRECTORY`, `PORT`, `DEBUG_AI`, `DEBUG_AGENT_CONTEXT`
+Copy `.env.example` to `.env`: `OPENROUTER_API_KEY`, `NARRATIVE_MODEL`, `COMBAT_MODEL`, `SUMMARIZER_MODEL`, `INDIVIDUAL_NPC_MODEL`,  `PUPPETEER_NPC_MODEL`,`MAX_RETRIES`, `SAVE_DIRECTORY`, `PORT`, `DEBUG_AI`, `DEBUG_AGENT_CONTEXT`
 
 ## Structure
 

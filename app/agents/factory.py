@@ -210,7 +210,7 @@ class AgentFactory:
         debug: bool = False,
     ) -> IndividualMindAgent:
         settings = get_settings()
-        model = cls._create_model(settings.get_narrative_model())
+        model = cls._create_model(settings.get_individual_npc_model())
         model_settings = OpenAIModelSettings(
             temperature=0.7,
             max_tokens=2048,
@@ -265,7 +265,7 @@ class AgentFactory:
         debug: bool = False,
     ) -> PuppeteerAgent:
         settings = get_settings()
-        model = cls._create_model(settings.get_narrative_model())
+        model = cls._create_model(settings.get_puppeteer_npc_model())
         model_settings = OpenAIModelSettings(
             temperature=0.8,
             max_tokens=2048,

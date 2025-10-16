@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     narrative_model: str = Field(..., alias="NARRATIVE_MODEL")
     combat_model: str = Field(..., alias="COMBAT_MODEL")
     summarizer_model: str = Field(..., alias="SUMMARIZER_MODEL")
+    individual_npc_model: str = Field(..., alias="INDIVIDUAL_NPC_MODEL")
+    puppeteer_npc_model: str = Field(..., alias="PUPPETEER_NPC_MODEL")
 
     # Retry Configuration
     max_retries: int = Field(default=3, alias="MAX_RETRIES")
@@ -53,6 +55,14 @@ class Settings(BaseSettings):
     def get_summarizer_model(self) -> str:
         """Get the summarizer agent model"""
         return self.summarizer_model
+
+    def get_individual_npc_model(self) -> str:
+        """Get the individual NPC agent model"""
+        return self.individual_npc_model
+
+    def get_puppeteer_npc_model(self) -> str:
+        """Get the puppeteer NPC agent model"""
+        return self.puppeteer_npc_model
 
 
 @lru_cache(maxsize=1)
