@@ -13,6 +13,8 @@ from app.container import container
 from app.events.commands.inventory_commands import EquipItemCommand
 from app.models.game_state import GameState
 from app.models.requests import (
+    AcceptCombatSuggestionRequest,
+    AcceptCombatSuggestionResponse,
     EquipItemRequest,
     EquipItemResponse,
     NewGameRequest,
@@ -154,6 +156,48 @@ async def process_player_action(
     logger.info(f"Processing action for game {game_state.game_id}: {request.message[:50]}...")
     background_tasks.add_task(process_ai_and_broadcast, game_state.game_id, request.message)
     return {"status": "action received"}
+
+
+@router.post("/game/{game_id}/combat/suggestion/accept", response_model=AcceptCombatSuggestionResponse)
+async def accept_combat_suggestion(
+    request: AcceptCombatSuggestionRequest,
+    background_tasks: BackgroundTasks,
+    game_state: GameState = Depends(get_game_state_from_path),
+) -> AcceptCombatSuggestionResponse:
+    """
+    Accept a combat suggestion from an allied NPC and process it.
+
+    This endpoint receives the suggestion data that was previously broadcast via SSE,
+    sends it to the combat agent for narration, and advances combat to the next turn.
+
+    Args:
+        request: The suggestion data (npc_id, npc_name, action_text, suggestion_id)
+        background_tasks: FastAPI background tasks for async processing
+        game_state: The game state loaded via dependency injection
+
+    Returns:
+        Confirmation that the suggestion was accepted
+
+    Raises:
+        HTTPException: If the game is not in combat or other validation fails
+    """
+    # Validate that combat is active
+    if not game_state.combat.is_active:
+        raise HTTPException(status_code=400, detail="Combat is not active")
+
+    # Format the message for the combat agent
+    # The combat agent will narrate this action and should call next_turn tool
+    message = f"{request.npc_name} performs: {request.action_text}"
+
+    logger.info(
+        f"Accepting combat suggestion {request.suggestion_id} for game {game_state.game_id}: "
+        f"{request.npc_name} - {request.action_text[:50]}..."
+    )
+
+    # Process via AI (same pattern as player actions)
+    background_tasks.add_task(process_ai_and_broadcast, game_state.game_id, message)
+
+    return AcceptCombatSuggestionResponse(status="suggestion accepted")
 
 
 @router.post("/game/{game_id}/equip", response_model=EquipItemResponse)

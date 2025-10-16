@@ -118,3 +118,18 @@ class ResolveNamesResponse(BaseModel):
     weapon_properties: dict[str, str] = Field(
         default_factory=dict, description="Weapon Properties index to name mapping"
     )
+
+
+class AcceptCombatSuggestionRequest(BaseModel):
+    """Request model for accepting a combat suggestion from an allied NPC."""
+
+    suggestion_id: str = Field(..., description="Unique identifier for the suggestion being accepted")
+    npc_id: str = Field(..., description="Instance ID of the NPC who made the suggestion")
+    npc_name: str = Field(..., description="Display name of the NPC")
+    action_text: str = Field(..., description="The suggested action text")
+
+
+class AcceptCombatSuggestionResponse(BaseModel):
+    """Response model for accepting a combat suggestion."""
+
+    status: str = Field(..., description="Status message, typically 'suggestion accepted'")
