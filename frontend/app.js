@@ -1301,9 +1301,21 @@ function updateNPCSheet(npc) {
 
 // Combat Suggestion Functions
 function displayCombatSuggestion(eventData) {
+    // Extract suggestion data from event (support both nested and direct formats)
     const suggestion = eventData?.suggestion ?? eventData;
+
     if (!suggestion) {
-        console.error('[COMBAT] Missing suggestion payload:', eventData);
+        const error = 'Combat suggestion received with no data';
+        console.error('[COMBAT ERROR]', error, eventData);
+        showErrorMessage('Combat Error', error);
+        return;
+    }
+
+    // Validate required fields
+    if (!suggestion.npc_id || !suggestion.npc_name || !suggestion.action_text) {
+        const error = 'Combat suggestion missing required fields (npc_id, npc_name, or action_text)';
+        console.error('[COMBAT ERROR]', error, suggestion);
+        showErrorMessage('Combat Error', error);
         return;
     }
 
@@ -1323,19 +1335,28 @@ function displayCombatSuggestion(eventData) {
     const suggestionText = document.getElementById('suggestionText');
 
     if (!suggestionCard || !suggestionTitle || !suggestionText) {
-        console.error('[COMBAT] Suggestion UI elements not found');
+        const error = 'Suggestion UI elements not found';
+        console.error('[COMBAT ERROR]', error);
+        showErrorMessage('UI Error', error);
         return;
     }
 
-    // Update the card content
-    const titleName = suggestion.npc_name || 'Ally';
-    suggestionTitle.textContent = `${titleName}'s Turn`;
-    suggestionText.textContent = suggestion.action_text || 'No suggested action provided.';
+    // Update the card content (no fallbacks - fail fast if data is invalid)
+    suggestionTitle.textContent = `${suggestion.npc_name}'s Turn`;
+    suggestionText.textContent = suggestion.action_text;
 
     // Show the suggestion card
     suggestionCard.style.display = 'block';
 
     console.log('[COMBAT] Suggestion card displayed');
+}
+
+function showErrorMessage(title, message) {
+    // Add error message to chat
+    addMessage(`ERROR - ${title}: ${message}`, 'system');
+
+    // Also log to console
+    console.error(`[ERROR] ${title}:`, message);
 }
 
 function hideCombatSuggestion() {

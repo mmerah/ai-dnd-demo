@@ -62,7 +62,7 @@ async def _generate_ally_suggestion(
     current_turn: CombatParticipant,
     agent_lifecycle_service: IAgentLifecycleService,
     event_bus: IEventBus,
-) -> bool:
+) -> None:
     """Generate and broadcast combat suggestion for allied NPC turn.
 
     Args:
@@ -71,21 +71,28 @@ async def _generate_ally_suggestion(
         agent_lifecycle_service: Service for getting NPC agents
         event_bus: Event bus for broadcasting
 
-    Returns:
-        True if suggestion was generated and broadcast, False if unable to generate
+    Raises:
+        ValueError: If entity is not an NPC or NPC not found in game state
     """
     logger.info(f"ALLY turn detected for {current_turn.name} - generating combat suggestion")
 
     # Validate NPC entity type
     if current_turn.entity_type != EntityType.NPC:
-        logger.warning(f"ALLY participant is not an NPC (type: {current_turn.entity_type}), skipping suggestion")
-        return False
+        raise ValueError(
+            f"Cannot generate combat suggestion for non-NPC entity: {current_turn.name} "
+            f"(type: {current_turn.entity_type})"
+        )
 
     # Get NPC instance
     npc = game_state.get_npc_by_id(current_turn.entity_id)
     if not npc:
-        logger.warning(f"NPC {current_turn.entity_id} not found in game state, cannot generate suggestion")
-        return False
+        raise ValueError(f"Allied NPC {current_turn.entity_id} not found in game state for combat suggestion")
+
+    # Validate NPC is in party
+    if not game_state.party.has_member(npc.instance_id):
+        raise ValueError(
+            f"NPC {npc.display_name} ({npc.instance_id}) has ALLY faction in combat " f"but is not in the party"
+        )
 
     # Get NPC agent and generate suggestion
     npc_agent = cast(BaseNPCAgent, agent_lifecycle_service.get_npc_agent(game_state, npc))
@@ -128,7 +135,6 @@ async def _generate_ally_suggestion(
     )
 
     logger.info(f"Combat suggestion broadcast for {npc.display_name}: {suggestion_text}")
-    return True
 
 
 async def _handle_auto_continue_turn(
@@ -218,7 +224,7 @@ async def run(
         # Check if current turn is an ALLY - generate suggestion instead of auto-continuing
         current_turn = game_state.combat.get_current_turn()
         if current_turn and current_turn.faction == CombatFaction.ALLY:
-            _ = await _generate_ally_suggestion(
+            await _generate_ally_suggestion(
                 game_state=game_state,
                 current_turn=current_turn,
                 agent_lifecycle_service=agent_lifecycle_service,

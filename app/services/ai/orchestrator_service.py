@@ -81,12 +81,20 @@ class AgentOrchestrator:
                 and not user_message.lstrip().startswith("[ALLY_ACTION]")
             ):
                 npc = game_state.get_npc_by_id(current_turn.entity_id)
-                if npc:
-                    user_message = (
-                        f"[ALLY_ACTION] It is {npc.display_name}'s turn in combat (entity_id={npc.instance_id}, allied NPC). "
-                        f"Execute this action exactly as described: {user_message}. "
-                        "Use the appropriate combat tools (rolls, damage, HP updates) and CALL next_turn immediately once resolved."
+                if npc is None:
+                    raise ValueError(f"Allied NPC {current_turn.entity_id} not found in game state during combat turn")
+
+                if not game_state.party.has_member(npc.instance_id):
+                    raise ValueError(
+                        f"NPC {npc.display_name} ({npc.instance_id}) has ALLY faction in combat "
+                        f"but is not in the party"
                     )
+
+                user_message = (
+                    f"[ALLY_ACTION] It is {npc.display_name}'s turn in combat (entity_id={npc.instance_id}, allied NPC). "
+                    f"Execute this action exactly as described: {user_message}. "
+                    "Use the appropriate combat tools (rolls, damage, HP updates) and CALL next_turn immediately once resolved."
+                )
 
         # Determine current agent type based on game state
         current_agent_type = agent_router.select(game_state)
