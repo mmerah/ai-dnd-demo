@@ -11,6 +11,7 @@ from app.api.player_actions import execute_player_action
 from app.api.tasks import process_ai_and_broadcast
 from app.container import container
 from app.events.commands.inventory_commands import EquipItemCommand
+from app.models.attributes import EntityType
 from app.models.game_state import GameState
 from app.models.requests import (
     AcceptCombatSuggestionRequest,
@@ -201,11 +202,11 @@ async def accept_combat_suggestion(
 
 @router.post("/game/{game_id}/equip", response_model=EquipItemResponse)
 async def equip_item(game_id: str, request: EquipItemRequest) -> EquipItemResponse:
-    """Equip or unequip a single unit of a player's inventory item and recompute derived stats.
+    """Equip or unequip an item for an entity (player or NPC) and recompute derived stats.
 
     Args:
         game_id: Unique game identifier
-        request: EquipItemRequest with item name and equipped flag (applies to exactly one unit)
+        request: EquipItemRequest with item, entity, and slot information
 
     Returns:
         EquipItemResponse with updated armor class
@@ -221,9 +222,17 @@ async def equip_item(game_id: str, request: EquipItemRequest) -> EquipItemRespon
         # Get the game state
         game_state = game_service.get_game(game_id)
 
+        # Convert entity_type string to enum
+        entity_type = EntityType(request.entity_type)
+
         # Create command
         command = EquipItemCommand(
-            game_id=game_id, item_index=request.item_index, slot=request.slot, unequip=request.unequip
+            game_id=game_id,
+            entity_id=request.entity_id,
+            entity_type=entity_type,
+            item_index=request.item_index,
+            slot=request.slot,
+            unequip=request.unequip,
         )
 
         # Execute with event tracking (treating this as a player "tool")
@@ -238,12 +247,17 @@ async def equip_item(game_id: str, request: EquipItemRequest) -> EquipItemRespon
         if not isinstance(result, EquipItemResult):
             raise ValueError("Failed to equip item - invalid result type")
 
+        # Get the entity to return its AC
+        entity = game_state.get_entity_by_id(entity_type, request.entity_id)
+        if not entity:
+            raise ValueError("Entity not found after equip operation")
+
         return EquipItemResponse(
             game_id=game_id,
             item_index=result.item_index,
             equipped=result.equipped,
             slot=result.slot,
-            new_armor_class=game_state.character.state.armor_class,
+            new_armor_class=entity.state.armor_class,
         )
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f"Game {game_id} not found") from None

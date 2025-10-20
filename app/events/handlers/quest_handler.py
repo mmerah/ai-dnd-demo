@@ -7,10 +7,10 @@ from app.events.commands.broadcast_commands import BroadcastGameUpdateCommand
 from app.events.commands.quest_commands import (
     CompleteObjectiveCommand,
     CompleteQuestCommand,
-    ProgressActCommand,
     StartQuestCommand,
 )
 from app.events.handlers.base_handler import BaseHandler
+from app.interfaces.services.game import IActAndQuestService
 from app.interfaces.services.memory import IMemoryService
 from app.models.game_state import GameState
 from app.models.memory import MemoryEventKind, WorldEventContext
@@ -18,7 +18,6 @@ from app.models.quest import ObjectiveStatus, QuestStatus
 from app.models.tool_results import (
     CompleteObjectiveResult,
     CompleteQuestResult,
-    ProgressActResult,
     StartQuestResult,
 )
 
@@ -28,14 +27,14 @@ logger = logging.getLogger(__name__)
 class QuestHandler(BaseHandler):
     """Handler for quest management commands."""
 
-    def __init__(self, memory_service: IMemoryService) -> None:
+    def __init__(self, memory_service: IMemoryService, act_and_quest_service: IActAndQuestService) -> None:
         self.memory_service = memory_service
+        self.act_and_quest_service = act_and_quest_service
 
     supported_commands = (
         StartQuestCommand,
         CompleteObjectiveCommand,
         CompleteQuestCommand,
-        ProgressActCommand,
     )
 
     async def handle(self, command: BaseCommand, game_state: GameState) -> CommandResult:
@@ -66,7 +65,7 @@ class QuestHandler(BaseHandler):
                 quest_copy.objectives[0].status = ObjectiveStatus.ACTIVE
 
             # Add to game state
-            game_state.add_quest(quest_copy)
+            self.act_and_quest_service.add_quest(game_state, quest_copy)
 
             result.mutated = True
 
@@ -86,7 +85,7 @@ class QuestHandler(BaseHandler):
 
         elif isinstance(command, CompleteObjectiveCommand):
             # Get active quest
-            quest = game_state.get_active_quest(command.quest_id)
+            quest = self.act_and_quest_service.get_active_quest(game_state, command.quest_id)
             if not quest:
                 raise ValueError(f"Quest '{command.quest_id}' not found in active quests")
 
@@ -109,9 +108,9 @@ class QuestHandler(BaseHandler):
                 result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
                 logger.debug(f"Objective completed: {command.objective_id} in quest {command.quest_id}")
 
-                # If quest is complete, move it to completed list
+                # If quest is complete, move it to completed list and auto-progress act if ready
                 if quest_complete:
-                    game_state.complete_quest(command.quest_id)
+                    self.act_and_quest_service.complete_quest(game_state, command.quest_id)
 
                 await self.memory_service.on_world_event(
                     game_state,
@@ -126,7 +125,7 @@ class QuestHandler(BaseHandler):
 
         elif isinstance(command, CompleteQuestCommand):
             # Get active quest
-            quest = game_state.get_active_quest(command.quest_id)
+            quest = self.act_and_quest_service.get_active_quest(game_state, command.quest_id)
             if not quest:
                 raise ValueError(f"Quest '{command.quest_id}' not found in active quests")
 
@@ -136,8 +135,8 @@ class QuestHandler(BaseHandler):
                     obj.status = ObjectiveStatus.COMPLETED
             quest.status = QuestStatus.COMPLETED
 
-            # Move to completed quests
-            if game_state.complete_quest(command.quest_id):
+            # Move to completed quests and auto-progress act if ready
+            if self.act_and_quest_service.complete_quest(game_state, command.quest_id):
                 result.mutated = True
 
                 result.data = CompleteQuestResult(
@@ -157,48 +156,6 @@ class QuestHandler(BaseHandler):
                 game_state,
                 event_kind=MemoryEventKind.QUEST_COMPLETED,
                 context=WorldEventContext(quest_id=command.quest_id),
-            )
-
-        elif isinstance(command, ProgressActCommand):
-            # Get scenario from embedded sheet
-            scenario = game_state.scenario_instance.sheet
-
-            # Check if can progress
-            completed = game_state.scenario_instance.completed_quest_ids
-            if not scenario.progression.can_progress_to_next_act(completed):
-                current_act = scenario.progression.get_current_act()
-                if current_act:
-                    missing = [q for q in current_act.quests if q not in completed]
-                    raise ValueError(f"Cannot progress to next act. Incomplete quests: {', '.join(missing)}")
-                else:
-                    raise ValueError("No current act found")
-
-            # Progress to next act
-            if scenario.progression.progress_to_next_act():
-                new_act = scenario.progression.get_current_act()
-                if new_act:
-                    game_state.scenario_instance.current_act_id = new_act.id
-
-                    result.mutated = True
-
-                    result.data = ProgressActResult(
-                        new_act_id=new_act.id,
-                        new_act_name=new_act.name,
-                        message=f"Progressed to Act: {new_act.name}",
-                    )
-
-                    # Broadcast update
-                    result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-                    logger.debug(f"Progressed to act: {new_act.name}")
-                else:
-                    raise RuntimeError("Failed to get new act after progression")
-            else:
-                raise ValueError("No more acts to progress to")
-
-            await self.memory_service.on_world_event(
-                game_state,
-                event_kind=MemoryEventKind.ACT_PROGRESSED,
-                context=WorldEventContext(act_id=game_state.scenario_instance.current_act_id),
             )
 
         return result

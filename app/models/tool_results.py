@@ -117,13 +117,6 @@ class CompleteQuestResult(BaseModel):
     message: str
 
 
-class ProgressActResult(BaseModel):
-    type: str = "progress_act"
-    new_act_id: str
-    new_act_name: str
-    message: str
-
-
 class ChangeLocationResult(BaseModel):
     type: str = "change_location"
     location_id: str
@@ -269,7 +262,6 @@ ToolResult = (
     | StartQuestResult
     | CompleteObjectiveResult
     | CompleteQuestResult
-    | ProgressActResult
     | ChangeLocationResult
     | DiscoverSecretResult
     | UpdateLocationStateResult

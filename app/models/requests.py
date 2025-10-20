@@ -38,9 +38,11 @@ class PlayerActionRequest(BaseModel):
 
 
 class EquipItemRequest(BaseModel):
-    """Request model to equip or unequip a specific inventory item for the player."""
+    """Request model to equip or unequip a specific inventory item for an entity (player or NPC)."""
 
     item_index: str = Field(..., description="Index of the item in inventory")
+    entity_id: str = Field(..., description="Instance ID of entity")
+    entity_type: Literal["player", "npc"] = Field(..., description="Type of entity ('player' or 'npc')")
     slot: (
         Literal[
             "head",

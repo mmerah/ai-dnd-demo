@@ -319,8 +319,11 @@ class _CombatScriptAgent(BaseAgent):
             if game_state.combat.is_active:
                 await combat_tools.end_combat(ctx)
 
-            await inventory_tools.modify_inventory(ctx, item_index="potion-of-healing", quantity=1)
-            await inventory_tools.modify_currency(ctx, gold=5)
+            player_id = game_state.character.instance_id
+            await inventory_tools.modify_inventory(
+                ctx, entity_id=player_id, entity_type="player", item_index="potion-of-healing", quantity=1
+            )
+            await inventory_tools.modify_currency(ctx, entity_id=player_id, entity_type="player", gold=5)
 
             quest_id = self._shared["quest_id"]
             objective_id = self._shared["objective_id"]

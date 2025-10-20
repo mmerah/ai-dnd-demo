@@ -38,13 +38,3 @@ class CompleteQuestCommand(BaseCommand):
 
     def get_handler_name(self) -> str:
         return "quest"
-
-
-@dataclass
-class ProgressActCommand(BaseCommand):
-    """Command to progress to the next act."""
-
-    agent_type: AgentType | None = field(default=None)
-
-    def get_handler_name(self) -> str:
-        return "quest"

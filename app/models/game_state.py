@@ -16,7 +16,6 @@ from app.models.instances.npc_instance import NPCInstance
 from app.models.instances.scenario_instance import ScenarioInstance
 from app.models.location import LocationState
 from app.models.party import PartyState
-from app.models.quest import Quest
 
 
 class MessageRole(str, Enum):
@@ -213,28 +212,3 @@ class GameState(BaseModel):
         if location_id not in self.scenario_instance.location_states:
             self.scenario_instance.location_states[location_id] = LocationState(location_id=location_id)
         return self.scenario_instance.location_states[location_id]
-
-    def add_quest(self, quest: Quest) -> None:
-        """Add a quest to active quests."""
-        for q in self.scenario_instance.active_quests:
-            if q.id == quest.id:
-                return
-        self.scenario_instance.active_quests.append(quest)
-        self.add_story_note(f"New quest started: {quest.name}")
-
-    def complete_quest(self, quest_id: str) -> bool:
-        """Mark a quest as completed. Returns True if found."""
-        for i, quest in enumerate(self.scenario_instance.active_quests):
-            if quest.id == quest_id:
-                self.scenario_instance.active_quests.pop(i)
-                self.scenario_instance.completed_quest_ids.append(quest_id)
-                self.add_story_note(f"Quest completed: {quest.name}")
-                return True
-        return False
-
-    def get_active_quest(self, quest_id: str) -> Quest | None:
-        """Get an active quest by ID."""
-        for quest in self.scenario_instance.active_quests:
-            if quest.id == quest_id:
-                return quest
-        return None

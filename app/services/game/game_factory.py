@@ -4,7 +4,7 @@ from datetime import datetime
 
 from app.agents.core.types import AgentType
 from app.interfaces.services.character import ICharacterComputeService
-from app.interfaces.services.game import IGameFactory, ILocationService
+from app.interfaces.services.game import IActAndQuestService, IGameFactory, ILocationService
 from app.interfaces.services.scenario import IScenarioService
 from app.models.attributes import Abilities
 from app.models.character import CharacterSheet, Currency
@@ -29,6 +29,7 @@ class GameFactory(IGameFactory):
         scenario_service: IScenarioService,
         compute_service: ICharacterComputeService,
         location_service: ILocationService,
+        act_and_quest_service: IActAndQuestService,
     ) -> None:
         """
         Initialize the game factory.
@@ -37,10 +38,12 @@ class GameFactory(IGameFactory):
             scenario_service: Service for managing scenarios
             compute_service: Service for computing derived character values
             location_service: Service for managing location state
+            act_and_quest_service: Service handling quest activation and completion
         """
         self.scenario_service = scenario_service
         self.compute_service = compute_service
         self.location_service = location_service
+        self.act_and_quest_service = act_and_quest_service
 
     def generate_game_id(self, character_name: str) -> str:
         """
@@ -167,7 +170,7 @@ class GameFactory(IGameFactory):
                     quest = scenario.get_quest(quest_id)
                     if quest and quest.is_available([]):
                         quest.status = QuestStatus.ACTIVE
-                        game_state.add_quest(quest)
+                        self.act_and_quest_service.add_quest(game_state, quest)
 
         # Initialize all NPCs from the scenario
         self._initialize_all_npcs(game_state)

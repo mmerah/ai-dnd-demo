@@ -40,6 +40,7 @@ from app.interfaces.services.common import (
 )
 from app.interfaces.services.data import ILoader, IRepository
 from app.interfaces.services.game import (
+    IActAndQuestService,
     ICombatService,
     IConversationService,
     IEventManager,
@@ -97,6 +98,7 @@ from app.services.data.repositories.trait_repository import TraitRepository
 from app.services.data.repositories.weapon_property_repository import WeaponPropertyRepository
 from app.services.data.repository_factory import RepositoryFactory
 from app.services.game import GameService
+from app.services.game.act_and_quest_service import ActAndQuestService
 from app.services.game.combat_service import CombatService
 from app.services.game.conversation_service import ConversationService
 from app.services.game.enrichment_service import GameEnrichmentService
@@ -132,6 +134,7 @@ class Container:
             scenario_service=self.scenario_service,
             compute_service=self.character_compute_service,
             location_service=self.location_service,
+            act_and_quest_service=self.act_and_quest_service,
         )
 
     @cached_property
@@ -244,6 +247,10 @@ class Container:
     @cached_property
     def party_service(self) -> IPartyService:
         return PartyService()
+
+    @cached_property
+    def act_and_quest_service(self) -> IActAndQuestService:
+        return ActAndQuestService()
 
     @cached_property
     def spell_repository(self) -> IRepository[SpellDefinition]:
@@ -436,7 +443,7 @@ class Container:
                 self.combat_service,
             ),
         )
-        event_bus.register_handler("quest", QuestHandler(self.memory_service))
+        event_bus.register_handler("quest", QuestHandler(self.memory_service, self.act_and_quest_service))
         event_bus.register_handler("party", PartyHandler(self.party_service))
 
         # Verify handlers can handle all commands

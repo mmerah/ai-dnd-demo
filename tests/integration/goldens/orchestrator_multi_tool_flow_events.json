@@ -494,6 +494,8 @@
     "timestamp": "<timestamp>",
     "tool_name": "modify_inventory",
     "parameters": {
+      "entity_id": "hero-inst",
+      "entity_type": "player",
       "item_index": "potion-of-healing",
       "quantity": 1
     },
@@ -516,6 +518,8 @@
     "timestamp": "<timestamp>",
     "tool_name": "modify_currency",
     "parameters": {
+      "entity_id": "hero-inst",
+      "entity_type": "player",
       "gold": 5
     },
     "result": {}

@@ -47,19 +47,6 @@ class IPartyService(ABC):
         pass
 
     @abstractmethod
-    def is_member(self, game_state: GameState, npc_id: str) -> bool:
-        """Check if an NPC is in the party.
-
-        Args:
-            game_state: Current game state
-            npc_id: Instance ID of NPC to check
-
-        Returns:
-            True if NPC is in party
-        """
-        pass
-
-    @abstractmethod
     def list_members(self, game_state: GameState) -> list[NPCInstance]:
         """Get all party member NPCs.
 

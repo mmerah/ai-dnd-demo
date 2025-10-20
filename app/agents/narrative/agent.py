@@ -104,7 +104,6 @@ class NarrativeAgent(BaseAgent):
             quest_tools.start_quest,
             quest_tools.complete_objective,
             quest_tools.complete_quest,
-            quest_tools.progress_act,
         ]
 
     async def event_stream_handler(

@@ -5,13 +5,13 @@ import pytest
 from app.events.commands.quest_commands import (
     CompleteObjectiveCommand,
     CompleteQuestCommand,
-    ProgressActCommand,
     StartQuestCommand,
 )
 from app.events.handlers.quest_handler import QuestHandler
+from app.interfaces.services.game import IActAndQuestService
 from app.interfaces.services.memory import IMemoryService
 from app.models.memory import MemoryEventKind, WorldEventContext
-from app.models.quest import ObjectiveStatus, Quest, QuestObjective
+from app.models.quest import ObjectiveStatus, Quest, QuestObjective, QuestStatus
 from app.models.scenario import ScenarioAct
 from app.models.tool_results import CompleteObjectiveResult, CompleteQuestResult
 from tests.factories import make_game_state
@@ -21,7 +21,8 @@ from tests.factories.scenario import make_scenario
 class TestQuestHandler:
     def setup_method(self) -> None:
         self.memory_service = create_autospec(IMemoryService, instance=True)
-        self.handler = QuestHandler(self.memory_service)
+        self.act_and_quest_service = create_autospec(IActAndQuestService, instance=True)
+        self.handler = QuestHandler(self.memory_service, self.act_and_quest_service)
         self.game_state = make_game_state()
         locations = self.game_state.scenario_instance.sheet.locations
         location_ids = [loc.id for loc in locations]
@@ -85,10 +86,12 @@ class TestQuestHandler:
         result = await self.handler.handle(command, gs)
 
         assert result.mutated
-        quest = gs.get_active_quest(self.quest_intro.id)
-        assert quest is not None
-        assert quest.id == self.quest_intro.id
-        assert quest.objectives[0].status == ObjectiveStatus.ACTIVE
+        self.act_and_quest_service.add_quest.assert_called_once()
+        add_args, _ = self.act_and_quest_service.add_quest.call_args
+        quest_arg = add_args[1]
+        assert quest_arg.id == self.quest_intro.id
+        assert quest_arg.status == QuestStatus.ACTIVE
+        assert quest_arg.objectives[0].status == ObjectiveStatus.ACTIVE
 
     @pytest.mark.asyncio
     async def test_cannot_start_quest_with_unmet_prerequisites(self) -> None:
@@ -98,12 +101,14 @@ class TestQuestHandler:
 
         with pytest.raises(ValueError, match="prerequisites"):
             await self.handler.handle(command, gs)
+        self.act_and_quest_service.add_quest.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_complete_objective(self) -> None:
         gs = self.game_state
-        # Start the quest first
-        await self.handler.handle(StartQuestCommand(game_id=gs.game_id, quest_id=self.quest_intro.id), gs)
+        active_quest = self.quest_intro.model_copy(deep=True)
+        active_quest.objectives[0].status = ObjectiveStatus.ACTIVE
+        self.act_and_quest_service.get_active_quest.return_value = active_quest
 
         command = CompleteObjectiveCommand(
             game_id=gs.game_id,
@@ -114,9 +119,7 @@ class TestQuestHandler:
 
         assert isinstance(result.data, CompleteObjectiveResult)
         assert not result.data.quest_complete
-        quest = gs.get_active_quest(self.quest_intro.id)
-        assert quest is not None
-        objective = next(o for o in quest.objectives if o.id == "track")
+        objective = next(o for o in active_quest.objectives if o.id == "track")
         assert objective.status == ObjectiveStatus.COMPLETED
         calls = self.memory_service.on_world_event.await_args_list
         assert len(calls) == 1
@@ -130,13 +133,15 @@ class TestQuestHandler:
     @pytest.mark.asyncio
     async def test_complete_all_objectives_completes_quest(self) -> None:
         gs = self.game_state
-        # Start the quest
-        await self.handler.handle(StartQuestCommand(game_id=gs.game_id, quest_id=self.quest_intro.id), gs)
+        active_quest = self.quest_intro.model_copy(deep=True)
+        active_quest.objectives[0].status = ObjectiveStatus.ACTIVE
+        active_quest.objectives[1].status = ObjectiveStatus.PENDING
+        self.act_and_quest_service.get_active_quest.return_value = active_quest
+        self.act_and_quest_service.complete_quest.return_value = True
+        self.act_and_quest_service.complete_quest.reset_mock()
 
         # Complete all objectives
-        quest = gs.get_active_quest(self.quest_intro.id)
-        assert quest is not None
-        for objective in quest.objectives:
+        for objective in active_quest.objectives:
             result = await self.handler.handle(
                 CompleteObjectiveCommand(
                     game_id=gs.game_id,
@@ -148,60 +153,36 @@ class TestQuestHandler:
 
         assert isinstance(result.data, CompleteObjectiveResult)
         assert result.data.quest_complete
-        assert self.quest_intro.id in gs.scenario_instance.completed_quest_ids
+        self.act_and_quest_service.complete_quest.assert_called_once_with(gs, self.quest_intro.id)
         calls = self.memory_service.on_world_event.await_args_list
-        assert len(calls) == len(quest.objectives)
+        assert len(calls) == len(active_quest.objectives)
         assert all(call.kwargs["event_kind"] == MemoryEventKind.OBJECTIVE_COMPLETED for call in calls)
 
     @pytest.mark.asyncio
     async def test_complete_quest_directly(self) -> None:
         gs = self.game_state
-        # Start and complete intro quest first
-        await self.handler.handle(StartQuestCommand(game_id=gs.game_id, quest_id=self.quest_intro.id), gs)
-        await self.handler.handle(CompleteQuestCommand(game_id=gs.game_id, quest_id=self.quest_intro.id), gs)
+        active_quest = self.quest_intro.model_copy(deep=True)
+        active_quest.objectives[0].status = ObjectiveStatus.ACTIVE
+        active_quest.objectives[1].status = ObjectiveStatus.PENDING
+        self.act_and_quest_service.get_active_quest.return_value = active_quest
+        self.act_and_quest_service.complete_quest.return_value = True
 
-        # Progress to act 2
-        await self.handler.handle(ProgressActCommand(game_id=gs.game_id), gs)
-
-        # Start finale quest
-        await self.handler.handle(StartQuestCommand(game_id=gs.game_id, quest_id=self.quest_finale.id), gs)
-
-        command = CompleteQuestCommand(game_id=gs.game_id, quest_id=self.quest_finale.id)
-        result = await self.handler.handle(command, gs)
+        result = await self.handler.handle(CompleteQuestCommand(game_id=gs.game_id, quest_id=self.quest_intro.id), gs)
 
         assert isinstance(result.data, CompleteQuestResult)
-        assert result.data.quest_name == self.quest_finale.name
-        assert self.quest_finale.id in gs.scenario_instance.completed_quest_ids
+        assert result.data.quest_name == self.quest_intro.name
+        # Verify the service was called to complete the quest (which handles auto-progression)
+        self.act_and_quest_service.complete_quest.assert_called()
         calls = self.memory_service.on_world_event.await_args_list
         event_kinds = [call.kwargs["event_kind"] for call in calls]
-        assert event_kinds.count(MemoryEventKind.QUEST_COMPLETED) == 2
-        assert MemoryEventKind.ACT_PROGRESSED in event_kinds
-
-    @pytest.mark.asyncio
-    async def test_progress_act(self) -> None:
-        gs = self.game_state
-        assert gs.scenario_instance.current_act_id == "act1"
-
-        # Complete intro quest to unlock act progression
-        await self.handler.handle(StartQuestCommand(game_id=gs.game_id, quest_id=self.quest_intro.id), gs)
-        await self.handler.handle(CompleteQuestCommand(game_id=gs.game_id, quest_id=self.quest_intro.id), gs)
-
-        command = ProgressActCommand(game_id=gs.game_id)
-        result = await self.handler.handle(command, gs)
-
-        assert result.mutated
-        assert gs.scenario_instance.current_act_id == "act2"
-        last_call = self.memory_service.on_world_event.await_args_list[-1]
-        assert last_call.kwargs["event_kind"] == MemoryEventKind.ACT_PROGRESSED
-        context = last_call.kwargs["context"]
-        assert isinstance(context, WorldEventContext)
-        assert context.act_id == "act2"
+        assert MemoryEventKind.QUEST_COMPLETED in event_kinds
 
     @pytest.mark.asyncio
     async def test_cannot_complete_nonexistent_quest(self) -> None:
         gs = self.game_state
 
         command = CompleteQuestCommand(game_id=gs.game_id, quest_id="nonexistent")
+        self.act_and_quest_service.get_active_quest.return_value = None
 
         with pytest.raises(ValueError, match="Quest .* not found in active"):
             await self.handler.handle(command, gs)

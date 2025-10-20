@@ -2244,8 +2244,18 @@ function getValidSlotsForItem(item) {
 async function equipItem(itemIndex, slot) {
     if (!currentGameId) return;
     try {
+        // Get selected member to determine entity
+        const members = getPartyMembers();
+        const selectedMember = members.find(m => m.id === selectedMemberId);
+
+        if (!selectedMember) {
+            throw new Error('No member selected');
+        }
+
         const body = {
             item_index: itemIndex,
+            entity_id: selectedMember.id,
+            entity_type: selectedMember.type,
             unequip: false
         };
 
@@ -2273,18 +2283,29 @@ async function equipItem(itemIndex, slot) {
 async function unequipFromSlot(slotName) {
     if (!currentGameId || !gameState) return;
 
-    const equipmentSlots = gameState?.character?.state?.equipment_slots;
-    if (!equipmentSlots) return;
-
-    const itemIndex = equipmentSlots[slotName];
-    if (!itemIndex) return;
-
     try {
+        // Get selected member to determine entity
+        const members = getPartyMembers();
+        const selectedMember = members.find(m => m.id === selectedMemberId);
+
+        if (!selectedMember) {
+            throw new Error('No member selected');
+        }
+
+        // Get equipment slots for the selected member
+        const equipmentSlots = selectedMember.data?.state?.equipment_slots;
+        if (!equipmentSlots) return;
+
+        const itemIndex = equipmentSlots[slotName];
+        if (!itemIndex) return;
+
         const res = await fetch(`/api/game/${currentGameId}/equip`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 item_index: itemIndex,
+                entity_id: selectedMember.id,
+                entity_type: selectedMember.type,
                 unequip: true
             })
         });

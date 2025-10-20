@@ -1,18 +1,19 @@
 ## Current Issues [CRITICAL]
 
-- equip does not work with party member. Used the button on the shield of party member. Tool called with 'shortsword' as if it used the off hand of the player character. Generally, tools are not made for party use I think
-- quest completed -> act did not progress automatically -> quest log empty
-
 # MVP 2
 
 Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic memory system
 
 ## Issues
 
-1. If I interact with an NPC using @npc-name then, certain tools are sometimes not called (like party, quest). Or at least, progression through quests/acts is very inconsistent. Need a progression agent ? or more general tool verifier ????? Read docs/FUTURE-AGENTS.md ?
-2. PartyState should contain the character instance. Removes character instance from the game state. That removes combat service ensure player in combat and any such occurance throughout the code where now we would interact directly with the party.
-3. Read docs/FUTURE-AGENTS.md. We might need very early an agent that can improve tool usage. Basically a tool usage suggestor ? Or something of that nature.
-4. data/backgrounds.json SRD only has acolyte as an example. Not enough at all !
+1. PartyState should contain the character instance. Removes character instance from the game state. That removes combat service ensure player in combat and any such occurance throughout the code where now we would interact directly with the party.
+2. Read docs/FUTURE-AGENTS.md. We might need very early an agent that can improve tool usage. Basically a tool usage suggestor ? Or something of that nature. One example is if I interact with an NPC using @npc-name then, tool calling is very inconsistent. Need a more general tool call verifier ?
+3. data/backgrounds.json SRD only has acolyte as an example. Not enough at all ! Look at what migrate_alignments_from_srd.py did for example (our data/xxx.json database can ONLY be modified through the use of those scripts as it takes data from 5e-database which I took a snippet of in docs/5e-database-snippets.)
+4. Need to update 2014 SRD: https://github.com/5e-bits/5e-database/commit/67261fbf4b1c5c785aeab47fbd4356c328b0593c apparently it has a breaking change: "BREAKING CHANGE: dropped the `race.starting_proficiencies`,
+`race.starting_proficiency_options`, `subrace.starting_proficiencies`,
+`subrace.language_options`, and `subrace.languages` properties of all
+races and subraces in the database. Clients can instead find this data
+on the corresponding traits linked to each race or subrace.". How does that update OUR data/races.json and data/subraces.json ? Shouldn't do anything I think ?
 
 ## Ideas
 

@@ -8,11 +8,10 @@ from unittest.mock import create_autospec
 import pytest
 
 from app.interfaces.services.character import ICharacterComputeService
-from app.interfaces.services.game import ILocationService
+from app.interfaces.services.game import IActAndQuestService, ILocationService
 from app.interfaces.services.scenario import IScenarioService
 from app.models.instances.entity_state import EntityState, HitDice, HitPoints
 from app.models.location import LocationConnection
-from app.models.quest import QuestStatus
 from app.models.scenario import LocationDescriptions
 from app.services.game.game_factory import GameFactory
 from tests.factories import make_character_sheet, make_location, make_quest, make_scenario
@@ -25,11 +24,13 @@ class TestGameFactory:
         self.scenario_service = create_autospec(IScenarioService, instance=True)
         self.compute_service = create_autospec(ICharacterComputeService, instance=True)
         self.location_service = create_autospec(ILocationService, instance=True)
+        self.act_and_quest_service = create_autospec(IActAndQuestService, instance=True)
 
         self.factory = GameFactory(
             scenario_service=self.scenario_service,
             compute_service=self.compute_service,
             location_service=self.location_service,
+            act_and_quest_service=self.act_and_quest_service,
         )
 
         self.character = make_character_sheet()
@@ -81,10 +82,7 @@ class TestGameFactory:
         self.location_service.initialize_location_from_scenario.assert_called_once()
         self.scenario_service.list_scenario_npcs.assert_called_once_with(self.scenario.id)
         self.compute_service.initialize_entity_state.assert_called()
-
-        active_quests = game_state.scenario_instance.active_quests
-        assert active_quests
-        assert active_quests[0].status == QuestStatus.ACTIVE
+        self.act_and_quest_service.add_quest.assert_called()
 
     def test_generate_game_id_includes_character_name(self) -> None:
         game_id = self.factory.generate_game_id("Hero Knight")

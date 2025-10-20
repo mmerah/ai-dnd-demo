@@ -1,5 +1,6 @@
 """Game service interfaces."""
 
+from app.interfaces.services.game.act_and_quest_service import IActAndQuestService
 from app.interfaces.services.game.combat_service import ICombatService
 from app.interfaces.services.game.conversation_service import IConversationService
 from app.interfaces.services.game.event_manager import IEventManager
@@ -16,6 +17,7 @@ from app.interfaces.services.game.pre_save_sanitizer import IPreSaveSanitizer
 from app.interfaces.services.game.save_manager import ISaveManager
 
 __all__ = [
+    "IActAndQuestService",
     "ICombatService",
     "IConversationService",
     "IEventManager",

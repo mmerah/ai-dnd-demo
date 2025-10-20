@@ -1,4 +1,4 @@
-"""Quest management tools for D&D 5e AI Dungeon Master."""
+"""Quest management tools"""
 
 import logging
 
@@ -9,7 +9,6 @@ from app.agents.core.dependencies import AgentDependencies
 from app.events.commands.quest_commands import (
     CompleteObjectiveCommand,
     CompleteQuestCommand,
-    ProgressActCommand,
     StartQuestCommand,
 )
 from app.tools.decorators import tool_handler
@@ -56,7 +55,7 @@ async def complete_objective(ctx: RunContext[AgentDependencies], quest_id: str, 
 async def complete_quest(ctx: RunContext[AgentDependencies], quest_id: str) -> BaseModel:
     """Complete an entire quest.
 
-    Use when all quest objectives are done.
+    Use when all quest objectives are done. Acts will automatically progress when all quests in an act are completed.
 
     Args:
         quest_id: ID of the quest to complete
@@ -64,19 +63,5 @@ async def complete_quest(ctx: RunContext[AgentDependencies], quest_id: str) -> B
     Examples:
         - Main quest done: quest_id="defeat_goblin_boss"
         - Side quest finished: quest_id="deliver_package"
-    """
-    raise NotImplementedError("This is handled by the @tool_handler decorator")
-
-
-@tool_handler(ProgressActCommand)
-async def progress_act(ctx: RunContext[AgentDependencies]) -> BaseModel:
-    """Progress to the next act of the scenario.
-
-    Use when moving to the next chapter of the story.
-
-    Examples:
-        - After completing all act 1 quests
-        - When major story milestone is reached
-        - Upon defeating act boss
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")

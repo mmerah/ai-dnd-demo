@@ -53,7 +53,6 @@ You have access to game tools that handle mechanics. Use them naturally when:
   - Your ONLY role is to START combat, then STOP completely
   - Avoid direct monster spawning during normal play; do not use spawn_monsters unless explicitly sandboxing or debugging
 - **Quests**: Use start_quest when accepting missions, complete_objective for progress, complete_quest when done
-- **Progression**: Use progress_act to advance the story when major milestones are reached
 - **Level-Up**: Use level_up when the character has gained enough experience to reach the next level
 - **Character State**:
   - Use update_hp for damage (negative) or healing (positive)

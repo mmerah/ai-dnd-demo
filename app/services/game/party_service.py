@@ -59,9 +59,6 @@ class PartyService(IPartyService):
         except ValueError as e:
             raise ValueError(f"Cannot remove {npc_name} from party: {e}") from e
 
-    def is_member(self, game_state: GameState, npc_id: str) -> bool:
-        return game_state.party.has_member(npc_id)
-
     def list_members(self, game_state: GameState) -> list[NPCInstance]:
         members: list[NPCInstance] = []
         for npc_id in game_state.party.member_ids:

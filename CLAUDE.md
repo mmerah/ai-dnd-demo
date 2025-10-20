@@ -101,6 +101,7 @@ app/
 │       ├── conversation_service.py         # Record messages
 │       ├── event_manager.py                # Record events
 │       ├── enrichment_service.py           # Enrich display information for UI
+│       ├── act_and_quest_service.py        # Act and Quest progression
 │       └── game_state_manager.py           # Manage game state in memory
 ├── tools/
 │   ├── decorators.py      # Wraps commands as tools with event logging
