@@ -1,0 +1,101 @@
+{
+  "id": "guard-elena",
+  "display_name": "Elena",
+  "role": "Caravan Guard",
+  "description": "A battle-hardened caravan guard whose goods were stolen by goblins. She's seeking revenge and eager to team up with anyone hunting the raiders.",
+  "initial_location_id": "tavern",
+  "importance": "major",
+  "initial_dialogue_hints": [
+    "Lost her caravan to goblin raiders on the forest road three days ago",
+    "Seeking revenge and to recover stolen goods from the goblin lair",
+    "Offers to join forces with adventurers hunting the goblins",
+    "Knows the forest paths and has fought goblins before"
+  ],
+  "initial_attitude": "friendly",
+  "initial_notes": [],
+  "character": {
+    "id": "npc-guard-elena",
+    "name": "Elena",
+    "race": "human",
+    "class_index": "fighter",
+    "subclass": null,
+    "subrace": null,
+    "background": "acolyte",
+    "alignment": "neutral-good",
+    "starting_abilities": {
+      "STR": 16,
+      "DEX": 14,
+      "CON": 14,
+      "INT": 10,
+      "WIS": 12,
+      "CHA": 10
+    },
+    "custom_features": [
+      {
+        "name": "Caravan Defender",
+        "description": "Years of protecting merchant caravans have honed her combat instincts and tactical awareness."
+      }
+    ],
+    "feature_indexes": [],
+    "trait_indexes": [],
+    "feat_indexes": [],
+    "personality": {
+      "traits": [
+        "Brave",
+        "Direct",
+        "Loyal to companions"
+      ],
+      "ideals": [
+        "Justice - Those who steal and terrorize must face consequences"
+      ],
+      "bonds": [
+        "Will avenge her fallen caravan members killed in the goblin raid"
+      ],
+      "flaws": [
+        "Can be reckless when seeking revenge"
+      ]
+    },
+    "backstory": "Elena spent five years guarding merchant caravans across dangerous roads. When goblins ambushed her caravan, killing two fellow guards and stealing everything, she barely escaped. Now she's determined to make the raiders pay and recover what was stolen.",
+    "languages": [
+      "common"
+    ],
+    "starting_skill_indexes": [
+      "athletics",
+      "intimidation",
+      "perception"
+    ],
+    "starting_inventory": [
+      {
+        "index": "longsword",
+        "quantity": 1
+      },
+      {
+        "index": "shield",
+        "quantity": 1
+      },
+      {
+        "index": "chain-mail",
+        "quantity": 1
+      },
+      {
+        "index": "rations-1-day",
+        "quantity": 5
+      },
+      {
+        "index": "potion-of-healing",
+        "quantity": 2
+      }
+    ],
+    "starting_currency": {
+      "copper": 0,
+      "silver": 50,
+      "electrum": 0,
+      "gold": 25,
+      "platinum": 0
+    },
+    "starting_spellcasting": null,
+    "starting_level": 3,
+    "starting_experience_points": 900,
+    "content_packs": ["srd"]
+  }
+}

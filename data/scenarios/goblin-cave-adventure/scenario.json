@@ -12,7 +12,7 @@
   ],
   "npcs": [
     "barkeep-tom",
-    "merchant-elena"
+    "guard-elena"
   ],
   "monsters": [
     "goblin-warrior",
@@ -20,8 +20,8 @@
     "goblin-boss"
   ],
   "quests": [
-    "find-the-artifact",
-    "rescue-the-merchant",
+    "assemble-your-party",
+    "clear-goblin-cave",
     "defeat-the-goblin-boss"
   ],
   "encounters": [

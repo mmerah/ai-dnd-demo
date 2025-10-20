@@ -2,37 +2,40 @@
   "acts": [
     {
       "id": "act1",
-      "name": "The Investigation",
-      "description": "Learn about the goblin threat and gather information",
+      "name": "The Call to Adventure",
+      "description": "Gather information about the goblin threat and recruit Elena to your party",
       "locations": ["tavern", "forest-path"],
       "objectives": [
-        "Talk to Tom about the goblin raids",
-        "Learn about the missing merchant",
-        "Investigate the forest path"
+        "Talk to Tom the barkeep about the goblin raids",
+        "Meet Elena and learn about the caravan raid",
+        "Recruit Elena to join your party",
+        "Investigate the forest path for goblin activity",
+        "Survive the goblin ambush in the forest"
       ],
-      "quests": ["find-the-artifact"]
+      "quests": ["assemble-your-party"]
     },
     {
       "id": "act2",
-      "name": "Into the Lair",
-      "description": "Enter the goblin cave and face its dangers",
+      "name": "Into the Darkness",
+      "description": "Infiltrate the goblin cave with Elena and fight through the guards",
       "locations": ["goblin-cave-entrance", "goblin-cave-depths"],
       "objectives": [
-        "Infiltrate the goblin cave",
-        "Fight or sneak past the guards",
-        "Explore the cave depths"
+        "Locate the hidden goblin cave entrance",
+        "Defeat the entrance guards with Elena's help",
+        "Explore the dangerous cave depths",
+        "Fight through additional goblin defenders"
       ],
-      "quests": ["rescue-the-merchant"]
+      "quests": ["clear-goblin-cave"]
     },
     {
       "id": "act3",
-      "name": "The Final Confrontation",
-      "description": "Defeat the goblin boss and claim victory",
+      "name": "The Final Showdown",
+      "description": "Confront the goblin boss and end the raids once and for all",
       "locations": ["treasure-room"],
       "objectives": [
-        "Confront the goblin boss",
-        "Defeat the boss in combat",
-        "Retrieve the artifact and treasure"
+        "Reach the goblin boss's treasure room",
+        "Defeat the goblin boss with Elena's aid",
+        "Recover the stolen caravan goods and treasure"
       ],
       "quests": ["defeat-the-goblin-boss"]
     }
