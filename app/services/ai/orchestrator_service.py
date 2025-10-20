@@ -3,9 +3,11 @@
 import logging
 from collections.abc import AsyncIterator
 from datetime import datetime
+from typing import cast
 
 from app.agents.core.base import BaseAgent
 from app.agents.core.types import AgentType
+from app.agents.npc.base import BaseNPCAgent
 from app.interfaces.agents.summarizer import ISummarizerAgent
 from app.interfaces.events import IEventBus
 from app.interfaces.services.ai import IAgentLifecycleService
@@ -16,6 +18,8 @@ from app.interfaces.services.game import (
     IMetadataService,
 )
 from app.models.ai_response import StreamEvent
+from app.models.attributes import EntityType
+from app.models.combat import CombatFaction
 from app.models.game_state import DialogueSessionMode, GameState, MessageRole
 from app.services.ai.orchestrator import agent_router, combat_loop, state_reload, system_broadcasts, transitions
 
@@ -68,6 +72,21 @@ class AgentOrchestrator:
                 game_state = state_reload.reload(self.game_service, game_state)
                 return
             self._maybe_end_dialogue_session(game_state)
+        else:
+            current_turn = game_state.combat.get_current_turn()
+            if (
+                current_turn
+                and current_turn.faction == CombatFaction.ALLY
+                and current_turn.entity_type == EntityType.NPC
+                and not user_message.lstrip().startswith("[ALLY_ACTION]")
+            ):
+                npc = game_state.get_npc_by_id(current_turn.entity_id)
+                if npc:
+                    user_message = (
+                        f"[ALLY_ACTION] It is {npc.display_name}'s turn in combat (entity_id={npc.instance_id}, allied NPC). "
+                        f"Execute this action exactly as described: {user_message}. "
+                        "Use the appropriate combat tools (rolls, damage, HP updates) and CALL next_turn immediately once resolved."
+                    )
 
         # Determine current agent type based on game state
         current_agent_type = agent_router.select(game_state)
@@ -141,10 +160,8 @@ class AgentOrchestrator:
             if npc is None:
                 raise ValueError(f"NPC with id '{npc_id}' not found")
 
-            agent = self.agent_lifecycle_service.get_npc_agent(game_state, npc)
-            prepare_fn = getattr(agent, "prepare_for_npc", None)
-            if callable(prepare_fn):
-                prepare_fn(npc)
+            agent = cast(BaseNPCAgent, self.agent_lifecycle_service.get_npc_agent(game_state, npc))
+            agent.prepare_for_npc(npc)
             async for event in agent.process(user_message, game_state, stream=stream):
                 yield event
             session.last_interaction_at = datetime.now()
@@ -174,12 +191,16 @@ class AgentOrchestrator:
 
         # Generate and send initial combat prompt
         initial_prompt = self.combat_service.generate_combat_prompt(game_state)
+        current_turn = game_state.combat.get_current_turn()
+        is_ally_turn = current_turn is not None and current_turn.faction == CombatFaction.ALLY
+
         if initial_prompt:
             await system_broadcasts.send_initial_combat_prompt(self.event_bus, game_state.game_id, initial_prompt)
 
-        # Process the initial combat turn
-        async for event in self.combat_agent.process(initial_prompt, game_state, stream=stream):
-            yield event
+        # Only prompt combat agent immediately if it's not an allied NPC turn
+        if not is_ally_turn and initial_prompt:
+            async for event in self.combat_agent.process(initial_prompt, game_state, stream=stream):
+                yield event
 
         # Handle any subsequent NPC/Monster turns or combat ending
         async for event in combat_loop.run(

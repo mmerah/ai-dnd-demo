@@ -1,13 +1,26 @@
 ## Current Issues [CRITICAL]
 
+- Frontend: Added party member but new member does not show in the party list
+- Frontend: Select party member in the list but no details is loaded for npc members
+- Frontend: combat suggestion shows "Undefined's turn" as title with empty content. Using combat/suggestion/accept then I get 422 Unprocessable Entity.
+- NPC agent in combat called with no context
+- If I pick something else for ally turn, then I feel like the combat agent is rolling for the player character which is wrong. I did that, had a roll dice call tool and then another suggestion box appeared which should not be the case normally
+- Upon starting the fight, NPC ally was first and the AI agent just called roll dice tool to attack instead of doing a combat suggestion. I think we need to make sure that the system prompt tells the AI exactly what to do in combat (which is suggestions)
+- In an ideal world, in combat: [Move to NPC Ally turn] -> [Combat Agent is waiting for a prompt] -> [NPC Agent prompted to get a suggestion] -> [suggestion shown to UI] -> [Player accept or refuse the suggestion] -> [action: suggestion or player override is given as a prompt to the combat agent] -> [combat agent does the necessary tool calls, if next_turn is not called then we have the usual prompt to tell it to call next_turn ?]
+
+- equip does not work with party member. Used the button on the shield of party member. Tool called with 'shortsword' as if it used the off hand of the player character. Generally, tools are not made for party use I think
+- quest completed -> act did not progress automatically -> quest log empty
+
 # MVP 2
 
 Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic memory system
 
 ## Issues
 
-1. PartyState should contain the character instance. Removes character instance from the game state. That removes combat service ensure player in combat and any such occurance throughout the code where now we would interact directly with the party.
-2. Read docs/FUTURE-AGENTS.md. We might need very early an agent that can improve tool usage. Basically a tool usage suggestor ? Or something of that nature.
+1. If I interact with an NPC using @npc-name then, certain tools are not called (like party, quest). Or at least, progression through quests/acts is very inconsistent. Need a progression agent ? or more general tool verifier ?????
+2. PartyState should contain the character instance. Removes character instance from the game state. That removes combat service ensure player in combat and any such occurance throughout the code where now we would interact directly with the party.
+3. Read docs/FUTURE-AGENTS.md. We might need very early an agent that can improve tool usage. Basically a tool usage suggestor ? Or something of that nature.
+4. data/backgrounds.json SRD only has acolyte as an example. Not enough at all !
 
 ## Ideas
 

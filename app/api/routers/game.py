@@ -185,8 +185,7 @@ async def accept_combat_suggestion(
     if not game_state.combat.is_active:
         raise HTTPException(status_code=400, detail="Combat is not active")
 
-    # Format the message for the combat agent
-    # The combat agent will narrate this action and should call next_turn tool
+    # Base description that downstream orchestration will wrap with ally instructions
     message = f"{request.npc_name} performs: {request.action_text}"
 
     logger.info(

@@ -3,8 +3,10 @@
 import logging
 import uuid
 from collections.abc import AsyncIterator
+from typing import cast
 
 from app.agents.core.base import BaseAgent
+from app.agents.npc.base import BaseNPCAgent
 from app.events.commands.broadcast_commands import BroadcastCombatSuggestionCommand, BroadcastNarrativeCommand
 from app.interfaces.events import IEventBus
 from app.interfaces.services.ai import IAgentLifecycleService
@@ -86,7 +88,9 @@ async def _generate_ally_suggestion(
         return False
 
     # Get NPC agent and generate suggestion
-    npc_agent = agent_lifecycle_service.get_npc_agent(game_state, npc)
+    npc_agent = cast(BaseNPCAgent, agent_lifecycle_service.get_npc_agent(game_state, npc))
+    npc_agent.prepare_for_npc(npc)
+
     suggestion_prompt = (
         f"You are {npc.display_name}. It is your turn in combat. "
         f"What combat action do you want to take? Describe it briefly in one sentence from your perspective. "

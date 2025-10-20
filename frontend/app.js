@@ -949,7 +949,6 @@ async function sendMessage() {
         console.warn('[UI] Cannot send message: agent is processing');
         return;
     }
-    
     console.log(`[CHAT] Sending message: ${message}`);
     
     // Add player message to chat
@@ -1075,19 +1074,19 @@ function getPartyMembers() {
     // Add NPCs that are in the party
     if (gameState.party && gameState.party.member_ids) {
         gameState.party.member_ids.forEach(npcId => {
-            const npc = gameState.npcs.find(n => n.id === npcId);
+            const npc = gameState.npcs.find(n => n.instance_id === npcId);
             if (npc) {
                 members.push({
-                    id: npc.id,
+                    id: npc.instance_id,
                     type: 'npc',
-                    name: npc.name,
-                    hp: npc.hit_points?.current || 0,
-                    maxHp: npc.hit_points?.maximum || 0,
-                    ac: npc.armor_class || 10,
-                    level: npc.level || 1,
-                    className: npc.occupation || 'NPC',
-                    race: npc.race || '',
-                    conditions: npc.conditions || [],
+                    name: npc.display_name || npc.sheet?.character?.name || 'NPC',
+                    hp: npc.state?.hit_points?.current || 0,
+                    maxHp: npc.state?.hit_points?.maximum || 0,
+                    ac: npc.state?.armor_class || 10,
+                    level: npc.state?.level || 1,
+                    className: npc.sheet?.occupation || 'NPC',
+                    race: npc.sheet?.character?.race || '',
+                    conditions: npc.state?.conditions || [],
                     data: npc
                 });
             }
@@ -1221,89 +1220,102 @@ function updateSelectedMemberDisplay() {
 }
 
 function updateNPCSheet(npc) {
-    console.log('[UI] Updating NPC sheet:', npc.name);
-
-    // Basic info
-    document.getElementById('charName').textContent = npc.name;
-    document.getElementById('charRace').textContent = npc.race || 'Unknown';
-    document.getElementById('charClass').textContent = npc.occupation || 'NPC';
-
-    // Hide optional fields for NPCs
-    const subraceEl = document.getElementById('charSubrace');
-    const subraceRow = subraceEl?.parentElement;
-    if (subraceRow) subraceRow.style.display = 'none';
-
-    const subclassEl = document.getElementById('charSubclass');
-    const subclassRow = subclassEl?.parentElement;
-    if (subclassRow) subclassRow.style.display = 'none';
-
-    document.getElementById('charLevel').textContent = npc.level || 1;
-
-    // HP
-    const current_hp = npc.hit_points?.current ?? 0;
-    const max_hp = npc.hit_points?.maximum ?? 0;
-    const hpPercent = max_hp > 0 ? (current_hp / max_hp) * 100 : 0;
-    document.getElementById('hpFill').style.width = `${hpPercent}%`;
-    document.getElementById('hpText').textContent = `${current_hp}/${max_hp}`;
-
-    // Combat stats
-    document.getElementById('charAC').textContent = npc.armor_class || 10;
-    const initiative = npc.initiative || 0;
-    document.getElementById('charInitiative').textContent = initiative >= 0 ? `+${initiative}` : `${initiative}`;
-    document.getElementById('charSpeed').textContent = `${npc.speed || 30}ft`;
-
-    // Attacks - NPCs may not have attacks in the same format
-    updateAttacks(npc.attacks || []);
-
-    // Abilities - NPCs may not have abilities
-    if (npc.abilities) {
-        updateAbilities(npc.abilities);
-    } else {
-        // Clear abilities if NPC doesn't have them
-        ['strScore', 'dexScore', 'conScore', 'intScore', 'wisScore', 'chaScore'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = '-';
-        });
-        ['strMod', 'dexMod', 'conMod', 'intMod', 'wisMod', 'chaMod'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = '+0';
-        });
+    if (!npc) {
+        console.warn('[UI] No NPC data provided for sheet update');
+        return;
     }
 
-    // Skills - clear for NPCs
-    const skillsList = document.getElementById('skillsList');
-    if (skillsList) skillsList.innerHTML = '<div class="inventory-empty">NPC skills not displayed</div>';
+    const npcSheet = npc.sheet?.character || {};
+    const npcState = npc.state || {};
+    const displayName = npc.display_name || npc.sheet?.display_name || npcSheet.name || 'NPC';
 
-    // Features/Traits - clear for NPCs
-    const featureIndexList = document.getElementById('featureIndexList');
-    if (featureIndexList) featureIndexList.innerHTML = '';
-    const featureTextList = document.getElementById('featureTextList');
-    if (featureTextList) featureTextList.innerHTML = '';
-    const traitIndexList = document.getElementById('traitIndexList');
-    if (traitIndexList) traitIndexList.innerHTML = '';
-    const featIndexList = document.getElementById('featIndexList');
-    if (featIndexList) featIndexList.innerHTML = '';
+    console.log('[UI] Updating NPC sheet:', displayName);
 
-    // Spellcasting - clear for NPCs
-    const spellSlots = document.getElementById('spellSlots');
-    if (spellSlots) spellSlots.innerHTML = '';
-    const spellList = document.getElementById('spellList');
-    if (spellList) spellList.innerHTML = '';
+    // Basic identity
+    document.getElementById('charName').textContent = displayName;
+    const raceLabel = npcSheet.race ? (displayRaceName(npcSheet.race) || npcSheet.race) : 'Unknown';
+    document.getElementById('charRace').textContent = raceLabel;
+    const roleOrClass = npc.sheet?.role || displayClassName(npcSheet.class_index) || 'NPC';
+    document.getElementById('charClass').textContent = roleOrClass;
 
-    // Equipment/Inventory - clear for NPCs
-    updateEquipmentSlots({});
-    updateInventory({ gold: 0, silver: 0, copper: 0, inventory: [] });
+    // Hide optional fields that don't map cleanly for NPCs
+    const subraceEl = document.getElementById('charSubrace');
+    const subraceRow = subraceEl?.parentElement;
+    if (subraceEl && subraceRow) {
+        subraceEl.textContent = '';
+        subraceRow.style.display = 'none';
+    }
+    const subclassEl = document.getElementById('charSubclass');
+    const subclassRow = subclassEl?.parentElement;
+    if (subclassEl && subclassRow) {
+        subclassEl.textContent = '';
+        subclassRow.style.display = 'none';
+    }
+
+    document.getElementById('charLevel').textContent = npcState.level || npcSheet.starting_level || 1;
+
+    // HP + vitals
+    const currentHp = npcState.hit_points?.current ?? 0;
+    const maxHp = npcState.hit_points?.maximum ?? 0;
+    const hpPercent = maxHp > 0 ? (currentHp / maxHp) * 100 : 0;
+    document.getElementById('hpFill').style.width = `${hpPercent}%`;
+    document.getElementById('hpText').textContent = `${currentHp}/${maxHp}`;
+
+    document.getElementById('charAC').textContent = npcState.armor_class ?? 10;
+    const initiativeBonus = npcState.initiative ?? npcState.initiative_bonus ?? 0;
+    document.getElementById('charInitiative').textContent = initiativeBonus >= 0 ? `+${initiativeBonus}` : `${initiativeBonus}`;
+    document.getElementById('charSpeed').textContent = `${npcState.speed ?? 30}ft`;
+
+    // Combat + capabilities
+    updateAttacks(npcState.attacks || []);
+    updateAbilities(npcState.abilities || npcSheet.starting_abilities);
+    updateSkills(npcState.skills || []);
+
+    // Features, traits, feats
+    if (npcSheet) {
+        updateFeaturesAndTraits(npcSheet);
+        updateFeats(npcSheet.feat_indexes);
+    }
+
+    // Spellcasting
+    if (npcState.spellcasting) {
+        updateSpellSlots(npcState.spellcasting.spell_slots);
+        updateSpellList(npcState.spellcasting.spells_known);
+    } else {
+        updateSpellSlots(null);
+        updateSpellList([]);
+    }
+
+    // Equipment + inventory
+    updateEquipmentSlots(npcState.equipment_slots || {});
+    updateInventory({
+        gold: npcState.currency?.gold || 0,
+        silver: npcState.currency?.silver || 0,
+        copper: npcState.currency?.copper || 0,
+        inventory: npcState.inventory || [],
+    });
 
     // Conditions
-    updateConditions(npc.conditions || []);
+    updateConditions(npcState.conditions || []);
 }
 
 // Combat Suggestion Functions
-function displayCombatSuggestion(data) {
-    console.log('[COMBAT] Displaying suggestion:', data);
+function displayCombatSuggestion(eventData) {
+    const suggestion = eventData?.suggestion ?? eventData;
+    if (!suggestion) {
+        console.error('[COMBAT] Missing suggestion payload:', eventData);
+        return;
+    }
 
-    // Store the suggestion data
-    currentSuggestion = data;
+    console.log('[COMBAT] Displaying suggestion:', suggestion);
+
+    // Store the suggestion data (structure used by accept/override handlers)
+    currentSuggestion = {
+        suggestion_id: suggestion.suggestion_id,
+        npc_id: suggestion.npc_id,
+        npc_name: suggestion.npc_name,
+        action_text: suggestion.action_text,
+    };
 
     // Get UI elements
     const suggestionCard = document.getElementById('combatSuggestion');
@@ -1316,8 +1328,9 @@ function displayCombatSuggestion(data) {
     }
 
     // Update the card content
-    suggestionTitle.textContent = `${data.npc_name}'s Turn`;
-    suggestionText.textContent = data.action_text;
+    const titleName = suggestion.npc_name || 'Ally';
+    suggestionTitle.textContent = `${titleName}'s Turn`;
+    suggestionText.textContent = suggestion.action_text || 'No suggested action provided.';
 
     // Show the suggestion card
     suggestionCard.style.display = 'block';
@@ -1339,7 +1352,8 @@ async function acceptSuggestion() {
         return;
     }
 
-    console.log('[COMBAT] Accepting suggestion:', currentSuggestion);
+    const suggestion = { ...currentSuggestion };
+    console.log('[COMBAT] Accepting suggestion:', suggestion);
 
     try {
         // Send acceptance to backend
@@ -1349,10 +1363,10 @@ async function acceptSuggestion() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                suggestion_id: currentSuggestion.suggestion_id,
-                npc_id: currentSuggestion.npc_id,
-                npc_name: currentSuggestion.npc_name,
-                action_text: currentSuggestion.action_text
+                suggestion_id: suggestion.suggestion_id,
+                npc_id: suggestion.npc_id,
+                npc_name: suggestion.npc_name,
+                action_text: suggestion.action_text
             })
         });
 
@@ -1366,7 +1380,7 @@ async function acceptSuggestion() {
         hideCombatSuggestion();
 
         // Add a system message
-        addMessage(`${currentSuggestion.npc_name} performs: ${currentSuggestion.action_text}`, 'system');
+        addMessage(`${suggestion.npc_name} performs: ${suggestion.action_text}`, 'system');
 
     } catch (error) {
         console.error('[COMBAT] Failed to accept suggestion:', error);
@@ -1381,13 +1395,14 @@ function overrideSuggestion() {
         return;
     }
 
+    const suggestion = { ...currentSuggestion };
     console.log('[COMBAT] Override suggestion, allowing manual input');
 
     // Hide the suggestion card
     hideCombatSuggestion();
 
     // Add a system message
-    addMessage(`Controlling ${currentSuggestion.npc_name} manually. Type your action in the chat.`, 'system');
+    addMessage(`Controlling ${suggestion.npc_name} manually. Type your action in the chat.`, 'system');
 
     // Focus the input field
     const messageInput = document.getElementById('messageInput');
