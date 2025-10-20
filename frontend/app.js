@@ -1370,7 +1370,8 @@ async function acceptSuggestion() {
 
     } catch (error) {
         console.error('[COMBAT] Failed to accept suggestion:', error);
-        addMessage('Failed to execute suggested action. Please try again.', 'error');
+        addMessage('Failed to execute suggested action. Click "Use This Action" to retry.', 'error');
+        // Don't hide suggestion on failure - allow user to retry
     }
 }
 

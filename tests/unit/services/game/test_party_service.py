@@ -133,3 +133,54 @@ class TestPartyService:
 
         # Member should still be in party
         assert self.game_state.party.has_member(self.major_npc.instance_id)
+
+    def test_list_members_handles_orphaned_party_member_ids(self) -> None:
+        """Verify list_members gracefully handles missing NPCs (orphaned party member IDs)."""
+        # Add a valid member
+        self.game_state.party.add_member(self.major_npc.instance_id)
+
+        # Manually add a nonexistent NPC ID to simulate orphaned data
+        self.game_state.party.member_ids.append("nonexistent-npc-id")
+
+        # Should skip missing NPCs and only return valid ones
+        members = self.service.list_members(self.game_state)
+
+        assert len(members) == 1
+        assert members[0].instance_id == self.major_npc.instance_id
+
+    def test_get_follow_commands_handles_orphaned_party_member_ids(self) -> None:
+        """Verify get_follow_commands gracefully handles missing NPCs (orphaned party member IDs)."""
+        # Add a valid member
+        self.game_state.party.add_member(self.major_npc.instance_id)
+
+        # Manually add a nonexistent NPC ID to simulate orphaned data
+        self.game_state.party.member_ids.append("nonexistent-npc-id")
+
+        target_location = "new-location"
+
+        # Should skip missing NPCs and only generate commands for valid ones
+        commands = self.service.get_follow_commands(self.game_state, target_location)
+
+        assert len(commands) == 1
+        assert commands[0].npc_id == self.major_npc.instance_id
+
+    def test_get_follow_commands_includes_dead_npcs(self) -> None:
+        """Verify get_follow_commands generates commands even for dead NPCs.
+
+        This is intentional - dead NPCs should still follow (their bodies can be carried/dragged).
+        Movement logic doesn't filter by HP state.
+        """
+        # Add NPC to party
+        self.game_state.party.add_member(self.major_npc.instance_id)
+
+        # Set NPC to dead (0 HP)
+        self.major_npc.state.hit_points.current = 0
+
+        target_location = "new-location"
+
+        # Should still generate follow command for dead NPC
+        commands = self.service.get_follow_commands(self.game_state, target_location)
+
+        assert len(commands) == 1
+        assert commands[0].npc_id == self.major_npc.instance_id
+        assert commands[0].to_location_id == target_location

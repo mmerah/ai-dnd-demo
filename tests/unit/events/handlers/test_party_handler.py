@@ -86,11 +86,14 @@ class TestPartyHandler:
 
     @pytest.mark.asyncio
     async def test_add_party_member_with_invalid_npc_error(self) -> None:
-        """Test error for invalid NPC."""
+        """Test error for invalid NPC - service raises error."""
         command = AddPartyMemberCommand(
             game_id=self.game_state.game_id,
             npc_id="non-existent-npc",
         )
+
+        # Mock service to raise error (service handles validation now)
+        self.party_service.add_member.side_effect = ValueError("NPC with id 'non-existent-npc' not found")
 
         with pytest.raises(ValueError, match="NPC with id"):
             await self.handler.handle(command, self.game_state)

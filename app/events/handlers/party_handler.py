@@ -32,24 +32,25 @@ class PartyHandler(BaseHandler):
             if not command.npc_id:
                 raise ValueError("NPC ID cannot be empty")
 
-            # Get NPC for display info (will also validate existence)
-            npc = game_state.get_npc_by_id(command.npc_id)
-            if not npc:
-                raise ValueError(f"NPC with id '{command.npc_id}' not found")
-
             # Delegate to PartyService
             self.party_service.add_member(game_state, command.npc_id)
+
+            # Get NPC for display info after successful addition
+            npc = game_state.get_npc_by_id(command.npc_id)
+            # Fallback should never happen
+            npc_name = npc.display_name if npc else command.npc_id
+
             result.mutated = True
             result.data = AddPartyMemberResult(
                 npc_id=command.npc_id,
-                npc_name=npc.display_name,
+                npc_name=npc_name,
                 party_size=len(game_state.party.member_ids),
-                message=f"{npc.display_name} has joined the party! ({len(game_state.party.member_ids)}/{game_state.party.max_size})",
+                message=f"{npc_name} has joined the party! ({len(game_state.party.member_ids)}/{game_state.party.max_size})",
             )
 
             # Broadcast update
             result.add_command(BroadcastGameUpdateCommand(game_id=command.game_id))
-            logger.info(f"Added {npc.display_name} to party")
+            logger.info(f"Added {npc_name} to party")
 
         elif isinstance(command, RemovePartyMemberCommand):
             if not command.npc_id:
