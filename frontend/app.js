@@ -647,6 +647,12 @@ async function loadGameState() {
         gameState = await response.json();
         console.log('[GAME] Game state loaded:', gameState);
 
+        // Initialize selectedMemberId to player's actual instance_id only if not already set
+        // or if still using the old hardcoded 'player' value
+        if (gameState.character?.instance_id && (selectedMemberId === 'player' || !selectedMemberId)) {
+            selectedMemberId = gameState.character.instance_id;
+        }
+
         // Fetch spell names if there are spells
         if (gameState.character?.state?.spellcasting?.spells_known?.length > 0) {
             const spellIndexes = gameState.character.state.spellcasting.spells_known;
@@ -1058,7 +1064,7 @@ function getPartyMembers() {
 
     // Always add player as first member
     members.push({
-        id: 'player',
+        id: gameState.character.instance_id,
         type: 'player',
         name: gameState.character.sheet?.name || 'Player',
         hp: gameState.character.state?.hit_points?.current || 0,
@@ -1217,6 +1223,18 @@ function updateSelectedMemberDisplay() {
     } else {
         updateNPCSheet(selectedMember.data);
     }
+
+    // Update equipment and inventory for selected member
+    const memberState = selectedMember.data?.state;
+    if (memberState) {
+        updateEquipmentSlots(memberState.equipment_slots || {}, memberState.inventory || []);
+        updateInventory({
+            gold: memberState.currency?.gold || 0,
+            silver: memberState.currency?.silver || 0,
+            copper: memberState.currency?.copper || 0,
+            inventory: memberState.inventory || [],
+        }, memberState.equipment_slots || {});
+    }
 }
 
 function updateNPCSheet(npc) {
@@ -1287,13 +1305,13 @@ function updateNPCSheet(npc) {
     }
 
     // Equipment + inventory
-    updateEquipmentSlots(npcState.equipment_slots || {});
+    updateEquipmentSlots(npcState.equipment_slots || {}, npcState.inventory || []);
     updateInventory({
         gold: npcState.currency?.gold || 0,
         silver: npcState.currency?.silver || 0,
         copper: npcState.currency?.copper || 0,
         inventory: npcState.inventory || [],
-    });
+    }, npcState.equipment_slots || {});
 
     // Conditions
     updateConditions(npcState.conditions || []);
@@ -1522,7 +1540,7 @@ function updateCharacterSheet() {
     }
     
     // Equipment slots (from state)
-    updateEquipmentSlots(charState.equipment_slots);
+    updateEquipmentSlots(charState.equipment_slots, charState.inventory || []);
 
     // Inventory (from state)
     updateInventory({
@@ -1530,7 +1548,7 @@ function updateCharacterSheet() {
         silver: charState.currency?.silver || 0,
         copper: charState.currency?.copper || 0,
         inventory: charState.inventory || []
-    });
+    }, charState.equipment_slots || {});
 
     // Conditions (from state)
     updateConditions(charState.conditions);
@@ -2076,7 +2094,7 @@ function updateSpellList(spells) {
 }
 
 // Update equipment slots display
-function updateEquipmentSlots(equipmentSlots) {
+function updateEquipmentSlots(equipmentSlots, inventory) {
     if (!equipmentSlots) return;
 
     // Update each equipment slot
@@ -2092,8 +2110,8 @@ function updateEquipmentSlots(equipmentSlots) {
         const itemIndex = equipmentSlots[slotName];
 
         if (itemIndex) {
-            // Find the item in inventory to get its display name
-            const item = gameState?.character?.state?.inventory?.find(it => it.index === itemIndex);
+            // Find the item in the provided inventory to get its display name
+            const item = inventory?.find(it => it.index === itemIndex);
             const displayName = item?.name || itemIndex;
 
             slotElement.innerHTML = `
@@ -2114,7 +2132,7 @@ function updateEquipmentSlots(equipmentSlots) {
 }
 
 // Update inventory (now simplified - no equipped section)
-function updateInventory(inventory) {
+function updateInventory(inventory, equipmentSlots) {
     if (!inventory) return;
 
     // Update currency
@@ -2130,9 +2148,9 @@ function updateInventory(inventory) {
 
     const items = inventory.inventory;
 
-    // Get equipped items from equipment_slots
-    const equipmentSlots = gameState?.character?.state?.equipment_slots || {};
-    const equippedItemIndexes = new Set(Object.values(equipmentSlots).filter(Boolean));
+    // Get equipped items from the provided equipment_slots parameter
+    const slots = equipmentSlots || {};
+    const equippedItemIndexes = new Set(Object.values(slots).filter(Boolean));
 
     if (items.length === 0) {
         const empty = document.createElement('div');
@@ -2188,7 +2206,7 @@ function updateInventory(inventory) {
                 row.appendChild(actions);
             } else if (isEquipped) {
                 // Show where it's equipped
-                const equippedIn = Object.entries(equipmentSlots)
+                const equippedIn = Object.entries(slots)
                     .filter(([slot, index]) => index === item.index)
                     .map(([slot]) => slot.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()))
                     .join(', ');

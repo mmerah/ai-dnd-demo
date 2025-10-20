@@ -91,9 +91,12 @@ class EventBus(IEventBus):
         # Execute command with handlers raising exceptions for errors
         result = await handler.handle(command, game_state)
 
-        # Recompute character state if needed
+        # Recompute entity state if needed (player + all party NPCs)
         if result.mutated or result.recompute_state:
             self.entity_state_service.recompute_entity_state(game_state, game_state.character.instance_id)
+            if game_state.party.member_ids:
+                for npc_id in game_state.party.member_ids:
+                    self.entity_state_service.recompute_entity_state(game_state, npc_id)
 
         # Centralized persistence: save once if handler mutated state
         if result.mutated:

@@ -1,3 +1,10 @@
+[project]
+name = "ai-dnd-demo"
+version = "0.0.0"
+description = "AI-assisted D&D Dungeon Master"
+requires-python = ">=3.10"
+dependencies = []
+
 [tool.mypy]
 python_version = "3.10"
 strict = true

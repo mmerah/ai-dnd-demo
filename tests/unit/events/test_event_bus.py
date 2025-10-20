@@ -12,7 +12,7 @@ from app.events.handlers.base_handler import BaseHandler
 from app.interfaces.services.character import IEntityStateService
 from app.interfaces.services.game import IGameService
 from app.models.game_state import GameState
-from tests.factories import make_game_state
+from tests.factories import make_game_state, make_npc_instance
 
 
 @dataclass
@@ -106,3 +106,22 @@ class TestEventBus:
         bad_command = StubCommand(game_id=self.game_state.game_id, handler="unknown")
         with pytest.raises(ValueError):
             await self.bus.execute_command(bad_command)
+
+    async def test_recompute_party_members(self) -> None:
+        """Test that recompute_state recomputes player and all party NPCs."""
+        # Create and add an NPC to the game state and party
+        npc = make_npc_instance(instance_id="test-npc-1")
+        self.game_state.npcs.append(npc)
+        self.game_state.party.member_ids.append(npc.instance_id)
+
+        command = StubCommand(
+            game_id=self.game_state.game_id,
+            mutate=True,
+            recompute=True,
+        )
+
+        await self.bus.execute_command(command)
+
+        # Should recompute player (1) + NPC in party (1) = 2 calls
+        assert self.entity_state_service.calls == 2
+        assert self.game_service.saved

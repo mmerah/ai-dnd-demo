@@ -52,7 +52,8 @@ class CommandResult:
         self.follow_up_commands: list[BaseCommand] = []
         # Indicates mutated game state requiring save
         self.mutated: bool = False
-        # Indicates that character state needs to be recomputed after this command
+        # Indicates that entity state needs to be recomputed after this command
+        # Recomputes player and all NPCs in the party (equipment, stats, AC, attacks, etc).
         self.recompute_state: bool = False
 
     def add_command(self, command: BaseCommand) -> None:
