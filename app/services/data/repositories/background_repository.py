@@ -31,9 +31,4 @@ class BackgroundRepository(BaseRepository[BackgroundDefinition]):
         return self._parse(data)
 
     def _parse(self, data: dict[str, Any]) -> BackgroundDefinition:
-        return BackgroundDefinition(
-            index=data["index"],
-            name=data["name"],
-            description=data["description"],
-            content_pack=data["content_pack"],
-        )
+        return BackgroundDefinition(**data)

@@ -304,19 +304,22 @@ class ICharacterComputeService(ABC):
         self,
         game_state: GameState,
         class_index: str,
+        background_index: str,
         selected_skills: list[str],
         modifiers: AbilityModifiers,
         proficiency_bonus: int,
     ) -> list[SkillValue]:
-        """Compute skill bonuses based on proficiencies and ability modifiers.
+        """Compute skill bonuses from class, background, and ability modifiers.
 
+        Merges proficiencies from background and selected skills (deduplicates).
         If no skills are explicitly selected, picks first allowed skills from
         class proficiency choices.
 
         Args:
             game_state: Game state for pack-scoped repository access
             class_index: Character class identifier
-            selected_skills: List of skill indices the character is proficient in
+            background_index: Character background identifier
+            selected_skills: List of skill indices the character selected
             modifiers: Ability modifiers
             proficiency_bonus: Character's proficiency bonus
 

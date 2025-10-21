@@ -72,17 +72,40 @@ class CharacterComputeService(ICharacterComputeService):
         ability_code = normalize_ability_name(skill.ability)
         return get_ability_modifier(modifiers, ability_code) if ability_code else 0
 
+    def get_background_skill_proficiencies(
+        self,
+        game_state: GameState,
+        background_index: str,
+    ) -> list[str]:
+        """Get skill proficiencies granted by a background.
+
+        Returns:
+            List of skill indexes (e.g., ["insight", "religion"])
+        """
+        try:
+            background_repo = self.repository_provider.get_background_repository_for(game_state)
+            background = background_repo.get(background_index)
+            return background.skill_proficiencies
+        except RepositoryNotFoundError:
+            logger.warning(f"Background {background_index} not found, no proficiencies granted")
+            return []
+
     def compute_skills(
         self,
         game_state: GameState,
         class_index: str,
+        background_index: str,
         selected_skills: list[str],
         modifiers: AbilityModifiers,
         proficiency_bonus: int,
     ) -> list[SkillValue]:
         out: list[SkillValue] = []
-        # If no explicit selection, pick first allowed skills from class proficiency choices
-        chosen: list[str] = list(selected_skills)
+
+        # Get background proficiencies
+        background_skills = self.get_background_skill_proficiencies(game_state, background_index)
+
+        # Merge background + selected skills (deduplicate)
+        chosen: list[str] = list(set(background_skills + selected_skills))
         skill_repo = self.repository_provider.get_skill_repository_for(game_state)
         if not chosen:
             cls_def = self.repository_provider.get_class_repository_for(game_state).get(class_index)
@@ -202,6 +225,7 @@ class CharacterComputeService(ICharacterComputeService):
         skills = self.compute_skills(
             game_state,
             sheet.class_index,
+            sheet.background,
             selected_skills=sheet.starting_skill_indexes,
             modifiers=modifiers,
             proficiency_bonus=proficiency,
@@ -264,7 +288,9 @@ class CharacterComputeService(ICharacterComputeService):
 
         # Selected skills from sheet if present
         selected_skills = sheet.starting_skill_indexes
-        skills = self.compute_skills(game_state, sheet.class_index, selected_skills, modifiers, proficiency)
+        skills = self.compute_skills(
+            game_state, sheet.class_index, sheet.background, selected_skills, modifiers, proficiency
+        )
 
         armor_class = self.compute_armor_class(game_state, modifiers, state)
         initiative_bonus = self.compute_initiative_bonus(modifiers)
