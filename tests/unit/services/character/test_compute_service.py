@@ -201,3 +201,16 @@ class TestCharacterComputeService:
         assert self.service._text_index_from_name("Leather Armor, Studded") == "leather-armor-studded"
         assert self.service._text_index_from_name("SHIELD") == "shield"
         assert self.service._text_index_from_name("Two-Handed Sword") == "two-handed-sword"
+
+    def test_get_background_skill_proficiencies(self) -> None:
+        """Test extraction of background proficiencies."""
+        game_state = Mock()
+        background_repo = Mock()
+        background_def = Mock()
+        background_def.skill_proficiencies = ["insight", "religion"]
+        background_repo.get.return_value = background_def
+        self.repository_provider.get_background_repository_for.return_value = background_repo
+
+        skills = self.service.get_background_skill_proficiencies(game_state, "acolyte")
+
+        assert skills == ["insight", "religion"]

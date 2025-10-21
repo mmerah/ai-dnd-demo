@@ -1,5 +1,7 @@
 ## Current Issues [CRITICAL]
 
+- Context Builders: current state builder make no sense. Builders need to understand what/who/how things are called. current state builder need to add party information, renamed probably to party overview builder or something. Then need to think: NPC agents use that context builder but while for party npc it make sense, for non-party npcs it make no sense to have that in the context. How to solve such issues ? Need to review context builders 1 by 1, make them more token efficient, clear data, associate with the relevant agents as well. The background context builder is also affected (and could be renamed background_builder like others no?). Need to see in all context builder if they manually take the character (would it then make sense to make them configurable with either returning context for the party, or for an npc instance ? Then we have the differentiation ?)
+
 # MVP 2
 
 Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic memory system

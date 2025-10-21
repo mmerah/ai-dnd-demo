@@ -1,3 +1,4 @@
+from .background_context_builder import BackgroundContextBuilder
 from .base import ContextBuilder
 from .combat_builder import CombatContextBuilder
 from .current_state_builder import CurrentStateContextBuilder
@@ -17,6 +18,7 @@ from .spell_builder import SpellContextBuilder
 from .world_memory_builder import WorldMemoryContextBuilder
 
 __all__ = [
+    "BackgroundContextBuilder",
     "ContextBuilder",
     "ScenarioContextBuilder",
     "LocationContextBuilder",

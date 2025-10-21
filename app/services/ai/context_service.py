@@ -7,6 +7,7 @@ from app.models.game_state import GameState
 from app.models.instances.npc_instance import NPCInstance
 
 from .context_builders import (
+    BackgroundContextBuilder,
     CombatContextBuilder,
     CurrentStateContextBuilder,
     InventoryContextBuilder,
@@ -44,6 +45,7 @@ class ContextService(IContextService):
         self.monsters_at_location_builder = MonstersAtLocationContextBuilder()
         self.quest_builder = QuestContextBuilder()
         self.current_state_builder = CurrentStateContextBuilder()
+        self.background_builder = BackgroundContextBuilder()
         self.npc_detail_builder = NPCDetailContextBuilder()
         self.combat_builder = CombatContextBuilder(monsters_in_combat_builder=monsters_in_combat)
         self.monsters_in_combat_builder = monsters_in_combat
@@ -63,6 +65,7 @@ class ContextService(IContextService):
             self.monsters_at_location_builder,
             self.quest_builder,
             self.current_state_builder,
+            self.background_builder,
             self.npc_detail_builder,
             self.npc_memory_builder,
             self.world_memory_builder,
@@ -76,9 +79,11 @@ class ContextService(IContextService):
         # Create BuildContext with per-game repositories
         item_repo = self.repository_provider.get_item_repository_for(game_state)
         spell_repo = self.repository_provider.get_spell_repository_for(game_state)
+        background_repo = self.repository_provider.get_background_repository_for(game_state)
         context = BuildContext(
             item_repository=item_repo,
             spell_repository=spell_repo,
+            background_repository=background_repo,
         )
         if agent_type == AgentType.COMBAT:
             # Combat agent only needs tactical information
@@ -113,9 +118,11 @@ class ContextService(IContextService):
         # Create BuildContext with per-game repositories
         item_repo = self.repository_provider.get_item_repository_for(game_state)
         spell_repo = self.repository_provider.get_spell_repository_for(game_state)
+        background_repo = self.repository_provider.get_background_repository_for(game_state)
         context = BuildContext(
             item_repository=item_repo,
             spell_repository=spell_repo,
+            background_repository=background_repo,
         )
 
         selected_builders = [

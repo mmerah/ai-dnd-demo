@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 
 from app.interfaces.services.data import IRepository
+from app.models.background import BackgroundDefinition
 from app.models.game_state import GameState
 from app.models.item import ItemDefinition
 from app.models.spell import SpellDefinition
@@ -13,6 +14,7 @@ class BuildContext:
 
     item_repository: IRepository[ItemDefinition]
     spell_repository: IRepository[SpellDefinition]
+    background_repository: IRepository[BackgroundDefinition]
 
 
 class ContextBuilder(ABC):
