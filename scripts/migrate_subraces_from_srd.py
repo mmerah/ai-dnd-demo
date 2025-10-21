@@ -25,16 +25,6 @@ def convert_subrace(sr: dict[str, Any]) -> dict[str, Any]:
             bonus = ab.get("bonus")
             if isinstance(idx, str) and isinstance(bonus, int):
                 ability_bonuses[idx] = bonus
-    # Proficiencies
-    weapon_profs: list[str] = []
-    tool_profs: list[str] = []
-    for p in sr.get("starting_proficiencies") or []:
-        if isinstance(p, dict) and isinstance(p.get("index"), str):
-            idx = p["index"]
-            if idx.startswith("weapon-"):
-                weapon_profs.append(idx)
-            if idx.startswith("tool-"):
-                tool_profs.append(idx)
     return {
         "index": sr.get("index"),
         "name": sr.get("name"),
@@ -42,8 +32,6 @@ def convert_subrace(sr: dict[str, Any]) -> dict[str, Any]:
         "description": join_paragraphs(sr.get("desc")),
         "traits": [t.get("index") for t in (sr.get("racial_traits") or []) if isinstance(t, dict) and t.get("index")],
         "ability_bonuses": ability_bonuses or None,
-        "weapon_proficiencies": weapon_profs or None,
-        "tool_proficiencies": tool_profs or None,
     }
 
 

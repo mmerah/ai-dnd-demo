@@ -37,16 +37,6 @@ def convert_race(r: dict[str, Any]) -> dict[str, Any]:
             bonus = ab.get("bonus")
             if isinstance(idx, str) and isinstance(bonus, int):
                 ability_bonuses[idx] = bonus
-    # Proficiencies
-    weapon_profs: list[str] = []
-    tool_profs: list[str] = []
-    for p in r.get("starting_proficiencies") or []:
-        if isinstance(p, dict) and isinstance(p.get("index"), str):
-            idx = p["index"]
-            if idx.startswith("weapon-"):
-                weapon_profs.append(idx)
-            if idx.startswith("tool-"):
-                tool_profs.append(idx)
     # Language options
     lang_opts: list[str] = []
     opts = r.get("language_options") or {}
@@ -63,8 +53,6 @@ def convert_race(r: dict[str, Any]) -> dict[str, Any]:
         "traits": to_indexes(r.get("traits")) or None,
         "subraces": to_indexes(r.get("subraces")) or None,
         "ability_bonuses": ability_bonuses or None,
-        "weapon_proficiencies": weapon_profs or None,
-        "tool_proficiencies": tool_profs or None,
         "language_options": lang_opts or None,
     }
 

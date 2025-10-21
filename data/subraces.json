@@ -11,8 +11,6 @@
       "ability_bonuses": {
         "wis": 1
       },
-      "weapon_proficiencies": null,
-      "tool_proficiencies": null,
       "content_pack": "srd",
       "reference_packs": []
     },
@@ -29,8 +27,6 @@
       "ability_bonuses": {
         "int": 1
       },
-      "weapon_proficiencies": null,
-      "tool_proficiencies": null,
       "content_pack": "srd",
       "reference_packs": []
     },
@@ -45,8 +41,6 @@
       "ability_bonuses": {
         "cha": 1
       },
-      "weapon_proficiencies": null,
-      "tool_proficiencies": null,
       "content_pack": "srd",
       "reference_packs": []
     },
@@ -62,8 +56,6 @@
       "ability_bonuses": {
         "con": 1
       },
-      "weapon_proficiencies": null,
-      "tool_proficiencies": null,
       "content_pack": "srd",
       "reference_packs": []
     }
