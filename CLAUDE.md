@@ -78,7 +78,7 @@ app/
 │   │   ├── message_service.py              # SSE broadcast handler
 │   │   ├── orchestrator_service.py         # Agent routing logic
 │   │   ├── orchestrator/                   # agent_router/combat_loop/transitions/state_reload
-│   │   ├── context_builders/               # Granular context builders (18 builders)
+│   │   ├── context_builders/               # Granular context builders
 │   │   └── debug_logger/event_logger/message_converter/tool_call_extractor
 │   ├── character/             # Sheet loading, stat compute, leveling
 │   ├── common/                # DiceService/BroadcastService/ActionService/PathResolver

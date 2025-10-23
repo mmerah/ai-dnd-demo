@@ -2,27 +2,42 @@ import logging
 
 from app.common.exceptions import RepositoryNotFoundError
 from app.models.game_state import GameState
+from app.models.instances.character_instance import CharacterInstance
+from app.models.instances.npc_instance import NPCInstance
 
-from .base import BuildContext, ContextBuilder
+from .base import BuildContext, EntityContextBuilder
 
 logger = logging.getLogger(__name__)
 
 
-class SpellContextBuilder(ContextBuilder):
-    """Build known spells context using the spell repository."""
+class SpellContextBuilder(EntityContextBuilder):
+    """Build known spells context using the spell repository.
 
-    def build(self, game_state: GameState, context: BuildContext) -> str | None:
-        char_state = game_state.character.state
-        if not char_state.spellcasting or not char_state.spellcasting.spells_known:
+    Builds spell context for any entity with spellcasting abilities.
+    """
+
+    MAX_SPELLS = 10
+
+    def build(
+        self,
+        game_state: GameState,
+        context: BuildContext,
+        entity: CharacterInstance | NPCInstance,
+    ) -> str | None:
+        # Extract entity name based on type
+        entity_name = entity.display_name if isinstance(entity, NPCInstance) else entity.sheet.name
+
+        entity_state = entity.state
+        if not entity_state.spellcasting or not entity_state.spellcasting.spells_known:
             return None
 
-        spells = char_state.spellcasting.spells_known
-        context_parts = ["Known Spells:"]
+        spells = entity_state.spellcasting.spells_known
+        context_parts = [f"Known Spells ({entity_name}):"]
 
-        for spell_name in spells[:10]:  # Limit to avoid context overflow
+        for spell_name in spells[: self.MAX_SPELLS]:
             try:
                 spell_def = context.spell_repository.get(spell_name)
-                context_parts.append(f"  • {spell_name} (Level {spell_def.level}): {spell_def.description[:100]}...")
+                context_parts.append(f"  • {spell_name} (Lvl {spell_def.level}): {spell_def.description[:100]}...")
             except RepositoryNotFoundError:
                 # Allow AI game master to improvise with spells not in repository
                 # Mark them clearly as non-standard for transparency

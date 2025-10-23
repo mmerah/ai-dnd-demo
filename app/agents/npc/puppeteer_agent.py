@@ -66,7 +66,7 @@ class PuppeteerAgent(BaseNPCAgent):
 
     def _build_context(self, game_state: GameState, npc: NPCInstance) -> str:
         persona = self.context_service.build_npc_persona(npc)
-        shared = self.context_service.build_context_for_npc(game_state)
+        shared = self.context_service.build_context_for_npc(game_state, npc)
         sections = [
             "Persona Block:\n" + persona,
         ]

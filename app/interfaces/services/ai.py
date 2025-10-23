@@ -187,8 +187,16 @@ class IContextService(ABC):
         pass
 
     @abstractmethod
-    def build_context_for_npc(self, game_state: GameState) -> str:
-        """Build shared context slice for NPC agents."""
+    def build_context_for_npc(self, game_state: GameState, npc: NPCInstance) -> str:
+        """Build shared context slice for NPC agents.
+
+        Args:
+            game_state: Current game state
+            npc: The NPC instance to build context for
+
+        Returns:
+            Context string customized for the specified NPC
+        """
 
     @abstractmethod
     def build_npc_persona(self, npc: NPCInstance) -> str:
