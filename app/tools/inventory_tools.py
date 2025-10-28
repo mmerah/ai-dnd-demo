@@ -11,6 +11,7 @@ from app.events.commands.inventory_commands import (
     ModifyCurrencyCommand,
     ModifyInventoryCommand,
 )
+from app.models.attributes import EntityType
 from app.tools.decorators import tool_handler
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 async def modify_currency(
     ctx: RunContext[AgentDependencies],
     entity_id: str,
-    entity_type: str,
+    entity_type: EntityType,
     gold: int = 0,
     silver: int = 0,
     copper: int = 0,
@@ -47,7 +48,7 @@ async def modify_currency(
 
 @tool_handler(ModifyInventoryCommand)
 async def modify_inventory(
-    ctx: RunContext[AgentDependencies], entity_id: str, entity_type: str, item_index: str, quantity: int
+    ctx: RunContext[AgentDependencies], entity_id: str, entity_type: EntityType, item_index: str, quantity: int
 ) -> BaseModel:
     # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Add or remove items from a character's inventory (player or NPC).
@@ -73,7 +74,7 @@ async def modify_inventory(
 async def equip_item(
     ctx: RunContext[AgentDependencies],
     entity_id: str,
-    entity_type: str,
+    entity_type: EntityType,
     item_index: str,
     slot: str | None = None,
     unequip: bool = False,

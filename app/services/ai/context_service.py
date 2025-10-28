@@ -194,10 +194,17 @@ class ContextService(IContextService):
         acc.add(self.spell_builder.build(game_state, build_ctx, npc))
         acc.add(self.inventory_builder.build(game_state, build_ctx, npc))
 
-        # Scenario and location context
+        # Scenario and world
         acc.add(self.scenario_builder.build(game_state, build_ctx))
         acc.add(self.location_builder.build(game_state, build_ctx))
+        acc.add(self.location_memory_builder.build(game_state, build_ctx))
+        acc.add(self.world_memory_builder.build(game_state, build_ctx))
+
+        # NPCs and monsters at location
         acc.add(self.npc_location_builder.build(game_state, build_ctx))
+        acc.add(self.monsters_at_location_builder.build(game_state, build_ctx))
+
+        # Quests (NPCs can then call quest tools)
         acc.add(self.quest_builder.build(game_state, build_ctx))
 
         return acc.build()

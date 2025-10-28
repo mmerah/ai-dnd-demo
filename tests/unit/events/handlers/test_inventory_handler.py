@@ -272,5 +272,27 @@ class TestInventoryHandler:
             quantity=1,
         )
 
-        with pytest.raises(ValueError, match="Entity not found"):
+        with pytest.raises(ValueError, match="Entity with ID .* not found"):
             await self.handler.handle(command, gs)
+
+    @pytest.mark.asyncio
+    async def test_player_shorthand_for_modify_inventory(self) -> None:
+        """Test that entity_id='player' works as shorthand for player character."""
+        gs = self.game_state
+        placeholder = InventoryItem(index="magic-item", name="Magic Item", quantity=1)
+        self.item_manager_service.create_inventory_item.return_value = placeholder
+
+        # Use "player" as entity_id instead of actual instance_id
+        command = ModifyInventoryCommand(
+            game_id=gs.game_id,
+            entity_id="player",
+            entity_type=EntityType.PLAYER,
+            item_index=placeholder.index,
+            quantity=1,
+        )
+        result = await self.handler.handle(command, gs)
+
+        assert isinstance(result.data, AddItemResult)
+        assert result.data.item_index == placeholder.index
+        assert result.mutated
+        assert self.character_state.inventory[0].index == placeholder.index

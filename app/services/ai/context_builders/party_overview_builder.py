@@ -43,7 +43,7 @@ class PartyOverviewBuilder(ContextBuilder):
 
         conditions = f" [{', '.join(char_state.conditions)}]" if char_state.conditions else ""
         player_line = (
-            f"• Player: {char_sheet.name} ({char_sheet.race} {class_display} Lvl {char_state.level}) "
+            f"• Player: {char_sheet.name} [ID: {char.instance_id}] ({char_sheet.race} {class_display} Lvl {char_state.level}) "
             f"— HP {char_state.hit_points.current}/{char_state.hit_points.maximum}, "
             f"AC {char_state.armor_class}{conditions}"
         )
@@ -61,7 +61,7 @@ class PartyOverviewBuilder(ContextBuilder):
                     class_display_npc = npc_sheet.class_display
                     npc_conditions = f" [{', '.join(npc_state.conditions)}]" if npc_state.conditions else ""
                     member_line = (
-                        f"• {npc.display_name} ({npc_sheet.race} {class_display_npc} Lvl {npc_state.level}) "
+                        f"• {npc.display_name} [ID: {npc.instance_id}] ({npc_sheet.race} {class_display_npc} Lvl {npc_state.level}) "
                         f"— HP {npc_state.hit_points.current}/{npc_state.hit_points.maximum}, "
                         f"AC {npc_state.armor_class}{npc_conditions}"
                     )
@@ -80,10 +80,11 @@ class PartyOverviewBuilder(ContextBuilder):
         lines = ["Party:"]
 
         # Player
-        char_name = game_state.character.sheet.name
-        char_hp = game_state.character.state.hit_points
+        char = game_state.character
+        char_name = char.sheet.name
+        char_hp = char.state.hit_points
         char_alive = "alive" if char_hp.current > 0 else "unconscious"
-        lines.append(f"• {char_name} (Player, {char_alive})")
+        lines.append(f"• {char_name} [ID: {char.instance_id}] (Player, {char_alive})")
 
         # Party members
         party_member_ids = game_state.party.member_ids
@@ -93,6 +94,6 @@ class PartyOverviewBuilder(ContextBuilder):
                 if npc:
                     npc_hp = npc.state.hit_points
                     npc_alive = "alive" if npc_hp.current > 0 else "unconscious"
-                    lines.append(f"• {npc.display_name} (Companion, {npc_alive})")
+                    lines.append(f"• {npc.display_name} [ID: {npc.instance_id}] (Companion, {npc_alive})")
 
         return "\n".join(lines)

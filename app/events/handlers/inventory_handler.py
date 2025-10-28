@@ -22,6 +22,7 @@ from app.models.tool_results import (
     ModifyCurrencyResult,
     RemoveItemResult,
 )
+from app.utils.entity_resolver import resolve_entity_with_fallback
 
 logger = logging.getLogger(__name__)
 
@@ -54,9 +55,10 @@ class InventoryHandler(BaseHandler):
             if command.entity_type == EntityType.MONSTER:
                 raise ValueError("Inventory operations are not supported for monsters")
 
-            entity = game_state.get_entity_by_id(command.entity_type, command.entity_id)
-            if not entity:
-                raise ValueError(f"Entity not found: {command.entity_type.value} with ID '{command.entity_id}'")
+            entity, resolved_type = resolve_entity_with_fallback(game_state, command.entity_id, command.entity_type)
+            if not entity or not resolved_type:
+                etype = command.entity_type.value if command.entity_type else "unknown"
+                raise ValueError(f"Entity with ID '{command.entity_id}' of type '{etype}' not found")
 
             npc_or_char = entity.state
 

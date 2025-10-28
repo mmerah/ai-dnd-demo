@@ -138,6 +138,7 @@ class BaseNPCAgent(BaseAgent, ABC):
                 conversation_history=[self._model_message_to_dict(msg) for msg in message_history],
                 user_prompt=prompt,
                 context=context_text,
+                npc_instance_id=npc.instance_id,
             )
 
         try:
