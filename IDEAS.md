@@ -6,9 +6,8 @@ Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic 
 
 ## Issues
 
-1. PartyState should contain the character instance. Removes character instance from the game state. That removes combat service method to ensure player in combat and any such occurance throughout the code where now we would interact directly with the party. Some handlers might be affected, some context builders, maybe more (to be explored) ?
-2. Read docs/FUTURE-AGENTS.md. We might need very early an agent that can improve tool usage. Basically a tool usage suggestor ? Or something of that nature. One example is if I interact with an NPC using @npc-name then, tool calling is very inconsistent. Need a more general tool call verifier ?
-3. Act can progress after a quest is completed. However, no active quest is activated.
+1. Read docs/FUTURE-AGENTS.md. We might need very early an agent that can improve tool usage. Basically a tool usage suggestor ? Or something of that nature. One example is if I interact with an NPC using @npc-name then, tool calling is very inconsistent. Need a more general tool call verifier ?
+2. Act can progress after a quest is completed. However, no active quest is activated.
 
 ## Ideas
 
