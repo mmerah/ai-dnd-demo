@@ -1,0 +1,11 @@
+{
+  "agent_type": "combat",
+  "description": "D&D 5th Edition Combat Referee managing tactical encounters",
+  "agent_model_config": {
+    "temperature": 0.7,
+    "max_tokens": 4096,
+    "reasoning_effort": "high",
+    "parallel_tool_calls": false
+  },
+  "system_prompt_file": "prompts/combat.md"
+}

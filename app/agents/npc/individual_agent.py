@@ -5,7 +5,6 @@ from __future__ import annotations
 from pydantic_ai import Agent
 
 from app.agents.core.dependencies import AgentDependencies
-from app.agents.core.prompts import NPC_SYSTEM_PROMPT
 from app.agents.core.types import AgentType
 from app.agents.npc.base import BaseNPCAgent
 from app.interfaces.events import IEventBus
@@ -44,6 +43,7 @@ class IndividualMindAgent(BaseNPCAgent):
         save_manager: ISaveManager,
         action_service: IActionService,
         message_service: IMessageService,
+        system_prompt: str,
         debug_logger: AgentDebugLogger | None = None,
     ) -> None:
         super().__init__(
@@ -61,7 +61,7 @@ class IndividualMindAgent(BaseNPCAgent):
             action_service=action_service,
             message_service=message_service,
             debug_logger=debug_logger,
-            system_prompt=NPC_SYSTEM_PROMPT,
+            system_prompt=system_prompt,
         )
 
     def _build_context(self, game_state: GameState, npc: NPCInstance) -> str:

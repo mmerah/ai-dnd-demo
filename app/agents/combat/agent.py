@@ -12,7 +12,6 @@ from app.agents.core.dependencies import AgentDependencies
 from app.agents.core.event_stream.base import EventContext, EventStreamProcessor
 from app.agents.core.event_stream.thinking import ThinkingHandler
 from app.agents.core.event_stream.tools import ToolEventHandler
-from app.agents.core.prompts import COMBAT_SYSTEM_PROMPT
 from app.agents.core.types import AgentType
 from app.events.commands.broadcast_commands import BroadcastNarrativeCommand
 from app.interfaces.events import IEventBus
@@ -51,6 +50,7 @@ class CombatAgent(BaseAgent):
     event_manager: IEventManager
     conversation_service: IConversationService
     action_service: IActionService
+    system_prompt: str
     tool_call_extractor: IToolCallExtractorService | None = None
     debug_logger: AgentDebugLogger | None = None
     _event_processor: EventStreamProcessor | None = None
@@ -170,7 +170,7 @@ class CombatAgent(BaseAgent):
             self.debug_logger.log_agent_call(
                 agent_type=AgentType.COMBAT,
                 game_id=game_state.game_id,
-                system_prompt=COMBAT_SYSTEM_PROMPT,
+                system_prompt=self.system_prompt,
                 conversation_history=conv_history,
                 user_prompt=prompt,
                 context=context,

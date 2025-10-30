@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from pydantic_ai import Agent
 
 from app.agents.core.base import BaseAgent, ToolFunction
-from app.agents.core.prompts import SUMMARIZER_SYSTEM_PROMPT
 from app.agents.core.types import AgentType
 from app.interfaces.agents.summarizer import ISummarizerAgent
 from app.interfaces.services.ai import IContextService
@@ -26,6 +25,7 @@ class SummarizerAgent(BaseAgent, ISummarizerAgent):
 
     agent: Agent[None, str]
     context_service: IContextService
+    system_prompt: str
     debug_logger: AgentDebugLogger | None = None
 
     def get_required_tools(self) -> list[ToolFunction]:
@@ -74,7 +74,7 @@ class SummarizerAgent(BaseAgent, ISummarizerAgent):
             self.debug_logger.log_agent_call(
                 agent_type=AgentType.SUMMARIZER,
                 game_id=game_state.game_id,
-                system_prompt=SUMMARIZER_SYSTEM_PROMPT,
+                system_prompt=self.system_prompt,
                 conversation_history=[],
                 user_prompt=prompt,
                 context=context_text,
@@ -117,7 +117,7 @@ class SummarizerAgent(BaseAgent, ISummarizerAgent):
             self.debug_logger.log_agent_call(
                 agent_type=AgentType.SUMMARIZER,
                 game_id=game_state.game_id,
-                system_prompt=SUMMARIZER_SYSTEM_PROMPT,
+                system_prompt=self.system_prompt,
                 conversation_history=[],
                 user_prompt=prompt,
                 context=context_text,
@@ -153,7 +153,7 @@ class SummarizerAgent(BaseAgent, ISummarizerAgent):
             self.debug_logger.log_agent_call(
                 agent_type=AgentType.SUMMARIZER,
                 game_id=game_state.game_id,
-                system_prompt=SUMMARIZER_SYSTEM_PROMPT,
+                system_prompt=self.system_prompt,
                 conversation_history=[msg.model_dump() for msg in messages],
                 user_prompt=prompt,
                 context=snapshot,
@@ -188,7 +188,7 @@ class SummarizerAgent(BaseAgent, ISummarizerAgent):
             self.debug_logger.log_agent_call(
                 agent_type=AgentType.SUMMARIZER,
                 game_id=game_state.game_id,
-                system_prompt=SUMMARIZER_SYSTEM_PROMPT,
+                system_prompt=self.system_prompt,
                 conversation_history=[msg.model_dump() for msg in messages],
                 user_prompt=prompt,
                 context=snapshot,
@@ -230,7 +230,7 @@ class SummarizerAgent(BaseAgent, ISummarizerAgent):
             self.debug_logger.log_agent_call(
                 agent_type=AgentType.SUMMARIZER,
                 game_id=game_state.game_id,
-                system_prompt=SUMMARIZER_SYSTEM_PROMPT,
+                system_prompt=self.system_prompt,
                 conversation_history=[msg.model_dump() for msg in messages],
                 user_prompt=prompt,
                 context=snapshot,

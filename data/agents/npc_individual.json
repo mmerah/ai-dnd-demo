@@ -1,0 +1,11 @@
+{
+  "agent_type": "npc_individual",
+  "description": "Individual mind agent for major NPCs with persistent state",
+  "agent_model_config": {
+    "temperature": 0.7,
+    "max_tokens": 2048,
+    "reasoning_effort": "medium",
+    "parallel_tool_calls": false
+  },
+  "system_prompt_file": "prompts/npc_individual.md"
+}

@@ -1,0 +1,231 @@
+{
+  "rules": [
+    {
+      "rule_id": "quest_progression",
+      "rule_class": "QuestProgressionRule",
+      "enabled": true,
+      "description": "Detects quest-related actions and milestones",
+      "patterns": [
+        {
+          "pattern": "\\b(accept|agree to|take on|embark)\\s+(quest|mission|task)\\b",
+          "weight": 0.95,
+          "description": "Quest acceptance"
+        },
+        {
+          "pattern": "\\b(complet(e|ed|ing)|finish(ed)?|accomplish(ed)?|succeed(ed)?)\\s+(objective|goal|task|quest)\\b",
+          "weight": 0.9,
+          "description": "Quest completion"
+        },
+        {
+          "pattern": "\\b(deliver(ed)?|return(ed)?|report back)\\b.*\\b(to|with)\\b",
+          "weight": 0.7,
+          "description": "Quest return patterns"
+        }
+      ],
+      "suggestions": [
+        {
+          "tool_name": "start_quest",
+          "reason": "Player has accepted a new quest",
+          "confidence_multiplier": 1.1
+        },
+        {
+          "tool_name": "complete_objective",
+          "reason": "Quest objective has been achieved",
+          "confidence_multiplier": 1.0
+        },
+        {
+          "tool_name": "complete_quest",
+          "reason": "Entire quest has been completed",
+          "confidence_multiplier": 1.0
+        }
+      ],
+      "applicable_agents": ["narrative", "npc_individual", "npc_puppeteer"],
+      "base_confidence": 0.8
+    },
+    {
+      "rule_id": "inventory_changes",
+      "rule_class": "InventoryChangeRule",
+      "enabled": true,
+      "description": "Detects item acquisition, loss, or transfer",
+      "patterns": [
+        {
+          "pattern": "\\b(find|discover|loot|take|pick up|acquire|obtain|receive|get)(s|ing|ed)?\\b.*\\b(item|sword|armor|potion|weapon|shield|ring|amulet|treasure)\\b",
+          "weight": 0.85,
+          "description": "Item acquisition"
+        },
+        {
+          "pattern": "\\b(give|hand|offer|sell|trade|drop|lose|discard)(s|ing|ed)?\\b.*\\b(item|sword|armor|potion|weapon)\\b",
+          "weight": 0.8,
+          "description": "Item transfer or loss"
+        }
+      ],
+      "suggestions": [
+        {
+          "tool_name": "modify_inventory",
+          "reason": "Items need to be added or removed from inventory",
+          "confidence_multiplier": 1.0
+        }
+      ],
+      "applicable_agents": ["narrative", "npc_individual", "npc_puppeteer"],
+      "base_confidence": 0.75
+    },
+    {
+      "rule_id": "currency_transactions",
+      "rule_class": "CurrencyTransactionRule",
+      "enabled": true,
+      "description": "Detects currency changes (gold, silver, copper)",
+      "patterns": [
+        {
+          "pattern": "\\b(\\d+)\\s+(gold|silver|copper|gp|sp|cp|coins?)\\b",
+          "weight": 0.9,
+          "description": "Currency amounts"
+        },
+        {
+          "pattern": "\\b(pay|spend|buy|purchase|sell|earn|receive|reward)(s|ing|ed)?\\b.*\\b(gold|silver|copper|gp|sp|cp|coins?)\\b",
+          "weight": 0.85,
+          "description": "Currency transactions"
+        },
+        {
+          "pattern": "\\b(costs?|price|fee|payment)\\b.*\\b(\\d+)\\b",
+          "weight": 0.75,
+          "description": "Price mentions"
+        }
+      ],
+      "suggestions": [
+        {
+          "tool_name": "modify_currency",
+          "reason": "Currency amount has changed",
+          "confidence_multiplier": 1.0
+        }
+      ],
+      "applicable_agents": ["narrative", "npc_individual", "npc_puppeteer"],
+      "base_confidence": 0.8
+    },
+    {
+      "rule_id": "party_management",
+      "rule_class": "PartyManagementRule",
+      "enabled": true,
+      "description": "Detects party member additions or departures",
+      "patterns": [
+        {
+          "pattern": "\\b(join|joins|joining)\\s+(the|your)?\\s+(party|group|team)\\b",
+          "weight": 0.95,
+          "description": "Party member joining"
+        },
+        {
+          "pattern": "\\b(leave|leaves|leaving|depart|parts? ways)\\s+(the|your)?\\s+(party|group|team)\\b",
+          "weight": 0.95,
+          "description": "Party member leaving"
+        },
+        {
+          "pattern": "\\b(accompan(y|ies)|travel(s)? with|follow(s)?)\\s+(you|the party)\\b",
+          "weight": 0.8,
+          "description": "Companion indicators"
+        }
+      ],
+      "suggestions": [
+        {
+          "tool_name": "add_party_member",
+          "reason": "NPC is joining the party",
+          "confidence_multiplier": 1.1
+        },
+        {
+          "tool_name": "remove_party_member",
+          "reason": "NPC is leaving the party",
+          "confidence_multiplier": 1.1
+        }
+      ],
+      "applicable_agents": ["narrative"],
+      "required_context": ["npcs"],
+      "base_confidence": 0.85
+    },
+    {
+      "rule_id": "time_passage",
+      "rule_class": "TimePassageRule",
+      "enabled": true,
+      "description": "Detects time advancement and rest periods",
+      "patterns": [
+        {
+          "pattern": "\\b(short rest|take a break|catch breath|brief respite)\\b",
+          "weight": 0.95,
+          "description": "Short rest indicators"
+        },
+        {
+          "pattern": "\\b(long rest|sleep|camp|night passes|retire for the night|settle down|rest until dawn)\\b",
+          "weight": 0.95,
+          "description": "Long rest indicators"
+        },
+        {
+          "pattern": "\\b(hours? later|days? pass(es)?|time passes|after (a|some) time|next (morning|day))\\b",
+          "weight": 0.8,
+          "description": "Time passage phrases"
+        }
+      ],
+      "suggestions": [
+        {
+          "tool_name": "short_rest",
+          "reason": "Characters are taking a short rest",
+          "confidence_multiplier": 1.2
+        },
+        {
+          "tool_name": "long_rest",
+          "reason": "Characters are taking a long rest",
+          "confidence_multiplier": 1.2
+        },
+        {
+          "tool_name": "advance_time",
+          "reason": "Time has passed in the narrative",
+          "confidence_multiplier": 1.0
+        }
+      ],
+      "applicable_agents": ["narrative"],
+      "base_confidence": 0.85
+    },
+    {
+      "rule_id": "location_transitions",
+      "rule_class": "LocationTransitionRule",
+      "enabled": true,
+      "description": "Detects movement to new significant locations",
+      "patterns": [
+        {
+          "pattern": "\\b(arriv(e|ed|ing)|enter(s|ed|ing)|reach(es|ed|ing))\\s+(the|a)?\\s+[A-Z]",
+          "weight": 0.85,
+          "description": "Arrival at named location"
+        },
+        {
+          "pattern": "\\b(discover|find|reveal|uncover)(s|ed|ing)?\\s+(secret|hidden|passage|door)\\b",
+          "weight": 0.9,
+          "description": "Secret discovery"
+        }
+      ],
+      "suggestions": [
+        {
+          "tool_name": "change_location",
+          "reason": "Character has arrived at a significant named location",
+          "confidence_multiplier": 1.0
+        },
+        {
+          "tool_name": "discover_secret",
+          "reason": "Hidden content has been revealed",
+          "confidence_multiplier": 1.1
+        }
+      ],
+      "applicable_agents": ["narrative"],
+      "base_confidence": 0.7
+    }
+  ],
+  "global_settings": {
+    "min_confidence_threshold": 0.6,
+    "max_suggestions_per_turn": 3,
+    "enable_rule_chaining": false,
+    "debug_mode": false,
+    "rule_priority_order": [
+      "quest_progression",
+      "currency_transactions",
+      "inventory_changes",
+      "party_management",
+      "time_passage",
+      "location_transitions"
+    ]
+  }
+}

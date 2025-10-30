@@ -31,6 +31,7 @@ class AgentLifecycleService(IAgentLifecycleService):
     def __init__(
         self,
         *,
+        agent_factory: AgentFactory,
         event_bus: IEventBus,
         scenario_service: IScenarioService,
         repository_provider: IRepositoryProvider,
@@ -44,6 +45,7 @@ class AgentLifecycleService(IAgentLifecycleService):
         message_service: IMessageService,
         debug: bool = False,
     ) -> None:
+        self._agent_factory = agent_factory
         self._event_bus = event_bus
         self._scenario_service = scenario_service
         self._repository_provider = repository_provider
@@ -83,7 +85,7 @@ class AgentLifecycleService(IAgentLifecycleService):
         game_agents = self._individual_agents[game_state.game_id]
         if npc.instance_id not in game_agents:
             logger.debug("Creating IndividualMindAgent for npc_id=%s", npc.instance_id)
-            agent = AgentFactory.create_individual_mind_agent(
+            agent = self._agent_factory.create_individual_mind_agent(
                 event_bus=self._event_bus,
                 scenario_service=self._scenario_service,
                 repository_provider=self._repository_provider,
@@ -103,7 +105,7 @@ class AgentLifecycleService(IAgentLifecycleService):
     def _get_puppeteer_agent(self, game_state: GameState) -> PuppeteerAgent:
         if game_state.game_id not in self._puppeteer_agents:
             logger.debug("Creating shared PuppeteerAgent for game=%s", game_state.game_id)
-            agent = AgentFactory.create_puppeteer_agent(
+            agent = self._agent_factory.create_puppeteer_agent(
                 event_bus=self._event_bus,
                 scenario_service=self._scenario_service,
                 repository_provider=self._repository_provider,

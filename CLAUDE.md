@@ -33,11 +33,10 @@ app/
 ├── config.py                  # Typed env loader (Pydantic Settings)
 ├── container.py               # Dependency injector wiring all services/repos
 ├── agents/
-│   ├── factory.py             # Builds all agents (Narrative, Combat, NPC, etc.)
+│   ├── factory.py             # Stateful factory (loads configs, builds agents)
 │   ├── core/
 │   │   ├── base.py            # Abstract agent contract (BaseAgent)
 │   │   ├── dependencies.py    # Tool dependency payload (GameState, services, etc.)
-│   │   ├── prompts.py         # System prompts for each agent type
 │   │   ├── types.py           # AgentType enum
 │   │   └── event_stream/      # Pydantic-AI stream handlers (thinking/tools)
 │   ├── narrative/             # Story progression agent
@@ -62,6 +61,8 @@ app/
 │   └── handlers/              # State mutations + SSE per command family
 ├── interfaces/                # Service/repo/event protocols
 ├── models/
+│   ├── agent_config.py        # Agent configuration models (AgentConfig, AgentModelConfig)
+│   ├── tool_suggestion_config.py  # Tool suggestion rule models
 │   ├── ai_response.py         # Streaming/complete/error payloads
 │   ├── character.py           # Player sheet (stats/inventory/spells)
 │   ├── combat.py              # Combat state (initiative/turns/conditions/factions)
@@ -74,6 +75,7 @@ app/
 │   ├── ai/
 │   │   ├── ai_service.py                   # Top-level agent orchestration
 │   │   ├── agent_lifecycle_service.py      # NPC agent cache/factory
+│   │   ├── config_loader.py                # Agent configuration loader (validates JSON+MD)
 │   │   ├── context_service.py              # Context composition via builders
 │   │   ├── message_service.py              # SSE broadcast handler
 │   │   ├── orchestrator_service.py         # Agent routing logic
@@ -119,6 +121,19 @@ app/
 ### Data (`data/`)
 ```
 data/
+├── agents/                # Agent configurations (data-driven prompts & settings)
+│   ├── narrative.json     # Narrative agent config (model settings, prompt file)
+│   ├── combat.json        # Combat agent config
+│   ├── summarizer.json    # Summarizer agent config
+│   ├── npc_individual.json # Individual NPC agent config
+│   ├── npc_puppeteer.json # Puppeteer NPC agent config
+│   ├── tool_suggestion_rules.json # Heuristic rules for tool suggestions
+│   └── prompts/           # Markdown system prompts (one per agent)
+│       ├── narrative.md
+│       ├── combat.md
+│       ├── summarizer.md
+│       ├── npc_individual.md
+│       └── npc_puppeteer.md
 ├── alignments.json        # Alignment definitions (name, description, ethos)
 ├── backgrounds.json       # Background traits, proficiencies, feature hooks
 ├── classes.json           # Class progressions, hit dice, proficiencies
@@ -152,6 +167,7 @@ data/
 
 ## Runtime Flow
 1. `uvicorn app.main:app --reload --port 8123` boots FastAPI, initializes Container, validates all data
+   - **Agent configs** loaded from `data/agents/*.json` + markdown prompts (fail-fast validation)
 2. Player action -> `/api/game/{game_id}/action` -> background task -> GameService + AIService
 3. Request -> AgentOrchestrator:
    - **NPC dialogue** (@npc_name): AgentLifecycleService -> IndividualMindAgent (major) or PuppeteerAgent (minor)

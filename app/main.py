@@ -45,6 +45,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Initialize settings and container - this will validate all required environment variables
     try:
         settings = get_settings()
+
+        # Trigger agent config loading on startup
+        _ = container.agent_factory
+
         # Trigger creation of all services on startup
         _ = container.game_service
         _ = container.ai_service

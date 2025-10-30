@@ -1,5 +1,8 @@
 ## Current Issues [CRITICAL]
 
+- Document in README and in CLAUDE markdowns the changes (new files, new configuration system, can be overriden in non-git-tracked user-data)
+- Narrative agent (system prompt) muss indicate that it just need to create book-like narrative (no summary of quest, what you see or whatever), no too formatted stuff (maybe forgo mention of markdown). Also NPC interaction should be that the narrative suggest to the player to "@" the NPC
+
 # MVP 2
 
 Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic memory system
@@ -7,7 +10,7 @@ Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic 
 ## Issues
 
 1. Act can progress after a quest is completed. However, no active quest is activated.
-2. Use and try exacto models (maybe remove Groq from OpenRouter blacklist)
+2. Use and try exacto models
 
 ## Ideas
 

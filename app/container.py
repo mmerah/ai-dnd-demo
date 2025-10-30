@@ -1,6 +1,7 @@
 """Centralized container for dependency injection."""
 
 from functools import cached_property
+from pathlib import Path
 from typing import cast
 
 from app.agents.core.types import AgentType
@@ -65,6 +66,7 @@ from app.models.scenario import ScenarioSheet
 from app.models.spell import SpellDefinition
 from app.services.ai import AIService, MessageService
 from app.services.ai.agent_lifecycle_service import AgentLifecycleService
+from app.services.ai.config_loader import AgentConfigLoader
 from app.services.ai.context_service import ContextService
 from app.services.ai.event_logger_service import EventLoggerService
 from app.services.ai.orchestrator_service import AgentOrchestrator
@@ -460,11 +462,20 @@ class Container:
         )
 
     @cached_property
+    def agent_config_loader(self) -> AgentConfigLoader:
+        config_dir = Path("data/agents")
+        return AgentConfigLoader(config_dir)
+
+    @cached_property
+    def agent_factory(self) -> AgentFactory:
+        return AgentFactory(self.agent_config_loader)
+
+    @cached_property
     def ai_service(self) -> IAIService:
         settings = get_settings()
 
         # Create narrative agent
-        narrative_agent = AgentFactory.create_agent(
+        narrative_agent = self.agent_factory.create_agent(
             AgentType.NARRATIVE,
             event_bus=self.event_bus,
             scenario_service=self.scenario_service,
@@ -481,7 +492,7 @@ class Container:
         )
 
         # Create combat agent
-        combat_agent = AgentFactory.create_agent(
+        combat_agent = self.agent_factory.create_agent(
             AgentType.COMBAT,
             event_bus=self.event_bus,
             scenario_service=self.scenario_service,
@@ -516,7 +527,7 @@ class Container:
             return self._external_summarizer_agent
 
         settings = get_settings()
-        summarizer = AgentFactory.create_agent(
+        summarizer = self.agent_factory.create_agent(
             AgentType.SUMMARIZER,
             event_bus=self.event_bus,
             scenario_service=self.scenario_service,
@@ -541,6 +552,7 @@ class Container:
     def agent_lifecycle_service(self) -> IAgentLifecycleService:
         settings = get_settings()
         return AgentLifecycleService(
+            agent_factory=self.agent_factory,
             event_bus=self.event_bus,
             scenario_service=self.scenario_service,
             repository_provider=self.repository_factory,

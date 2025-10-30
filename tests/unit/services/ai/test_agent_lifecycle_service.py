@@ -52,10 +52,13 @@ def lifecycle_service(monkeypatch: pytest.MonkeyPatch) -> tuple[IAgentLifecycleS
         puppeteer_counts["puppeteer"] += 1
         return cast(PuppeteerAgent, create_autospec(PuppeteerAgent, instance=True))
 
-    monkeypatch.setattr(AgentFactory, "create_individual_mind_agent", _create_individual)
-    monkeypatch.setattr(AgentFactory, "create_puppeteer_agent", _create_puppeteer)
+    # Create mock AgentFactory instance and configure its methods
+    mock_agent_factory = create_autospec(AgentFactory, instance=True)
+    mock_agent_factory.create_individual_mind_agent.side_effect = _create_individual
+    mock_agent_factory.create_puppeteer_agent.side_effect = _create_puppeteer
 
     service = AgentLifecycleService(
+        agent_factory=mock_agent_factory,
         event_bus=event_bus,
         scenario_service=scenario_service,
         repository_provider=repository_provider,

@@ -1,0 +1,11 @@
+{
+  "agent_type": "narrative",
+  "description": "Expert Dungeon Master for D&D 5th Edition narrative gameplay",
+  "agent_model_config": {
+    "temperature": 0.7,
+    "max_tokens": 4096,
+    "reasoning_effort": "high",
+    "parallel_tool_calls": false
+  },
+  "system_prompt_file": "prompts/narrative.md"
+}

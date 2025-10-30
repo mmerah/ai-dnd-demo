@@ -11,13 +11,6 @@ from pydantic_ai.providers.openai import OpenAIProvider
 from app.agents.combat.agent import CombatAgent
 from app.agents.core.base import BaseAgent, ToolFunction
 from app.agents.core.dependencies import AgentDependencies
-from app.agents.core.prompts import (
-    COMBAT_SYSTEM_PROMPT,
-    NARRATIVE_SYSTEM_PROMPT,
-    NPC_SYSTEM_PROMPT,
-    PUPPETEER_SYSTEM_PROMPT,
-    SUMMARIZER_SYSTEM_PROMPT,
-)
 from app.agents.core.types import AgentType
 from app.agents.narrative.agent import NarrativeAgent
 from app.agents.npc import IndividualMindAgent, PuppeteerAgent
@@ -40,7 +33,9 @@ from app.interfaces.services.game import (
     ISaveManager,
 )
 from app.interfaces.services.scenario import IScenarioService
+from app.models.agent_config import AgentConfig
 from app.services.ai import MessageConverterService
+from app.services.ai.config_loader import AgentConfigLoader
 from app.services.ai.debug_logger import AgentDebugLogger
 
 logger = logging.getLogger(__name__)
@@ -49,8 +44,24 @@ logger = logging.getLogger(__name__)
 class AgentFactory:
     """Factory for creating specialized agents."""
 
-    @classmethod
-    def _create_model(cls, model_name: str) -> OpenAIModel:
+    def __init__(self, config_loader: AgentConfigLoader) -> None:
+        """Initialize factory with configuration loader.
+
+        Args:
+            config_loader: Loader for agent configurations
+
+        Raises:
+            FileNotFoundError: If config files are missing
+            ValueError: If config files are invalid
+        """
+        self.config_loader = config_loader
+        self.narrative_config, self.narrative_prompt = config_loader.load_agent_config("narrative.json")
+        self.combat_config, self.combat_prompt = config_loader.load_agent_config("combat.json")
+        self.summarizer_config, self.summarizer_prompt = config_loader.load_agent_config("summarizer.json")
+        self.npc_individual_config, self.npc_individual_prompt = config_loader.load_agent_config("npc_individual.json")
+        self.npc_puppeteer_config, self.npc_puppeteer_prompt = config_loader.load_agent_config("npc_puppeteer.json")
+
+    def _create_model(self, model_name: str) -> OpenAIModel:
         """Create the AI model with proper configuration.
 
         Args:
@@ -74,16 +85,30 @@ class AgentFactory:
         # Use provided model name
         return OpenAIModel(model_name, provider=provider)
 
-    @classmethod
-    def _register_agent_tools(cls, agent: Agent[AgentDependencies, str], tools: list[ToolFunction]) -> None:
+    def _register_agent_tools(self, agent: Agent[AgentDependencies, str], tools: list[ToolFunction]) -> None:
         """Register tools with an agent."""
         for tool in tools:
             agent.tool(tool)
         logger.info(f"Registered {len(tools)} tools with the agent")
 
-    @classmethod
+    def _config_to_model_settings(self, config: AgentConfig) -> OpenAIModelSettings:
+        """Convert agent config to PydanticAI model settings.
+
+        Args:
+            config: Agent configuration
+
+        Returns:
+            OpenAIModelSettings instance
+        """
+        return OpenAIModelSettings(
+            temperature=config.agent_model_config.temperature,
+            max_tokens=config.agent_model_config.max_tokens,
+            parallel_tool_calls=config.agent_model_config.parallel_tool_calls,
+            openai_reasoning_effort=config.agent_model_config.reasoning_effort,
+        )
+
     def create_agent(
-        cls,
+        self,
         agent_type: AgentType,
         event_bus: IEventBus,
         scenario_service: IScenarioService,
@@ -100,20 +125,18 @@ class AgentFactory:
     ) -> BaseAgent:
         """Create a specialized agent based on type."""
         settings = get_settings()
-        # No parallel tool call to avoid the AI getting confused by what it is doing
-        model_settings = OpenAIModelSettings(
-            temperature=0.7, max_tokens=4096, parallel_tool_calls=False, openai_reasoning_effort="high"
-        )
 
         # Create debug logger if enabled
         debug_logger = AgentDebugLogger(enabled=settings.debug_agent_context)
 
         if agent_type == AgentType.NARRATIVE:
-            model = cls._create_model(settings.get_narrative_model())
+            model = self._create_model(settings.get_narrative_model())
+            model_settings = self._config_to_model_settings(self.narrative_config)
+
             narrative_pydantic_agent: Agent[AgentDependencies, str] = Agent(
                 model=model,
                 deps_type=AgentDependencies,
-                system_prompt=NARRATIVE_SYSTEM_PROMPT,
+                system_prompt=self.narrative_prompt,
                 model_settings=model_settings,
                 retries=settings.max_retries,
             )
@@ -131,20 +154,23 @@ class AgentFactory:
                 event_manager=event_manager,
                 conversation_service=conversation_service,
                 action_service=action_service,
+                system_prompt=self.narrative_prompt,
                 debug_logger=debug_logger,
             )
 
             # Register its required tools
-            cls._register_agent_tools(narrative_pydantic_agent, narrative_agent.get_required_tools())
+            self._register_agent_tools(narrative_pydantic_agent, narrative_agent.get_required_tools())
 
             return narrative_agent
 
         if agent_type == AgentType.COMBAT:
-            model = cls._create_model(settings.get_combat_model())
+            model = self._create_model(settings.get_combat_model())
+            model_settings = self._config_to_model_settings(self.combat_config)
+
             combat_pydantic_agent: Agent[AgentDependencies, str] = Agent(
                 model=model,
                 deps_type=AgentDependencies,
-                system_prompt=COMBAT_SYSTEM_PROMPT,
+                system_prompt=self.combat_prompt,
                 model_settings=model_settings,
                 retries=settings.max_retries,
             )
@@ -163,28 +189,31 @@ class AgentFactory:
                 conversation_service=conversation_service,
                 tool_call_extractor=tool_call_extractor_service,
                 action_service=action_service,
+                system_prompt=self.combat_prompt,
                 debug_logger=debug_logger,
             )
 
             # Register combat-specific tools only
-            cls._register_agent_tools(combat_pydantic_agent, combat_agent.get_required_tools())
+            self._register_agent_tools(combat_pydantic_agent, combat_agent.get_required_tools())
 
             return combat_agent
 
         if agent_type == AgentType.SUMMARIZER:
-            model = cls._create_model(settings.get_summarizer_model())
-            summarizer_settings = OpenAIModelSettings(temperature=0.5, max_tokens=1000, parallel_tool_calls=False)
+            model = self._create_model(settings.get_summarizer_model())
+            model_settings = self._config_to_model_settings(self.summarizer_config)
+
             # Summarizer doesn't need dependencies, so we create a simpler agent
             agent: Agent[None, str] = Agent(
                 model=model,
-                system_prompt=SUMMARIZER_SYSTEM_PROMPT,
-                model_settings=summarizer_settings,
+                system_prompt=self.summarizer_prompt,
+                model_settings=model_settings,
                 retries=settings.max_retries,
             )
 
             summarizer_agent: ISummarizerAgent = SummarizerAgent(
                 agent=agent,
                 context_service=context_service,
+                system_prompt=self.summarizer_prompt,
                 debug_logger=debug_logger,
             )
             # Summarizer doesn't need tools
@@ -192,9 +221,8 @@ class AgentFactory:
 
         raise ValueError(f"Unknown agent type: {agent_type}")
 
-    @classmethod
     def create_individual_mind_agent(
-        cls,
+        self,
         *,
         event_bus: IEventBus,
         scenario_service: IScenarioService,
@@ -210,19 +238,14 @@ class AgentFactory:
         debug: bool = False,
     ) -> IndividualMindAgent:
         settings = get_settings()
-        model = cls._create_model(settings.get_individual_npc_model())
-        model_settings = OpenAIModelSettings(
-            temperature=0.7,
-            max_tokens=2048,
-            parallel_tool_calls=False,
-            openai_reasoning_effort="medium",
-        )
+        model = self._create_model(settings.get_individual_npc_model())
+        model_settings = self._config_to_model_settings(self.npc_individual_config)
         debug_logger = AgentDebugLogger(enabled=settings.debug_agent_context)
 
         npc_agent_core: Agent[AgentDependencies, str] = Agent(
             model=model,
             deps_type=AgentDependencies,
-            system_prompt=NPC_SYSTEM_PROMPT,
+            system_prompt=self.npc_individual_prompt,
             model_settings=model_settings,
             retries=settings.max_retries,
         )
@@ -241,15 +264,15 @@ class AgentFactory:
             save_manager=save_manager,
             action_service=action_service,
             message_service=message_service,
+            system_prompt=self.npc_individual_prompt,
             debug_logger=debug_logger,
         )
 
-        cls._register_agent_tools(npc_agent_core, individual_agent.get_required_tools())
+        self._register_agent_tools(npc_agent_core, individual_agent.get_required_tools())
         return individual_agent
 
-    @classmethod
     def create_puppeteer_agent(
-        cls,
+        self,
         *,
         event_bus: IEventBus,
         scenario_service: IScenarioService,
@@ -265,19 +288,14 @@ class AgentFactory:
         debug: bool = False,
     ) -> PuppeteerAgent:
         settings = get_settings()
-        model = cls._create_model(settings.get_puppeteer_npc_model())
-        model_settings = OpenAIModelSettings(
-            temperature=0.8,
-            max_tokens=2048,
-            parallel_tool_calls=False,
-            openai_reasoning_effort="medium",
-        )
+        model = self._create_model(settings.get_puppeteer_npc_model())
+        model_settings = self._config_to_model_settings(self.npc_puppeteer_config)
         debug_logger = AgentDebugLogger(enabled=settings.debug_agent_context)
 
         puppeteer_core: Agent[AgentDependencies, str] = Agent(
             model=model,
             deps_type=AgentDependencies,
-            system_prompt=PUPPETEER_SYSTEM_PROMPT,
+            system_prompt=self.npc_puppeteer_prompt,
             model_settings=model_settings,
             retries=settings.max_retries,
         )
@@ -296,8 +314,9 @@ class AgentFactory:
             save_manager=save_manager,
             action_service=action_service,
             message_service=message_service,
+            system_prompt=self.npc_puppeteer_prompt,
             debug_logger=debug_logger,
         )
 
-        cls._register_agent_tools(puppeteer_core, puppeteer_agent.get_required_tools())
+        self._register_agent_tools(puppeteer_core, puppeteer_agent.get_required_tools())
         return puppeteer_agent
