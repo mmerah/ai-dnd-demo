@@ -8,19 +8,21 @@ from typing import cast
 from app.agents.core.base import BaseAgent
 from app.agents.core.types import AgentType
 from app.agents.npc.base import BaseNPCAgent
+from app.agents.tool_suggestor.agent import ToolSuggestorAgent
 from app.interfaces.agents.summarizer import ISummarizerAgent
 from app.interfaces.events import IEventBus
-from app.interfaces.services.ai import IAgentLifecycleService
+from app.interfaces.services.ai import IAgentLifecycleService, IContextService
 from app.interfaces.services.game import (
     ICombatService,
     IConversationService,
     IGameService,
     IMetadataService,
 )
-from app.models.ai_response import StreamEvent
+from app.models.ai_response import StreamEvent, StreamEventType
 from app.models.attributes import EntityType
 from app.models.combat import CombatFaction
 from app.models.game_state import DialogueSessionMode, GameState, MessageRole
+from app.models.tool_suggestion import ToolSuggestions
 from app.services.ai.orchestrator import agent_router, combat_loop, state_reload, system_broadcasts, transitions
 
 logger = logging.getLogger(__name__)
@@ -34,6 +36,8 @@ class AgentOrchestrator:
         narrative_agent: BaseAgent,
         combat_agent: BaseAgent,
         summarizer_agent: ISummarizerAgent,
+        tool_suggestor_agent: ToolSuggestorAgent,
+        context_service: IContextService,
         combat_service: ICombatService,
         event_bus: IEventBus,
         game_service: IGameService,
@@ -44,6 +48,8 @@ class AgentOrchestrator:
         self.narrative_agent = narrative_agent
         self.combat_agent = combat_agent
         self.summarizer_agent = summarizer_agent
+        self.tool_suggestor_agent = tool_suggestor_agent
+        self.context_service = context_service
         self.combat_service = combat_service
         self.event_bus = event_bus
         self.game_service = game_service
@@ -102,8 +108,33 @@ class AgentOrchestrator:
         # Select the appropriate agent
         agent = self.combat_agent if current_agent_type == AgentType.COMBAT else self.narrative_agent
 
+        # Build context for the agent
+        context = self.context_service.build_context(game_state, current_agent_type)
+
+        # Get tool suggestions from ToolSuggestorAgent. Does not need context
+        tool_suggestions_prompt = f"TARGET_AGENT: {current_agent_type.value}\n\nUSER_PROMPT: {user_message}"
+        suggestions_events = [
+            event
+            async for event in self.tool_suggestor_agent.process(
+                tool_suggestions_prompt, game_state, context="", stream=False
+            )
+        ]
+
+        # Extract suggestions from the complete event
+        suggestions = ToolSuggestions(suggestions=[])
+        if suggestions_events:
+            for event in suggestions_events:
+                if event.type == StreamEventType.COMPLETE and isinstance(event.content, ToolSuggestions):
+                    suggestions = event.content
+                    break
+
+        # Enrich context with suggestions if any
+        if suggestions.suggestions:
+            suggestions_text = suggestions.format_for_prompt()
+            context = f"{context}\n\n{suggestions_text}"
+
         # Process with selected agent
-        async for event in agent.process(user_message, game_state, stream=stream):
+        async for event in agent.process(user_message, game_state, context, stream=stream):
             yield event
 
         # Reload game state to get any changes made by handlers during processing
@@ -170,7 +201,8 @@ class AgentOrchestrator:
 
             agent = cast(BaseNPCAgent, self.agent_lifecycle_service.get_npc_agent(game_state, npc))
             agent.prepare_for_npc(npc)
-            async for event in agent.process(user_message, game_state, stream=stream):
+            # NPC agents build their own context internally (includes persona), so pass empty string
+            async for event in agent.process(user_message, game_state, context="", stream=stream):
                 yield event
             session.last_interaction_at = datetime.now()
 
@@ -207,7 +239,8 @@ class AgentOrchestrator:
 
         # Only prompt combat agent immediately if it's not an allied NPC turn
         if not is_ally_turn and initial_prompt:
-            async for event in self.combat_agent.process(initial_prompt, game_state, stream=stream):
+            combat_context = self.context_service.build_context(game_state, AgentType.COMBAT)
+            async for event in self.combat_agent.process(initial_prompt, game_state, combat_context, stream=stream):
                 yield event
 
         # Handle any subsequent NPC/Monster turns or combat ending
@@ -215,6 +248,7 @@ class AgentOrchestrator:
             game_state=game_state,
             combat_service=self.combat_service,
             combat_agent=self.combat_agent,
+            context_service=self.context_service,
             event_bus=self.event_bus,
             agent_lifecycle_service=self.agent_lifecycle_service,
             stream=stream,
@@ -243,6 +277,7 @@ class AgentOrchestrator:
             game_state=game_state,
             combat_service=self.combat_service,
             combat_agent=self.combat_agent,
+            context_service=self.context_service,
             event_bus=self.event_bus,
             agent_lifecycle_service=self.agent_lifecycle_service,
             stream=stream,
@@ -274,5 +309,8 @@ class AgentOrchestrator:
         logger.debug("Reloaded state for narrative aftermath, combat.is_active=%s", game_state.combat.is_active)
 
         # Process the narrative continuation
-        async for event in self.narrative_agent.process(continuation_prompt, game_state, stream=stream):
+        narrative_context = self.context_service.build_context(game_state, AgentType.NARRATIVE)
+        async for event in self.narrative_agent.process(
+            continuation_prompt, game_state, narrative_context, stream=stream
+        ):
             yield event

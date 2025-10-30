@@ -6,6 +6,7 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 from app.common.types import JSONSerializable
+from app.models.tool_suggestion import ToolSuggestions
 
 
 class NarrativeChunkResponse(BaseModel):
@@ -49,8 +50,8 @@ class NarrativeResponse(BaseModel):
     usage: dict[str, JSONSerializable] | None = None
 
 
-# Chunks are str, complete responses are NarrativeResponse
-StreamEventContent = str | NarrativeResponse
+# Chunks are str, complete responses are NarrativeResponse, tool suggestions are ToolSuggestions
+StreamEventContent = str | NarrativeResponse | ToolSuggestions
 
 
 class StreamEvent(BaseModel):

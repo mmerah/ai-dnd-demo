@@ -42,6 +42,7 @@ app/
 │   ├── narrative/             # Story progression agent
 │   ├── combat/                # Tactical combat agent
 │   ├── summarizer/            # Context bridge agent
+│   ├── tool_suggestor/        # Pre-flight tool suggestion agent
 │   └── npc/                   # Sub-package for NPC agents
 │       ├── base.py            # Shared base class for all NPC agents
 │       ├── individual_agent.py # Agent for major NPCs with persistent state
@@ -63,6 +64,7 @@ app/
 ├── models/
 │   ├── agent_config.py        # Agent configuration models (AgentConfig, AgentModelConfig)
 │   ├── tool_suggestion_config.py  # Tool suggestion rule models
+│   ├── tool_suggestion.py     # Tool suggestion runtime models
 │   ├── ai_response.py         # Streaming/complete/error payloads
 │   ├── character.py           # Player sheet (stats/inventory/spells)
 │   ├── combat.py              # Combat state (initiative/turns/conditions/factions)
@@ -81,6 +83,9 @@ app/
 │   │   ├── orchestrator_service.py         # Agent routing logic
 │   │   ├── orchestrator/                   # agent_router/combat_loop/transitions/state_reload
 │   │   ├── context_builders/               # Granular context builders
+│   │   ├── tool_suggestion/                # Tool suggestion infrastructure
+│   │   │   ├── tool_suggestion_service.py  # Heuristic-based tool suggestion service
+│   │   │   └── heuristic_rules.py          # Rule classes for pattern matching
 │   │   └── debug_logger/event_logger/message_converter/tool_call_extractor
 │   ├── character/             # Sheet loading, stat compute, leveling
 │   ├── common/                # DiceService/BroadcastService/ActionService/PathResolver
@@ -168,18 +173,23 @@ data/
 ## Runtime Flow
 1. `uvicorn app.main:app --reload --port 8123` boots FastAPI, initializes Container, validates all data
    - **Agent configs** loaded from `data/agents/*.json` + markdown prompts (fail-fast validation)
+   - **Tool suggestion rules** loaded from `data/agents/tool_suggestion_rules.json`
 2. Player action -> `/api/game/{game_id}/action` -> background task -> GameService + AIService
 3. Request -> AgentOrchestrator:
    - **NPC dialogue** (@npc_name): AgentLifecycleService -> IndividualMindAgent (major) or PuppeteerAgent (minor)
    - **Non-combat**: NarrativeAgent
    - **Combat active**: CombatAgent
-4. Agent builds context (ContextService), processes prompt, calls tools
-5. Tool -> @tool_handler -> Command -> EventBus -> Handler -> mutate GameState -> dispatch follow-ups
-6. **Transitions**:
+4. Orchestrator builds context:
+   - ContextService builds context for target agent
+   - ToolSuggestorAgent evaluates heuristic rules (prompt + game state)
+   - Suggestions appended to context string
+5. Agent.process(prompt, game_state, context) processes with enriched context, calls tools
+6. Tool -> @tool_handler -> Command -> EventBus -> Handler -> mutate GameState -> dispatch follow-ups
+7. **Transitions**:
    - Narrative->Combat: SummarizerAgent creates context bridge
    - Combat runs NPC/monster turns until player turn/end
    - Location change: MemoryService summarizes events -> MemoryEntry
-7. SaveManager persists, MessageService broadcasts SSE
+8. SaveManager persists, MessageService broadcasts SSE
 
 ## Commands
 - **Format**: `ruff format .`

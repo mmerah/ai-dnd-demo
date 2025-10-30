@@ -120,22 +120,146 @@ This document tracks implementation progress against [PLAN.md](PLAN.md).
 
 ## Phase 2: ToolSuggestor Agent
 
-### ⏳ 2.1: Implement ToolSuggestorAgent
-**Status**: Not started
+### ✅ 2.1: Implement ToolSuggestorAgent
+**Status**: Complete
+- [x] Created `app/agents/tool_suggestor/agent.py` with ToolSuggestorAgent class
+- [x] Extends BaseAgent interface for consistency and future LLM integration
+- [x] Accepts structured prompt format: `TARGET_AGENT: {agent_type}\n\nUSER_PROMPT: {prompt}`
+- [x] Calls IToolSuggestionService for heuristic-based suggestions
+- [x] Returns ToolSuggestions wrapped in StreamEvent (COMPLETE type)
+- [x] Error handling: returns empty suggestions on parse/evaluation errors
+- [x] Full logging for debugging and monitoring
+- [x] Created `app/agents/tool_suggestor/__init__.py` for package structure
 
-### ⏳ 2.2: Integrate with AgentFactory
-**Status**: Not started
+### ✅ 2.2: Integrate with AgentFactory
+**Status**: Complete
+- [x] Added `TOOL_SUGGESTOR = "tool_suggestor"` to AgentType enum in `app/agents/core/types.py`
+- [x] Imported ToolSuggestorAgent in `app/agents/factory.py`
+- [x] Added `IToolSuggestionService` to factory imports
+- [x] Created `create_tool_suggestor_agent()` method in AgentFactory
+- [x] Method accepts `suggestion_service` parameter and returns ToolSuggestorAgent instance
+- [x] No configuration file needed (uses heuristic rules from tool_suggestion_rules.json)
 
 ## Phase 3: Orchestrator Integration
 
-### ⏳ 3.1: Update BaseAgent signature
-**Status**: Not started
+### ✅ 3.1: Update BaseAgent signature (BREAKING CHANGE)
+**Status**: Complete
+- [x] Updated `BaseAgent.process()` signature in `app/agents/core/base.py`
+- [x] Added required `context: str` parameter between `game_state` and `stream`
+- [x] New signature: `process(prompt: str, game_state: GameState, context: str, stream: bool = True)`
+- [x] Updated docstring to document all parameters
+- [x] **Breaking change**: All agents must now accept context parameter
 
-### ⏳ 3.2: Update all agent implementations
-**Status**: Not started
+### ✅ 3.2: Update all agent implementations
+**Status**: Complete
 
-### ⏳ 3.3: Update AgentOrchestrator
-**Status**: Not started
+#### NarrativeAgent (`app/agents/narrative/agent.py`)
+- [x] Updated `process()` method signature to include `context: str` parameter
+- [x] Removed internal `context_service.build_context()` call (now passed in)
+- [x] Removed `context_service` from class attributes
+- [x] Removed `IContextService` from imports
+- [x] Updated AgentFactory to not pass `context_service` to constructor
+
+#### CombatAgent (`app/agents/combat/agent.py`)
+- [x] Updated `process()` method signature to include `context: str` parameter
+- [x] Removed internal `context_service.build_context()` call (now passed in)
+- [x] Removed `context_service` from class attributes
+- [x] Removed `IContextService` from imports
+- [x] Updated AgentFactory to not pass `context_service` to constructor
+
+#### SummarizerAgent (`app/agents/summarizer/agent.py`)
+- [x] Updated `process()` method signature to include `context: str` parameter
+- [x] Added note: parameter unused but required by BaseAgent interface
+
+#### BaseNPCAgent (`app/agents/npc/base.py`)
+- [x] Updated `process()` method signature to include `context: str` parameter
+- [x] Added docstring note: context unused for NPC agents (build their own internally)
+- [x] NPCs build context internally with persona-specific information
+
+#### ToolSuggestorAgent (`app/agents/tool_suggestor/agent.py`)
+- [x] Already implemented with correct signature
+- [x] Context parameter documented as unused (only needs game_state + prompt)
+
+### ✅ 3.3: Update AgentOrchestrator
+**Status**: Complete
+
+#### Core Orchestrator Changes (`app/services/ai/orchestrator_service.py`)
+- [x] Added `tool_suggestor_agent: ToolSuggestorAgent` parameter to `__init__()`
+- [x] Added `context_service: IContextService` parameter to `__init__()`
+- [x] Imported `ToolSuggestorAgent` and `IContextService`
+- [x] Imported `ToolSuggestions` model
+- [x] Updated `process()` method to:
+  1. Build context using `context_service.build_context(game_state, agent_type)`
+  2. Create structured prompt for ToolSuggestorAgent
+  3. Call `tool_suggestor_agent.process()` to get suggestions
+  4. Extract ToolSuggestions from StreamEvent
+  5. Enrich context with formatted suggestions if any exist
+  6. Pass enriched context to target agent's `process()` method
+- [x] Updated NPC dialogue routing to pass empty context (NPCs build their own)
+- [x] Updated combat aftermath narrative to build and pass context
+- [x] Added imports for StreamEventType and ToolSuggestions
+
+#### Combat Loop Changes (`app/services/ai/orchestrator/combat_loop.py`)
+- [x] Added `context_service: IContextService` parameter to `run()` function
+- [x] Added `context_service: IContextService` parameter to `_handle_auto_continue_turn()` helper
+- [x] Added `context_service: IContextService` parameter to `_handle_combat_end()` helper
+- [x] Imported `IContextService` and `AgentType`
+- [x] All combat agent calls now build context via `context_service.build_context()`
+- [x] NPC suggestion generation passes empty context (NPCs build their own)
+- [x] Updated all callers in orchestrator_service.py to pass context_service
+
+### ✅ 3.4: Update Container
+**Status**: Complete
+- [x] Created `tool_suggestor_agent` in `ai_service` property
+- [x] Called `agent_factory.create_tool_suggestor_agent(suggestion_service=self.tool_suggestion_service)`
+- [x] Passed `tool_suggestor_agent` to AgentOrchestrator constructor
+- [x] Passed `context_service` to AgentOrchestrator constructor
+- [x] All dependencies properly wired through DI
+
+### ✅ 3.5: Update AI Response Models
+**Status**: Complete
+- [x] Updated `StreamEventContent` type alias in `app/models/ai_response.py`
+- [x] Added `ToolSuggestions` to union: `str | NarrativeResponse | ToolSuggestions`
+- [x] Imported ToolSuggestions from `app.models.tool_suggestion`
+- [x] Updated docstring comment to include ToolSuggestions
+
+### ✅ 3.6: Update All Tests
+**Status**: Complete
+
+#### Updated Test Files
+- [x] `tests/integration/test_ai_response_flow.py`
+  - Added `context: str` parameter to all stub agent `process()` methods
+  - Added `IContextService` mock returning empty context
+  - Added `ToolSuggestorAgent` stub returning empty suggestions
+  - Updated AgentOrchestrator constructor calls
+
+- [x] `tests/integration/test_orchestrator_multi_tool_flow.py`
+  - Added `context: str` parameter to all stub agent `process()` methods
+  - Created tool_suggestor_stub with method assignment
+  - Updated AgentOrchestrator constructor call
+  - Added type ignore comments for method assignment
+
+- [x] `tests/unit/services/ai/test_agent_orchestrator.py`
+  - Added `context: str` parameter to all stub agent `process()` methods
+  - Added `IContextService` mock in `_build_orchestrator()`
+  - Added `ToolSuggestorAgent` stub in `_build_orchestrator()`
+  - Updated all AgentOrchestrator constructor calls
+  - Added `yield` statements to satisfy async generator return type
+
+- [x] `tests/unit/services/ai/test_agent_orchestrator_ally_combat.py`
+  - Added `context: str` parameter to all stub agent `process()` methods
+  - Added `IContextService` mock in `_build_orchestrator()`
+  - Added `ToolSuggestorAgent` stub in `_build_orchestrator()`
+  - Updated all AgentOrchestrator constructor calls
+  - Added `yield` statements to satisfy async generator return type
+
+- [x] `tests/unit/services/ai/test_combat_loop.py`
+  - Updated all mock agent `process()` methods with `context: str` parameter
+
+#### Test Results
+- ✅ All 293 tests passing
+- ✅ mypy --strict: no errors (all 293 source files)
+- ✅ No regression in existing functionality
 
 ## Phase 4: Enhanced System Prompts
 
@@ -197,8 +321,39 @@ All Phase 1 tasks (1.1-1.3) are complete. The system now features:
 - **Comprehensive test coverage** with 30 new tests (all passing)
 - **Type safety** verified with mypy --strict (no issues)
 
+## ✅ Phase 2 Complete!
+
+All Phase 2 tasks (2.1-2.2) are complete. The system now features:
+- **ToolSuggestorAgent** implementing BaseAgent interface for consistency
+- **Structured prompt format** for agent type targeting and user prompt separation
+- **Factory integration** with `create_tool_suggestor_agent()` method
+- **TOOL_SUGGESTOR** enum added to AgentType for routing
+- **Error handling** with empty suggestions fallback
+- **Full logging** for debugging and monitoring
+
+## ✅ Phase 3 Complete!
+
+All Phase 3 tasks (3.1-3.6) are complete. This was a **BREAKING CHANGE** phase. The system now features:
+- **Updated BaseAgent interface** requiring `context: str` parameter in all `process()` methods
+- **All agent implementations updated** (Narrative, Combat, Summarizer, NPC agents)
+- **Context building centralized** in AgentOrchestrator before agent invocation
+- **ToolSuggestorAgent integration** in orchestrator flow:
+  1. Build context for target agent
+  2. Generate tool suggestions via ToolSuggestorAgent
+  3. Enrich context with suggestions
+  4. Pass enriched context to target agent
+- **Combat loop updated** to pass context_service and build context for all agent calls
+- **Container wired** with tool_suggestor_agent and context_service dependencies
+- **StreamEventContent extended** to support ToolSuggestions
+- **All tests updated** and passing (293/293)
+- **Type safety maintained** with mypy --strict (no errors)
+- **CLAUDE.md updated** with new architecture documentation
+
 ## Next Steps
 1. ✅ Phase 0 complete (agent configuration system)
 2. ✅ Phase 1 complete (tool suggestion infrastructure)
-3. ⏳ Phase 2: ToolSuggestor Agent
-4. ⏳ Phase 3-6: Orchestrator integration, enhanced prompts, party-aware context, testing
+3. ✅ Phase 2 complete (ToolSuggestor Agent)
+4. ✅ Phase 3 complete (Orchestrator integration with BREAKING CHANGES)
+5. ⏳ Phase 4: Enhanced system prompts
+6. ⏳ Phase 5: Party-aware context
+7. ⏳ Phase 6: Testing & validation

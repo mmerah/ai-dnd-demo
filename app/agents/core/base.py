@@ -27,6 +27,17 @@ class BaseAgent(ABC):
         self,
         prompt: str,
         game_state: GameState,
+        context: str,
         stream: bool = True,
     ) -> AsyncIterator[StreamEvent]:
-        """Process a prompt and yield stream events."""
+        """Process a prompt and yield stream events.
+
+        Args:
+            prompt: User's prompt text
+            game_state: Current game state
+            context: Pre-built context string for the agent
+            stream: Whether to stream response chunks
+
+        Yields:
+            StreamEvent objects with response data
+        """

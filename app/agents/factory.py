@@ -15,6 +15,7 @@ from app.agents.core.types import AgentType
 from app.agents.narrative.agent import NarrativeAgent
 from app.agents.npc import IndividualMindAgent, PuppeteerAgent
 from app.agents.summarizer.agent import SummarizerAgent
+from app.agents.tool_suggestor.agent import ToolSuggestorAgent
 from app.config import get_settings
 from app.interfaces.agents.summarizer import ISummarizerAgent
 from app.interfaces.events import IEventBus
@@ -23,6 +24,7 @@ from app.interfaces.services.ai import (
     IEventLoggerService,
     IMessageService,
     IToolCallExtractorService,
+    IToolSuggestionService,
 )
 from app.interfaces.services.common import IActionService
 from app.interfaces.services.data import IRepositoryProvider
@@ -143,7 +145,6 @@ class AgentFactory:
 
             narrative_agent = NarrativeAgent(
                 agent=narrative_pydantic_agent,
-                context_service=context_service,
                 message_converter=MessageConverterService(),
                 event_logger=event_logger_service,
                 metadata_service=metadata_service,
@@ -177,7 +178,6 @@ class AgentFactory:
 
             combat_agent = CombatAgent(
                 agent=combat_pydantic_agent,
-                context_service=context_service,
                 message_converter=MessageConverterService(),
                 event_logger=event_logger_service,
                 metadata_service=metadata_service,
@@ -320,3 +320,6 @@ class AgentFactory:
 
         self._register_agent_tools(puppeteer_core, puppeteer_agent.get_required_tools())
         return puppeteer_agent
+
+    def create_tool_suggestor_agent(self, suggestion_service: IToolSuggestionService) -> ToolSuggestorAgent:
+        return ToolSuggestorAgent(suggestion_service=suggestion_service)

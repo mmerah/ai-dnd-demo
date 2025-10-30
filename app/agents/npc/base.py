@@ -115,9 +115,14 @@ class BaseNPCAgent(BaseAgent, ABC):
         self,
         prompt: str,
         game_state: GameState,
+        context: str,
         stream: bool = True,
     ) -> AsyncIterator[StreamEvent]:
-        """Process the player's prompt and generate an NPC reply."""
+        """Process the player's prompt and generate an NPC reply.
+
+        Note: The context parameter is unused for NPC agents. NPCs build their own
+        context internally since it includes NPC-specific persona information.
+        """
         npc = self._require_active_npc()
         self.event_processor.context.clear()
         self.event_processor.context.game_id = game_state.game_id

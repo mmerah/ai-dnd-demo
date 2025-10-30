@@ -10,11 +10,12 @@ import pytest
 from app.agents.core.base import BaseAgent, ToolFunction
 from app.agents.core.types import AgentType
 from app.interfaces.events import IEventBus
-from app.interfaces.services.ai import IAgentLifecycleService
+from app.interfaces.services.ai import IAgentLifecycleService, IContextService
 from app.interfaces.services.game import ICombatService, IConversationService, IGameService, IMetadataService
 from app.models.ai_response import StreamEvent, StreamEventType
 from app.models.game_state import GameState, MessageRole
 from app.models.instances.npc_instance import NPCInstance
+from app.models.tool_suggestion import ToolSuggestions
 from app.services.ai.orchestrator_service import AgentOrchestrator
 from tests.factories import make_game_state, make_npc_instance
 
@@ -28,7 +29,7 @@ class _StubAgent(BaseAgent):
         return []
 
     async def process(
-        self, user_message: str, game_state: GameState, stream: bool = True
+        self, user_message: str, game_state: GameState, context: str, stream: bool = True
     ) -> AsyncIterator[StreamEvent]:
         self.messages.append(user_message)
         for event in self.events:
@@ -45,8 +46,11 @@ class _StubSummarizer(BaseAgent):
     def get_required_tools(self) -> list[ToolFunction]:
         return []
 
-    async def process(self, prompt: str, game_state: GameState, stream: bool = True) -> AsyncIterator[StreamEvent]:  # type: ignore[override]
+    async def process(
+        self, prompt: str, game_state: GameState, context: str, stream: bool = True
+    ) -> AsyncIterator[StreamEvent]:
         raise NotImplementedError
+        yield  # type: ignore[unreachable]
 
 
 class _StubNPCAgent(BaseAgent):
@@ -62,6 +66,7 @@ class _StubNPCAgent(BaseAgent):
         self,
         user_message: str,
         game_state: GameState,
+        context: str,
         stream: bool = True,
     ) -> AsyncIterator[StreamEvent]:
         if self.active_npc_id is not None:
@@ -84,11 +89,18 @@ def _build_orchestrator(
     metadata_service.extract_targeted_npcs.return_value = []
     conversation_service: MagicMock = create_autospec(IConversationService, instance=True)
     agent_lifecycle: MagicMock = create_autospec(IAgentLifecycleService, instance=True)
+    tool_suggestor_agent = _StubAgent(
+        [StreamEvent(type=StreamEventType.COMPLETE, content=ToolSuggestions(suggestions=[]))]
+    )
+    context_service: MagicMock = create_autospec(IContextService, instance=True)
+    context_service.build_context.return_value = ""
 
     orchestrator = AgentOrchestrator(
         narrative_agent=narrative_agent,
         combat_agent=combat_agent,
         summarizer_agent=summarizer,  # type: ignore[arg-type]
+        tool_suggestor_agent=tool_suggestor_agent,  # type: ignore[arg-type]
+        context_service=context_service,
         combat_service=combat_service,
         event_bus=event_bus,
         game_service=game_service,

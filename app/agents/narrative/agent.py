@@ -15,7 +15,7 @@ from app.agents.core.event_stream.tools import ToolEventHandler
 from app.agents.core.types import AgentType
 from app.events.commands.broadcast_commands import BroadcastNarrativeCommand
 from app.interfaces.events import IEventBus
-from app.interfaces.services.ai import IContextService, IEventLoggerService
+from app.interfaces.services.ai import IEventLoggerService
 from app.interfaces.services.common import IActionService
 from app.interfaces.services.data import IRepositoryProvider
 from app.interfaces.services.game import (
@@ -48,7 +48,6 @@ class NarrativeAgent(BaseAgent):
     """Agent that handles all narrative D&D gameplay."""
 
     agent: Agent[AgentDependencies, str]
-    context_service: IContextService
     message_converter: MessageConverterService
     event_logger: IEventLoggerService
     metadata_service: IMetadataService
@@ -125,6 +124,7 @@ class NarrativeAgent(BaseAgent):
         self,
         prompt: str,
         game_state: GameState,
+        context: str,
         stream: bool = True,
     ) -> AsyncIterator[StreamEvent]:
         """Process a prompt and yield stream events."""
@@ -153,7 +153,6 @@ class NarrativeAgent(BaseAgent):
             action_service=self.action_service,
         )
 
-        context = self.context_service.build_context(game_state, AgentType.NARRATIVE)
         message_history = self.message_converter.to_pydantic_messages(
             game_state.conversation_history,
             agent_type=AgentType.NARRATIVE,

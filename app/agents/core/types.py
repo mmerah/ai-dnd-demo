@@ -11,3 +11,4 @@ class AgentType(Enum):
     SUMMARIZER = "summarizer"
     NPC = "npc"
     PLAYER = "player"
+    TOOL_SUGGESTOR = "tool_suggestor"

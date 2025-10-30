@@ -6,10 +6,11 @@ from collections.abc import AsyncIterator
 from typing import cast
 
 from app.agents.core.base import BaseAgent
+from app.agents.core.types import AgentType
 from app.agents.npc.base import BaseNPCAgent
 from app.events.commands.broadcast_commands import BroadcastCombatSuggestionCommand, BroadcastNarrativeCommand
 from app.interfaces.events import IEventBus
-from app.interfaces.services.ai import IAgentLifecycleService
+from app.interfaces.services.ai import IAgentLifecycleService, IContextService
 from app.interfaces.services.game import ICombatService
 from app.models.ai_response import NarrativeResponse, StreamEvent, StreamEventType
 from app.models.attributes import EntityType
@@ -23,6 +24,7 @@ async def _handle_combat_end(
     *,
     game_state: GameState,
     combat_agent: BaseAgent,
+    context_service: IContextService,
     event_bus: IEventBus,
     stream: bool,
 ) -> AsyncIterator[StreamEvent]:
@@ -31,6 +33,7 @@ async def _handle_combat_end(
     Args:
         game_state: Current game state
         combat_agent: Agent to narrate combat end
+        context_service: Service for building agent context
         event_bus: Event bus for broadcasting
         stream: Whether to stream agent responses
 
@@ -51,8 +54,9 @@ async def _handle_combat_end(
         ]
     )
 
-    # Process with combat agent to end combat
-    async for event in combat_agent.process(end_combat_prompt, game_state, stream=stream):
+    # Build context and process with combat agent to end combat
+    context = context_service.build_context(game_state, AgentType.COMBAT)
+    async for event in combat_agent.process(end_combat_prompt, game_state, context, stream=stream):
         yield event
 
 
@@ -105,9 +109,9 @@ async def _generate_ally_suggestion(
     )
     logger.debug(f"Prompting {npc.display_name} for combat suggestion")
 
-    # Collect NPC response
+    # Collect NPC response (NPC agents build their own context internally)
     suggestion_text = ""
-    async for event in npc_agent.process(suggestion_prompt, game_state, stream=False):
+    async for event in npc_agent.process(suggestion_prompt, game_state, context="", stream=False):
         if event.type == StreamEventType.COMPLETE and isinstance(event.content, NarrativeResponse):
             suggestion_text = event.content.narrative or ""
             break
@@ -142,6 +146,7 @@ async def _handle_auto_continue_turn(
     game_state: GameState,
     combat_service: ICombatService,
     combat_agent: BaseAgent,
+    context_service: IContextService,
     event_bus: IEventBus,
     last_prompted_entity_id: str | None,
     last_prompted_round: int,
@@ -154,6 +159,7 @@ async def _handle_auto_continue_turn(
         game_state: Current game state
         combat_service: Combat service for prompt generation
         combat_agent: Agent to narrate combat actions
+        context_service: Service for building agent context
         event_bus: Event bus for broadcasting
         last_prompted_entity_id: Last entity prompted (for duplicate detection)
         last_prompted_round: Last round prompted (for duplicate detection)
@@ -183,8 +189,9 @@ async def _handle_auto_continue_turn(
         ]
     )
 
-    # Process with combat agent
-    async for event in combat_agent.process(auto_prompt, game_state, stream=stream):
+    # Build context and process with combat agent
+    context = context_service.build_context(game_state, AgentType.COMBAT)
+    async for event in combat_agent.process(auto_prompt, game_state, context, stream=stream):
         yield event
 
 
@@ -193,6 +200,7 @@ async def run(
     game_state: GameState,
     combat_service: ICombatService,
     combat_agent: BaseAgent,
+    context_service: IContextService,
     event_bus: IEventBus,
     agent_lifecycle_service: IAgentLifecycleService,
     stream: bool = True,
@@ -216,7 +224,11 @@ async def run(
         # Check if combat should end
         if combat_service.should_auto_end_combat(game_state):
             async for event in _handle_combat_end(
-                game_state=game_state, combat_agent=combat_agent, event_bus=event_bus, stream=stream
+                game_state=game_state,
+                combat_agent=combat_agent,
+                context_service=context_service,
+                event_bus=event_bus,
+                stream=stream,
             ):
                 yield event
             break
@@ -243,6 +255,7 @@ async def run(
             game_state=game_state,
             combat_service=combat_service,
             combat_agent=combat_agent,
+            context_service=context_service,
             event_bus=event_bus,
             last_prompted_entity_id=last_prompted_entity_id,
             last_prompted_round=last_prompted_round,

@@ -14,6 +14,7 @@ import pytest
 from app.agents.core.base import BaseAgent, ToolFunction
 from app.agents.core.dependencies import AgentDependencies
 from app.agents.core.types import AgentType
+from app.agents.tool_suggestor.agent import ToolSuggestorAgent
 from app.container import Container
 from app.interfaces.agents.summarizer import ISummarizerAgent
 from app.models.ai_response import CompleteResponse, NarrativeResponse, StreamEvent, StreamEventType
@@ -27,6 +28,7 @@ from app.models.memory import MemoryEventKind, WorldEventContext
 from app.models.npc import NPCImportance
 from app.models.scenario import LocationDescriptions
 from app.models.tool_results import RollDiceResult
+from app.models.tool_suggestion import ToolSuggestions
 from app.services.ai.ai_service import AIService
 from app.services.ai.orchestrator_service import AgentOrchestrator
 from app.services.common.path_resolver import PathResolver
@@ -91,7 +93,9 @@ class _NarrativeScriptAgent(BaseAgent):
             combat_tools.start_combat,
         ]
 
-    async def process(self, prompt: str, game_state: GameState, stream: bool = True) -> AsyncIterator[StreamEvent]:
+    async def process(
+        self, prompt: str, game_state: GameState, context: str, stream: bool = True
+    ) -> AsyncIterator[StreamEvent]:
         self.prompts.append(prompt)
         deps = self._deps_builder(game_state)
         ctx = SimpleNamespace(deps=deps)
@@ -212,7 +216,9 @@ class _CombatScriptAgent(BaseAgent):
             quest_tools.complete_objective,
         ]
 
-    async def process(self, prompt: str, game_state: GameState, stream: bool = True) -> AsyncIterator[StreamEvent]:
+    async def process(
+        self, prompt: str, game_state: GameState, context: str, stream: bool = True
+    ) -> AsyncIterator[StreamEvent]:
         self.prompts.append(prompt)
         deps = self._deps_builder(game_state)
         ctx = SimpleNamespace(deps=deps)
@@ -393,7 +399,9 @@ class _StubSummarizer(BaseAgent):
     ) -> str:
         return "world summary"
 
-    async def process(self, prompt: str, game_state: GameState, stream: bool = True) -> AsyncIterator[StreamEvent]:
+    async def process(
+        self, prompt: str, game_state: GameState, context: str, stream: bool = True
+    ) -> AsyncIterator[StreamEvent]:
         if game_state.game_id == "__noop__":
             yield StreamEvent(
                 type=StreamEventType.COMPLETE,
@@ -426,6 +434,15 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
 
     summarizer_stub = _StubSummarizer()
     container = Container(summarizer_agent=cast(ISummarizerAgent, summarizer_stub))
+
+    # Create tool suggestor stub that returns empty suggestions
+    async def _stub_tool_suggestor_process(
+        prompt: str, game_state: GameState, context: str, stream: bool = True
+    ) -> AsyncIterator[StreamEvent]:
+        yield StreamEvent(type=StreamEventType.COMPLETE, content=ToolSuggestions(suggestions=[]))
+
+    tool_suggestor_stub = ToolSuggestorAgent(suggestion_service=container.tool_suggestion_service)
+    tool_suggestor_stub.process = _stub_tool_suggestor_process  # type: ignore[method-assign,assignment]
     saves_dir = tmp_path / "saves"
     saves_dir.mkdir()
     path_resolver = cast(PathResolver, container.path_resolver)
@@ -556,6 +573,8 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
         narrative_agent=narrative_agent,
         combat_agent=combat_agent,
         summarizer_agent=summarizer_stub,
+        tool_suggestor_agent=tool_suggestor_stub,
+        context_service=container.context_service,
         combat_service=container.combat_service,
         event_bus=container.event_bus,
         game_service=container.game_service,

@@ -246,6 +246,7 @@ class SummarizerAgent(BaseAgent, ISummarizerAgent):
         self,
         prompt: str,
         game_state: GameState,
+        context: str,
         stream: bool = True,
     ) -> AsyncIterator[StreamEvent]:
         """Process method required by BaseAgent but not used for summarizer."""

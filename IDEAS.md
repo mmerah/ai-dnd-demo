@@ -2,6 +2,7 @@
 
 - Document in README and in CLAUDE markdowns the changes (new files, new configuration system, can be overriden in non-git-tracked user-data)
 - Narrative agent (system prompt) muss indicate that it just need to create book-like narrative (no summary of quest, what you see or whatever), no too formatted stuff (maybe forgo mention of markdown). Also NPC interaction should be that the narrative suggest to the player to "@" the NPC
+- Orchestration, context building (where it happens) is a mess. It would be nice to refactor that so that it is as clear as possible to see what is going on and for developers to use. It would be fantastic that we could have a config file for it where we link agents together for stuff, decide on context, decide on background agents operating before/after a result, ... something almost graphical, extensible and made for this project. Where we could go as simple (1 agent doing everything) as wanted or as complicated as needed.
 
 # MVP 2
 

@@ -15,7 +15,7 @@ from app.agents.core.event_stream.tools import ToolEventHandler
 from app.agents.core.types import AgentType
 from app.events.commands.broadcast_commands import BroadcastNarrativeCommand
 from app.interfaces.events import IEventBus
-from app.interfaces.services.ai import IContextService, IEventLoggerService, IToolCallExtractorService
+from app.interfaces.services.ai import IEventLoggerService, IToolCallExtractorService
 from app.interfaces.services.common import IActionService
 from app.interfaces.services.data import IRepositoryProvider
 from app.interfaces.services.game import (
@@ -39,7 +39,6 @@ class CombatAgent(BaseAgent):
     """Agent specialized for tactical combat resolution."""
 
     agent: Agent[AgentDependencies, str]
-    context_service: IContextService
     message_converter: MessageConverterService
     event_logger: IEventLoggerService
     metadata_service: IMetadataService
@@ -105,6 +104,7 @@ class CombatAgent(BaseAgent):
         self,
         prompt: str,
         game_state: GameState,
+        context: str,
         stream: bool = True,
     ) -> AsyncIterator[StreamEvent]:
         """Process a combat action and yield stream events."""
@@ -133,8 +133,6 @@ class CombatAgent(BaseAgent):
             action_service=self.action_service,
         )
 
-        # Build combat-focused context
-        context = self.context_service.build_context(game_state, AgentType.COMBAT)
         message_history = self.message_converter.to_pydantic_messages(
             game_state.conversation_history,
             agent_type=AgentType.COMBAT,

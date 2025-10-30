@@ -216,7 +216,9 @@ class TestAllySuggestionGeneration:
             def prepare_for_npc(self, npc: NPCInstance) -> None:
                 self.prepared_npc = npc
 
-            async def process(self, prompt: str, game_state: object, stream: bool = True) -> AsyncIterator[StreamEvent]:
+            async def process(
+                self, prompt: str, game_state: object, context: str, stream: bool = True
+            ) -> AsyncIterator[StreamEvent]:
                 yield StreamEvent(
                     type=StreamEventType.COMPLETE,
                     content=NarrativeResponse(narrative="I'll cast Fireball at the goblin!"),
@@ -374,7 +376,9 @@ class TestAllySuggestionGeneration:
             def prepare_for_npc(self, npc: NPCInstance) -> None:
                 prepared_npcs.append(npc)
 
-            async def process(self, prompt: str, game_state: object, stream: bool = True) -> AsyncIterator[StreamEvent]:
+            async def process(
+                self, prompt: str, game_state: object, context: str, stream: bool = True
+            ) -> AsyncIterator[StreamEvent]:
                 yield StreamEvent(
                     type=StreamEventType.COMPLETE,
                     content=NarrativeResponse(narrative="I attack!"),

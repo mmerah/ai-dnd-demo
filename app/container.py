@@ -510,10 +510,17 @@ class Container:
             debug=settings.debug_ai,
         )
 
+        # Create tool suggestor agent
+        tool_suggestor_agent = self.agent_factory.create_tool_suggestor_agent(
+            suggestion_service=self.tool_suggestion_service
+        )
+
         orchestrator = AgentOrchestrator(
             narrative_agent=narrative_agent,
             combat_agent=combat_agent,
             summarizer_agent=self.summarizer_agent,
+            tool_suggestor_agent=tool_suggestor_agent,
+            context_service=self.context_service,
             combat_service=self.combat_service,
             event_bus=self.event_bus,
             game_service=self.game_service,
