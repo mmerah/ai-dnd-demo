@@ -72,14 +72,51 @@ This document tracks implementation progress against [PLAN.md](PLAN.md).
 
 ## Phase 1: Tool Suggestion Infrastructure
 
-### ⏳ 1.1: Create tool suggestion models
-**Status**: Not started
+### ✅ 1.1: Create tool suggestion models
+**Status**: Complete
+- [x] Created `app/models/tool_suggestion.py` with ToolSuggestion and ToolSuggestions models
+- [x] Added `IToolSuggestionService` interface to `app/interfaces/services/ai.py`
+- [x] Removed redundant `context_notes` field (deferred to ContextService)
+- [x] Implemented `format_for_prompt()` method for markdown formatting
+- [x] Full validation: confidence (0.0-1.0), non-empty tool_name and reason
+- [x] Unit tests: 12 tests covering validation, formatting, truncation
 
-### ⏳ 1.2: Implement heuristic rule classes
-**Status**: Not started
+### ✅ 1.2: Implement heuristic rule classes
+**Status**: Complete
+- [x] Created `app/services/ai/tool_suggestion/heuristic_rules.py`
+- [x] Implemented abstract `HeuristicRule` base class with pattern matching
+- [x] Implemented 6 concrete rule classes:
+  - QuestProgressionRule
+  - InventoryChangeRule
+  - CurrencyTransactionRule
+  - PartyManagementRule
+  - TimePassageRule
+  - LocationTransitionRule
+- [x] Pattern compilation with case-insensitive regex matching
+- [x] Confidence calculation: base × pattern_weight × confidence_multiplier (capped at 1.0)
+- [x] Agent type filtering and required context checking
+- [x] RULE_CLASSES registry for dynamic instantiation
+- [x] Unit tests: 11 tests covering pattern matching, confidence, edge cases
 
-### ⏳ 1.3: Create ToolSuggestionService
-**Status**: Not started
+### ✅ 1.3: Create ToolSuggestionService
+**Status**: Complete
+- [x] Created `app/services/ai/tool_suggestion/tool_suggestion_service.py`
+- [x] Implements `IToolSuggestionService` interface
+- [x] Rule evaluation pipeline:
+  1. Evaluate all rules against prompt + game state
+  2. Filter by minimum confidence threshold
+  3. Deduplicate by tool_name (keep highest confidence)
+  4. Sort by confidence descending
+  5. Limit to max_suggestions
+- [x] Error handling: logs rule exceptions, continues processing
+- [x] Logging: detailed debug info on rule evaluation
+- [x] Unit tests: 9 tests covering filtering, deduplication, sorting, limits, error handling
+- [x] Package structure: `app/services/ai/tool_suggestion/__init__.py` exports
+
+**Test Results**:
+- ✅ 30 new tests (all passing)
+- ✅ 293 total tests passing
+- ✅ mypy --strict: no issues (292 source files)
 
 ## Phase 2: ToolSuggestor Agent
 
@@ -150,7 +187,18 @@ All Phase 0 tasks (0.1-0.9) are complete. The system now features:
 - **Markdown-based system prompts** for better maintainability
 - **Comprehensive tool suggestion rules** (10 heuristic rules ready for Phase 1)
 
+## ✅ Phase 1 Complete!
+
+All Phase 1 tasks (1.1-1.3) are complete. The system now features:
+- **Tool suggestion models** with validation and markdown formatting
+- **Heuristic rule system** with 6 implemented rule types and extensible base class
+- **ToolSuggestionService** with complete pipeline: evaluation → filtering → deduplication → sorting → limiting
+- **Full interface adherence** following SOLID principles with IToolSuggestionService
+- **Comprehensive test coverage** with 30 new tests (all passing)
+- **Type safety** verified with mypy --strict (no issues)
+
 ## Next Steps
 1. ✅ Phase 0 complete (agent configuration system)
-2. ⏳ Phase 1: Tool Suggestion Infrastructure
-3. ⏳ Phase 2-6: ToolSuggestorAgent, integration, enhanced prompts, party-aware context, testing
+2. ✅ Phase 1 complete (tool suggestion infrastructure)
+3. ⏳ Phase 2: ToolSuggestor Agent
+4. ⏳ Phase 3-6: Orchestrator integration, enhanced prompts, party-aware context, testing

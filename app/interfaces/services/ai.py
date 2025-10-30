@@ -11,6 +11,7 @@ from app.models.game_state import GameState
 from app.models.instances.npc_instance import NPCInstance
 from app.models.scenario import ScenarioSheet
 from app.models.tool_results import ToolResult
+from app.models.tool_suggestion import ToolSuggestions
 
 
 class IAIService(ABC):
@@ -310,5 +311,28 @@ class IToolCallExtractorService(ABC):
 
         Returns:
             True if tool was executed successfully, False otherwise
+        """
+        pass
+
+
+class IToolSuggestionService(ABC):
+    """Interface for tool suggestion service."""
+
+    @abstractmethod
+    async def suggest_tools(
+        self,
+        game_state: GameState,
+        prompt: str,
+        agent_type: str,
+    ) -> ToolSuggestions:
+        """Generate tool suggestions based on game state and user prompt.
+
+        Args:
+            game_state: Current game state
+            prompt: User's prompt text
+            agent_type: Type of agent being invoked (e.g., "narrative", "combat")
+
+        Returns:
+            ToolSuggestions object with filtered and ranked suggestions
         """
         pass

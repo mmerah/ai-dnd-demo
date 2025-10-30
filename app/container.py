@@ -25,6 +25,7 @@ from app.interfaces.services.ai import (
     IContextService,
     IEventLoggerService,
     IMessageService,
+    IToolSuggestionService,
 )
 from app.interfaces.services.character import (
     ICharacterComputeService,
@@ -71,6 +72,7 @@ from app.services.ai.context_service import ContextService
 from app.services.ai.event_logger_service import EventLoggerService
 from app.services.ai.orchestrator_service import AgentOrchestrator
 from app.services.ai.tool_call_extractor_service import ToolCallExtractorService
+from app.services.ai.tool_suggestion import ToolSuggestionService
 from app.services.character import CharacterSheetService
 from app.services.character.compute_service import CharacterComputeService
 from app.services.character.entity_state_service import EntityStateService
@@ -611,6 +613,10 @@ class Container:
     @cached_property
     def tool_call_extractor_service(self) -> ToolCallExtractorService:
         return ToolCallExtractorService(event_bus=self.event_bus)
+
+    @cached_property
+    def tool_suggestion_service(self) -> IToolSuggestionService:
+        return ToolSuggestionService(self.agent_config_loader)
 
 
 # Singleton instance of the container
