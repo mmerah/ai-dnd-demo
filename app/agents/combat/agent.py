@@ -134,8 +134,10 @@ class CombatAgent(BaseAgent):
         )
 
         message_history = self.message_converter.to_pydantic_messages(
-            game_state.conversation_history,
+            messages=game_state.conversation_history,
             agent_type=AgentType.COMBAT,
+            game_state=game_state,
+            npc_id="",
         )
 
         full_prompt = f"\n\n{context}\n\nPlayer Action: {prompt}"

@@ -9,20 +9,27 @@ from pydantic_ai.messages import (
 )
 
 from app.agents.core.types import AgentType
-from app.models.game_state import Message, MessageRole
+from app.models.game_state import GameState, Message, MessageRole
 
 
 class MessageConverterService:
     """Service for converting between message formats."""
 
     @staticmethod
-    def to_pydantic_messages(messages: list[Message], agent_type: AgentType) -> list[ModelMessage]:
+    def to_pydantic_messages(
+        messages: list[Message],
+        agent_type: AgentType,
+        game_state: GameState,
+        npc_id: str,
+    ) -> list[ModelMessage]:
         """
         Convert internal Message format to PydanticAI's ModelMessage format.
 
         Args:
             messages: List of messages to convert
-            agent_type: If provided, filter messages to only include those for this agent
+            agent_type: Agent type requesting the messages
+            game_state: Current game state for party membership checks
+            npc_id: NPC instance ID (required for NPC agents, use "" for others)
 
         Returns:
             List of ModelMessage objects for PydanticAI
@@ -30,9 +37,14 @@ class MessageConverterService:
         pydantic_messages: list[ModelMessage] = []
 
         allowed_agent_types = {agent_type}
+
+        # Narrative agent includes NPC messages
         if agent_type is AgentType.NARRATIVE:
-            # Narrative agent needs to hear NPC conversations as well
             allowed_agent_types.add(AgentType.NPC)
+
+        # NPC agent includes Narrative messages ONLY if THIS specific NPC is in party
+        if agent_type is AgentType.NPC and npc_id and npc_id in game_state.party.member_ids:
+            allowed_agent_types.add(AgentType.NARRATIVE)
 
         for msg in messages:
             if msg.agent_type not in allowed_agent_types:

@@ -351,7 +351,7 @@
         "is_player": false,
         "is_active": true
       },
-      "message": "Turn advanced to Ogre (Round 1)"
+      "message": "Turn Finished for Hero. Narrate what happened (Next turn: Ogre (Round 1))"
     }
   },
   {
@@ -440,7 +440,7 @@
         "is_player": false,
         "is_active": true
       },
-      "message": "Turn advanced to Ogre (Round 2)"
+      "message": "Turn Finished for Elara the Wise. Narrate what happened (Next turn: Ogre (Round 2))"
     }
   },
   {

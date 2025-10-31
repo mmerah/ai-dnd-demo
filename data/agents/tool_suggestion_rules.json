@@ -212,6 +212,170 @@
       ],
       "applicable_agents": ["narrative"],
       "base_confidence": 0.7
+    },
+    {
+      "rule_id": "combat_initiation",
+      "rule_class": "CombatInitiationRule",
+      "enabled": true,
+      "description": "Detects hostile actions and combat start indicators",
+      "patterns": [
+        {
+          "pattern": "\\b(attack|strike|engage|charge|rush|lunge at)\\b",
+          "weight": 0.95,
+          "description": "Direct combat actions"
+        },
+        {
+          "pattern": "\\b(draw|unsheathe|ready)\\s+(my|our|the)?\\s+(weapon|sword|bow|blade|axe)s?\\b",
+          "weight": 0.9,
+          "description": "Weapon preparation"
+        },
+        {
+          "pattern": "\\b(fight|combat|battle|brawl)\\s+(the|them|it)?\\b",
+          "weight": 0.85,
+          "description": "Combat declaration"
+        },
+        {
+          "pattern": "\\b(defend|protect)\\s+(myself|ourselves|against)\\b",
+          "weight": 0.8,
+          "description": "Defensive combat posture"
+        },
+        {
+          "pattern": "\\b(ambush|surprise attack|sneak attack|initiative)\\b",
+          "weight": 0.95,
+          "description": "Combat surprise/initiative"
+        },
+        {
+          "pattern": "\\b(hostile|aggressive|threatens?|menacing)\\b.*\\b(approach|moves? toward|advances?)\\b",
+          "weight": 0.85,
+          "description": "Hostile approach"
+        },
+        {
+          "pattern": "\\b(cast|prepare)\\s+.*\\b(spell|magic|fireball|missile)\\b.*\\b(at|on|toward)\\b",
+          "weight": 0.9,
+          "description": "Offensive spell targeting"
+        }
+      ],
+      "suggestions": [
+        {
+          "tool_name": "start_encounter_combat",
+          "reason": "Triggering a predefined encounter",
+          "confidence_multiplier": 1.2
+        },
+        {
+          "tool_name": "start_combat",
+          "reason": "Player is initiating combat with enemies",
+          "confidence_multiplier": 1.0
+        }
+      ],
+      "applicable_agents": ["narrative"],
+      "base_confidence": 0.85
+    },
+    {
+      "rule_id": "dice_roll",
+      "rule_class": "DiceRollRule",
+      "enabled": true,
+      "description": "Detects actions requiring ability checks, skill checks, or saves",
+      "patterns": [
+        {
+          "pattern": "\\b(scan|look around|search|examine|inspect|investigate)\\b",
+          "weight": 0.9,
+          "description": "Perception/Investigation checks"
+        },
+        {
+          "pattern": "\\b(sneak|hide|move quietly|stay hidden|stealth)\\b",
+          "weight": 0.95,
+          "description": "Stealth checks"
+        },
+        {
+          "pattern": "\\b(climb|jump|leap|balance|acrobat)\\b",
+          "weight": 0.9,
+          "description": "Athletics/Acrobatics checks"
+        },
+        {
+          "pattern": "\\b(persuade|convince|negotiate|charm|diplomat)\\b",
+          "weight": 0.9,
+          "description": "Persuasion/Diplomacy checks"
+        },
+        {
+          "pattern": "\\b(deceive|lie|bluff|trick|misdirect)\\b",
+          "weight": 0.9,
+          "description": "Deception checks"
+        },
+        {
+          "pattern": "\\b(intimidate|threaten|coerce|menace)\\b",
+          "weight": 0.9,
+          "description": "Intimidation checks"
+        },
+        {
+          "pattern": "\\b(listen|hear|eavesdrop|sound)\\b",
+          "weight": 0.85,
+          "description": "Perception (hearing) checks"
+        },
+        {
+          "pattern": "\\b(recall|remember|know about|history|knowledge)\\b",
+          "weight": 0.85,
+          "description": "Knowledge/History checks"
+        },
+        {
+          "pattern": "\\b(sense|detect|feel|insight|motive)\\b",
+          "weight": 0.85,
+          "description": "Insight checks"
+        },
+        {
+          "pattern": "\\b(survive|track|forage|navigate|wilderness)\\b",
+          "weight": 0.9,
+          "description": "Survival checks"
+        },
+        {
+          "pattern": "\\b(handle|calm|train|ride)\\s+(animal|beast|horse|mount)\\b",
+          "weight": 0.9,
+          "description": "Animal Handling checks"
+        },
+        {
+          "pattern": "\\b(perform|play|entertain|music|dance|song)\\b",
+          "weight": 0.85,
+          "description": "Performance checks"
+        },
+        {
+          "pattern": "\\b(pick|unlock|disable|lockpick|thieves)\\s+(lock|trap)\\b",
+          "weight": 0.95,
+          "description": "Sleight of Hand/Thieves' Tools checks"
+        },
+        {
+          "pattern": "\\b(arcana|magic|spell|enchant|identify)\\b.*\\b(check|understand|recognize)\\b",
+          "weight": 0.9,
+          "description": "Arcana checks"
+        },
+        {
+          "pattern": "\\b(nature|plant|creature|animal)\\b.*\\b(check|knowledge|identify)\\b",
+          "weight": 0.85,
+          "description": "Nature checks"
+        },
+        {
+          "pattern": "\\b(religion|divine|holy|deity|undead)\\b.*\\b(check|knowledge|recognize)\\b",
+          "weight": 0.85,
+          "description": "Religion checks"
+        },
+        {
+          "pattern": "\\b(medicine|heal|diagnose|stabilize|treat)\\b",
+          "weight": 0.9,
+          "description": "Medicine checks"
+        },
+        {
+          "pattern": "\\b(save|saving throw|resist|constitution save|dex save|wisdom save)\\b",
+          "weight": 0.95,
+          "description": "Saving throws"
+        }
+      ],
+      "suggestions": [
+        {
+          "tool_name": "roll_dice",
+          "reason": "Action requires an ability check or saving throw",
+          "confidence_multiplier": 1.0
+        }
+      ],
+      "applicable_agents": ["narrative"],
+      "base_confidence": 0.8
     }
   ],
   "global_settings": {
@@ -220,7 +384,9 @@
     "enable_rule_chaining": false,
     "debug_mode": false,
     "rule_priority_order": [
+      "combat_initiation",
       "quest_progression",
+      "dice_roll",
       "currency_transactions",
       "inventory_changes",
       "party_management",

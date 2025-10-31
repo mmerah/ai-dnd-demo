@@ -221,6 +221,54 @@ class LocationTransitionRule(HeuristicRule):
         return self._build_suggestions(confidence)
 
 
+class CombatInitiationRule(HeuristicRule):
+    """Suggests combat initiation tools when hostile actions are detected."""
+
+    def evaluate(
+        self,
+        prompt: str,
+        game_state: GameState,
+        agent_type: str,
+    ) -> list[ToolSuggestion]:
+        if agent_type not in self.config.applicable_agents:
+            return []
+
+        # Don't suggest starting combat if already in combat
+        if game_state.combat.is_active:
+            return []
+
+        matched, weight = self._check_patterns(prompt)
+        if not matched:
+            return []
+
+        confidence = self.config.base_confidence * weight
+        return self._build_suggestions(confidence)
+
+
+class DiceRollRule(HeuristicRule):
+    """Suggests dice rolls for ability checks, skill checks, and saves."""
+
+    def evaluate(
+        self,
+        prompt: str,
+        game_state: GameState,
+        agent_type: str,
+    ) -> list[ToolSuggestion]:
+        if agent_type not in self.config.applicable_agents:
+            return []
+
+        # Don't suggest dice rolls during combat (combat agent handles those)
+        if game_state.combat.is_active:
+            return []
+
+        matched, weight = self._check_patterns(prompt)
+        if not matched:
+            return []
+
+        confidence = self.config.base_confidence * weight
+        return self._build_suggestions(confidence)
+
+
 # Rule registry mapping rule_class names to implementation classes
 RULE_CLASSES: dict[str, type[HeuristicRule]] = {
     "QuestProgressionRule": QuestProgressionRule,
@@ -229,4 +277,6 @@ RULE_CLASSES: dict[str, type[HeuristicRule]] = {
     "PartyManagementRule": PartyManagementRule,
     "TimePassageRule": TimePassageRule,
     "LocationTransitionRule": LocationTransitionRule,
+    "CombatInitiationRule": CombatInitiationRule,
+    "DiceRollRule": DiceRollRule,
 }

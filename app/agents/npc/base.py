@@ -237,9 +237,12 @@ class BaseNPCAgent(BaseAgent, ABC):
         ]
 
     def _build_message_history(self, game_state: GameState) -> list[ModelMessage]:
+        active_npc = self._require_active_npc()
         return self.message_converter.to_pydantic_messages(
-            game_state.conversation_history,
+            messages=game_state.conversation_history,
             agent_type=AgentType.NPC,
+            game_state=game_state,
+            npc_id=active_npc.instance_id,
         )
 
     def prepare_for_npc(self, npc: NPCInstance) -> None:

@@ -4,7 +4,9 @@ import pytest
 
 from app.models.tool_suggestion_config import PatternConfig, RuleConfig, SuggestionConfig
 from app.services.ai.tool_suggestion.heuristic_rules import (
+    CombatInitiationRule,
     CurrencyTransactionRule,
+    DiceRollRule,
     InventoryChangeRule,
     QuestProgressionRule,
 )
@@ -257,3 +259,207 @@ def test_confidence_capped_at_1_0() -> None:
     # Would be 1.0 * 1.0 * 2.0 = 2.0, but should be capped at 1.0
     assert len(suggestions) == 1
     assert suggestions[0].confidence == 1.0
+
+
+def test_combat_initiation_rule_matches_attack() -> None:
+    """Test combat initiation rule matches attack patterns."""
+    config = RuleConfig(
+        rule_id="test_combat",
+        rule_class="CombatInitiationRule",
+        enabled=True,
+        description="Test combat initiation",
+        patterns=[
+            PatternConfig(pattern=r"\b(attack|strike|engage)\b", weight=0.95),
+            PatternConfig(pattern=r"\bdraw.*weapon\b", weight=0.9),
+        ],
+        suggestions=[
+            SuggestionConfig(tool_name="start_encounter_combat", reason="Combat starting", confidence_multiplier=1.2),
+            SuggestionConfig(tool_name="start_combat", reason="Combat starting", confidence_multiplier=1.0),
+        ],
+        applicable_agents=["narrative"],
+        base_confidence=0.85,
+    )
+
+    rule = CombatInitiationRule(config)
+    game_state = make_game_state()
+
+    prompt = "I attack the goblin"
+    suggestions = rule.evaluate(prompt, game_state, "narrative")
+
+    assert len(suggestions) == 2
+    assert suggestions[0].tool_name == "start_encounter_combat"
+    assert suggestions[1].tool_name == "start_combat"
+    # Confidence: 0.85 * 0.95 * 1.2 = 0.969
+    assert suggestions[0].confidence == pytest.approx(0.969, abs=0.01)
+
+
+def test_combat_initiation_blocked_during_combat() -> None:
+    """Test combat initiation rule doesn't suggest when combat is active."""
+    config = RuleConfig(
+        rule_id="test_combat",
+        rule_class="CombatInitiationRule",
+        enabled=True,
+        description="Test combat initiation",
+        patterns=[
+            PatternConfig(pattern=r"\battack\b", weight=0.95),
+        ],
+        suggestions=[
+            SuggestionConfig(tool_name="start_combat", reason="Combat starting"),
+        ],
+        applicable_agents=["narrative"],
+        base_confidence=0.85,
+    )
+
+    rule = CombatInitiationRule(config)
+    game_state = make_game_state()
+
+    # Activate combat
+    game_state.combat.is_active = True
+
+    prompt = "I attack the goblin"
+    suggestions = rule.evaluate(prompt, game_state, "narrative")
+
+    # Should return empty because combat is already active
+    assert len(suggestions) == 0
+
+
+def test_combat_initiation_weapon_preparation() -> None:
+    """Test combat initiation matches weapon preparation."""
+    config = RuleConfig(
+        rule_id="test_combat",
+        rule_class="CombatInitiationRule",
+        enabled=True,
+        description="Test combat initiation",
+        patterns=[
+            PatternConfig(pattern=r"\b(draw|unsheathe|ready).*\b(weapon|sword|bow)\b", weight=0.9),
+        ],
+        suggestions=[
+            SuggestionConfig(tool_name="start_combat", reason="Drawing weapons"),
+        ],
+        applicable_agents=["narrative"],
+        base_confidence=0.85,
+    )
+
+    rule = CombatInitiationRule(config)
+    game_state = make_game_state()
+
+    prompt = "I draw my sword and prepare to fight"
+    suggestions = rule.evaluate(prompt, game_state, "narrative")
+
+    assert len(suggestions) == 1
+    assert suggestions[0].tool_name == "start_combat"
+
+
+def test_dice_roll_rule_matches_perception() -> None:
+    """Test dice roll rule matches perception checks."""
+    config = RuleConfig(
+        rule_id="test_dice",
+        rule_class="DiceRollRule",
+        enabled=True,
+        description="Test dice roll",
+        patterns=[
+            PatternConfig(pattern=r"\b(scan|search|examine|investigate)\b", weight=0.9),
+        ],
+        suggestions=[
+            SuggestionConfig(tool_name="roll_dice", reason="Ability check needed"),
+        ],
+        applicable_agents=["narrative"],
+        base_confidence=0.8,
+    )
+
+    rule = DiceRollRule(config)
+    game_state = make_game_state()
+
+    prompt = "I scan the room for traps"
+    suggestions = rule.evaluate(prompt, game_state, "narrative")
+
+    assert len(suggestions) == 1
+    assert suggestions[0].tool_name == "roll_dice"
+    # Confidence: 0.8 * 0.9 * 1.0 = 0.72
+    assert suggestions[0].confidence == pytest.approx(0.72, abs=0.01)
+
+
+def test_dice_roll_blocked_during_combat() -> None:
+    """Test dice roll rule doesn't suggest during combat."""
+    config = RuleConfig(
+        rule_id="test_dice",
+        rule_class="DiceRollRule",
+        enabled=True,
+        description="Test dice roll",
+        patterns=[
+            PatternConfig(pattern=r"\bscan\b", weight=0.9),
+        ],
+        suggestions=[
+            SuggestionConfig(tool_name="roll_dice", reason="Check needed"),
+        ],
+        applicable_agents=["narrative"],
+        base_confidence=0.8,
+    )
+
+    rule = DiceRollRule(config)
+    game_state = make_game_state()
+
+    # Activate combat
+    game_state.combat.is_active = True
+
+    prompt = "I scan the room"
+    suggestions = rule.evaluate(prompt, game_state, "narrative")
+
+    # Should return empty because combat agent handles rolls
+    assert len(suggestions) == 0
+
+
+def test_dice_roll_stealth_check() -> None:
+    """Test dice roll rule matches stealth checks."""
+    config = RuleConfig(
+        rule_id="test_dice",
+        rule_class="DiceRollRule",
+        enabled=True,
+        description="Test dice roll",
+        patterns=[
+            PatternConfig(pattern=r"\b(sneak|hide|stealth)\b", weight=0.95),
+        ],
+        suggestions=[
+            SuggestionConfig(tool_name="roll_dice", reason="Stealth check needed"),
+        ],
+        applicable_agents=["narrative"],
+        base_confidence=0.8,
+    )
+
+    rule = DiceRollRule(config)
+    game_state = make_game_state()
+
+    prompt = "I try to sneak past the guard"
+    suggestions = rule.evaluate(prompt, game_state, "narrative")
+
+    assert len(suggestions) == 1
+    assert suggestions[0].tool_name == "roll_dice"
+    # Confidence: 0.8 * 0.95 * 1.0 = 0.76
+    assert suggestions[0].confidence == pytest.approx(0.76, abs=0.01)
+
+
+def test_dice_roll_persuasion_check() -> None:
+    """Test dice roll rule matches persuasion checks."""
+    config = RuleConfig(
+        rule_id="test_dice",
+        rule_class="DiceRollRule",
+        enabled=True,
+        description="Test dice roll",
+        patterns=[
+            PatternConfig(pattern=r"\b(persuade|convince|negotiate)\b", weight=0.9),
+        ],
+        suggestions=[
+            SuggestionConfig(tool_name="roll_dice", reason="Persuasion check needed"),
+        ],
+        applicable_agents=["narrative"],
+        base_confidence=0.8,
+    )
+
+    rule = DiceRollRule(config)
+    game_state = make_game_state()
+
+    prompt = "I try to convince the merchant to lower the price"
+    suggestions = rule.evaluate(prompt, game_state, "narrative")
+
+    assert len(suggestions) == 1
+    assert suggestions[0].tool_name == "roll_dice"
