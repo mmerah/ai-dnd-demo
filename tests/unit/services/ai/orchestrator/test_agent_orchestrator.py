@@ -16,7 +16,7 @@ from app.models.ai_response import StreamEvent, StreamEventType
 from app.models.game_state import GameState, MessageRole
 from app.models.instances.npc_instance import NPCInstance
 from app.models.tool_suggestion import ToolSuggestions
-from app.services.ai.orchestrator_service import AgentOrchestrator
+from app.services.ai.orchestrator.orchestrator_service import AgentOrchestrator
 from tests.factories import make_game_state, make_npc_instance
 
 

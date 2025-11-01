@@ -13,7 +13,7 @@ from app.models.ai_response import (
     StreamEventType,
 )
 from app.models.game_state import GameState
-from app.services.ai.orchestrator_service import AgentOrchestrator
+from app.services.ai.orchestrator.orchestrator_service import AgentOrchestrator
 
 logger = logging.getLogger(__name__)
 

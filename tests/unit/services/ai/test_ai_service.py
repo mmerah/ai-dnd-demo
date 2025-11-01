@@ -10,7 +10,7 @@ import pytest
 from app.models.ai_response import CompleteResponse, ErrorResponse, NarrativeResponse, StreamEvent, StreamEventType
 from app.models.game_state import GameState
 from app.services.ai.ai_service import AIService
-from app.services.ai.orchestrator_service import AgentOrchestrator
+from app.services.ai.orchestrator.orchestrator_service import AgentOrchestrator
 from tests.factories import make_game_state
 
 

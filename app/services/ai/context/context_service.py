@@ -5,8 +5,7 @@ from app.interfaces.services.ai import IContextService
 from app.interfaces.services.data import IRepositoryProvider
 from app.models.game_state import GameState
 from app.models.instances.npc_instance import NPCInstance
-
-from .context_builders import (
+from app.services.ai.context.builders import (
     CombatContextBuilder,
     ContextAccumulator,
     DetailLevel,
@@ -14,7 +13,6 @@ from .context_builders import (
     LocationContextBuilder,
     LocationMemoryContextBuilder,
     MonstersAtLocationContextBuilder,
-    MonstersInCombatContextBuilder,
     MultiEntityContextBuilder,
     NPCLocationContextBuilder,
     NPCPersonaContextBuilder,
@@ -25,7 +23,7 @@ from .context_builders import (
     SpellContextBuilder,
     WorldMemoryContextBuilder,
 )
-from .context_builders.base import BuildContext
+from app.services.ai.context.builders.base import BuildContext
 
 
 class ContextService(IContextService):
@@ -33,9 +31,6 @@ class ContextService(IContextService):
 
     def __init__(self, repository_provider: IRepositoryProvider):
         self.repository_provider = repository_provider
-
-        # Instantiate builders without repository dependencies
-        monsters_in_combat = MonstersInCombatContextBuilder()
 
         # Store individual builders for agent-specific selection
         self.scenario_builder = ScenarioContextBuilder()
@@ -62,8 +57,7 @@ class ContextService(IContextService):
         )
 
         # Other builders
-        self.combat_builder = CombatContextBuilder(monsters_in_combat_builder=monsters_in_combat)
-        self.monsters_in_combat_builder = monsters_in_combat
+        self.combat_builder = CombatContextBuilder()
         self.world_memory_builder = WorldMemoryContextBuilder()
         self.npc_persona_builder = NPCPersonaContextBuilder()
 
@@ -97,7 +91,6 @@ class ContextService(IContextService):
         # Combat state and turn order
         acc.add(self.combat_builder.build(game_state, build_ctx))
         acc.add(self.party_overview_builder_full.build(game_state, build_ctx))
-        acc.add(self.monsters_in_combat_builder.build(game_state, build_ctx))
 
         # Player character details
         acc.add(self.spell_builder.build(game_state, build_ctx, game_state.character))

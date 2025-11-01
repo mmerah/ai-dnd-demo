@@ -4,7 +4,6 @@ from .combat_builder import CombatContextBuilder
 from .inventory_builder import InventoryContextBuilder
 from .location_builder import LocationContextBuilder
 from .location_memory_builder import LocationMemoryContextBuilder
-from .monsters_in_combat_builder import MonstersInCombatContextBuilder
 from .monsters_location_builder import MonstersAtLocationContextBuilder
 from .multi_entity_builder import MultiEntityContextBuilder
 from .npc_location_builder import NPCLocationContextBuilder
@@ -32,7 +31,6 @@ __all__ = [
     "NPCPersonaContextBuilder",
     "QuestContextBuilder",
     "CombatContextBuilder",
-    "MonstersInCombatContextBuilder",
     "SpellContextBuilder",
     "InventoryContextBuilder",
     "WorldMemoryContextBuilder",

@@ -30,7 +30,7 @@ from app.models.scenario import LocationDescriptions
 from app.models.tool_results import RollDiceResult
 from app.models.tool_suggestion import ToolSuggestions
 from app.services.ai.ai_service import AIService
-from app.services.ai.orchestrator_service import AgentOrchestrator
+from app.services.ai.orchestrator.orchestrator_service import AgentOrchestrator
 from app.services.common.path_resolver import PathResolver
 from app.tools import combat_tools, dice_tools, entity_tools, inventory_tools, location_tools, party_tools, quest_tools
 from tests.factories import (

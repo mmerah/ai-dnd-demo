@@ -17,7 +17,7 @@ from app.models.attributes import EntityType
 from app.models.combat import CombatFaction, CombatParticipant
 from app.models.game_state import GameState
 from app.models.tool_suggestion import ToolSuggestions
-from app.services.ai.orchestrator_service import AgentOrchestrator
+from app.services.ai.orchestrator.orchestrator_service import AgentOrchestrator
 from tests.factories import make_game_state, make_npc_instance, make_npc_sheet
 
 

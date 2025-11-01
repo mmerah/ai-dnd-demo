@@ -78,11 +78,17 @@ app/
 │   │   ├── ai_service.py                   # Top-level agent orchestration
 │   │   ├── agent_lifecycle_service.py      # NPC agent cache/factory
 │   │   ├── config_loader.py                # Agent configuration loader (validates JSON+MD)
-│   │   ├── context_service.py              # Context composition via builders
 │   │   ├── message_service.py              # SSE broadcast handler
-│   │   ├── orchestrator_service.py         # Agent routing logic
-│   │   ├── orchestrator/                   # agent_router/combat_loop/transitions/state_reload
-│   │   ├── context_builders/               # Granular context builders
+│   │   ├── orchestrator/                   # Agent routing and orchestration
+│   │   │   ├── orchestrator_service.py     # Main orchestrator (routes requests to agents)
+│   │   │   ├── agent_router.py             # Agent selection logic
+│   │   │   ├── combat_loop.py              # Auto-continue NPC/monster turns
+│   │   │   ├── transitions.py              # Agent transition summaries
+│   │   │   ├── system_broadcasts.py        # System message helpers
+│   │   │   └── state_reload.py             # State refresh utility
+│   │   ├── context/                        # Context building system
+│   │   │   ├── context_service.py          # Context composition via builders
+│   │   │   └── builders/                   # Granular context builders (combat/location/party/etc)
 │   │   ├── tool_suggestion/                # Tool suggestion infrastructure
 │   │   │   ├── tool_suggestion_service.py  # Heuristic-based tool suggestion service
 │   │   │   └── heuristic_rules.py          # Rule classes for pattern matching

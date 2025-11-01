@@ -6,8 +6,8 @@ from app.interfaces.services.data import IRepository
 from app.models.background import BackgroundDefinition
 from app.models.item import ItemDefinition
 from app.models.spell import SpellDefinition
-from app.services.ai.context_builders.base import BuildContext, DetailLevel
-from app.services.ai.context_builders.party_overview_builder import PartyOverviewBuilder
+from app.services.ai.context.builders import PartyOverviewBuilder
+from app.services.ai.context.builders.base import BuildContext, DetailLevel
 from tests.factories import make_game_state, make_npc_instance, make_npc_sheet
 
 
