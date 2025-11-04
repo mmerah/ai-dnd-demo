@@ -1,12 +1,14 @@
 ## Current Issues [CRITICAL]
 
 - Context service: List of attacks/spells in combat shown for the NPC / Player (Combat agent for party, NPC agent for npc itself + party state ?)
+- Context: Combat builder for the NPC (so that suggestions are better)
 - Spell need description if not already there
 - Ally action, frontend is not "busy" (thus player feels like it can send stuff)
 - Put model in the .json configs instead of .env ?
 - Message response of next_turn should say stop and generate a narrative, subsequence next_turn will be refused until a narrative is generated.
 - system that reject duplicate next_turn until a narrative is generated ?
-- Agents in combat are very unreliable. Feels like tool calling might not be it for such a system. Structured output might be the only way ? But replicating all that we have available in tools seems huge but it would be interesting to tests. Alternative would be separate a tool-calling agent. Agent only generate a narrative and the ToolCallAgent generate the tool calls for that ?
+- Agents in combat are very unreliable. Feels like tool calling might not be it for such a system. Structured output might be the only way ? But replicating all that we have available in tools seems huge but it would be interesting to tests. Alternative would be separate a tool-calling agent. Agent only generate a narrative + description of what it wants to do in D&D terms (roll dice -> apply dmg, validate a quest, ...) and the ToolCallAgent generate the tool calls for that ?
+  - ANALYSIS_REPORT: Pretty good solution in there. Should the guard/validation be a configuration in a .json ?
 
 # MVP 2
 
@@ -40,4 +42,4 @@ Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic 
 14. Voice Generation for each agent/NPC
 15. Contextual Image Generation for the location
 16. Portrait Generation for the NPCs and Monsters ?
-17. ToolSuggestionAgent/Heuristics use more stuff to suggest tools. Example is matching of quest elements with the prompt, or inventory with the prompt, or location with the prompt ?
+17. ToolSuggestionAgent/Heuristics use more stuff to suggest tools. Example is matching of quest elements with the prompt, or inventory with the prompt, or location with the prompt ? Or spell with the prompt (useful during combat where it might give a thorough description ---> Or is that actually more or a XXXSuggestionAgent ? Or something else ? Or entirely Contextbuilder stuff ???? List prompt-aware context builders ????)
