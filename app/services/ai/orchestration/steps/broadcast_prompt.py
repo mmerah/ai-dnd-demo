@@ -11,31 +11,16 @@ logger = logging.getLogger(__name__)
 
 
 class BroadcastPrompt:
-    """Broadcast the combat prompt during combat loop auto-continuation.
-
-    This step broadcasts the prompt stored in ctx.current_prompt with
-    the "[Auto Combat]" prefix to indicate automatic turn processing.
-    """
+    """Broadcast the combat prompt during combat loop auto-continuation."""
 
     def __init__(self, event_bus: IEventBus) -> None:
-        """Initialize the step with event bus.
-
-        Args:
-            event_bus: Event bus for broadcasting messages
-        """
+        """Initialize with event bus."""
         self.event_bus = event_bus
 
     async def run(self, ctx: OrchestrationContext) -> StepResult:
-        """Broadcast the combat prompt for auto-continuation.
-
-        Args:
-            ctx: Current orchestration context with current_prompt set
-
-        Returns:
-            StepResult (CONTINUE outcome)
-        """
+        """Broadcast the combat prompt for auto-continuation."""
         if not ctx.current_prompt:
-            logger.warning("No current_prompt to broadcast (game_id=%s)", ctx.game_id)
+            logger.warning("No current_prompt to broadcast")
             return StepResult.continue_with(ctx)
 
         # Broadcast with auto combat prefix
@@ -49,10 +34,6 @@ class BroadcastPrompt:
             ]
         )
 
-        logger.info(
-            "Broadcast combat prompt: '%s...' (game_id=%s)",
-            ctx.current_prompt[:80],
-            ctx.game_id,
-        )
+        logger.debug("Broadcast combat prompt: '%s...'", ctx.current_prompt[:80])
 
         return StepResult.continue_with(ctx)

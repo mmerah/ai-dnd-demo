@@ -1,17 +1,22 @@
-"""Integration tests combining AIService and AgentOrchestrator."""
+"""Integration tests combining AIService and Pipeline."""
 
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
-from unittest.mock import AsyncMock, create_autospec
+from unittest.mock import create_autospec
 
 import pytest
 
 from app.agents.core.base import BaseAgent, ToolFunction
-from app.agents.core.types import AgentType
 from app.interfaces.events import IEventBus
 from app.interfaces.services.ai import IAgentLifecycleService, IContextService
-from app.interfaces.services.game import ICombatService, IConversationService, IGameService, IMetadataService
+from app.interfaces.services.game import (
+    ICombatService,
+    IConversationService,
+    IEventManager,
+    IGameService,
+    IMetadataService,
+)
 from app.models.ai_response import (
     CompleteResponse,
     NarrativeResponse,
@@ -19,8 +24,9 @@ from app.models.ai_response import (
     StreamEventType,
 )
 from app.models.game_state import GameState
+from app.models.tool_suggestion import ToolSuggestions
 from app.services.ai.ai_service import AIService
-from app.services.ai.orchestrator.orchestrator_service import AgentOrchestrator
+from app.services.ai.orchestration.default_pipeline import create_default_pipeline
 from tests.factories import make_game_state
 
 
@@ -57,13 +63,28 @@ class _StubAgent(BaseAgent):
             yield event
 
 
+class _StubToolSuggestorAgent(BaseAgent):
+    """Stub tool suggestor that returns empty suggestions."""
+
+    def get_required_tools(self) -> list[ToolFunction]:
+        return []
+
+    async def process(
+        self, prompt: str, game_state: GameState, context: str, stream: bool = True
+    ) -> AsyncIterator[StreamEvent]:
+        yield StreamEvent(type=StreamEventType.COMPLETE, content=ToolSuggestions(suggestions=[]))
+
+
 @pytest.mark.asyncio
-async def test_ai_service_with_orchestrator_emits_response(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_ai_service_with_pipeline_emits_response() -> None:
     narrative_response = NarrativeResponse(narrative="Hi")
     narrative_events = [StreamEvent(type=StreamEventType.COMPLETE, content=narrative_response)]
     narrative_agent = _StubAgent(narrative_events)
     combat_agent = _StubAgent([])
     summarizer = _StubSummarizer()
+    tool_suggestor_agent = _StubToolSuggestorAgent()
+
+    # Create mock services
     combat_service = create_autospec(ICombatService, instance=True)
     event_bus = create_autospec(IEventBus, instance=True)
     game_service = create_autospec(IGameService, instance=True)
@@ -71,37 +92,30 @@ async def test_ai_service_with_orchestrator_emits_response(monkeypatch: pytest.M
     metadata_service.extract_targeted_npcs.return_value = []
     conversation_service = create_autospec(IConversationService, instance=True)
     agent_lifecycle = create_autospec(IAgentLifecycleService, instance=True)
-    tool_suggestor_agent = _StubAgent([])
     context_service = create_autospec(IContextService, instance=True)
     context_service.build_context.return_value = ""
+    event_manager = create_autospec(IEventManager, instance=True)
 
-    monkeypatch.setattr("app.services.ai.orchestrator.agent_router.select", lambda _: AgentType.NARRATIVE)
-    monkeypatch.setattr("app.services.ai.orchestrator.state_reload.reload", lambda service, state: state)
-    monkeypatch.setattr("app.services.ai.orchestrator.transitions.handle_transition", AsyncMock())
-    monkeypatch.setattr("app.services.ai.orchestrator.system_broadcasts.send_initial_combat_prompt", AsyncMock())
-
-    async def _empty_combat_loop(**kwargs: object) -> AsyncIterator[StreamEvent]:
-        if isinstance(kwargs, dict) and kwargs.get("yield_events"):
-            yield StreamEvent(type=StreamEventType.COMPLETE, content="noop")
-
-    monkeypatch.setattr("app.services.ai.orchestrator.combat_loop.run", _empty_combat_loop)
-
-    orchestrator = AgentOrchestrator(
+    # Create pipeline with stub agents and mock services
+    pipeline = create_default_pipeline(
         narrative_agent=narrative_agent,
         combat_agent=combat_agent,
         summarizer_agent=summarizer,  # type: ignore[arg-type]
         tool_suggestor_agent=tool_suggestor_agent,  # type: ignore[arg-type]
         context_service=context_service,
         combat_service=combat_service,
-        event_bus=event_bus,
         game_service=game_service,
         metadata_service=metadata_service,
         conversation_service=conversation_service,
         agent_lifecycle_service=agent_lifecycle,
+        event_manager=event_manager,
+        event_bus=event_bus,
     )
 
-    ai_service = AIService(orchestrator)
+    ai_service = AIService(pipeline=pipeline)
     game_state = make_game_state()
+    # Configure game_service.get_game to return the same state when called with the game_id
+    game_service.get_game.return_value = game_state
 
     user_message = "hello"
     responses = [resp async for resp in ai_service.generate_response(user_message, game_state)]

@@ -13,41 +13,21 @@ logger = logging.getLogger(__name__)
 
 
 class ExecuteCombatAgent:
-    """Execute the combat agent with the current prompt.
-
-    This step:
-    1. Builds combat context via context_service
-    2. Executes combat_agent.process() with ctx.current_prompt
-    3. Collects events in ctx.events
-
-    Used during combat auto-continuation and initial combat execution.
-    """
+    """Execute the combat agent with the current prompt."""
 
     def __init__(
         self,
         combat_agent: BaseAgent,
         context_service: IContextService,
     ) -> None:
-        """Initialize the step with combat agent and context service.
-
-        Args:
-            combat_agent: Combat agent for tactical combat
-            context_service: Service for building agent context
-        """
+        """Initialize with combat agent and context service."""
         self.combat_agent = combat_agent
         self.context_service = context_service
 
     async def run(self, ctx: OrchestrationContext) -> StepResult:
-        """Execute the combat agent.
-
-        Args:
-            ctx: Current orchestration context with current_prompt set
-
-        Returns:
-            StepResult with events accumulated from agent execution
-        """
+        """Execute the combat agent."""
         if not ctx.current_prompt:
-            logger.warning("No current_prompt for combat agent (game_id=%s)", ctx.game_id)
+            logger.warning("No current_prompt for combat agent")
             return StepResult.continue_with(ctx)
 
         # Build combat context
@@ -56,12 +36,7 @@ class ExecuteCombatAgent:
             AgentType.COMBAT,
         )
 
-        logger.info(
-            "Executing combat agent: prompt='%s...', context_length=%d (game_id=%s)",
-            ctx.current_prompt[:80],
-            len(combat_context),
-            ctx.game_id,
-        )
+        logger.debug("Executing combat agent: prompt='%s...'", ctx.current_prompt[:80])
 
         # Execute combat agent with prompt
         events: list[StreamEvent] = []
@@ -73,11 +48,7 @@ class ExecuteCombatAgent:
         ):
             events.append(event)
 
-        logger.info(
-            "Combat agent execution completed: %d events generated (game_id=%s)",
-            len(events),
-            ctx.game_id,
-        )
+        logger.debug("Combat agent completed: %d events", len(events))
 
         # Update context with accumulated events
         updated_ctx = ctx.add_events(events)

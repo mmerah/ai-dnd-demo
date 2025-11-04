@@ -10,34 +10,14 @@ logger = logging.getLogger(__name__)
 
 
 class GenerateCombatPrompt:
-    """Generate combat prompt with duplicate detection tracking.
-
-    This step:
-    1. Reads last_prompted_entity_id and last_prompted_round from ctx.flags
-    2. Calls combat_service.generate_combat_prompt() with tracking params
-    3. Updates flags in returned context with current entity/round
-    4. Stores prompt in ctx.current_prompt for broadcasting
-
-    This is used in the combat loop (not for initial prompt).
-    """
+    """Generate combat prompt with duplicate detection tracking."""
 
     def __init__(self, combat_service: ICombatService) -> None:
-        """Initialize the step with combat service.
-
-        Args:
-            combat_service: Service for generating combat prompts
-        """
+        """Initialize with combat service."""
         self.combat_service = combat_service
 
     async def run(self, ctx: OrchestrationContext) -> StepResult:
-        """Generate combat prompt with duplicate detection.
-
-        Args:
-            ctx: Current orchestration context
-
-        Returns:
-            StepResult with current_prompt and flags updated in context
-        """
+        """Generate combat prompt with duplicate detection."""
         # Read tracking params from flags
         last_entity_id = ctx.flags.last_prompted_entity_id
         last_round = ctx.flags.last_prompted_round
@@ -54,12 +34,11 @@ class GenerateCombatPrompt:
         current_entity_id = current_turn.entity_id if current_turn else None
         current_round = ctx.game_state.combat.round_number
 
-        logger.info(
-            "Generated combat prompt: entity=%s, round=%d, prompt='%s...' (game_id=%s)",
+        logger.debug(
+            "Combat prompt: entity=%s, round=%d, prompt='%s...'",
             current_entity_id or "(none)",
             current_round,
             prompt[:80] if prompt else "(empty)",
-            ctx.game_id,
         )
 
         # Update flags with current tracking info

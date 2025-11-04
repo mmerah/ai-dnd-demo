@@ -1,9 +1,4 @@
-"""LoopStep for conditional iteration in orchestration pipeline.
-
-This module provides LoopStep, which allows pipeline steps to be executed
-repeatedly while a guard condition remains true. This is essential for
-decomposing the combat loop into atomic steps.
-"""
+"""LoopStep for conditional iteration in orchestration pipeline."""
 
 import logging
 from collections.abc import Sequence
@@ -18,91 +13,44 @@ logger = logging.getLogger(__name__)
 
 @dataclass(frozen=True)
 class LoopStep:
-    """Execute steps repeatedly while a guard condition is true.
-
-    LoopStep enables conditional iteration within the pipeline, essential for
-    decomposing combat auto-run logic into atomic steps. The loop continues
-    until:
-    - Guard returns False
-    - Any inner step returns HALT
-    - Safety cap (max_iterations) is reached
-
-    Attributes:
-        guard: Predicate function evaluated before each iteration
-        steps: Steps to execute in each iteration
-        max_iterations: Safety cap to prevent infinite loops
-    """
+    """Execute steps repeatedly while guard is true (up to max_iterations)."""
 
     guard: Guard
-    """Predicate evaluated before each iteration. Loop continues while True."""
+    """Predicate evaluated before each iteration."""
 
     steps: Sequence[Step]
     """Steps to execute in each iteration."""
 
     max_iterations: int = 50
-    """Maximum iterations before loop terminates (safety cap)."""
+    """Safety cap to prevent infinite loops."""
 
     async def run(self, ctx: OrchestrationContext) -> StepResult:
         """Execute steps in a loop while guard passes.
-
-        The loop evaluates the guard before each iteration. If the guard passes,
-        all steps execute sequentially. Context updates accumulate across iterations.
-
-        Termination conditions:
-        1. Guard returns False before iteration starts
-        2. Any step returns HALT (breaks loop immediately)
-        3. max_iterations reached (logged as warning)
 
         Args:
             ctx: Current orchestration context
 
         Returns:
-            StepResult with CONTINUE outcome and accumulated context updates
-
-        Note:
-            - Guard is re-evaluated before each iteration
-            - HALT from inner step propagates immediately (breaks loop)
-            - BRANCH outcome treated as HALT (future: implement branching)
-            - Context accumulates across all iterations
+            StepResult with CONTINUE and accumulated context updates
         """
         current_ctx = ctx
         iteration = 0
 
         guard_name = getattr(self.guard, "__name__", str(self.guard))
-
-        logger.info(
-            "LoopStep: Starting with max_iterations=%d, %d steps per iteration, guard='%s'",
-            self.max_iterations,
-            len(self.steps),
-            guard_name,
-        )
+        logger.debug("LoopStep starting (guard='%s', max_iterations=%d)", guard_name, self.max_iterations)
 
         while iteration < self.max_iterations:
             # Check guard before iteration
-            guard_result = self.guard(current_ctx)
-            if not guard_result:
-                logger.info(
-                    "LoopStep: Guard '%s' failed after %d iterations, exiting loop",
-                    guard_name,
-                    iteration,
-                )
+            if not self.guard(current_ctx):
+                logger.debug("LoopStep guard '%s' failed after %d iterations", guard_name, iteration)
                 break
 
             iteration += 1
-            logger.info(
-                "LoopStep: Iteration %d/%d starting (guard '%s' passed)", iteration, self.max_iterations, guard_name
-            )
+            logger.debug("LoopStep iteration %d/%d (guard '%s')", iteration, self.max_iterations, guard_name)
 
             # Execute all steps in this iteration
-            for step_idx, step in enumerate(self.steps):
+            for step in self.steps:
                 step_name = step.__class__.__name__
-                logger.info(
-                    "LoopStep iteration %d: Executing step %d/%d: %s",
-                    iteration,
-                    step_idx + 1,
-                    len(self.steps),
-                    step_name,
-                )
 
                 result = await step.run(current_ctx)
                 current_ctx = result.context
@@ -110,39 +58,20 @@ class LoopStep:
                 # Check for HALT or BRANCH
                 if result.outcome == OrchestrationOutcome.HALT:
                     logger.info(
-                        "LoopStep HALTED by step %s at iteration %d: %s",
-                        step_name,
-                        iteration,
-                        result.reason or "no reason provided",
+                        "LoopStep HALTED by %s (iteration %d): %s", step_name, iteration, result.reason or "no reason"
                     )
-                    # Propagate HALT to break out of loop
                     return result
 
                 if result.outcome == OrchestrationOutcome.BRANCH:
                     logger.info(
-                        "LoopStep BRANCHED by step %s at iteration %d: %s",
-                        step_name,
-                        iteration,
-                        result.reason or "no reason provided",
+                        "LoopStep BRANCHED by %s (iteration %d): %s", step_name, iteration, result.reason or "no reason"
                     )
-                    # Treat BRANCH as HALT for now (future: implement branching)
                     return result
-
-                # CONTINUE: proceed to next step in iteration
-
-            logger.info("LoopStep: Iteration %d completed", iteration)
 
         # Loop terminated normally (guard failed or max iterations)
         if iteration >= self.max_iterations:
-            logger.warning(
-                "LoopStep hit safety cap of %d iterations",
-                self.max_iterations,
-            )
+            logger.warning("LoopStep hit safety cap (%d iterations)", self.max_iterations)
 
-        logger.debug(
-            "LoopStep completed: %d iterations, %d total events",
-            iteration,
-            len(current_ctx.events),
-        )
+        logger.debug("LoopStep completed (%d iterations, %d events)", iteration, len(current_ctx.events))
 
         return StepResult.continue_with(current_ctx)

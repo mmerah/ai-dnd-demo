@@ -55,28 +55,20 @@ class TestSelectAgent:
         assert result.context.selected_agent_type == AgentType.NPC
 
     @pytest.mark.asyncio
-    async def test_parity_with_legacy_agent_router(self) -> None:
-        """Test that SelectAgent produces same result as legacy agent_router.select()."""
-        # This test ensures Phase 1b maintains parity with existing behavior
-        from app.services.ai.orchestrator import agent_router
+    async def test_preserves_other_context_fields(self) -> None:
+        """Test that SelectAgent preserves other context fields."""
+        game_state = make_game_state(game_id="test-game")
+        game_state.active_agent = AgentType.NARRATIVE
 
-        # Test with NARRATIVE
-        game_state_narrative = make_game_state(game_id="test-1")
-        game_state_narrative.active_agent = AgentType.NARRATIVE
-        legacy_result = agent_router.select(game_state_narrative)
-
-        ctx_narrative = OrchestrationContext(user_message="test", game_state=game_state_narrative)
+        ctx = OrchestrationContext(
+            user_message="I look around",
+            game_state=game_state,
+            context_text="existing context",
+        )
         step = SelectAgent()
-        step_result = await step.run(ctx_narrative)
 
-        assert step_result.context.selected_agent_type == legacy_result
+        result = await step.run(ctx)
 
-        # Test with COMBAT
-        game_state_combat = make_game_state(game_id="test-2")
-        game_state_combat.active_agent = AgentType.COMBAT
-        legacy_result = agent_router.select(game_state_combat)
-
-        ctx_combat = OrchestrationContext(user_message="test", game_state=game_state_combat)
-        step_result = await step.run(ctx_combat)
-
-        assert step_result.context.selected_agent_type == legacy_result
+        assert result.context.user_message == "I look around"
+        assert result.context.context_text == "existing context"
+        assert result.context.game_id == "test-game"

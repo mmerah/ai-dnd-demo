@@ -17,44 +17,24 @@ logger = logging.getLogger(__name__)
 
 
 class ExecuteNpcDialogue:
-    """Execute dialogue with targeted NPCs and return HALT outcome.
-
-    This step processes the user message with each targeted NPC agent in sequence.
-    NPC agents build their own context internally (including persona), so this step
-    passes an empty context string.
-
-    After all NPCs respond, this step returns a HALT outcome to stop the pipeline,
-    as NPC dialogue is a terminal operation that doesn't continue to other agents.
-    """
+    """Execute dialogue with targeted NPCs and return HALT outcome."""
 
     def __init__(
         self,
         agent_lifecycle_service: IAgentLifecycleService,
         conversation_service: IConversationService,
     ):
-        """Initialize the step with required services.
-
-        Args:
-            agent_lifecycle_service: Service for managing NPC agent lifecycle
-            conversation_service: Service for recording conversation messages
-        """
+        """Initialize with agent lifecycle service and conversation service."""
         self.agent_lifecycle_service = agent_lifecycle_service
         self.conversation_service = conversation_service
 
     async def run(self, ctx: OrchestrationContext) -> StepResult:
-        """Execute dialogue with each targeted NPC.
-
-        Args:
-            ctx: Current orchestration context with npc_targets populated
-
-        Returns:
-            StepResult with HALT outcome and accumulated NPC response events
-        """
+        """Execute dialogue with each targeted NPC."""
         if not ctx.flags.npc_targets:
             logger.warning("ExecuteNpcDialogue called without NPC targets")
             return StepResult.halt(ctx, "No NPC targets to process")
 
-        # Record player message (orchestrator lines 208-213)
+        # Record player message
         self.conversation_service.record_message(
             ctx.game_state,
             MessageRole.PLAYER,
@@ -62,7 +42,7 @@ class ExecuteNpcDialogue:
             agent_type=AgentType.NPC,
         )
 
-        # Process each targeted NPC (orchestrator lines 215-225)
+        # Process each targeted NPC
         accumulated_events: list[StreamEvent] = []
 
         for npc_id in ctx.flags.npc_targets:
@@ -80,23 +60,18 @@ class ExecuteNpcDialogue:
             agent.prepare_for_npc(npc)
 
             # NPC agents build their own context internally (includes persona)
-            # Pass empty string for context (orchestrator line 223)
             events: list[StreamEvent] = []
             async for event in agent.process(ctx.user_message, ctx.game_state, context="", stream=True):
                 events.append(event)
 
             accumulated_events.extend(events)
 
-            # Update session timestamp (orchestrator line 225)
+            # Update session timestamp
             ctx.game_state.dialogue_session.last_interaction_at = datetime.now()
 
         # Update context with accumulated events and return HALT
         updated_ctx = ctx.add_events(accumulated_events)
 
-        logger.debug(
-            "Completed NPC dialogue with %d NPC(s), generated %d events",
-            len(ctx.flags.npc_targets),
-            len(accumulated_events),
-        )
+        logger.info("Completed dialogue with %d NPC(s)", len(ctx.flags.npc_targets))
 
         return StepResult.halt(updated_ctx, "NPC dialogue completed")

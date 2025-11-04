@@ -11,32 +11,10 @@ logger = logging.getLogger(__name__)
 
 
 class WrapAllyActionIfNeeded:
-    """Rewrite user message when it's an allied NPC's combat turn.
-
-    This step detects if the current turn belongs to an allied NPC and rewrites
-    the user message to instruct the combat agent to execute the action properly,
-    including calling next_turn.
-
-    The rewrite only happens if:
-    1. Combat is active
-    2. Current turn belongs to an ALLY faction
-    3. Entity is an NPC
-    4. Message doesn't already start with [ALLY_ACTION]
-    5. NPC exists in game state and is in the party
-    """
+    """Rewrite user message when it's an allied NPC's combat turn."""
 
     async def run(self, ctx: OrchestrationContext) -> StepResult:
-        """Check if ally action wrapping is needed and rewrite message if so.
-
-        Args:
-            ctx: Current orchestration context
-
-        Returns:
-            StepResult with potentially updated user_message
-
-        Raises:
-            ValueError: If ally NPC not found or not in party
-        """
+        """Check if ally action wrapping is needed and rewrite message if so."""
         # Only apply during combat
         if not ctx.game_state.combat.is_active:
             return StepResult.continue_with(ctx)
@@ -65,18 +43,14 @@ class WrapAllyActionIfNeeded:
                 f"NPC {npc.display_name} ({npc.instance_id}) has ALLY faction in combat " f"but is not in the party"
             )
 
-        # Rewrite message (orchestrator lines 101-105)
+        # Rewrite message
         wrapped_message = (
             f"[ALLY_ACTION] It is {npc.display_name}'s turn in combat (entity_id={npc.instance_id}, allied NPC). "
             f"Execute this action exactly as described: {ctx.user_message}. "
             "Use the appropriate combat tools (rolls, damage, HP updates) and CALL next_turn immediately once resolved."
         )
 
-        logger.debug(
-            "Wrapped ally action for %s (entity_id=%s)",
-            npc.display_name,
-            npc.instance_id,
-        )
+        logger.debug("Wrapped ally action for %s", npc.display_name)
 
         # Update context with wrapped message
         updated_ctx = ctx.with_updates(user_message=wrapped_message)

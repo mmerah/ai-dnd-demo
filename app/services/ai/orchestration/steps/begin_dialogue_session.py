@@ -12,24 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 class BeginDialogueSession:
-    """Initialize dialogue session for explicit NPC targeting.
-
-    Sets up the dialogue session state when the user explicitly targets NPCs via
-    @mentions. This step configures the session mode to EXPLICIT_ONLY (only
-    respond when directly mentioned) and marks the session as active.
-
-    This step requires ctx.flags.npc_targets to be populated by DetectNpcDialogueTargets.
-    """
+    """Initialize dialogue session for explicit NPC targeting."""
 
     async def run(self, ctx: OrchestrationContext) -> StepResult:
-        """Begin dialogue session with targeted NPCs.
-
-        Args:
-            ctx: Current orchestration context with npc_targets populated
-
-        Returns:
-            StepResult with game_state dialogue session updated
-        """
+        """Begin dialogue session with targeted NPCs."""
         if not ctx.flags.npc_targets:
             # This step should only run when there are NPC targets (guarded by pipeline)
             logger.warning("BeginDialogueSession called without NPC targets")
@@ -38,7 +24,7 @@ class BeginDialogueSession:
         session = ctx.game_state.dialogue_session
         now = datetime.now()
 
-        # Configure dialogue session (orchestrator lines 197-206)
+        # Configure dialogue session
         session.active = True
         session.mode = DialogueSessionMode.EXPLICIT_ONLY
         session.target_npc_ids = ctx.flags.npc_targets
@@ -49,10 +35,6 @@ class BeginDialogueSession:
         # Set active agent to NPC
         ctx.game_state.active_agent = AgentType.NPC
 
-        logger.debug(
-            "Started dialogue session with %d NPC(s): %s",
-            len(ctx.flags.npc_targets),
-            ctx.flags.npc_targets,
-        )
+        logger.info("Dialogue session started with %d NPC(s)", len(ctx.flags.npc_targets))
 
         return StepResult.continue_with(ctx)

@@ -10,37 +10,17 @@ logger = logging.getLogger(__name__)
 
 
 class SetCombatPhase:
-    """Step that sets the combat phase to track combat lifecycle explicitly.
-
-    This step updates the combat phase field in the game state and logs
-    the transition for observability.
-    """
+    """Set the combat phase in game state."""
 
     def __init__(self, target_phase: CombatPhase) -> None:
-        """Initialize the step with the target phase.
-
-        Args:
-            target_phase: The combat phase to set
-        """
+        """Initialize with target phase."""
         self.target_phase = target_phase
 
     async def run(self, ctx: OrchestrationContext) -> StepResult:
-        """Set the combat phase in game state.
-
-        Args:
-            ctx: Current orchestration context
-
-        Returns:
-            StepResult with phase updated (CONTINUE outcome)
-        """
+        """Set the combat phase in game state."""
         old_phase = ctx.game_state.combat.phase
         ctx.game_state.combat.phase = self.target_phase
 
-        logger.info(
-            "Combat phase transition: %s → %s (game_id=%s)",
-            old_phase.value,
-            self.target_phase.value,
-            ctx.game_id,
-        )
+        logger.info("Combat phase: %s → %s", old_phase.value, self.target_phase.value)
 
         return StepResult.continue_with(ctx)

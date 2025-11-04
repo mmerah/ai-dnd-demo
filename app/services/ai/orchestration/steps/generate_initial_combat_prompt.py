@@ -10,38 +10,18 @@ logger = logging.getLogger(__name__)
 
 
 class GenerateInitialCombatPrompt:
-    """Generate the initial combat prompt when combat starts.
-
-    This step calls combat_service.generate_combat_prompt() without
-    duplicate detection tracking (no last_entity_id or last_round).
-    The prompt is stored in ctx.current_prompt for the next step to broadcast.
-    """
+    """Generate the initial combat prompt when combat starts."""
 
     def __init__(self, combat_service: ICombatService) -> None:
-        """Initialize the step with combat service.
-
-        Args:
-            combat_service: Service for generating combat prompts
-        """
+        """Initialize with combat service."""
         self.combat_service = combat_service
 
     async def run(self, ctx: OrchestrationContext) -> StepResult:
-        """Generate the initial combat prompt.
-
-        Args:
-            ctx: Current orchestration context
-
-        Returns:
-            StepResult with current_prompt updated in context
-        """
+        """Generate the initial combat prompt."""
         # Generate initial prompt without duplicate detection
         prompt = self.combat_service.generate_combat_prompt(ctx.game_state)
 
-        logger.info(
-            "Generated initial combat prompt: '%s...' (game_id=%s)",
-            prompt[:80] if prompt else "(empty)",
-            ctx.game_id,
-        )
+        logger.debug("Initial combat prompt: '%s...'", prompt[:80] if prompt else "(empty)")
 
         # Store prompt in context for broadcasting
         updated_ctx = ctx.with_updates(current_prompt=prompt)

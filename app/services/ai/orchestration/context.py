@@ -10,10 +10,7 @@ from app.models.game_state import GameState
 
 @dataclass(frozen=True)
 class OrchestrationFlags:
-    """Flags capturing state transitions and special conditions.
-
-    These flags help guards make decisions about which pipeline steps to execute.
-    """
+    """Flags for state transitions and special conditions used by pipeline guards."""
 
     combat_was_active: bool = False
     """Whether combat was active at the start of orchestration."""
@@ -32,33 +29,23 @@ class OrchestrationFlags:
     """Last round number prompted in combat loop (prevents duplicate prompts)."""
 
     def with_updates(self, **kwargs: Any) -> "OrchestrationFlags":
-        """Create a new OrchestrationFlags with updated fields.
-
-        Field names are validated by dataclasses.replace() at runtime.
-        Invalid field names will raise TypeError.
+        """Return a new instance with specified fields updated.
 
         Args:
             **kwargs: Fields to update
 
         Returns:
-            New OrchestrationFlags instance with updates applied
-
-        Raises:
-            TypeError: If invalid field name provided
+            New OrchestrationFlags with updates applied
         """
         return replace(self, **kwargs)
 
 
 @dataclass(frozen=True)
 class OrchestrationContext:
-    """Immutable context object carried through the orchestration pipeline.
+    """Immutable context carried through pipeline steps.
 
-    This context accumulates state as it flows through pipeline steps. Each step
-    returns a new context with updated fields via `with_updates()`.
-
-    Note: `game_state` is a mutable Pydantic model that may be modified by event
-    handlers. Steps should use event-sourced mutations through the event bus and
-    call ReloadState when fresh state is needed.
+    Steps return updated copies via `with_updates()`. Note: game_state is mutable
+    and modified by event handlers; use ReloadState to get fresh state.
     """
 
     # Immutable inputs
@@ -98,64 +85,26 @@ class OrchestrationContext:
         object.__setattr__(self, "game_id", self.game_state.game_id)
 
     def with_updates(self, **kwargs: Any) -> "OrchestrationContext":
-        """Create a new OrchestrationContext with updated fields.
-
-        Field names are validated by dataclasses.replace() at runtime.
-        Invalid field names will raise TypeError.
+        """Return a new instance with specified fields updated.
 
         Args:
-            **kwargs: Fields to update (see OrchestrationContext fields)
+            **kwargs: Fields to update
 
         Returns:
-            New OrchestrationContext instance with updates applied
-
-        Raises:
-            TypeError: If invalid field name provided
-
-        Example:
-            ```python
-            new_ctx = ctx.with_updates(
-                selected_agent_type=AgentType.COMBAT,
-                context_text="Combat context..."
-            )
-            ```
+            New OrchestrationContext with updates applied
         """
         return replace(self, **kwargs)
 
     def add_event(self, event: StreamEvent) -> "OrchestrationContext":
-        """Add a stream event to the accumulated events.
-
-        Args:
-            event: Stream event to add
-
-        Returns:
-            New context with event added
-        """
+        """Return new context with event added to accumulated events."""
         return self.with_updates(events=[*self.events, event])
 
     def add_events(self, events: list[StreamEvent]) -> "OrchestrationContext":
-        """Add multiple stream events to the accumulated events.
-
-        Args:
-            events: Stream events to add
-
-        Returns:
-            New context with events added
-        """
+        """Return new context with events added to accumulated events."""
         return self.with_updates(events=[*self.events, *events])
 
     def require_agent_type(self) -> AgentType:
-        """Get selected agent type, raising if not set.
-
-        Steps that depend on agent selection should call this method to ensure
-        SelectAgent step has run first.
-
-        Returns:
-            The selected agent type
-
-        Raises:
-            ValueError: If agent type has not been selected yet
-        """
+        """Return selected agent type, raising ValueError if not set yet."""
         if self.selected_agent_type is None:
-            raise ValueError("Agent type not selected - SelectAgent step must run before steps that require it")
+            raise ValueError("Agent type not selected - SelectAgent step must run first")
         return self.selected_agent_type

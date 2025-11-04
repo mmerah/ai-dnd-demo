@@ -16,21 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class CombatAutoEnd:
-    """Prompt combat agent to end combat when all enemies are defeated.
-
-    This step is part of the combat loop decomposition (Phase 5.5). It handles
-    the auto-end path from combat_loop.py:_handle_combat_end (lines 23-60).
-
-    When no active enemies remain, this step:
-    1. Broadcasts a system message
-    2. Prompts the combat agent to call end_combat tool
-    3. Collects events from agent execution
-    4. Reloads state (combat.is_active becomes False)
-    5. Returns CONTINUE to allow pipeline to reach combat_just_ended transition
-
-    When used in loops, the loop guard will check combat.is_active=False and
-    exit naturally on the next iteration.
-    """
+    """Prompt combat agent to end combat when all enemies are defeated."""
 
     def __init__(
         self,
@@ -39,38 +25,19 @@ class CombatAutoEnd:
         event_bus: IEventBus,
         game_service: IGameService,
     ):
-        """Initialize the step with required dependencies.
-
-        Args:
-            combat_agent: Combat agent to narrate combat end
-            context_service: Service for building agent context
-            event_bus: Event bus for broadcasting system messages
-            game_service: Service for reloading game state
-        """
+        """Initialize with combat agent, context service, event bus, and game service."""
         self.combat_agent = combat_agent
         self.context_service = context_service
         self.event_bus = event_bus
         self.game_service = game_service
 
     async def run(self, ctx: OrchestrationContext) -> StepResult:
-        """Execute combat auto-end sequence.
-
-        Prompts combat agent to end combat using the end_combat tool.
-        This replicates combat_loop.py:_handle_combat_end behavior.
-
-        Args:
-            ctx: Current orchestration context
-
-        Returns:
-            StepResult with CONTINUE outcome and events from combat agent.
-            State is reloaded with combat.is_active=False, allowing subsequent
-            guards and the combat_just_ended transition to trigger.
-        """
+        """Execute combat auto-end sequence."""
         if not ctx.game_state.combat.is_active:
             logger.warning("CombatAutoEnd called but combat is not active")
             return StepResult.continue_with(ctx)
 
-        logger.info("CombatAutoEnd: No active enemies remain - prompting combat agent to end combat")
+        logger.info("Auto-ending combat: all enemies defeated")
 
         # Prepare the end combat prompt
         end_combat_prompt = "All enemies have been defeated. End the combat using the end_combat tool."
@@ -99,10 +66,7 @@ class CombatAutoEnd:
         ):
             events.append(event)
 
-        logger.info(
-            "CombatAutoEnd: Combat agent processed end combat prompt, %d events generated",
-            len(events),
-        )
+        logger.debug("Combat agent processed end prompt: %d events", len(events))
 
         # Reload state after agent execution (end_combat tool sets combat.is_active = False)
         fresh_state = self.game_service.get_game(ctx.game_id)

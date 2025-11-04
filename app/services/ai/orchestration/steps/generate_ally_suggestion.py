@@ -17,49 +17,19 @@ logger = logging.getLogger(__name__)
 
 
 class GenerateAllySuggestion:
-    """Generate and broadcast combat suggestion for allied NPC turn.
-
-    This step is part of the combat loop decomposition (Phase 5.5). It handles
-    the ally suggestion path from combat_loop.py:_generate_ally_suggestion (lines 63-142).
-
-    When it's an ALLY faction NPC's turn, this step:
-    1. Validates the NPC exists and is in the party
-    2. Gets the NPC agent and prompts for a combat suggestion
-    3. Broadcasts the suggestion via event bus
-    4. Returns HALT to stop the combat loop (waits for player decision)
-
-    The HALT outcome is critical: we don't want to auto-continue after generating
-    a suggestion. The player must decide whether to accept it.
-    """
+    """Generate and broadcast combat suggestion for allied NPC turn."""
 
     def __init__(
         self,
         agent_lifecycle_service: IAgentLifecycleService,
         event_bus: IEventBus,
     ):
-        """Initialize the step with required dependencies.
-
-        Args:
-            agent_lifecycle_service: Service for getting NPC agents
-            event_bus: Event bus for broadcasting suggestions
-        """
+        """Initialize with agent lifecycle service and event bus."""
         self.agent_lifecycle_service = agent_lifecycle_service
         self.event_bus = event_bus
 
     async def run(self, ctx: OrchestrationContext) -> StepResult:
-        """Generate and broadcast combat suggestion for ally NPC.
-
-        This replicates combat_loop.py:_generate_ally_suggestion behavior.
-
-        Args:
-            ctx: Current orchestration context
-
-        Returns:
-            StepResult with HALT outcome (waits for player to accept suggestion)
-
-        Raises:
-            ValueError: If NPC validation fails (not found, not NPC type, not in party)
-        """
+        """Generate and broadcast combat suggestion for ally NPC."""
         if not ctx.game_state.combat.is_active:
             logger.warning("GenerateAllySuggestion called but combat is not active")
             return StepResult.continue_with(ctx)
@@ -69,10 +39,7 @@ class GenerateAllySuggestion:
             logger.warning("GenerateAllySuggestion called but no current turn")
             return StepResult.continue_with(ctx)
 
-        logger.info(
-            "GenerateAllySuggestion: ALLY turn detected for %s - generating combat suggestion",
-            current_turn.name,
-        )
+        logger.info("Generating combat suggestion for ally: %s", current_turn.name)
 
         # Validate NPC entity type
         if current_turn.entity_type != EntityType.NPC:
@@ -104,7 +71,6 @@ class GenerateAllySuggestion:
             f"What combat action do you want to take? Describe it briefly in one sentence from your perspective. "
             f"Consider the current combat situation and your abilities."
         )
-        logger.debug("Prompting %s for combat suggestion", npc.display_name)
 
         # Collect NPC response (NPC agents build their own context internally)
         suggestion_text = ""
@@ -142,11 +108,7 @@ class GenerateAllySuggestion:
             ]
         )
 
-        logger.info(
-            "Combat suggestion broadcast for %s: %s",
-            npc.display_name,
-            suggestion_text,
-        )
+        logger.debug("Suggestion for %s: %s", npc.display_name, suggestion_text[:80])
 
         # HALT the loop - we need to wait for player decision
         return StepResult.halt(

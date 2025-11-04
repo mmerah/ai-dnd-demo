@@ -1,21 +1,7 @@
 """Default orchestration pipeline factory.
 
-This module provides the canonical pipeline configuration that replicates
-the legacy orchestrator behavior. The pipeline is assembled in code using
-PipelineBuilder for type safety and clarity.
-
-Pipeline flow (see PLAN.md lines 143-171):
-1. Detect NPC dialogue targets
-2. If NPCs targeted → Begin dialogue session → Execute NPCs → HALT
-3. Wrap ally action if needed
-4. Select agent
-5. Build agent context
-6. Enrich with tool suggestions
-7. Execute agent
-8. Reload state
-9. If combat just started → Transition → Initial prompt → Auto-run
-10. If combat active → Auto-run
-11. If combat just ended → Transition to narrative
+Assembles the 20-step pipeline that handles agent selection, context building,
+NPC dialogue, combat transitions, and combat auto-run loops.
 """
 
 import logging
@@ -87,30 +73,14 @@ def create_default_pipeline(
     event_manager: IEventManager,
     event_bus: IEventBus,
 ) -> Pipeline:
-    """Create the default orchestration pipeline with explicit combat flow.
+    """Create the default orchestration pipeline.
 
-    This pipeline implements Phase 5.6 refactor with atomic combat steps
-    and explicit turn-type handling. All dependencies are injected to
-    support testing and flexibility.
-
-    Args:
-        narrative_agent: Agent for story progression
-        combat_agent: Agent for tactical combat
-        summarizer_agent: Agent for context transitions
-        tool_suggestor_agent: Agent for tool suggestion generation
-        context_service: Service for building agent context
-        combat_service: Service for combat state management
-        game_service: Service for game state persistence
-        metadata_service: Service for extracting metadata from messages
-        conversation_service: Service for recording conversation messages
-        agent_lifecycle_service: Service for managing NPC agent lifecycle
-        event_manager: Service for recording game events
-        event_bus: Event bus for broadcasting system messages
+    All dependencies are injected to support testing and flexibility.
 
     Returns:
         Configured Pipeline ready for execution
     """
-    logger.info("Creating default orchestration pipeline")
+    logger.debug("Creating default orchestration pipeline")
 
     pipeline = (
         PipelineBuilder()

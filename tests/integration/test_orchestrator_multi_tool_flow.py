@@ -30,7 +30,7 @@ from app.models.scenario import LocationDescriptions
 from app.models.tool_results import RollDiceResult
 from app.models.tool_suggestion import ToolSuggestions
 from app.services.ai.ai_service import AIService
-from app.services.ai.orchestrator.orchestrator_service import AgentOrchestrator
+from app.services.ai.orchestration.default_pipeline import create_default_pipeline
 from app.services.common.path_resolver import PathResolver
 from app.tools import combat_tools, dice_tools, entity_tools, inventory_tools, location_tools, party_tools, quest_tools
 from tests.factories import (
@@ -569,20 +569,21 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
         opening_text="A roaring fireball engulfs the ogre in lunar light.",
         resolution_text="With a final blast, the ogre falls and the spoils are claimed.",
     )
-    orchestrator = AgentOrchestrator(
+    pipeline = create_default_pipeline(
         narrative_agent=narrative_agent,
         combat_agent=combat_agent,
         summarizer_agent=summarizer_stub,
         tool_suggestor_agent=tool_suggestor_stub,
         context_service=container.context_service,
         combat_service=container.combat_service,
-        event_bus=container.event_bus,
         game_service=container.game_service,
         metadata_service=container.metadata_service,
         conversation_service=container.conversation_service,
         agent_lifecycle_service=container.agent_lifecycle_service,
+        event_manager=container.event_manager,
+        event_bus=container.event_bus,
     )
-    ai_service = AIService(orchestrator)
+    ai_service = AIService(pipeline=pipeline)
 
     initial_player_hp = game_state.character.state.hit_points.current
     initial_currency = game_state.character.state.currency.model_copy()

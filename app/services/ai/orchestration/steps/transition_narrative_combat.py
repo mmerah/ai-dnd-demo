@@ -15,43 +15,20 @@ logger = logging.getLogger(__name__)
 
 
 class TransitionNarrativeToCombat:
-    """Handle the transition from narrative to combat mode.
-
-    This step:
-    1. Calls the summarizer agent to create a transition summary
-    2. Adds the summary to conversation history as a DM message
-    3. Broadcasts the summary to the frontend via event bus
-
-    The transition summary provides combat-relevant context from the narrative
-    phase, helping the combat agent understand how the battle started.
-
-    Implementation matches transitions.py lines 27-63.
-    """
+    """Handle the transition from narrative to combat mode."""
 
     def __init__(
         self,
         summarizer_agent: ISummarizerAgent,
         event_bus: IEventBus,
     ):
-        """Initialize the step with required services.
-
-        Args:
-            summarizer_agent: Agent for generating transition summaries
-            event_bus: Event bus for broadcasting to frontend
-        """
+        """Initialize with summarizer agent and event bus."""
         self.summarizer_agent = summarizer_agent
         self.event_bus = event_bus
 
     async def run(self, ctx: OrchestrationContext) -> StepResult:
-        """Execute narrative to combat transition.
-
-        Args:
-            ctx: Current orchestration context
-
-        Returns:
-            StepResult continuing with same context
-        """
-        logger.info("Transitioning from narrative to combat for game_id=%s", ctx.game_id)
+        """Execute narrative to combat transition."""
+        logger.info("Narrative -> Combat transition")
 
         try:
             # Generate combat transition summary (transitions.py line 30)
@@ -60,8 +37,6 @@ class TransitionNarrativeToCombat:
             if not summary:
                 logger.warning("No summary generated for combat transition")
                 return StepResult.continue_with(ctx)
-
-            logger.info("Combat transition summary generated")
 
             # Add summary to conversation history (transitions.py lines 43-51)
             summary_message = Message(
@@ -86,8 +61,6 @@ class TransitionNarrativeToCombat:
                     )
                 ]
             )
-
-            logger.info("Added and broadcast transition summary for combat agent")
 
         except Exception as exc:  # pragma: no cover - defensive
             logger.error("Error during narrative to combat transition: %s", exc)
