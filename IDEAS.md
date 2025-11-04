@@ -1,5 +1,8 @@
 ## Current Issues [CRITICAL]
 
+- ONGOING
+  - Skip phases 6,7. Do phase 8.
+
 - Orchestration, context building (where it happens) is a mess. It would be nice to refactor that so that it is as clear as possible to see what is going on and for developers to use. It would be fantastic that we could have a config file for it where we link agents together for stuff, decide on context, decide on background agents operating before/after a result, ... something almost graphical, extensible and made for this project. Where we could go as simple (1 agent doing everything) as wanted or as complicated as needed.
   - Definetely, through a config file does not seem to work. Context builder through configs seems to work but orchestration pipeline ? Not at all. Monster In Combat Builder deleted and put into CombatContextBuilder does work and clean things up nicely. Then a yaml/json for context building instead of hardcoding in the context service. Then probably just an orchestrator_service/combat_loop COMPLETE refactor. Probably some state machines are needed and a clear pipeline pattern. But no configuration through a file probably. Need to cut work in small chunk, small phases so that I can review piece by piece
 - Context service: List of attacks/spells in combat shown for the NPC / Player (Combat agent for party, NPC agent for npc itself + party state ?)
@@ -7,6 +10,10 @@
 - Ally action, frontend is not "busy"
 - CLAUDE.md : Update with new system once finished, tested, validated
 - Put model in the .json configs instead of .env ?
+- Message response of next_turn should say stop and generate a narrative, subsequence next_turn will be refused until a narrative is generated.
+- system that reject duplicate next_turn until a narrative is generated ?
+
+- Agents in combat are very unreliable. Feels like tool calling might not be it for such a system. Structured output might be the only way ? But replicating all that we have available in tools seems huge but it would be interesting to tests. Alternative would be separate a tool-calling agent. Agent only generate a narrative and the ToolCallAgent generate the tool calls for that ?
 
 # MVP 2
 
@@ -40,3 +47,4 @@ Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic 
 14. Voice Generation for each agent/NPC
 15. Contextual Image Generation for the location
 16. Portrait Generation for the NPCs and Monsters ?
+17. ToolSuggestionAgent/Heuristics use more stuff to suggest tools. Example is matching of quest elements with the prompt, or inventory with the prompt, or location with the prompt ?

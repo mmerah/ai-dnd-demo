@@ -17,6 +17,16 @@ class CombatFaction(str, Enum):
     NEUTRAL = "neutral"
 
 
+class CombatPhase(str, Enum):
+    """Combat phase for explicit state tracking."""
+
+    INACTIVE = "inactive"
+    STARTING = "starting"
+    ACTIVE = "active"
+    AUTO_ENDING = "auto_ending"
+    ENDED = "ended"
+
+
 class CombatParticipant(BaseModel):
     """Participant in combat with initiative and stable entity reference."""
 
@@ -39,6 +49,7 @@ class CombatState(BaseModel):
     turn_index: int = Field(ge=0, default=0)
     participants: list[CombatParticipant] = Field(default_factory=list)
     is_active: bool = False
+    phase: CombatPhase = Field(default=CombatPhase.INACTIVE)
     combat_occurrence: int = Field(ge=0, default=0)
 
     def add_participant(

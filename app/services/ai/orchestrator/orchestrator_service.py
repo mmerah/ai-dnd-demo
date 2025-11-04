@@ -23,6 +23,9 @@ from app.models.attributes import EntityType
 from app.models.combat import CombatFaction
 from app.models.game_state import DialogueSessionMode, GameState, MessageRole
 from app.models.tool_suggestion import ToolSuggestions
+from app.services.ai.orchestration.context import OrchestrationContext, OrchestrationFlags
+from app.services.ai.orchestration.pipeline import Pipeline
+from app.services.ai.orchestration.steps.select_agent import SelectAgent
 from app.services.ai.orchestrator import agent_router, combat_loop, state_reload, system_broadcasts, transitions
 
 logger = logging.getLogger(__name__)
@@ -44,6 +47,7 @@ class AgentOrchestrator:
         metadata_service: IMetadataService,
         conversation_service: IConversationService,
         agent_lifecycle_service: IAgentLifecycleService,
+        pipeline: Pipeline | None = None,
     ) -> None:
         self.narrative_agent = narrative_agent
         self.combat_agent = combat_agent
@@ -56,6 +60,7 @@ class AgentOrchestrator:
         self.metadata_service = metadata_service
         self.conversation_service = conversation_service
         self.agent_lifecycle_service = agent_lifecycle_service
+        self.pipeline = pipeline
 
     async def process(
         self,
@@ -65,8 +70,16 @@ class AgentOrchestrator:
     ) -> AsyncIterator[StreamEvent]:
         """Process user message with appropriate agent.
 
+        Routes to pipeline if available, otherwise uses legacy path.
         Handles agent selection, transition summaries, and delegation.
         """
+        # Route to pipeline if configured
+        if self.pipeline is not None:
+            async for event in self.process_pipeline(user_message, game_state):
+                yield event
+            return
+
+        # Legacy path (will be removed in Phase 8)
         # Store whether combat was active before processing
         combat_was_active = game_state.combat.is_active
 
@@ -103,7 +116,23 @@ class AgentOrchestrator:
                 )
 
         # Determine current agent type based on game state
-        current_agent_type = agent_router.select(game_state)
+        # Phase 1b: Use SelectAgent step to demonstrate pipeline integration
+        select_agent_step = SelectAgent()
+        orchestration_ctx = OrchestrationContext(
+            user_message=user_message,
+            game_state=game_state,
+        )
+        select_result = await select_agent_step.run(orchestration_ctx)
+        current_agent_type = select_result.context.require_agent_type()
+
+        # Fallback: verify parity with legacy agent_router
+        legacy_agent_type = agent_router.select(game_state)
+        if current_agent_type != legacy_agent_type:
+            logger.warning(
+                "SelectAgent step mismatch: step=%s, legacy=%s",
+                current_agent_type,
+                legacy_agent_type,
+            )
 
         # Select the appropriate agent
         agent = self.combat_agent if current_agent_type == AgentType.COMBAT else self.narrative_agent
@@ -314,3 +343,49 @@ class AgentOrchestrator:
             continuation_prompt, game_state, narrative_context, stream=stream
         ):
             yield event
+
+    async def process_pipeline(
+        self,
+        user_message: str,
+        game_state: GameState,
+    ) -> AsyncIterator[StreamEvent]:
+        """Process user message using the orchestration pipeline.
+
+        This is the new pipeline-based implementation that replaces the legacy
+        monolithic process() method. The pipeline executes a series of composable
+        steps with clear separation of concerns.
+
+        Args:
+            user_message: Player's message/action to process
+            game_state: Current game state
+
+        Yields:
+            StreamEvents generated during pipeline execution
+
+        Raises:
+            ValueError: If pipeline is not configured
+        """
+        if self.pipeline is None:
+            raise ValueError("Pipeline not configured - cannot use process_pipeline()")
+
+        logger.info(
+            "Processing user message via pipeline for game_id=%s",
+            game_state.game_id,
+        )
+
+        # Create initial orchestration context
+        # Capture combat_was_active flag for transition detection
+        initial_ctx = OrchestrationContext(
+            user_message=user_message,
+            game_state=game_state,
+            flags=OrchestrationFlags(combat_was_active=game_state.combat.is_active),
+        )
+
+        # Execute pipeline and yield all events
+        async for event in self.pipeline.execute(initial_ctx):
+            yield event
+
+        logger.info(
+            "Pipeline execution completed for game_id=%s",
+            game_state.game_id,
+        )

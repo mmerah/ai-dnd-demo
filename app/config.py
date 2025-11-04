@@ -32,6 +32,9 @@ class Settings(BaseSettings):
     debug_ai: bool = Field(default=False, alias="DEBUG_AI")
     debug_agent_context: bool = Field(default=False, alias="DEBUG_AGENT_CONTEXT")
 
+    # Feature Flags
+    use_pipeline_orchestrator: bool = Field(default=False, alias="USE_PIPELINE_ORCHESTRATOR")
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

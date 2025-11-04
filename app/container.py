@@ -70,6 +70,8 @@ from app.services.ai.agent_lifecycle_service import AgentLifecycleService
 from app.services.ai.config_loader import AgentConfigLoader
 from app.services.ai.context.context_service import ContextService
 from app.services.ai.event_logger_service import EventLoggerService
+from app.services.ai.orchestration.default_pipeline import create_default_pipeline
+from app.services.ai.orchestration.pipeline import Pipeline
 from app.services.ai.orchestrator.orchestrator_service import AgentOrchestrator
 from app.services.ai.tool_call_extractor_service import ToolCallExtractorService
 from app.services.ai.tool_suggestion import ToolSuggestionService
@@ -515,6 +517,24 @@ class Container:
             suggestion_service=self.tool_suggestion_service
         )
 
+        # Conditionally create pipeline based on feature flag
+        pipeline: Pipeline | None = None
+        if settings.use_pipeline_orchestrator:
+            pipeline = create_default_pipeline(
+                narrative_agent=narrative_agent,
+                combat_agent=combat_agent,
+                summarizer_agent=self.summarizer_agent,
+                tool_suggestor_agent=tool_suggestor_agent,
+                context_service=self.context_service,
+                combat_service=self.combat_service,
+                game_service=self.game_service,
+                metadata_service=self.metadata_service,
+                conversation_service=self.conversation_service,
+                agent_lifecycle_service=self.agent_lifecycle_service,
+                event_manager=self.event_manager,
+                event_bus=self.event_bus,
+            )
+
         orchestrator = AgentOrchestrator(
             narrative_agent=narrative_agent,
             combat_agent=combat_agent,
@@ -527,6 +547,7 @@ class Container:
             metadata_service=self.metadata_service,
             conversation_service=self.conversation_service,
             agent_lifecycle_service=self.agent_lifecycle_service,
+            pipeline=pipeline,
         )
         return AIService(orchestrator)
 

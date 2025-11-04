@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 @tool_handler(ShortRestCommand)
-async def short_rest(ctx: RunContext[AgentDependencies]) -> BaseModel:
+async def short_rest(ctx: RunContext[AgentDependencies], **_ignored: object) -> BaseModel:
     # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Take a short rest (1 hour).
 
@@ -27,12 +27,14 @@ async def short_rest(ctx: RunContext[AgentDependencies]) -> BaseModel:
         - After combat to recover
         - Before entering dangerous area
         - When wounded but time is limited
+
+    Note: This tool accepts no parameters. Any provided parameters are ignored.
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 
 @tool_handler(LongRestCommand)
-async def long_rest(ctx: RunContext[AgentDependencies]) -> BaseModel:
+async def long_rest(ctx: RunContext[AgentDependencies], **_ignored: object) -> BaseModel:
     # Note: The return type is BaseModel as required by the pydantic-ai tool interface.
     """Take a long rest (8 hours).
 
@@ -42,6 +44,8 @@ async def long_rest(ctx: RunContext[AgentDependencies]) -> BaseModel:
         - End of adventuring day
         - After major battle
         - When severely wounded or out of resources
+
+    Note: This tool accepts no parameters. Any provided parameters are ignored.
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
