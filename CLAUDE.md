@@ -86,8 +86,9 @@ app/
 │   │   │   ├── step.py                     # Step protocol and result types
 │   │   │   ├── guards.py                   # Pure predicate functions for conditionals
 │   │   │   └── steps/                      # 20 atomic step implementations
-│   │   ├── context/                        # Context building system
-│   │   │   ├── context_service.py          # Context composition via builders
+│   │   ├── context/                        # Context building system (declarative composition)
+│   │   │   ├── context_service.py          # Context composition coordinator
+│   │   │   ├── composition.py              # ContextComposition & BuilderRegistry
 │   │   │   └── builders/                   # Granular context builders (combat/location/party/etc)
 │   │   ├── tool_suggestion/                # Tool suggestion infrastructure
 │   │   │   ├── tool_suggestion_service.py  # Heuristic-based tool suggestion service
@@ -188,6 +189,18 @@ See [docs/orchestration.md](docs/orchestration.md) for detailed architecture dia
 - **Guards**: Pure predicates `Callable[[OrchestrationContext], bool]` for conditionals
 - **Pipeline**: Executes steps sequentially, supports branching and loops
 - **Outcomes**: CONTINUE (next step), HALT (exit), BRANCH (reserved)
+
+## Context Building System
+
+The context building system uses a **declarative composition pattern** to configure what information each agent receives.
+
+See [docs/context_building.md](docs/context_building.md) for detailed architecture and modification patterns.
+
+**Key Concepts:**
+- **Builders**: Single-responsibility context extractors (scenario, combat, spells, etc.)
+- **BuilderRegistry**: Type-safe container for all builder instances
+- **ContextComposition**: Fluent API for declaring which builders each agent uses
+- **ContextService**: Executes compositions to build context strings
 
 ## Runtime Flow
 1. `uvicorn app.main:app --reload --port 8123` boots FastAPI, initializes Container, validates all data

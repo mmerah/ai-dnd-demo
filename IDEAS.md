@@ -1,10 +1,8 @@
 ## Current Issues [CRITICAL]
 
-- Context building (where it happens) is a mess. It would be nice to refactor that so that it is as clear as possible to see what is going on and for developers to use. It would be fantastic that we could have a config file for it
 - Context service: List of attacks/spells in combat shown for the NPC / Player (Combat agent for party, NPC agent for npc itself + party state ?)
-- Spell need description
-- Ally action, frontend is not "busy"
-- CLAUDE.md : Update with new system once finished, tested, validated
+- Spell need description if not already there
+- Ally action, frontend is not "busy" (thus player feels like it can send stuff)
 - Put model in the .json configs instead of .env ?
 - Message response of next_turn should say stop and generate a narrative, subsequence next_turn will be refused until a narrative is generated.
 - system that reject duplicate next_turn until a narrative is generated ?

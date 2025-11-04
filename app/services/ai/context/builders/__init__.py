@@ -5,7 +5,6 @@ from .inventory_builder import InventoryContextBuilder
 from .location_builder import LocationContextBuilder
 from .location_memory_builder import LocationMemoryContextBuilder
 from .monsters_location_builder import MonstersAtLocationContextBuilder
-from .multi_entity_builder import MultiEntityContextBuilder
 from .npc_location_builder import NPCLocationContextBuilder
 from .npc_persona_builder import NPCPersonaContextBuilder
 from .party_overview_builder import PartyOverviewBuilder
@@ -20,7 +19,6 @@ __all__ = [
     "ContextBuilder",
     "DetailLevel",
     "EntityContextBuilder",
-    "MultiEntityContextBuilder",
     "PartyOverviewBuilder",
     "RoleplayInfoBuilder",
     "ScenarioContextBuilder",
