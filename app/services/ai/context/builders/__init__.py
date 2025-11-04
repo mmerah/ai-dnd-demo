@@ -1,4 +1,5 @@
 from .accumulator import ContextAccumulator
+from .actions_builder import ActionsContextBuilder
 from .base import ContextBuilder, DetailLevel, EntityContextBuilder
 from .combat_builder import CombatContextBuilder
 from .inventory_builder import InventoryContextBuilder
@@ -15,6 +16,7 @@ from .spell_builder import SpellContextBuilder
 from .world_memory_builder import WorldMemoryContextBuilder
 
 __all__ = [
+    "ActionsContextBuilder",
     "ContextAccumulator",
     "ContextBuilder",
     "DetailLevel",

@@ -52,6 +52,17 @@ def tool_handler(
             agent_type = ctx.deps.agent_type
             original_kwargs: dict[str, JSONSerializable] = cast(dict[str, JSONSerializable], dict(kwargs))
 
+            # Validate tool call using guard service
+            guard = ctx.deps.tool_execution_guard
+            execution_ctx = ctx.deps.tool_execution_context
+
+            validation_error = guard.validate_tool_call(tool_name, execution_ctx)
+            if validation_error:
+                return validation_error
+
+            # Validation passed
+            guard.record_tool_call(tool_name, execution_ctx)
+
             # Optionally transform kwargs for command construction and/or broadcast
             if prepare is not None:
                 prepared = prepare(dict(original_kwargs))  # pass a copy to avoid side effects

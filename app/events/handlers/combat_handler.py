@@ -246,7 +246,7 @@ class CombatHandler(BaseHandler):
                 return result
 
             if current:
-                message = f"Turn Finished for {old_turn.name if old_turn else 'None'}. Narrate what happened (Next turn: {current.name} (Round {game_state.combat.round_number}))"
+                message = f"Turn Finished for {old_turn.name if old_turn else 'None'}. Stop and narrate what happened (Next turn: {current.name} (Round {game_state.combat.round_number}))"
                 logger.debug(
                     f"Turn advanced: {old_turn.name if old_turn else 'None'} -> {current.name} (Round {old_round} -> {game_state.combat.round_number})"
                 )

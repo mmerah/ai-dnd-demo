@@ -7,6 +7,7 @@ from app.models.game_state import GameState
 from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.npc_instance import NPCInstance
 from app.services.ai.context.builders import (
+    ActionsContextBuilder,
     CombatContextBuilder,
     DetailLevel,
     InventoryContextBuilder,
@@ -64,6 +65,7 @@ class ContextService(IContextService):
             inventory=InventoryContextBuilder(),
             roleplay=RoleplayInfoBuilder(),
             npc_persona=NPCPersonaContextBuilder(),
+            actions=ActionsContextBuilder(),
         )
 
     def _create_compositions(self) -> dict[AgentType, ContextComposition]:
@@ -110,9 +112,11 @@ class ContextService(IContextService):
                 .add(b.combat)
                 .add(b.party_full)
                 # Player character abilities
+                .add_for_entities(b.actions, lambda gs: [gs.character])
                 .add_for_entities(b.spells, lambda gs: [gs.character])
                 .add_for_entities(b.inventory, lambda gs: [gs.character])
-                # Party member abilities (spells and inventory only, no roleplay)
+                # Party member abilities (actions, spells, inventory)
+                .add_for_entities(b.actions, self._get_party_members)
                 .add_for_entities(b.spells, self._get_party_members)
                 .add_for_entities(b.inventory, self._get_party_members)
             ),
@@ -138,8 +142,11 @@ class ContextService(IContextService):
             ContextComposition()
             # Party overview (full if in party, summary otherwise)
             .add(party_builder)
+            # Combat context (turn order, initiative, combat state)
+            .add(b.combat)
             # NPC's own details
             .add_for_entity(b.roleplay, npc)
+            .add_for_entity(b.actions, npc)
             .add_for_entity(b.spells, npc)
             .add_for_entity(b.inventory, npc)
             # World and scenario context

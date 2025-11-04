@@ -351,7 +351,7 @@
         "is_player": false,
         "is_active": true
       },
-      "message": "Turn Finished for Hero. Narrate what happened (Next turn: Ogre (Round 1))"
+      "message": "Turn Finished for Hero. Stop and narrate what happened (Next turn: Ogre (Round 1))"
     }
   },
   {
@@ -419,33 +419,6 @@
   {
     "event_type": "tool_call",
     "timestamp": "<timestamp>",
-    "tool_name": "next_turn",
-    "parameters": {},
-    "result": {}
-  },
-  {
-    "event_type": "tool_result",
-    "timestamp": "<timestamp>",
-    "tool_name": "next_turn",
-    "parameters": {},
-    "result": {
-      "type": "next_turn",
-      "round_number": 2,
-      "current_turn": {
-        "entity_id": "ogre-6994",
-        "entity_type": "monster",
-        "faction": "enemy",
-        "name": "Ogre",
-        "initiative": 18,
-        "is_player": false,
-        "is_active": true
-      },
-      "message": "Turn Finished for Elara the Wise. Narrate what happened (Next turn: Ogre (Round 2))"
-    }
-  },
-  {
-    "event_type": "tool_call",
-    "timestamp": "<timestamp>",
     "tool_name": "update_hp",
     "parameters": {
       "entity_id": "ogre-6994",
@@ -470,6 +443,25 @@
       "damage_type": "force",
       "is_healing": false,
       "is_unconscious": true
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "next_turn",
+    "parameters": {},
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "next_turn",
+    "parameters": {},
+    "result": {
+      "type": "next_turn",
+      "round_number": 2,
+      "current_turn": null,
+      "message": "No active enemies remain - use end_combat to conclude"
     }
   },
   {

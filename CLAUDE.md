@@ -36,7 +36,7 @@ app/
 │   ├── factory.py             # Stateful factory (loads configs, builds agents)
 │   ├── core/
 │   │   ├── base.py            # Abstract agent contract (BaseAgent)
-│   │   ├── dependencies.py    # Tool dependency payload (GameState, services, etc.)
+│   │   ├── dependencies.py    # Tool dependency payload (GameState, services, tool execution tracking)
 │   │   ├── types.py           # AgentType enum
 │   │   └── event_stream/      # Pydantic-AI stream handlers (thinking/tools)
 │   ├── narrative/             # Story progression agent
@@ -89,13 +89,13 @@ app/
 │   │   ├── context/                        # Context building system (declarative composition)
 │   │   │   ├── context_service.py          # Context composition coordinator
 │   │   │   ├── composition.py              # ContextComposition & BuilderRegistry
-│   │   │   └── builders/                   # Granular context builders (combat/location/party/etc)
+│   │   │   └── builders/                   # Granular context builders (combat/location/party/spells/actions/etc)
 │   │   ├── tool_suggestion/                # Tool suggestion infrastructure
 │   │   │   ├── tool_suggestion_service.py  # Heuristic-based tool suggestion service
 │   │   │   └── heuristic_rules.py          # Rule classes for pattern matching
 │   │   └── debug_logger/event_logger/message_converter/tool_call_extractor
 │   ├── character/             # Sheet loading, stat compute, leveling
-│   ├── common/                # DiceService/BroadcastService/ActionService/PathResolver
+│   ├── common/                # DiceService/BroadcastService/ActionService/PathResolver/ToolExecutionGuard/ToolExecutionContext
 │   ├── data/
 │   │   ├── content_pack_registry.py        # Discovers data + user packs
 │   │   ├── loaders/                        # Character/scenario JSON loaders
@@ -118,7 +118,7 @@ app/
 │       ├── act_and_quest_service.py        # Act and Quest progression
 │       └── game_state_manager.py           # Manage game state in memory
 ├── tools/
-│   ├── decorators.py      # Wraps commands as tools with event logging
+│   ├── decorators.py      # Wraps commands as tools with event logging & tool execution guard validation
 │   ├── dice_tools.py      # Dice rolling interface for agents
 │   ├── combat_tools.py    # Start/advance/end combat, manage combatants
 │   ├── entity_tools.py    # HP, conditions, spell slots, leveling

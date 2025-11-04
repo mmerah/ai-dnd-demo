@@ -32,6 +32,8 @@ from app.models.tool_suggestion import ToolSuggestions
 from app.services.ai.ai_service import AIService
 from app.services.ai.orchestration.default_pipeline import create_default_pipeline
 from app.services.common.path_resolver import PathResolver
+from app.services.common.tool_execution_context import ToolExecutionContext
+from app.services.common.tool_execution_guard import ToolExecutionGuard
 from app.tools import combat_tools, dice_tools, entity_tools, inventory_tools, location_tools, party_tools, quest_tools
 from tests.factories import (
     make_game_state,
@@ -289,6 +291,11 @@ class _CombatScriptAgent(BaseAgent):
 
             await combat_tools.next_turn(ctx)
 
+            # Prepare for next stage (ogre retaliation)
+            self._stage = 2
+            return
+
+        if self._stage == 2:
             retaliation = cast(
                 RollDiceResult,
                 await dice_tools.roll_dice(
@@ -309,7 +316,11 @@ class _CombatScriptAgent(BaseAgent):
                 damage_type="bludgeoning",
             )
 
-            await combat_tools.next_turn(ctx)
+            monster_id = self._shared["monster_id"]
+            monster_entity = game_state.get_entity_by_id(EntityType.MONSTER, monster_id)
+            if monster_entity is None:
+                raise AssertionError("Expected ogre to remain present")
+            remaining_hp = monster_entity.state.hit_points.current
 
             if remaining_hp > 0:
                 await entity_tools.update_hp(
@@ -319,6 +330,8 @@ class _CombatScriptAgent(BaseAgent):
                     amount=-remaining_hp,
                     damage_type="force",
                 )
+
+            await combat_tools.next_turn(ctx)
 
             combat_round = game_state.combat.round_number
             combat_occurrence = game_state.combat.combat_occurrence
@@ -523,6 +536,8 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
             metadata_service=container.metadata_service,
             save_manager=container.save_manager,
             action_service=container.action_service,
+            tool_execution_context=ToolExecutionContext(),
+            tool_execution_guard=ToolExecutionGuard(),
         )
 
     def _build_combat_deps(state: GameState) -> AgentDependencies:
@@ -539,6 +554,8 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
             metadata_service=container.metadata_service,
             save_manager=container.save_manager,
             action_service=container.action_service,
+            tool_execution_context=ToolExecutionContext(),
+            tool_execution_guard=ToolExecutionGuard(),
         )
 
     container.game_state_manager.store_game(game_state)
@@ -695,8 +712,8 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
         "next_turn",
         "roll_dice",
         "update_hp",
-        "next_turn",
         "update_hp",
+        "next_turn",
         "end_combat",
         "modify_inventory",
         "modify_currency",

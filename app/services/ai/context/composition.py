@@ -52,6 +52,7 @@ class BuilderRegistry:
     inventory: InventoryContextBuilder
     roleplay: RoleplayInfoBuilder
     npc_persona: NPCPersonaContextBuilder
+    actions: EntityContextBuilder
 
 
 class ContextComposition:

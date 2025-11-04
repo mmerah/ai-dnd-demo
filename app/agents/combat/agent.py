@@ -29,6 +29,7 @@ from app.models.ai_response import NarrativeResponse, StreamEvent, StreamEventTy
 from app.models.game_state import GameState, MessageRole
 from app.services.ai.debug_logger import AgentDebugLogger
 from app.services.ai.message_converter_service import MessageConverterService
+from app.services.common import ToolExecutionContext, ToolExecutionGuard
 from app.tools import combat_tools, dice_tools, entity_tools
 
 logger = logging.getLogger(__name__)
@@ -131,6 +132,8 @@ class CombatAgent(BaseAgent):
             metadata_service=self.metadata_service,
             save_manager=self.save_manager,
             action_service=self.action_service,
+            tool_execution_context=ToolExecutionContext(),
+            tool_execution_guard=ToolExecutionGuard(),
         )
 
         message_history = self.message_converter.to_pydantic_messages(

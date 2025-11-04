@@ -137,11 +137,22 @@ class TestToolHandlerDecorator:
     def setup_method(self) -> None:
         self.game_state = make_game_state()
         self.event_bus, self.action_service = DummyEventBus(), DummyActionService()
+        self.tool_execution_context = SimpleNamespace(
+            get_call_count=lambda tool_name: 0,
+            increment_call_count=lambda tool_name: 1,
+        )
+        self.tool_execution_guard = SimpleNamespace(
+            validate_tool_call=lambda tool_name, context: None,
+            record_tool_call=lambda tool_name, context: None,
+        )
+
         self.deps = SimpleNamespace(
             game_state=self.game_state,
             event_bus=self.event_bus,
             agent_type=AgentType.COMBAT,
             action_service=self.action_service,
+            tool_execution_context=self.tool_execution_context,
+            tool_execution_guard=self.tool_execution_guard,
         )
         self.ctx = SimpleNamespace(deps=self.deps)
 
