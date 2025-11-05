@@ -3,9 +3,9 @@
 ## Overview
 Refactored the monolithic 3,454-line vanilla JavaScript frontend into a modular, type-safe TypeScript architecture following SOLID principles.
 
-## Current Status: Phase 5 Complete ✅ - Navigation & Screen Flow!
+## Current Status: Phase 7 Complete ✅ - Catalog Browser & Content Packs!
 
-All core phases plus navigation completed. The frontend is now a fully functional, type-safe TypeScript application with:
+All core phases plus extended components and catalog browser completed. The frontend is now a fully functional, type-safe TypeScript application with:
 - ✅ TypeScript infrastructure with type generation
 - ✅ Core services (API, SSE, State management, Catalog API)
 - ✅ Component system with lifecycle management
@@ -16,6 +16,9 @@ All core phases plus navigation completed. The frontend is now a fully functiona
 - ✅ Scenario selection screen
 - ✅ Hash-based routing system (ScreenManager)
 - ✅ Complete navigation flow (game list → character → scenario → game)
+- ✅ Chronicle CRUD system and Tool Call display
+- ✅ Character Sheet and Inventory panels with toggle system
+- ✅ Catalog browser with content pack filtering and search (7 categories)
 
 ---
 
@@ -648,6 +651,159 @@ styles/
 **Commits**:
 - `d18db38` - docs: Update PROGRESS.md with Phase 6.1 & 6.2 completion
 - `546146d` - feat: Phase 6.3-6.5 - Character Sheet, Inventory, and Panel Toggle System
+
+---
+
+### Phase 7: Catalog Browser & Content Packs ✅ (Complete)
+
+**Goal**: Browse reference data (spells, items, monsters, races, classes, backgrounds, feats) with content pack filtering
+
+**Completed Items**:
+- ✅ Extend CatalogApiService with typed interfaces for all catalog types
+- ✅ Create pure filtering utilities for content packs and search
+- ✅ Create ContentPackFilter component with checkbox selection
+- ✅ Create CatalogSidebar with categories and pack filter
+- ✅ Create CatalogItemList generic component with search and debouncing
+- ✅ Create CatalogItemDetail component with type-specific rendering
+- ✅ Create CatalogBrowserScreen with 3-section layout
+- ✅ Update ScreenManager with catalog route handling
+- ✅ Add comprehensive CSS for all catalog components
+- ✅ Fix all TypeScript strict mode errors
+
+**Files Created** (8 files):
+```
+src/
+├── screens/
+│   └── CatalogBrowserScreen.ts              (~260 lines) - Main catalog browser screen
+├── components/catalog/
+│   ├── CatalogSidebar.ts                    (~70 lines) - Category list + pack filter
+│   ├── CatalogItemList.ts                   (~90 lines) - Generic list with search
+│   ├── CatalogItemDetail.ts                 (~140 lines) - Item detail panel
+│   └── ContentPackFilter.ts                 (~90 lines) - Content pack checkboxes
+├── utils/
+│   └── catalogFilters.ts                    (~90 lines) - Pure filtering functions
+```
+
+**Files Updated** (4 files):
+```
+src/
+├── services/api/
+│   └── CatalogApiService.ts                 (+140 lines) - 8 typed interfaces + methods
+├── screens/
+│   └── ScreenManager.ts                     (+30 lines) - Catalog route handling
+├── utils/
+│   └── dom.ts                               (+5 lines) - Added input() helper
+styles/
+└── main.css                                 (+310 lines) - Complete catalog styles
+```
+
+**Key Features Implemented**:
+
+1. **CatalogBrowserScreen**:
+   - Three-section layout: sidebar (20%) | list (45%) | detail (35%)
+   - Manages state: selectedCategory, selectedPacks, searchQuery, selectedItem
+   - Loads data dynamically based on selected category
+   - Applies filters and search using pure filter functions
+   - Routes: `#/game/:gameId/catalog` with back navigation
+   - "Back to Game" button returns to game interface
+
+2. **Catalog Components**:
+   - **CatalogSidebar**: 7 categories (spells, items, monsters, races, classes, backgrounds, feats)
+     - Category list with active highlighting
+     - Integrates ContentPackFilter component
+     - Callbacks: onCategoryChange, onPacksChange
+   - **ContentPackFilter**: Checkbox list for content pack selection
+     - "All Content Packs" option
+     - Individual pack checkboxes
+     - Selection logic (selecting "all" selects all packs)
+   - **CatalogItemList**: Generic list component with TypeScript generics
+     - Generic type: `CatalogItemList<T extends { id: string }>`
+     - Search input with 300ms debounce
+     - Custom render function prop for item cards
+     - Item count display
+     - Scrollable grid layout
+   - **CatalogItemDetail**: Type-specific detail rendering
+     - Different layouts per item type (Spell, Monster, Item, Race, Class, etc.)
+     - Close button to deselect item
+     - Renders all relevant fields per type
+     - Empty state placeholder
+
+3. **CatalogApiService (Updated)**:
+   - Added 8 typed interfaces:
+     - Spell (level, school, casting_time, range, components, duration)
+     - Item (type, rarity, weight, cost)
+     - Monster (type, size, challenge_rating, armor_class, hit_points)
+     - Race (size, speed)
+     - Class (hit_die, primary_ability)
+     - Background (skill_proficiencies)
+     - Feat (prerequisite)
+     - ContentPack (name, description, version)
+   - Added 8 response interfaces (SpellsResponse, ItemsResponse, etc.)
+   - Added 5 new API methods: getRaces(), getClasses(), getBackgrounds(), getFeats()
+   - Changed return types from `unknown` to specific typed responses
+
+4. **catalogFilters.ts (Pure Functions)**:
+   - `filterByContentPacks<T>()`: Filters items by selected content packs
+   - `filterBySearch<T>()`: Case-insensitive search across specified fields
+   - `applyAllFilters<T>()`: Combines both filters
+   - `combineFilters<T>()`: Generic filter composition
+   - All functions use TypeScript generics for type safety
+   - Zero side effects, fully testable
+
+5. **ScreenManager Integration**:
+   - Added catalog route: `/game/:gameId/catalog`
+   - Added `mountCatalogBrowserScreen()` method
+   - Proper null checking for route parsing
+   - Back navigation to game interface
+
+**CSS Additions** (~310 lines):
+- `.catalog-browser-screen`: Full-height flex layout with header and main area
+- `.catalog-browser-screen__main`: Three-panel flex layout (20% | 45% | 35%)
+- `.catalog-sidebar`: Category list with hover/active states, dark background
+- `.content-pack-filter`: Checkbox list with labels, toggle all functionality
+- `.catalog-item-list`: Search input + item count + scrollable grid
+- `.catalog-item-card`: Hover effects + selected state with blue glow
+- `.catalog-item-detail`: Header with close button + field layouts
+- Dark theme consistent with existing UI
+- Scrollable sections for long lists
+
+**Technical Details**:
+- **Type Safety**: Zero `any` types, strict TypeScript throughout
+- **Generic Components**: CatalogItemList uses generics (`<T extends { id: string }>`) for reusability
+- **Pure Functions**: All filter functions are side-effect free and fully testable
+- **Debouncing**: Search input debounced at 300ms to avoid excessive filtering
+- **Lifecycle Management**: Proper component mounting/unmounting with cleanup
+- **Null Safety**: Proper null checks throughout
+- **Three-Panel Layout**: Responsive sidebar, list, and detail panels
+- **Content Pack Filtering**: Exact same behavior as old frontend
+
+**Route Flow**:
+1. In game interface, navigate to `#/game/:gameId/catalog`
+2. CatalogBrowserScreen mounts with default category (spells)
+3. User selects category → loads data for that category
+4. User filters by content packs → applies pack filter
+5. User searches → applies text search with debounce
+6. User selects item → shows detail panel
+7. User clicks "Back to Game" → returns to `#/game/:gameId`
+
+**Code Quality**:
+- ✅ All files under 260 lines
+- ✅ TypeScript strict mode passing (0 errors)
+- ✅ Zero `any` types
+- ✅ Proper override keywords for lifecycle methods
+- ✅ Component lifecycle management with proper cleanup
+- ✅ Type-safe APIs with explicit request/response types
+- ✅ SOLID principles followed
+- ✅ Pure functions for filtering logic
+- ✅ Generic components for reusability
+
+**Build Status**:
+- ✅ TypeScript compilation successful (0 errors)
+- ✅ All strict checks passing
+- ✅ Ready for Vite build (requires backend for type generation)
+
+**Commits**:
+- `0318d5d` - feat: Phase 7 - Catalog Browser & Content Packs
 
 ---
 
