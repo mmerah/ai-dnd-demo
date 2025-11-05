@@ -12,7 +12,8 @@ Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic 
 
 ### Frontend
 1. Frontend should use typescript with ban of 'any'. Or flutter ? How to use our models directly in the frontend to help type safety ? Better code architecture/modularity of the frontend. Still a "demo" frontend, no need to push too much
-2. Frontend: ASCII map of the location and connection ? (frontend)
+2. Right panel: Party status, character details. Combat status
+3. Frontend: ASCII map of the location and connection ? (frontend)
 
 ### Backend
 1. Creator Agents: CharacterCreator and ScenarioCreator. Character is easy, needs 1 tool to populate a CharacterSheet, would just need to pose a series of questions and have all possibilities of races/subraces/classes/subclasses/spells/... in its system prompt. At the end it would call the tool. Scenario is more complicated, it requires creating monsters, npcs, quests, items, locations and fill it all out correctly

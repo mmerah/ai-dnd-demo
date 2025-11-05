@@ -16,6 +16,7 @@ from app.models.instances.npc_instance import NPCInstance
 from app.models.instances.scenario_instance import ScenarioInstance
 from app.models.location import LocationState
 from app.models.party import PartyState
+from app.models.player_journal import PlayerJournalEntry
 
 
 class MessageRole(str, Enum):
@@ -142,6 +143,9 @@ class GameState(BaseModel):
     # Story tracking
     story_notes: list[str] = Field(default_factory=list)
 
+    # Player journal entries (user-editable notes)
+    player_journal_entries: list[PlayerJournalEntry] = Field(default_factory=list)
+
     # Conversation history (player/DM/NPC dialogue)
     conversation_history: list[Message] = Field(default_factory=list)
 
@@ -212,3 +216,60 @@ class GameState(BaseModel):
         if location_id not in self.scenario_instance.location_states:
             self.scenario_instance.location_states[location_id] = LocationState(location_id=location_id)
         return self.scenario_instance.location_states[location_id]
+
+    def add_journal_entry(self, entry: PlayerJournalEntry) -> None:
+        """Add a new journal entry to the player's journal.
+
+        Args:
+            entry: The journal entry to add
+        """
+        self.player_journal_entries.append(entry)
+
+    def get_journal_entry(self, entry_id: str) -> PlayerJournalEntry | None:
+        """Get a journal entry by its ID.
+
+        Args:
+            entry_id: The entry ID to look up
+
+        Returns:
+            The journal entry if found, None otherwise
+        """
+        for entry in self.player_journal_entries:
+            if entry.entry_id == entry_id:
+                return entry
+        return None
+
+    def update_journal_entry(self, entry_id: str, content: str, tags: list[str]) -> PlayerJournalEntry | None:
+        """Update an existing journal entry's content and tags.
+
+        Args:
+            entry_id: The entry ID to update
+            content: New content for the entry
+            tags: New tags for the entry
+
+        Returns:
+            The updated journal entry if found, None otherwise
+        """
+        entry = self.get_journal_entry(entry_id)
+        if entry is None:
+            return None
+
+        entry.content = content
+        entry.tags = tags
+        entry.touch()
+        return entry
+
+    def delete_journal_entry(self, entry_id: str) -> bool:
+        """Delete a journal entry by its ID.
+
+        Args:
+            entry_id: The entry ID to delete
+
+        Returns:
+            True if the entry was found and deleted, False otherwise
+        """
+        for i, entry in enumerate(self.player_journal_entries):
+            if entry.entry_id == entry_id:
+                self.player_journal_entries.pop(i)
+                return True
+        return False

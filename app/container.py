@@ -53,6 +53,7 @@ from app.interfaces.services.game import (
     IMetadataService,
     IMonsterManagerService,
     IPartyService,
+    IPlayerJournalService,
     IPreSaveSanitizer,
     ISaveManager,
 )
@@ -111,6 +112,7 @@ from app.services.game.memory_service import MemoryService
 from app.services.game.metadata_service import MetadataService
 from app.services.game.monster_manager_service import MonsterManagerService
 from app.services.game.party_service import PartyService
+from app.services.game.player_journal_service import PlayerJournalService
 from app.services.game.pre_save_sanitizer import PreSaveSanitizer
 from app.services.game.save_manager import SaveManager
 from app.services.scenario import ScenarioService
@@ -247,6 +249,10 @@ class Container:
     @cached_property
     def party_service(self) -> IPartyService:
         return PartyService()
+
+    @cached_property
+    def player_journal_service(self) -> IPlayerJournalService:
+        return PlayerJournalService()
 
     @cached_property
     def spell_repository(self) -> IRepository[SpellDefinition]:
