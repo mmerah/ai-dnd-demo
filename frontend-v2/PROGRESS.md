@@ -419,6 +419,9 @@ styles/
 - ✅ No errors or warnings
 - ✅ Bundle size: 41.50 kB (JS) + 17.26 kB (CSS)
 
+**Commits**:
+- `0c2eab4` - feat: Phase 5 - Navigation system with game list, character, and scenario selection screens
+
 ---
 
 ## Architecture Summary
@@ -519,16 +522,18 @@ frontend-v2/
 2. `6c5d261` - Phase 2: Core services implementation
 3. `6318097` - Phase 3: Component system with lifecycle management
 4. `0ee3ae1` - Phase 4: Screen controllers with 3-panel layout
+5. `0c2eab4` - Phase 5: Navigation system with game list, character, and scenario selection
 
 ---
 
 ## What's Next (Optional Enhancements)
 
-### Short Term
-1. Add more comprehensive unit tests
-2. Add Character Selection Screen
-3. Add Catalog Browser Screen
-4. Implement navigation between screens
+See NEXT_STEPS.md for detailed implementation plan.
+
+### Short Term (From NEXT_STEPS.md)
+1. Phase 6: Extended Components (Chronicle CRUD, Tool Call Display, Character Sheet, Inventory)
+2. Phase 7: Catalog Browser & Content Packs
+3. Phase 8: Testing (Services + Critical Paths)
 
 ### Medium Term
 1. Add Chronicle/Journal panel
