@@ -11,6 +11,7 @@ import { GameListScreen } from './GameListScreen.js';
 import { CharacterSelectionScreen } from './CharacterSelectionScreen.js';
 import { ScenarioSelectionScreen } from './ScenarioSelectionScreen.js';
 import { GameInterfaceScreen } from './GameInterfaceScreen.js';
+import { CatalogBrowserScreen } from './CatalogBrowserScreen.js';
 
 export interface ScreenManagerConfig {
   container: ServiceContainer;
@@ -89,8 +90,18 @@ export class ScreenManager {
       }
       this.mountScenarioSelectionScreen();
     } else if (route.startsWith('/game/')) {
-      const gameId = route.split('/game/')[1];
-      if (gameId) {
+      const pathAfterGame = route.split('/game/')[1];
+      if (!pathAfterGame) {
+        console.error('Invalid game route, redirecting to game list');
+        this.navigateTo('/');
+        return;
+      }
+
+      const [gameId, ...rest] = pathAfterGame.split('/');
+
+      if (gameId && rest[0] === 'catalog') {
+        this.mountCatalogBrowserScreen(gameId);
+      } else if (gameId) {
         this.mountGameInterfaceScreen(gameId);
       } else {
         console.error('Invalid game route, redirecting to game list');
@@ -184,6 +195,21 @@ export class ScreenManager {
     const screen = new GameInterfaceScreen({
       container: this.config.container,
       gameId,
+    });
+
+    screen.mount(this.config.appContainer);
+    this.currentScreen = screen;
+  }
+
+  /**
+   * Mount catalog browser screen
+   */
+  private mountCatalogBrowserScreen(gameId: string): void {
+    const screen = new CatalogBrowserScreen({
+      container: this.config.container,
+      onBack: () => {
+        this.navigateTo(`/game/${gameId}`);
+      },
     });
 
     screen.mount(this.config.appContainer);

@@ -84,6 +84,13 @@ export function button(
 }
 
 /**
+ * Create an input element (convenience function)
+ */
+export function input(attributes?: DOMAttributes): HTMLInputElement {
+  return createElement('input', attributes) as HTMLInputElement;
+}
+
+/**
  * Safely escape HTML to prevent XSS
  */
 export function escapeHtml(unsafe: string): string {
