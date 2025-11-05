@@ -107,7 +107,7 @@ describe('CatalogApiService', () => {
 
       expect(mockApiService.get).toHaveBeenCalledWith('/api/catalogs/spells');
       expect(result).toEqual(mockResponse);
-      expect(result.spells[0].level).toBe(3);
+      expect(result.spells[0]?.level).toBe(3);
     });
 
     it('should handle spells with no content pack', async () => {
@@ -134,7 +134,7 @@ describe('CatalogApiService', () => {
 
       const result = await catalogApiService.getSpells();
 
-      expect(result.spells[0].content_pack).toBeUndefined();
+      expect(result.spells[0]?.content_pack).toBeUndefined();
     });
   });
 

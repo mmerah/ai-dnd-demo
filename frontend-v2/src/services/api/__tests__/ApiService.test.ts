@@ -71,8 +71,8 @@ describe('ApiService', () => {
     });
 
     it('should throw NetworkError on timeout', async () => {
-      global.fetch = vi.fn().mockImplementationOnce((url, options) => {
-        return new Promise((resolve, reject) => {
+      global.fetch = vi.fn().mockImplementationOnce((_url, options) => {
+        return new Promise((_resolve, reject) => {
           // Simulate timeout by listening to abort signal
           if (options?.signal) {
             options.signal.addEventListener('abort', () => {

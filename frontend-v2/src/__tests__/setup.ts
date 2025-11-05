@@ -3,7 +3,7 @@
  * Runs before all tests
  */
 
-import { vi } from 'vitest';
+import { vi, afterEach } from 'vitest';
 
 // Mock fetch globally
 global.fetch = vi.fn();
