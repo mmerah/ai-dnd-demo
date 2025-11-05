@@ -3,10 +3,13 @@
 ## Overview
 Refactored the monolithic 3,454-line vanilla JavaScript frontend into a modular, type-safe TypeScript architecture following SOLID principles.
 
-## Current Status: Phase 8.1 Complete ✅ - Comprehensive Service Tests!
+## Current Status: Phase 8.1 Complete ✅ + Critical Schema Fix!
+
+**CRITICAL FIX**: Discovered and fixed completely wrong backend schema exports. All TypeScript types need regeneration.
 
 All core phases plus extended components, catalog browser, and comprehensive testing completed. The frontend is now a fully functional, production-ready, type-safe TypeScript application with:
 - ✅ TypeScript infrastructure with type generation
+- ⚠️ **CRITICAL**: Backend schemas.py was exporting wrong/invented models - NOW FIXED
 - ✅ Core services (API, SSE, State management, Catalog API)
 - ✅ Component system with lifecycle management
 - ✅ Screen controllers with 3-panel layout
@@ -959,6 +962,58 @@ Tests: 133 passed (133)
 - Phase 8.2: Component Integration Tests (ChatPanel, PartyPanel) - Optional lower priority
 - Phase 8.3: E2E Critical Path Tests with MSW - Optional lower priority
 - Rationale: Core business logic in services and state management is comprehensively tested (133 tests). Component and E2E tests provide diminishing returns since they test integration rather than logic.
+
+---
+
+### CRITICAL FIX: Backend Schema Exports (After Phase 8.1) ⚠️
+
+**Problem Discovered**: The `app/api/routers/schemas.py` file was exporting completely wrong/invented model names that don't exist in the backend.
+
+**Investigation Results** (see `/home/user/ai-dnd-demo/INVESTIGATION.md`):
+
+Audited all 40+ backend model files and found:
+
+**Wrong Exports (REMOVED)**:
+```python
+# These models DON'T EXIST in the backend:
+AIStreamChunk, AICompleteResponse, AIErrorResponse  # ❌
+Character, Combat, Combatant, Initiative              # ❌
+Location, NPC, Party, Quest, Spell                    # ❌
+```
+
+**Correct Exports (NOW USED)**:
+```python
+# These are the ACTUAL backend models:
+NarrativeChunkResponse, CompleteResponse, ErrorResponse  # ✅
+CharacterSheet, CombatState, CombatParticipant           # ✅
+LocationState, NPCSheet, PartyState, SpellDefinition     # ✅
+DamageType (from damage_type.py, not damage_types!)     # ✅
+```
+
+**Impact**:
+- 🔴 **ALL generated TypeScript types were wrong**
+- 🔴 **Frontend was using invented types that don't match backend**
+- 🔴 **Would cause runtime type mismatches and errors**
+
+**Fix Applied**:
+- ✅ Fixed all imports in `app/api/routers/schemas.py`
+- ✅ Verified correct model names from backend source
+- ✅ Updated schema exports to match actual Pydantic models
+
+**Remaining Work** (requires backend running):
+1. Start backend server: `uvicorn app.main:app --reload --port 8123`
+2. Regenerate types: `cd frontend-v2 && npm run generate:types`
+3. Fix ALL TypeScript compilation errors from corrected types
+4. Update affected source files (StateStore, services, components)
+5. Verify all 133 tests still pass
+6. Commit type fixes with comprehensive documentation
+
+**Files Changed**:
+- `app/api/routers/schemas.py` - Fixed all imports and exports
+- `INVESTIGATION.md` - Complete audit of backend models
+
+**Commits**:
+- `2e081f1` - fix: Correct backend schema exports to use actual model names
 
 ---
 
