@@ -26,13 +26,14 @@ Refactor the monolithic 3,454-line vanilla JavaScript frontend into a modular, t
 ## Goals
 
 1. **Type Safety**: TypeScript with `"strict": true`, ban `any` type
-2. **SOLID Principles**: Single responsibility, dependency injection, interface-based design
-3. **Clean Architecture**: Layers (UI → Controllers → Services → API)
-4. **Testability**: Pure functions, dependency injection, mock-friendly
-5. **Maintainability**: < 200 lines per file, clear module boundaries
-6. **DRY**: Shared logic in services, no code duplication
-7. **Fail Fast**: Validation at boundaries, explicit error handling
-8. **UI Improvement**: Right panel for party/combat/character details
+2. **Single Source of Truth**: Generate TypeScript types from backend Pydantic models (no duplication)
+3. **SOLID Principles**: Single responsibility, dependency injection, interface-based design
+4. **Clean Architecture**: Layers (UI → Controllers → Services → API)
+5. **Testability**: Pure functions, dependency injection, mock-friendly
+6. **Maintainability**: < 200 lines per file, clear module boundaries
+7. **DRY**: Shared logic in services, no code duplication
+8. **Fail Fast**: Validation at boundaries, explicit error handling
+9. **UI Improvement**: Three-panel layout (location/chronicle | chat | party/combat/character)
 
 ## Proposed Architecture
 
@@ -40,13 +41,18 @@ Refactor the monolithic 3,454-line vanilla JavaScript frontend into a modular, t
 
 ```
 frontend/
+├── scripts/
+│   └── generate-types.ts           # Generate TS types from Pydantic models
+│
 ├── src/
-│   ├── types/                      # Type definitions only (no logic)
-│   │   ├── game.ts                 # Game state, character, party
+│   ├── types/                      # Type definitions (GENERATED - DO NOT EDIT)
+│   │   ├── generated/              # Auto-generated from backend
+│   │   │   ├── game.ts             # Game state, character, party
+│   │   │   ├── combat.ts           # Combat-specific types
+│   │   │   ├── catalog.ts          # Catalog data types
+│   │   │   └── index.ts            # Re-export all generated types
 │   │   ├── api.ts                  # API request/response contracts
 │   │   ├── sse.ts                  # SSE event types
-│   │   ├── catalog.ts              # Catalog data types
-│   │   ├── combat.ts               # Combat-specific types
 │   │   └── ui.ts                   # UI-specific types
 │   │
 │   ├── models/                     # Data models with validation
@@ -398,35 +404,35 @@ export class GameApiService {
 ### New Layout (Proposed)
 
 ```
-┌─────────────────────────────────────────────────────┐
-│ Header (Location, Time, Agent Status)                │
-├──────────────────────────────┬──────────────────────┤
-│                              │                      │
-│  Chat Panel                  │   Right Panel        │
-│  (primary, 60%)              │   (info, 40%)        │
-│                              │                      │
-│  - Location Description      │   PARTY STATUS       │
-│  - Message History           │   ├─ Member Cards    │
-│  - Tool Call Display         │   │   (HP, AC, Lvl)  │
-│  - Loading Indicator         │   └─ Select Active   │
-│  - Combat Suggestion         │                      │
-│  - Input Area                │   COMBAT STATUS      │
-│                              │   ├─ Round/Turn      │
-│                              │   ├─ Initiative      │
-│                              │   └─ Conditions      │
-│                              │                      │
-│                              │   CHARACTER DETAILS  │
-│                              │   ├─ Stats (HP/AC)   │
-│                              │   ├─ Abilities       │
-│                              │   ├─ Skills          │
-│                              │   ├─ Attacks         │
-│                              │   └─ Quick Actions   │
-│                              │                      │
-│                              │   [View Full Sheet]  │
-│                              │   [Chronicle]        │
-│                              │   [Inventory]        │
-│                              │                      │
-└──────────────────────────────┴──────────────────────┘
+┌──────────────────────────────────────────────────────────────────┐
+│ Header (Location Name, Time, Agent Status)                       │
+├────────────────┬──────────────────────────┬──────────────────────┤
+│                │                          │                      │
+│  Left Panel    │    Center Panel          │   Right Panel        │
+│  (context,25%) │    (chat, 50%)           │   (stats, 25%)       │
+│                │                          │                      │
+│  LOCATION      │  - Message History       │   PARTY STATUS       │
+│  ├─ Name       │  - Tool Call Display     │   ├─ Member Cards    │
+│  ├─ Desc       │  - Loading Indicator     │   │   (HP, AC, Lvl)  │
+│  └─ Exits      │  - Combat Suggestion     │   └─ Select Active   │
+│                │  - Input Area            │                      │
+│  NPCs HERE     │                          │   COMBAT STATUS      │
+│  ├─ List       │                          │   ├─ Round/Turn      │
+│  └─ Status     │                          │   ├─ Initiative      │
+│                │                          │   └─ Conditions      │
+│  CHRONICLE     │                          │                      │
+│  ├─ Tabs       │                          │   CHAR SUMMARY       │
+│  ├─ Filters    │                          │   ├─ HP/AC/Init     │
+│  ├─ Search     │                          │   ├─ Abilities       │
+│  └─ Entries    │                          │   ├─ Top Skills      │
+│                │                          │   ├─ Quick Attacks   │
+│  [Collapse]    │                          │   └─ Conditions      │
+│                │                          │                      │
+│                │                          │   [Full Sheet]       │
+│                │                          │   [Spells]           │
+│                │                          │   [Inventory]        │
+│                │                          │                      │
+└────────────────┴──────────────────────────┴──────────────────────┘
 
 Full Character Sheet Modal (Overlay on demand)
 ┌─────────────────────────────────────────────────────┐
@@ -437,14 +443,27 @@ Full Character Sheet Modal (Overlay on demand)
 │  (Complete character sheet details)                  │
 │                                                      │
 └─────────────────────────────────────────────────────┘
+
+Inventory Modal (Overlay on demand)
+┌─────────────────────────────────────────────────────┐
+│ ✕ Close                     Inventory               │
+├─────────────────────────────────────────────────────┤
+│ Currency | Backpack | Equipment Slots               │
+│                                                      │
+│  (Complete inventory management)                     │
+│                                                      │
+└─────────────────────────────────────────────────────┘
 ```
 
 **Rationale:**
-- **Chat is primary focus** (where action happens)
-- **Party/Combat always visible** (critical game state)
-- **Character details summarized** (full sheet on demand)
-- **Less scrolling** (key info in fixed right panel)
-- **Mobile friendly** (panels stack vertically on small screens)
+- **Three focused panels** - Context (left) | Action (center) | Stats (right)
+- **Chat is central** - primary interaction in the middle
+- **Location context always visible** - current area, exits, NPCs
+- **Chronicle integrated** - story memory accessible while playing
+- **Party/Combat stats** - critical game state always visible
+- **Modals for details** - full character sheet and inventory on demand
+- **Collapsible panels** - maximize screen space when needed
+- **Mobile friendly** - panels stack vertically on small screens
 
 ## TypeScript Configuration
 
@@ -494,14 +513,157 @@ Full Character Sheet Modal (Overlay on demand)
 }
 ```
 
+## Type Generation from Backend
+
+### Single Source of Truth
+
+Instead of manually duplicating type definitions, we'll generate TypeScript types directly from the backend Pydantic models. This ensures:
+
+1. **Zero drift** - Frontend types always match backend contracts
+2. **Automatic updates** - Model changes propagate to frontend
+3. **DRY principle** - One canonical definition
+4. **Fail fast** - Breaking changes caught at compile time
+
+### Approach: JSON Schema + Converter
+
+Pydantic v2 can export JSON Schema, which we can convert to TypeScript:
+
+```typescript
+// scripts/generate-types.ts
+import { writeFileSync } from 'fs';
+import { compile } from 'json-schema-to-typescript';
+
+async function generateTypes() {
+    // Fetch JSON schemas from backend
+    const response = await fetch('http://localhost:8123/api/schemas');
+    const schemas = await response.json();
+
+    // Convert each schema to TypeScript
+    for (const [name, schema] of Object.entries(schemas)) {
+        const ts = await compile(schema, name, {
+            bannerComment: '/* AUTO-GENERATED - DO NOT EDIT */',
+            style: {
+                semi: true,
+                singleQuote: true
+            }
+        });
+
+        writeFileSync(`src/types/generated/${name}.ts`, ts);
+    }
+
+    console.log('✓ Generated TypeScript types from backend');
+}
+
+generateTypes().catch(console.error);
+```
+
+### Backend Endpoint for Schemas
+
+We'll add a new endpoint to the FastAPI backend:
+
+```python
+# app/api/routers/schemas.py
+from fastapi import APIRouter
+from app.models.game_state import GameState
+from app.models.character import Character
+from app.models.combat import Combat
+# ... import all models
+
+router = APIRouter()
+
+@router.get("/schemas")
+async def get_schemas() -> dict[str, dict]:
+    """Export JSON schemas for frontend type generation."""
+    return {
+        "GameState": GameState.model_json_schema(),
+        "Character": Character.model_json_schema(),
+        "Combat": Combat.model_json_schema(),
+        "Location": Location.model_json_schema(),
+        "Party": Party.model_json_schema(),
+        # ... all relevant models
+    }
+```
+
+### Build Integration
+
+```json
+// package.json
+{
+  "scripts": {
+    "generate:types": "tsx scripts/generate-types.ts",
+    "prebuild": "npm run generate:types",
+    "dev": "npm run generate:types && vite",
+    "build": "npm run generate:types && tsc && vite build"
+  }
+}
+```
+
+### Example Generated Type
+
+**Backend (Pydantic):**
+```python
+class Character(BaseModel):
+    id: str
+    name: str
+    race: str
+    class_name: str = Field(alias="class")
+    level: int
+    hp: int
+    max_hp: int
+    abilities: Abilities
+```
+
+**Generated TypeScript:**
+```typescript
+/* AUTO-GENERATED - DO NOT EDIT */
+export interface Character {
+  id: string;
+  name: string;
+  race: string;
+  class: string;  // alias respected
+  level: number;
+  hp: number;
+  max_hp: number;
+  abilities: Abilities;
+}
+```
+
+### Workflow
+
+1. **Backend dev changes model** → Pydantic validation ensures correctness
+2. **Frontend dev runs `npm run generate:types`** → Types update
+3. **TypeScript compiler catches breaking changes** → Immediate feedback
+4. **Update frontend code** → Type-safe refactoring with autocomplete
+5. **Commit both changes together** → Backend and frontend stay in sync
+
+### Alternative: datamodel-code-generator
+
+For more advanced scenarios, we can use `datamodel-code-generator`:
+
+```bash
+# Install
+pip install datamodel-code-generator
+
+# Generate from Python models
+datamodel-codegen \
+  --input app/models \
+  --input-file-type python \
+  --output frontend/src/types/generated \
+  --output-model-type typescript
+```
+
+This directly parses Python source files without needing JSON Schema intermediary.
+
 ## Migration Strategy
 
 ### Phase 1: Infrastructure Setup (Day 1)
 1. Initialize TypeScript project with Vite
 2. Create directory structure
 3. Configure tsconfig.json with strict mode
-4. Set up build scripts
-5. Create base types and interfaces
+4. Add backend `/api/schemas` endpoint
+5. Implement type generation script
+6. Generate initial TypeScript types from backend
+7. Set up build scripts
 
 ### Phase 2: Core Services (Day 2)
 1. Implement ApiService and subclasses
@@ -512,17 +674,19 @@ Full Character Sheet Modal (Overlay on demand)
 
 ### Phase 3: Component System (Day 3)
 1. Create Component base class
-2. Implement ChatPanel and related components
-3. Implement PartyPanel and CombatStatusPanel
-4. Implement CharacterSheet (modal version)
-5. Test component lifecycle
+2. Implement left panel components (Location, Chronicle)
+3. Implement center panel components (Chat, Input)
+4. Implement right panel components (Party, Combat, Character Summary)
+5. Implement modal components (Full Sheet, Inventory)
+6. Test component lifecycle
 
-### Phase 4: Screen Controllers (Day 4)
-1. Implement CharacterSelectionScreen
-2. Implement GameInterfaceScreen with new layout
-3. Implement CatalogScreen
-4. Wire up navigation
-5. Test screen transitions
+### Phase 4: Screen Controllers & Layout (Day 4)
+1. Implement 3-panel layout structure (25% | 50% | 25%)
+2. Implement CharacterSelectionScreen
+3. Implement GameInterfaceScreen with 3-panel layout
+4. Implement CatalogScreen
+5. Wire up navigation and panel toggling
+6. Test screen transitions and responsive behavior
 
 ### Phase 5: Integration & Testing (Day 5)
 1. Full integration testing
