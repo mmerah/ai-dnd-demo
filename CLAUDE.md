@@ -58,7 +58,7 @@ app/
 ├── events/
 │   ├── base.py                # Command/handler base classes
 │   ├── event_bus.py           # Async pub/sub dispatcher
-│   ├── commands/              # Payloads (broadcast/entity/combat/dice/inventory/location/party/quest/time)
+│   ├── commands/              # Payloads (broadcast/entity/combat/dice/inventory/location/party/time)
 │   └── handlers/              # State mutations + SSE per command family
 ├── interfaces/                # Service/repo/event protocols
 ├── models/
@@ -72,7 +72,7 @@ app/
 │   ├── memory.py              # Structured memory models
 │   ├── party.py               # Party state (member management, max size)
 │   ├── instances/             # Display snapshots (player/monster/scenario)
-│   └── ...                    # damage_types/spells/quests/races/traits
+│   └── ...                    # damage_types/spells/races/traits
 ├── services/
 │   ├── ai/
 │   │   ├── ai_service.py                   # Top-level agent orchestration
@@ -115,7 +115,6 @@ app/
 │       ├── conversation_service.py         # Record messages
 │       ├── event_manager.py                # Record events
 │       ├── enrichment_service.py           # Enrich display information for UI
-│       ├── act_and_quest_service.py        # Act and Quest progression
 │       └── game_state_manager.py           # Manage game state in memory
 ├── tools/
 │   ├── decorators.py      # Wraps commands as tools with event logging & tool execution guard validation
@@ -125,7 +124,6 @@ app/
 │   ├── inventory_tools.py # Currency + inventory adjustments
 │   ├── location_tools.py  # Location state changes + NPC moves
 │   ├── party_tools.py     # Add/remove party members (major NPCs only)
-│   ├── quest_tools.py     # Quest/objective progression
 │   └── time_tools.py      # Rests + time advancement
 └── utils/                 # ability_utils/entity_resolver/id_generator/names
 ```
@@ -167,7 +165,7 @@ data/
 ├── traits.json            # Trait definitions referenced by races/backgrounds
 ├── weapon_properties.json # Weapon property descriptions and rules
 ├── characters/            # Canonical playable PCs (`aldric-swiftarrow.json`)
-└── scenarios/             # Scenario bundles (encounters, quests, locations)
+└── scenarios/             # Scenario bundles (encounters, locations)
 ```
 ### Other Directories
 - `frontend/`: Static client (SSE + REST)

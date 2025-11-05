@@ -17,7 +17,6 @@ from app.services.ai.context.builders import (
     NPCLocationContextBuilder,
     NPCPersonaContextBuilder,
     PartyOverviewBuilder,
-    QuestContextBuilder,
     RoleplayInfoBuilder,
     ScenarioContextBuilder,
     SpellContextBuilder,
@@ -60,7 +59,6 @@ class ContextService(IContextService):
             world_memory=WorldMemoryContextBuilder(),
             npc_location=NPCLocationContextBuilder(),
             monsters_location=MonstersAtLocationContextBuilder(),
-            quests=QuestContextBuilder(),
             spells=SpellContextBuilder(),
             inventory=InventoryContextBuilder(),
             roleplay=RoleplayInfoBuilder(),
@@ -81,7 +79,7 @@ class ContextService(IContextService):
         b = self._builders
 
         return {
-            # NARRATIVE: Full story context with world state, quests, and all party details
+            # NARRATIVE: Full story context with world state and all party details
             AgentType.NARRATIVE: (
                 ContextComposition()
                 # World and scenario context
@@ -92,8 +90,6 @@ class ContextService(IContextService):
                 # NPCs and monsters at location
                 .add(b.npc_location)
                 .add(b.monsters_location)
-                # Quests
-                .add(b.quests)
                 # Party overview
                 .add(b.party_full)
                 # Player character details
@@ -157,8 +153,6 @@ class ContextService(IContextService):
             # NPCs and monsters at location
             .add(b.npc_location)
             .add(b.monsters_location)
-            # Quests
-            .add(b.quests)
         )
 
         return composition.build(game_state, build_ctx)

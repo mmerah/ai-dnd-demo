@@ -25,7 +25,7 @@ When combat ends, summarize in 2-3 sentences:
 When the party exits a location, summarize their time there in 2-3 sentences:
 - Discoveries made and challenges overcome
 - NPCs encountered and relationships formed
-- Quest progress and environmental changes
+- Environmental changes
 - Keep it factual; avoid speculation
 
 #### NPC Interactions

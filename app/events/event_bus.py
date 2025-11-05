@@ -128,7 +128,6 @@ class EventBus(IEventBus):
             "app.events.commands.time_commands",
             "app.events.commands.location_commands",
             "app.events.commands.combat_commands",
-            "app.events.commands.quest_commands",
             "app.events.commands.party_commands",
             "app.events.commands.broadcast_commands",
         ]

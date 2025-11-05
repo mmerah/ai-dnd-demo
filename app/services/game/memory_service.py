@@ -131,10 +131,7 @@ class MemoryService(IMemoryService):
             tags=normalized_tags,
             location_id=location_id,
             npc_ids=context.npc_ids,
-            quest_id=context.quest_id,
             encounter_id=context.encounter_id,
-            objective_id=context.objective_id,
-            act_id=context.act_id,
             since_timestamp=indexed_messages[0][1].timestamp,
             since_message_index=last_idx,
         )
@@ -201,10 +198,7 @@ class MemoryService(IMemoryService):
         since_timestamp: datetime,
         since_message_index: int,
         npc_ids: list[str] | None = None,
-        quest_id: str | None = None,
         encounter_id: str | None = None,
-        objective_id: str | None = None,
-        act_id: str | None = None,
     ) -> MemoryEntry:
         return MemoryEntry(
             source=source,
@@ -212,10 +206,7 @@ class MemoryService(IMemoryService):
             tags=tags,
             location_id=location_id,
             npc_ids=npc_ids or [],
-            quest_id=quest_id,
             encounter_id=encounter_id,
-            objective_id=objective_id,
-            act_id=act_id,
             since_timestamp=since_timestamp,
             since_message_index=since_message_index,
         )

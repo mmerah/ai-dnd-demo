@@ -148,7 +148,6 @@ class TestToolSuggestions:
             suggestions=[
                 ToolSuggestion(tool_name="roll_dice", reason="Check 1", confidence=0.9),
                 ToolSuggestion(tool_name="modify_hp", reason="Damage", confidence=0.8),
-                ToolSuggestion(tool_name="start_quest", reason="New quest", confidence=0.7),
             ]
         )
 
@@ -157,9 +156,7 @@ class TestToolSuggestions:
         # Check all three are present
         assert "1. roll_dice" in formatted
         assert "2. modify_hp" in formatted
-        assert "3. start_quest" in formatted
 
         # Check confidence percentages
         assert "90%" in formatted
         assert "80%" in formatted
-        assert "70%" in formatted

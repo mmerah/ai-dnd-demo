@@ -179,7 +179,6 @@ class SaveManager(ISaveManager):
 
         # Add convenience fields for UI access
         metadata_dump["current_location_id"] = game_state.scenario_instance.current_location_id
-        metadata_dump["current_act_id"] = game_state.scenario_instance.current_act_id
 
         with open(save_dir / "metadata.json", "w", encoding="utf-8") as f:
             json.dump(metadata_dump, f, indent=2, default=str)

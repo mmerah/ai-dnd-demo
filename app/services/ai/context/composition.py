@@ -20,7 +20,6 @@ from app.services.ai.context.builders.monsters_location_builder import MonstersA
 from app.services.ai.context.builders.npc_location_builder import NPCLocationContextBuilder
 from app.services.ai.context.builders.npc_persona_builder import NPCPersonaContextBuilder
 from app.services.ai.context.builders.party_overview_builder import PartyOverviewBuilder
-from app.services.ai.context.builders.quest_builder import QuestContextBuilder
 from app.services.ai.context.builders.roleplay_info_builder import RoleplayInfoBuilder
 from app.services.ai.context.builders.scenario_builder import ScenarioContextBuilder
 from app.services.ai.context.builders.spell_builder import SpellContextBuilder
@@ -47,7 +46,6 @@ class BuilderRegistry:
     world_memory: WorldMemoryContextBuilder
     npc_location: NPCLocationContextBuilder
     monsters_location: MonstersAtLocationContextBuilder
-    quests: QuestContextBuilder
     spells: SpellContextBuilder
     inventory: InventoryContextBuilder
     roleplay: RoleplayInfoBuilder
@@ -73,7 +71,7 @@ class ContextComposition:
         """Add a game-state builder (operates on GameState only).
 
         Args:
-            builder: ContextBuilder instance (scenario, combat, quests, etc.)
+            builder: ContextBuilder instance (scenario, combat, etc.)
 
         Returns:
             Self for chaining

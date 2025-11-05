@@ -34,18 +34,14 @@ from app.services.ai.orchestration.default_pipeline import create_default_pipeli
 from app.services.common.path_resolver import PathResolver
 from app.services.common.tool_execution_context import ToolExecutionContext
 from app.services.common.tool_execution_guard import ToolExecutionGuard
-from app.tools import combat_tools, dice_tools, entity_tools, inventory_tools, location_tools, party_tools, quest_tools
+from app.tools import combat_tools, dice_tools, entity_tools, inventory_tools, location_tools, party_tools
 from tests.factories import (
     make_game_state,
     make_location,
     make_location_connection,
     make_npc_instance,
     make_npc_sheet,
-    make_quest,
 )
-
-QUEST_ID = "moonlit-knowledge"
-QUEST_OBJECTIVE_ID = f"objective-{QUEST_ID}"
 
 
 class SharedState(TypedDict):
@@ -57,8 +53,6 @@ class SharedState(TypedDict):
     fireball_total: int
     attack_total: int
     player_damage_total: int
-    quest_id: str
-    objective_id: str
     npc_instance_id: str
 
 
@@ -87,7 +81,6 @@ class _NarrativeScriptAgent(BaseAgent):
             location_tools.change_location,
             location_tools.discover_secret,
             location_tools.update_location_state,
-            quest_tools.start_quest,
             dice_tools.roll_dice,
             party_tools.add_party_member,
             party_tools.remove_party_member,
@@ -110,10 +103,6 @@ class _NarrativeScriptAgent(BaseAgent):
                 danger_level="low",
                 add_effect="soothing-luminescence",
             )
-
-            self._shared["quest_id"] = QUEST_ID
-            self._shared["objective_id"] = QUEST_OBJECTIVE_ID
-            await quest_tools.start_quest(ctx, quest_id=QUEST_ID)
 
             # Add NPC companion to party before combat
             npc_id = self._shared["npc_instance_id"]
@@ -215,7 +204,6 @@ class _CombatScriptAgent(BaseAgent):
             combat_tools.end_combat,
             inventory_tools.modify_inventory,
             inventory_tools.modify_currency,
-            quest_tools.complete_objective,
         ]
 
     async def process(
@@ -343,12 +331,6 @@ class _CombatScriptAgent(BaseAgent):
                 ctx, entity_id=player_id, entity_type="player", item_index="potion-of-healing", quantity=1
             )
             await inventory_tools.modify_currency(ctx, entity_id=player_id, entity_type="player", gold=5)
-
-            quest_id = self._shared["quest_id"]
-            objective_id = self._shared["objective_id"]
-            if not quest_id or not objective_id:
-                raise AssertionError("Quest identifiers missing from shared state")
-            await quest_tools.complete_objective(ctx, quest_id=quest_id, objective_id=objective_id)
 
             deps.conversation_service.add_message(
                 game_state=game_state,
@@ -478,16 +460,6 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
             scenario.locations[index] = target_location
             break
     updated_target = scenario.get_location(target_location.id)
-
-    quest = make_quest(
-        quest_id=QUEST_ID,
-        name="Secrets of the Moonlit Library",
-        description="Unearth the lore hidden within the radiant stacks.",
-    )
-    scenario.quests.append(quest)
-    first_act = scenario.progression.acts[0]
-    if QUEST_ID not in first_act.quests:
-        first_act.quests.append(QUEST_ID)
     assert updated_target is not None
 
     start_location_id = scenario.starting_location_id
@@ -568,8 +540,6 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
         "fireball_total": 0,
         "attack_total": 0,
         "player_damage_total": 0,
-        "quest_id": "",
-        "objective_id": "",
         "npc_instance_id": npc_instance.instance_id,
     }
 
@@ -659,10 +629,6 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
     assert final_currency.silver == initial_currency.silver
     assert final_currency.copper == initial_currency.copper
 
-    active_quest_ids = {quest.id for quest in game_state.scenario_instance.active_quests}
-    assert QUEST_ID not in active_quest_ids
-    assert QUEST_ID in game_state.scenario_instance.completed_quest_ids
-
     expected_conversation = [
         (MessageRole.DM, "The heroes arrive at the Moonlit Library.", AgentType.NARRATIVE, None, None),
         (MessageRole.DM, "[Summary: combat summary]", AgentType.COMBAT, 1, 1),
@@ -701,7 +667,6 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
         "change_location",
         "discover_secret",
         "update_location_state",
-        "start_quest",
         "add_party_member",
         "roll_dice",
         "spawn_monsters",
@@ -717,7 +682,6 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
         "end_combat",
         "modify_inventory",
         "modify_currency",
-        "complete_objective",
         "remove_party_member",
     ]
 

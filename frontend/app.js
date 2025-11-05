@@ -880,16 +880,6 @@ function initializeSSE() {
         if (gameState.scenario_instance && gameState.scenario_instance.current_location_id) {
             updateLocationFromGameState();
         }
-        
-        // Update quest information from game state (now in scenario_instance)
-        if (gameState.scenario_instance && (gameState.scenario_instance.active_quests || gameState.scenario_instance.completed_quest_ids)) {
-            updateQuestLogFromGameState();
-        }
-        
-        // Update act information from game state (now in scenario_instance)
-        if (gameState.scenario_instance && gameState.scenario_instance.current_act_id) {
-            updateActFromGameState();
-        }
     });
     
     // Scenario info contains full location data
@@ -2843,121 +2833,6 @@ function updateLocationWithScenarioData() {
     }
 }
 
-// Extract quest data from game state and update UI
-function updateQuestLogFromGameState() {
-    if (!gameState || !gameState.scenario_instance) return;
-    
-    const questData = {
-        active_quests: gameState.scenario_instance.active_quests || [],
-        completed_quest_ids: gameState.scenario_instance.completed_quest_ids || []
-    };
-    
-    updateQuestLog(questData);
-}
-
-// Extract act data from game state and update UI
-function updateActFromGameState() {
-    if (!gameState || !gameState.scenario_instance) return;
-    
-    const actId = gameState.scenario_instance.current_act_id;
-    if (!actId) return;
-    
-    // Create act data object compatible with existing updateActInfo
-    // Extract act number from ID if it follows pattern "act_N" 
-    const actMatch = actId.match(/act[_-]?(\d+)/i);
-    const actNumber = actMatch ? parseInt(actMatch[1]) : 1;
-    
-    const actData = {
-        act_id: actId,
-        act_name: `Act ${actNumber}`,
-        act_index: actNumber - 1
-    };
-    
-    updateActInfo(actData);
-}
-
-// Update quest log
-function updateQuestLog(questData) {
-    console.log('[UI] Updating quest log:', questData);
-    
-    const questLog = document.getElementById('questLog');
-    const questCount = document.getElementById('questCount');
-    
-    if (!questLog) return;
-    
-    questLog.innerHTML = '';
-    
-    let totalQuests = 0;
-    
-    // Show active quests
-    if (questData.active_quests && questData.active_quests.length > 0) {
-        totalQuests += questData.active_quests.length;
-        
-        questData.active_quests.forEach(quest => {
-            const questDiv = document.createElement('div');
-            const isCompleted = quest.status === 'completed';
-            questDiv.className = `quest-item ${isCompleted ? 'completed' : ''}`;
-            
-            // Calculate progress
-            const completedObjectives = quest.objectives.filter(obj => obj.status === 'completed').length;
-            const totalObjectives = quest.objectives.length;
-            const progressPercent = totalObjectives > 0 ? Math.round((completedObjectives / totalObjectives) * 100) : 0;
-            
-            questDiv.innerHTML = `
-                <div class="quest-header">
-                    <span class="quest-name">${quest.name} ${isCompleted ? '✓' : ''}</span>
-                    <span class="quest-progress">${progressPercent}%</span>
-                </div>
-                <div class="quest-description">${quest.description}</div>
-                <div class="quest-objectives">
-                    <h5>Objectives:</h5>
-                    <ul class="objective-list">
-                        ${quest.objectives.map(obj => `
-                            <li class="objective-item ${obj.status}">
-                                <span class="objective-status ${obj.status}">
-                                    ${obj.status === 'completed' ? '✓' : obj.status === 'active' ? '○' : '◯'}
-                                </span>
-                                ${obj.description}
-                            </li>
-                        `).join('')}
-                    </ul>
-                </div>
-            `;
-            
-            questLog.appendChild(questDiv);
-        });
-    }
-    
-    // Show completed quests count if any
-    if (questData.completed_quest_ids && questData.completed_quest_ids.length > 0) {
-        const completedDiv = document.createElement('div');
-        completedDiv.className = 'completed-quests-note';
-        completedDiv.innerHTML = `<em>${questData.completed_quest_ids.length} quest(s) completed</em>`;
-        questLog.appendChild(completedDiv);
-    }
-    
-    // Update quest count
-    if (questCount) {
-        questCount.textContent = totalQuests;
-    }
-    
-    if (totalQuests === 0 && (!questData.completed_quest_ids || questData.completed_quest_ids.length === 0)) {
-        questLog.innerHTML = '<div style="color: #666; text-align: center;">No active quests</div>';
-    }
-    
-    // Track completed quests (no popup, just for tracking)
-    window.previousQuestIds = questData.completed_quest_ids || [];
-}
-
-// Update act/chapter information
-function updateActInfo(actData) {
-    console.log('[UI] Updating act info:', actData);
-    
-    const actDisplay = document.getElementById('currentAct');
-    if (actDisplay) {
-        actDisplay.textContent = actData.act_name || 'Act I';
-    }
-}
 
 // Loading state management
 function setLoadingState(loading) {

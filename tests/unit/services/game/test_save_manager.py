@@ -55,7 +55,6 @@ class TestSaveManager:
             template_id=scenario.id,
             sheet=scenario,
             current_location_id=start_location.id,
-            current_act_id=scenario.progression.acts[0].id,
         )
         self.scenario_instance.location_states[start_location.id] = LocationState(location_id=start_location.id)
 

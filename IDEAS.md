@@ -1,6 +1,5 @@
 ## Current Issues [CRITICAL]
 
-- Delete Quests/Acts following PLAN-REMOVE-QUESTS.md
 - Ally action, frontend is not "busy" (thus player feels like it can send stuff)
 - Put model in the .json configs instead of .env ?
 - Agents in combat are very unreliable. Feels like tool calling might not be it for such a system. Structured output might be the only way ? But replicating all that we have available in tools seems huge but it would be interesting to tests. Alternative would be separate a tool-calling agent. Agent only generate a narrative + description of what it wants to do in D&D terms (roll dice -> apply dmg, validate a quest, ...) and the ToolCallAgent generate the tool calls for that ?
@@ -8,11 +7,6 @@
 # MVP 2
 
 Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic memory system
-
-## Issues
-
-1. Act can progress after a quest is completed. However, no active quest is activated.
-2. Use and try exacto models
 
 ## Ideas
 

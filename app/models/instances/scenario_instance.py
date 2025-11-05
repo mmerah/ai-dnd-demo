@@ -1,4 +1,4 @@
-"""ScenarioInstance model representing dynamic scenario/progression state."""
+"""ScenarioInstance model representing dynamic scenario/location state."""
 
 from __future__ import annotations
 
@@ -6,15 +6,13 @@ from datetime import datetime
 
 from pydantic import BaseModel, Field
 
-from app.common.types import JSONSerializable
 from app.models.location import LocationState
 from app.models.memory import MemoryEntry
-from app.models.quest import Quest
 from app.models.scenario import ScenarioSheet
 
 
 class ScenarioInstance(BaseModel):
-    """Dynamic scenario/progression state for a game session."""
+    """Dynamic scenario/location state for a game session."""
 
     # Identity
     instance_id: str
@@ -25,15 +23,11 @@ class ScenarioInstance(BaseModel):
     # Embedded scenario template
     sheet: ScenarioSheet
 
-    # Progression (use sentinel "unknown-location" instead of None for type safety)
+    # Current location. Use sentinel "unknown-location" instead of None
     current_location_id: str = "unknown-location"
-    current_act_id: str
 
-    # Location and quests state
+    # Location state
     location_states: dict[str, LocationState] = Field(default_factory=dict)
-    active_quests: list[Quest] = Field(default_factory=list)
-    completed_quest_ids: list[str] = Field(default_factory=list)
-    quest_flags: dict[str, JSONSerializable] = Field(default_factory=dict)
 
     # Structured memory system
     world_memories: list[MemoryEntry] = Field(default_factory=list)

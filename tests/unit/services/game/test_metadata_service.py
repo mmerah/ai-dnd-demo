@@ -49,7 +49,6 @@ class TestMetadataService:
             template_id=scenario.id,
             sheet=scenario,
             current_location_id=location.id,
-            current_act_id=scenario.progression.acts[0].id,
         )
         scenario_instance.location_states[location.id] = LocationState(location_id=location.id)
         return scenario_instance

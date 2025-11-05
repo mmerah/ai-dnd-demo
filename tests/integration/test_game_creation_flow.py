@@ -12,7 +12,7 @@ from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.entity_state import EntityState
 from app.models.instances.scenario_instance import ScenarioInstance
 from app.models.location import DangerLevel
-from app.models.scenario import LocationDescriptions, ScenarioAct, ScenarioSheet
+from app.models.scenario import LocationDescriptions, ScenarioSheet
 from app.models.spell import Spellcasting, SpellcastingAbility, SpellSlot
 from tests.factories import make_character_sheet, make_location, make_scenario
 
@@ -50,12 +50,6 @@ class TestGameCreationFlow:
             ),
         )
 
-        goblin_act = ScenarioAct(
-            id="act1",
-            name="Act 1",
-            locations=[goblin_location.id],
-            objectives=["Explore the cave"],
-        )
         goblin_scenario_id = "goblin-cave-adventure"
         self.mock_scenarios[goblin_scenario_id] = make_scenario(
             scenario_id=goblin_scenario_id,
@@ -63,7 +57,6 @@ class TestGameCreationFlow:
             description="A classic adventure in a goblin-infested cave.",
             starting_location_id=goblin_location.id,
             locations=[goblin_location],
-            acts=[goblin_act],
             content_packs=["srd"],
         )
 
@@ -75,19 +68,12 @@ class TestGameCreationFlow:
             danger_level=DangerLevel.SAFE,
         )
 
-        test_act = ScenarioAct(
-            id="act1",
-            name="Act 1",
-            locations=[test_location.id],
-            objectives=["Test objective"],
-        )
         self.mock_scenarios["test-scenario"] = make_scenario(
             scenario_id="test-scenario",
             title="Test Scenario",
             description="A test scenario.",
             starting_location_id=test_location.id,
             locations=[test_location],
-            acts=[test_act],
             content_packs=["srd"],
         )
 
@@ -101,12 +87,6 @@ class TestGameCreationFlow:
                 description=f"Location {i} description.",
                 danger_level=DangerLevel.SAFE,
             )
-            act = ScenarioAct(
-                id="act1",
-                name="Act 1",
-                locations=[location_id],
-                objectives=[f"Objective {i}"],
-            )
 
             self.mock_scenarios[scenario_id] = make_scenario(
                 scenario_id=scenario_id,
@@ -114,7 +94,6 @@ class TestGameCreationFlow:
                 description=f"Test scenario {i}.",
                 starting_location_id=location_id,
                 locations=[location],
-                acts=[act],
                 content_packs=["srd"],
             )
 

@@ -37,7 +37,6 @@ from app.tools import (
     inventory_tools,
     location_tools,
     party_tools,
-    quest_tools,
     time_tools,
 )
 
@@ -101,9 +100,6 @@ class NarrativeAgent(BaseAgent):
             combat_tools.start_combat,
             combat_tools.start_encounter_combat,
             combat_tools.spawn_monsters,
-            quest_tools.start_quest,
-            quest_tools.complete_objective,
-            quest_tools.complete_quest,
         ]
 
     async def event_stream_handler(

@@ -37,7 +37,7 @@ class IMemoryService(ABC):
             game_state: Mutable game state that receives the memory entry.
             event_kind: Enumerated trigger describing the world event.
             tags: Optional custom tags to append to the memory entry.
-            context: Structured metadata about related locations, quests, and NPCs.
+            context: Structured metadata about related locations and NPCs.
 
         Returns:
             None. Implementations append memory entries directly to the game state.

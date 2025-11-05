@@ -20,7 +20,7 @@ Context string for agent
 
 Single-responsibility classes that extract specific context:
 
-- **ContextBuilder**: Operates on game state (scenario, combat, quests, etc.)
+- **ContextBuilder**: Operates on game state (scenario, combat, etc.)
 - **EntityContextBuilder**: Operates on entities (spells, inventory, roleplay info)
 
 Located in `app/services/ai/context/builders/`

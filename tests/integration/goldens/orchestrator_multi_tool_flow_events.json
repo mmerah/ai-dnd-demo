@@ -70,34 +70,6 @@
   {
     "event_type": "tool_call",
     "timestamp": "<timestamp>",
-    "tool_name": "start_quest",
-    "parameters": {
-      "quest_id": "moonlit-knowledge"
-    },
-    "result": {}
-  },
-  {
-    "event_type": "tool_result",
-    "timestamp": "<timestamp>",
-    "tool_name": "start_quest",
-    "parameters": {},
-    "result": {
-      "type": "start_quest",
-      "quest_id": "moonlit-knowledge",
-      "quest_name": "Secrets of the Moonlit Library",
-      "objectives": [
-        {
-          "id": "objective-moonlit-knowledge",
-          "description": "Reach the forest edge.",
-          "status": "active"
-        }
-      ],
-      "message": "Quest started: Secrets of the Moonlit Library"
-    }
-  },
-  {
-    "event_type": "tool_call",
-    "timestamp": "<timestamp>",
     "tool_name": "add_party_member",
     "parameters": {
       "npc_id": "npc-elara-inst-1"
@@ -532,30 +504,6 @@
       "change_gold": 5,
       "change_silver": 0,
       "change_copper": 0
-    }
-  },
-  {
-    "event_type": "tool_call",
-    "timestamp": "<timestamp>",
-    "tool_name": "complete_objective",
-    "parameters": {
-      "quest_id": "moonlit-knowledge",
-      "objective_id": "objective-moonlit-knowledge"
-    },
-    "result": {}
-  },
-  {
-    "event_type": "tool_result",
-    "timestamp": "<timestamp>",
-    "tool_name": "complete_objective",
-    "parameters": {},
-    "result": {
-      "type": "complete_objective",
-      "quest_id": "moonlit-knowledge",
-      "objective_id": "objective-moonlit-knowledge",
-      "quest_complete": true,
-      "progress": 100.0,
-      "message": "Objective completed: objective-moonlit-knowledge"
     }
   },
   {

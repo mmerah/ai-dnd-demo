@@ -79,7 +79,7 @@ class TestActionServicePolicyEnforcement:
 
         # Test allowed tool succeeds
         actual = await self.service.execute_command_as_action(
-            tool_name="start_quest",
+            tool_name="update_location_state",
             command=self.command,
             game_state=self.game_state,
             agent_type=AgentType.NPC,

@@ -8,7 +8,7 @@ This document captures postponed agents, their intended value, integration point
 - Outputs: Advisory directives to Narrative/Combat or content creators (e.g., “introduce complication”, “foreshadow X”).
 - Integration:
   - Runs before/after a narrative turn; provides guidance strings injected into NarrativeAgent context as annotations (not hard constraints).
-  - Can suggest encounters or quest beats but should not execute tools directly (governance layer only).
+  - Can suggest encounters but should not execute tools directly (governance layer only).
 - Risks: Oversteering the narrative; mitigate by advisory-only outputs with clear precedence (Narrative agent remains sovereign).
 
 ## EnvironmentAgent (World Simulation)
@@ -18,7 +18,7 @@ This document captures postponed agents, their intended value, integration point
   - Update `LocationState` (effects, danger shifts) and NPC locations/states.
   - Create world memory entries summarizing simulated changes.
 - Integration:
-  - Called via an orchestrator hook after time changes; mutates state via existing services (LocationService, QuestHandler as needed).
+  - Called via an orchestrator hook after time changes; mutates state via existing services (LocationService as needed).
   - Uses MemoryService to record world updates.
 - Risks: Complexity/overhead; keep deterministic and rate-limited; initial simplified rules only.
 
@@ -29,12 +29,12 @@ This document captures postponed agents, their intended value, integration point
 - Integration: Writes profile to ScenarioInstance tags or a dedicated analytics store; referenced by DirectorAgent.
 - Risks: Privacy/overreach; keep analysis coarse and local; opt-in.
 
-## Creator Agents (QuestGenerator, ItemCreator, EncounterDesigner)
+## Creator Agents (ItemCreator, EncounterDesigner)
 - Purpose: On-the-fly content generation for sandbox/side content.
 - Calls: Invoked explicitly by NarrativeAgent when player seeks new content, or by DirectorAgent as advisory.
-- Outputs: Structured definitions (Quest, ItemDefinition, Encounter) for review and commit.
+- Outputs: Structured definitions (ItemDefinition, Encounter) for review and commit.
 - Integration:
-  - Propose content to NarrativeAgent which then confirms with the player before committing via tools (start_quest, add item, spawn/free-roaming).
+  - Propose content to NarrativeAgent which then confirms with the player before committing via tools (add item, spawn/free-roaming).
   - Store generated content in a per-game “homebrew” registry for determinism.
 - Risks: Canon creep and balance issues; require explicit confirmation flow.
 
@@ -54,13 +54,13 @@ This document captures postponed agents, their intended value, integration point
 
 ### LorekeeperAgent (Canon & Continuity)
 - Purpose: Enforce internal consistency across sessions and acts; catch contradictions.
-- Inputs: Scenario canon, world_memories, npc_memories, quest states.
+- Inputs: Scenario canon, world_memories, npc_memories.
 - Outputs: Annotations for agents (e.g., “Tom previously promised a discount”) and warnings on conflicts.
 - Integration: Pre-flight check for Narrative/NPC turns; advisory only.
 
 ### FactionReputationAgent (Social Systems)
 - Purpose: Track factions, reputations, and standing modifiers; influence NPC attitudes.
-- Inputs: Quest progress, choices, NPC memories.
+- Inputs: Choices, NPC memories.
 - Outputs: Reputation deltas, attitude suggestions to NPC agents.
 - Integration: Writes a faction state map to ScenarioInstance; read by NPC/Narrative agents.
 
@@ -96,7 +96,7 @@ This document captures postponed agents, their intended value, integration point
 
 ### ShopkeeperEconomyAgent (Trade & Pricing)
 - Purpose: Generate dynamic shop inventories, prices, and supply/demand events.
-- Inputs: Region, recent quests, player purchases.
+- Inputs: Region, player purchases.
 - Outputs: Inventory lists and price multipliers per location.
 - Integration: Updates NPC shop states; Narrative pulls to describe offers.
 
@@ -125,7 +125,7 @@ This document captures postponed agents, their intended value, integration point
 - Integration: Optional per-client setting; caches translations per message hash.
 
 ### HomebrewImportAgent (Data Ingestion)
-- Purpose: Validate and import user-provided JSON/YAML content (items, monsters, quests).
+- Purpose: Validate and import user-provided JSON/YAML content (items, monsters).
 - Inputs: Files or text; schema definitions.
 - Outputs: Cleaned, normalized content packs with validation reports.
 - Integration: Offline/DM tool; registers content via repository factory.

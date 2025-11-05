@@ -19,17 +19,11 @@
     "goblin-archer",
     "goblin-boss"
   ],
-  "quests": [
-    "assemble-your-party",
-    "clear-goblin-cave",
-    "defeat-the-goblin-boss"
-  ],
   "encounters": [
     "forest-ambush",
     "cave-entrance-guards",
     "boss-fight"
   ],
-  "progression": "acts",
   "content_packs": [
     "srd"
   ]

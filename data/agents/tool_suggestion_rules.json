@@ -1,48 +1,6 @@
 {
   "rules": [
     {
-      "rule_id": "quest_progression",
-      "rule_class": "QuestProgressionRule",
-      "enabled": true,
-      "description": "Detects quest-related actions and milestones",
-      "patterns": [
-        {
-          "pattern": "\\b(accept|agree to|take on|embark)\\s+(quest|mission|task)\\b",
-          "weight": 0.95,
-          "description": "Quest acceptance"
-        },
-        {
-          "pattern": "\\b(complet(e|ed|ing)|finish(ed)?|accomplish(ed)?|succeed(ed)?)\\s+(objective|goal|task|quest)\\b",
-          "weight": 0.9,
-          "description": "Quest completion"
-        },
-        {
-          "pattern": "\\b(deliver(ed)?|return(ed)?|report back)\\b.*\\b(to|with)\\b",
-          "weight": 0.7,
-          "description": "Quest return patterns"
-        }
-      ],
-      "suggestions": [
-        {
-          "tool_name": "start_quest",
-          "reason": "Player has accepted a new quest",
-          "confidence_multiplier": 1.1
-        },
-        {
-          "tool_name": "complete_objective",
-          "reason": "Quest objective has been achieved",
-          "confidence_multiplier": 1.0
-        },
-        {
-          "tool_name": "complete_quest",
-          "reason": "Entire quest has been completed",
-          "confidence_multiplier": 1.0
-        }
-      ],
-      "applicable_agents": ["narrative", "npc_individual", "npc_puppeteer"],
-      "base_confidence": 0.8
-    },
-    {
       "rule_id": "inventory_changes",
       "rule_class": "InventoryChangeRule",
       "enabled": true,
@@ -385,7 +343,6 @@
     "debug_mode": false,
     "rule_priority_order": [
       "combat_initiation",
-      "quest_progression",
       "dice_roll",
       "currency_transactions",
       "inventory_changes",
