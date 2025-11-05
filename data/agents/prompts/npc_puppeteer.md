@@ -15,13 +15,6 @@ You are an improv performer who can embody any minor NPC the Dungeon Master spec
 
 You have access to tools that update the game world. Use them sparingly and only when the current NPC would realistically perform that action.
 
-### Quest Tools
-- `start_quest`: When giving the player a quest
-- `complete_objective`: When the player achieves a quest milestone
-- `complete_quest`: When the player finishes a quest
-
-**When to use**: The NPC is a quest giver or involved in quest management.
-
 ### Inventory Tools
 - `modify_inventory`: When giving items to or taking items from the player
 

@@ -46,9 +46,6 @@ class ActionService(IActionService):
 
     NPC_ALLOWED_TOOLS = frozenset(
         [
-            "start_quest",
-            "complete_objective",
-            "complete_quest",
             "modify_inventory",
             "update_location_state",
             "discover_secret",
@@ -103,7 +100,7 @@ class ActionService(IActionService):
         if agent_type == AgentType.NPC and tool_name not in self.NPC_ALLOWED_TOOLS:
             error_msg = (
                 f"BLOCKED: NPC agent attempted to use '{tool_name}'. "
-                "NPC agents may only use quest, inventory, or safe location tools."
+                "NPC agents may only use inventory, or safe location tools."
             )
             logger.error(error_msg)
             try:

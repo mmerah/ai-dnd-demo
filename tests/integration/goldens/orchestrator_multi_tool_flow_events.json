@@ -70,34 +70,6 @@
   {
     "event_type": "tool_call",
     "timestamp": "<timestamp>",
-    "tool_name": "start_quest",
-    "parameters": {
-      "quest_id": "moonlit-knowledge"
-    },
-    "result": {}
-  },
-  {
-    "event_type": "tool_result",
-    "timestamp": "<timestamp>",
-    "tool_name": "start_quest",
-    "parameters": {},
-    "result": {
-      "type": "start_quest",
-      "quest_id": "moonlit-knowledge",
-      "quest_name": "Secrets of the Moonlit Library",
-      "objectives": [
-        {
-          "id": "objective-moonlit-knowledge",
-          "description": "Reach the forest edge.",
-          "status": "active"
-        }
-      ],
-      "message": "Quest started: Secrets of the Moonlit Library"
-    }
-  },
-  {
-    "event_type": "tool_call",
-    "timestamp": "<timestamp>",
     "tool_name": "add_party_member",
     "parameters": {
       "npc_id": "npc-elara-inst-1"
@@ -351,7 +323,7 @@
         "is_player": false,
         "is_active": true
       },
-      "message": "Turn Finished for Hero. Narrate what happened (Next turn: Ogre (Round 1))"
+      "message": "Turn Finished for Hero. Stop and narrate what happened (Next turn: Ogre (Round 1))"
     }
   },
   {
@@ -419,33 +391,6 @@
   {
     "event_type": "tool_call",
     "timestamp": "<timestamp>",
-    "tool_name": "next_turn",
-    "parameters": {},
-    "result": {}
-  },
-  {
-    "event_type": "tool_result",
-    "timestamp": "<timestamp>",
-    "tool_name": "next_turn",
-    "parameters": {},
-    "result": {
-      "type": "next_turn",
-      "round_number": 2,
-      "current_turn": {
-        "entity_id": "ogre-6994",
-        "entity_type": "monster",
-        "faction": "enemy",
-        "name": "Ogre",
-        "initiative": 18,
-        "is_player": false,
-        "is_active": true
-      },
-      "message": "Turn Finished for Elara the Wise. Narrate what happened (Next turn: Ogre (Round 2))"
-    }
-  },
-  {
-    "event_type": "tool_call",
-    "timestamp": "<timestamp>",
     "tool_name": "update_hp",
     "parameters": {
       "entity_id": "ogre-6994",
@@ -470,6 +415,25 @@
       "damage_type": "force",
       "is_healing": false,
       "is_unconscious": true
+    }
+  },
+  {
+    "event_type": "tool_call",
+    "timestamp": "<timestamp>",
+    "tool_name": "next_turn",
+    "parameters": {},
+    "result": {}
+  },
+  {
+    "event_type": "tool_result",
+    "timestamp": "<timestamp>",
+    "tool_name": "next_turn",
+    "parameters": {},
+    "result": {
+      "type": "next_turn",
+      "round_number": 2,
+      "current_turn": null,
+      "message": "No active enemies remain - use end_combat to conclude"
     }
   },
   {
@@ -540,30 +504,6 @@
       "change_gold": 5,
       "change_silver": 0,
       "change_copper": 0
-    }
-  },
-  {
-    "event_type": "tool_call",
-    "timestamp": "<timestamp>",
-    "tool_name": "complete_objective",
-    "parameters": {
-      "quest_id": "moonlit-knowledge",
-      "objective_id": "objective-moonlit-knowledge"
-    },
-    "result": {}
-  },
-  {
-    "event_type": "tool_result",
-    "timestamp": "<timestamp>",
-    "tool_name": "complete_objective",
-    "parameters": {},
-    "result": {
-      "type": "complete_objective",
-      "quest_id": "moonlit-knowledge",
-      "objective_id": "objective-moonlit-knowledge",
-      "quest_complete": true,
-      "progress": 100.0,
-      "message": "Objective completed: objective-moonlit-knowledge"
     }
   },
   {

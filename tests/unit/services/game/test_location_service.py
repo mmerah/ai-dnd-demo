@@ -84,7 +84,6 @@ class TestLocationService:
                 template_id=scenario.id,
                 sheet=scenario,
                 current_location_id=self.start_location.id,
-                current_act_id="act1",
             ),
             content_packs=list(scenario.content_packs),
             location=self.start_location.name,

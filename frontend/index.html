@@ -62,7 +62,6 @@
             <div class="location-time">
                 <span class="location">📍 <span id="currentLocation">Unknown</span> <span id="dangerLevel" class="danger-indicator"></span></span>
                 <span class="time">🕐 <span id="gameTime">Day 1, 12:00</span></span>
-                <span class="act-chapter">📖 <span id="currentAct">Act I</span></span>
                 <span id="combatIndicator" class="combat-indicator hidden">⚔️ COMBAT</span>
                 <span id="agentIndicator" class="agent-indicator">🤖 <span id="activeAgent">Narrative</span></span>
             </div>
@@ -131,12 +130,39 @@
                     </div>
                 </div>
 
-                <!-- Quest Log -->
-                <div class="sheet-section collapsible">
-                    <h3 class="collapsible-header">Quest Log <span class="quest-count" id="questCount"></span> <span class="toggle">▼</span></h3>
+                <!-- Chronicle Panel (Memory + Journal) -->
+                <div class="sheet-section chronicle-section collapsible">
+                    <h3 class="collapsible-header">Chronicle <span class="toggle">▼</span></h3>
                     <div class="collapsible-content">
-                        <div id="questLog" class="quest-log">
-                            <!-- Quests will be populated here -->
+                        <!-- Tabs for filtering -->
+                        <div class="chronicle-tabs">
+                            <button class="chronicle-tab active" data-filter="all">All</button>
+                            <button class="chronicle-tab" data-filter="world">World</button>
+                            <button class="chronicle-tab" data-filter="locations">Locations</button>
+                            <button class="chronicle-tab" data-filter="npcs">NPCs</button>
+                            <button class="chronicle-tab" data-filter="notes">My Notes</button>
+                        </div>
+
+                        <!-- Search box -->
+                        <div class="chronicle-search-container">
+                            <input type="text" id="chronicleSearchInput" class="chronicle-search-input" placeholder="Search entries...">
+                            <button id="chronicleSearchClear" class="chronicle-search-clear" style="display: none;">×</button>
+                        </div>
+
+                        <!-- Location filter toggle -->
+                        <div class="chronicle-filter-toggle">
+                            <label>
+                                <input type="checkbox" id="showAllLocations">
+                                Show all locations
+                            </label>
+                        </div>
+
+                        <!-- New Note button -->
+                        <button id="newNoteButton" class="btn-small chronicle-new-note">+ New Note</button>
+
+                        <!-- Chronicle entries list -->
+                        <div id="chronicleEntries" class="chronicle-entries">
+                            <!-- Entries will be populated dynamically -->
                         </div>
                     </div>
                 </div>
@@ -496,6 +522,29 @@
                 <button id="catPrevBtn" class="btn-small">Prev</button>
                 <span id="catPageInfo"></span>
                 <button id="catNextBtn" class="btn-small">Next</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Journal Entry Modal -->
+    <div id="journalModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="journalModalTitle">New Journal Entry</h3>
+                <button class="modal-close" id="closeJournalModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <textarea id="journalEntryContent" placeholder="Write your notes here..." rows="8"></textarea>
+                <div class="journal-tags-section">
+                    <label>Tags (comma-separated):</label>
+                    <input type="text" id="journalEntryTags" placeholder="e.g., important, combat, clue">
+                    <small class="help-text">Location and NPC tags will be auto-added</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="deleteJournalEntry" class="btn-danger" style="display: none;">Delete</button>
+                <button id="cancelJournalEntry" class="btn-small">Cancel</button>
+                <button id="saveJournalEntry" class="btn-primary">Save</button>
             </div>
         </div>
     </div>

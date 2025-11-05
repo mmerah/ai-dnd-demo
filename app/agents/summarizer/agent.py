@@ -141,7 +141,7 @@ class SummarizerAgent(BaseAgent, ISummarizerAgent):
         transcript = self._format_messages(messages)
         prompt_parts = [
             f"Summarize the party's recent time at '{location_name}' (id: {location_id}) in 2-3 sentences.\n",
-            "Focus on discoveries, challenges, NPC interactions, and quest progress.\n\n",
+            "Focus on discoveries, challenges and NPC interactions.\n\n",
         ]
         if snapshot:
             prompt_parts.append(f"Game snapshot:\n{snapshot}\n\n")

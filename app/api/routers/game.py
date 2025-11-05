@@ -13,9 +13,13 @@ from app.container import container
 from app.events.commands.inventory_commands import EquipItemCommand
 from app.models.attributes import EntityType
 from app.models.game_state import GameState
+from app.models.player_journal import PlayerJournalEntry
 from app.models.requests import (
     AcceptCombatSuggestionRequest,
     AcceptCombatSuggestionResponse,
+    CreateJournalEntryRequest,
+    CreateJournalEntryResponse,
+    DeleteJournalEntryResponse,
     EquipItemRequest,
     EquipItemResponse,
     NewGameRequest,
@@ -23,6 +27,8 @@ from app.models.requests import (
     PlayerActionRequest,
     RemoveGameResponse,
     ResumeGameResponse,
+    UpdateJournalEntryRequest,
+    UpdateJournalEntryResponse,
 )
 from app.models.tool_results import EquipItemResult
 
@@ -267,6 +273,171 @@ async def equip_item(game_id: str, request: EquipItemRequest) -> EquipItemRespon
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to equip item: {e!s}") from e
+
+
+@router.post("/game/{game_id}/journal", response_model=CreateJournalEntryResponse)
+async def create_journal_entry(
+    request: CreateJournalEntryRequest, game_state: GameState = Depends(get_game_state_from_path)
+) -> CreateJournalEntryResponse:
+    """Create a new player journal entry with auto-linked location and NPC tags.
+
+    Args:
+        request: CreateJournalEntryRequest with content and optional tags
+        game_state: The game state loaded via dependency injection
+
+    Returns:
+        CreateJournalEntryResponse with the created entry
+
+    Raises:
+        HTTPException: If creation fails
+    """
+    game_service = container.game_service
+    journal_service = container.player_journal_service
+
+    entry = journal_service.create_entry(game_state, request.content, request.tags)
+    game_service.save_game(game_state)
+    return CreateJournalEntryResponse(entry=entry)
+
+
+@router.get("/game/{game_id}/journal", response_model=list[PlayerJournalEntry])
+async def list_journal_entries(game_state: GameState = Depends(get_game_state_from_path)) -> list[PlayerJournalEntry]:
+    """List all player journal entries for a game.
+
+    Args:
+        game_state: The game state loaded via dependency injection
+
+    Returns:
+        List of all journal entries
+    """
+    journal_service = container.player_journal_service
+    return journal_service.list_entries(game_state)
+
+
+@router.get("/game/{game_id}/journal/{entry_id}", response_model=PlayerJournalEntry)
+async def get_journal_entry(
+    entry_id: str, game_state: GameState = Depends(get_game_state_from_path)
+) -> PlayerJournalEntry:
+    """Get a specific journal entry by ID.
+
+    Args:
+        entry_id: Unique journal entry identifier
+        game_state: The game state loaded via dependency injection
+
+    Returns:
+        The requested journal entry
+
+    Raises:
+        HTTPException: If entry not found
+    """
+    journal_service = container.player_journal_service
+    entry = journal_service.get_entry(game_state, entry_id)
+
+    if entry is None:
+        raise HTTPException(status_code=404, detail=f"Journal entry {entry_id} not found")
+
+    return entry
+
+
+@router.put("/game/{game_id}/journal/{entry_id}", response_model=UpdateJournalEntryResponse)
+async def update_journal_entry(
+    entry_id: str, request: UpdateJournalEntryRequest, game_state: GameState = Depends(get_game_state_from_path)
+) -> UpdateJournalEntryResponse:
+    """Update an existing journal entry's content and tags.
+
+    Args:
+        entry_id: Unique journal entry identifier
+        request: UpdateJournalEntryRequest with new content and tags
+        game_state: The game state loaded via dependency injection
+
+    Returns:
+        UpdateJournalEntryResponse with the updated entry
+
+    Raises:
+        HTTPException: If entry not found
+    """
+    game_service = container.game_service
+    journal_service = container.player_journal_service
+
+    # Get existing entry to preserve status
+    existing_entry = journal_service.get_entry(game_state, entry_id)
+    if existing_entry is None:
+        raise HTTPException(status_code=404, detail=f"Journal entry {entry_id} not found")
+
+    updated_entry = journal_service.update_entry(
+        game_state, entry_id, request.content, request.tags, pinned=existing_entry.pinned
+    )
+
+    if updated_entry is None:
+        raise HTTPException(status_code=500, detail=f"Failed to update journal entry {entry_id}")
+
+    game_service.save_game(game_state)
+    return UpdateJournalEntryResponse(entry=updated_entry)
+
+
+@router.delete("/game/{game_id}/journal/{entry_id}", response_model=DeleteJournalEntryResponse)
+async def delete_journal_entry(
+    entry_id: str, game_state: GameState = Depends(get_game_state_from_path)
+) -> DeleteJournalEntryResponse:
+    """Delete a journal entry by ID.
+
+    Args:
+        entry_id: Unique journal entry identifier
+        game_state: The game state loaded via dependency injection
+
+    Returns:
+        DeleteJournalEntryResponse with success status
+
+    Raises:
+        HTTPException: If entry not found
+    """
+    game_service = container.game_service
+    journal_service = container.player_journal_service
+
+    success = journal_service.delete_entry(game_state, entry_id)
+
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Journal entry {entry_id} not found")
+
+    game_service.save_game(game_state)
+    return DeleteJournalEntryResponse(success=True, entry_id=entry_id)
+
+
+@router.patch("/game/{game_id}/journal/{entry_id}/pin", response_model=UpdateJournalEntryResponse)
+async def toggle_pin_journal_entry(
+    entry_id: str, game_state: GameState = Depends(get_game_state_from_path)
+) -> UpdateJournalEntryResponse:
+    """Toggle the pinned status of a journal entry.
+
+    Args:
+        entry_id: Unique journal entry identifier
+        game_state: The game state loaded via dependency injection
+
+    Returns:
+        UpdateJournalEntryResponse with the updated entry
+
+    Raises:
+        HTTPException: If entry not found
+    """
+    game_service = container.game_service
+    journal_service = container.player_journal_service
+
+    # Get the entry
+    entry = journal_service.get_entry(game_state, entry_id)
+
+    if entry is None:
+        raise HTTPException(status_code=404, detail=f"Journal entry {entry_id} not found")
+
+    # Toggle pinned status (handle old saves where pinned might be None)
+    current_pinned = entry.pinned if entry.pinned is not None else False
+    updated_entry = journal_service.update_entry(
+        game_state, entry_id, content=entry.content, tags=entry.tags, pinned=not current_pinned
+    )
+
+    if updated_entry is None:
+        raise HTTPException(status_code=500, detail=f"Failed to update journal entry {entry_id}")
+
+    game_service.save_game(game_state)
+    return UpdateJournalEntryResponse(entry=updated_entry)
 
 
 @router.get("/game/{game_id}/sse")

@@ -29,6 +29,7 @@ from app.models.ai_response import NarrativeResponse, StreamEvent, StreamEventTy
 from app.models.game_state import GameState, MessageRole
 from app.services.ai.debug_logger import AgentDebugLogger
 from app.services.ai.message_converter_service import MessageConverterService
+from app.services.common import ToolExecutionContext, ToolExecutionGuard
 from app.tools import (
     combat_tools,
     dice_tools,
@@ -36,7 +37,6 @@ from app.tools import (
     inventory_tools,
     location_tools,
     party_tools,
-    quest_tools,
     time_tools,
 )
 
@@ -100,9 +100,6 @@ class NarrativeAgent(BaseAgent):
             combat_tools.start_combat,
             combat_tools.start_encounter_combat,
             combat_tools.spawn_monsters,
-            quest_tools.start_quest,
-            quest_tools.complete_objective,
-            quest_tools.complete_quest,
         ]
 
     async def event_stream_handler(
@@ -151,6 +148,8 @@ class NarrativeAgent(BaseAgent):
             metadata_service=self.metadata_service,
             save_manager=self.save_manager,
             action_service=self.action_service,
+            tool_execution_context=ToolExecutionContext(),
+            tool_execution_guard=ToolExecutionGuard(),
         )
 
         message_history = self.message_converter.to_pydantic_messages(

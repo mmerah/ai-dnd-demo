@@ -8,19 +8,20 @@ from typing import cast
 import pytest
 
 from app.models.ai_response import CompleteResponse, ErrorResponse, NarrativeResponse, StreamEvent, StreamEventType
-from app.models.game_state import GameState
 from app.services.ai.ai_service import AIService
-from app.services.ai.orchestrator.orchestrator_service import AgentOrchestrator
+from app.services.ai.orchestration.context import OrchestrationContext
+from app.services.ai.orchestration.pipeline import Pipeline
 from tests.factories import make_game_state
 
 
-class _StubOrchestrator:
+class _StubPipeline:
+    """Stub pipeline for testing AIService."""
+
     def __init__(self, events: list[StreamEvent]) -> None:
         self.events = events
 
-    async def process(
-        self, user_message: str, game_state: GameState, stream: bool = True
-    ) -> AsyncIterator[StreamEvent]:
+    async def execute(self, ctx: OrchestrationContext) -> AsyncIterator[StreamEvent]:
+        """Execute stub pipeline - just yield pre-configured events."""
         for event in self.events:
             yield event
 
@@ -30,7 +31,7 @@ async def test_ai_service_yields_complete_response(monkeypatch: pytest.MonkeyPat
     game_state = make_game_state()
     expected_narrative = "Greetings"
     events = [StreamEvent(type=StreamEventType.COMPLETE, content=NarrativeResponse(narrative=expected_narrative))]
-    service = AIService(orchestrator=cast(AgentOrchestrator, _StubOrchestrator(events)))
+    service = AIService(pipeline=cast(Pipeline, _StubPipeline(events)))
 
     responses = [resp async for resp in service.generate_response("hi", game_state)]
 
@@ -43,7 +44,7 @@ async def test_ai_service_yields_complete_response(monkeypatch: pytest.MonkeyPat
 async def test_ai_service_yields_error_response(monkeypatch: pytest.MonkeyPatch) -> None:
     game_state = make_game_state()
     events = [StreamEvent(type=StreamEventType.ERROR, content="failure")]
-    service = AIService(orchestrator=cast(AgentOrchestrator, _StubOrchestrator(events)))
+    service = AIService(pipeline=cast(Pipeline, _StubPipeline(events)))
 
     responses = [resp async for resp in service.generate_response("hi", game_state)]
 

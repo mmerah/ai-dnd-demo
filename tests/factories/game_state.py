@@ -53,7 +53,6 @@ def make_game_state(
         template_id=scenario.id,
         sheet=scenario,
         current_location_id=base_location.id,
-        current_act_id=scenario.progression.acts[0].id,
     )
     scenario_instance.location_states[base_location.id] = LocationState(location_id=base_location.id)
 

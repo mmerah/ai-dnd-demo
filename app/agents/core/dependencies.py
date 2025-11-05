@@ -8,6 +8,7 @@ from app.interfaces.services.common import IActionService
 from app.interfaces.services.data import IRepository
 from app.interfaces.services.game import IConversationService, IEventManager, IMetadataService, ISaveManager
 from app.interfaces.services.scenario import IScenarioService
+from app.interfaces.tool_execution import IToolExecutionContext, IToolExecutionGuard
 from app.models.game_state import GameState
 from app.models.item import ItemDefinition
 from app.models.monster import MonsterSheet
@@ -30,3 +31,5 @@ class AgentDependencies:
     metadata_service: IMetadataService
     save_manager: ISaveManager
     action_service: IActionService
+    tool_execution_context: IToolExecutionContext
+    tool_execution_guard: IToolExecutionGuard

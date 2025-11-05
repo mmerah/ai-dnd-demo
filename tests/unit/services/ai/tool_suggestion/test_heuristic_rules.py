@@ -8,35 +8,35 @@ from app.services.ai.tool_suggestion.heuristic_rules import (
     CurrencyTransactionRule,
     DiceRollRule,
     InventoryChangeRule,
-    QuestProgressionRule,
+    TimePassageRule,
 )
 from tests.factories import make_game_state
 
 
 @pytest.fixture
-def quest_rule_config() -> RuleConfig:
-    """Create a sample quest progression rule config."""
+def time_rule_config() -> RuleConfig:
+    """Create a sample time passage rule config."""
     return RuleConfig(
-        rule_id="test_quest",
-        rule_class="QuestProgressionRule",
+        rule_id="test_time",
+        rule_class="TimePassageRule",
         enabled=True,
-        description="Test quest rule",
+        description="Test time rule",
         patterns=[
             PatternConfig(
-                pattern=r"\baccept.*quest\b",
+                pattern=r"\bshort rest\b",
                 weight=0.9,
-                description="Quest acceptance",
+                description="Short rest",
             ),
             PatternConfig(
-                pattern=r"\bcomplete.*quest\b",
+                pattern=r"\blong rest\b",
                 weight=0.85,
-                description="Quest completion",
+                description="Long rest",
             ),
         ],
         suggestions=[
             SuggestionConfig(
-                tool_name="start_quest",
-                reason="Player accepted a quest",
+                tool_name="short_rest",
+                reason="Player is taking a short rest",
                 confidence_multiplier=1.0,
             ),
         ],
@@ -45,22 +45,22 @@ def quest_rule_config() -> RuleConfig:
     )
 
 
-def test_quest_rule_matches_pattern(quest_rule_config: RuleConfig) -> None:
-    """Test quest rule matches when pattern is present."""
-    rule = QuestProgressionRule(quest_rule_config)
+def test_time_rule_matches_pattern(time_rule_config: RuleConfig) -> None:
+    """Test time rule matches when pattern is present."""
+    rule = TimePassageRule(time_rule_config)
     game_state = make_game_state()
 
-    prompt = "I accept the quest to rescue the princess"
+    prompt = "We take a short rest to catch our breath"
     suggestions = rule.evaluate(prompt, game_state, "narrative")
 
     assert len(suggestions) == 1
-    assert suggestions[0].tool_name == "start_quest"
+    assert suggestions[0].tool_name == "short_rest"
     assert suggestions[0].confidence > 0.0
 
 
-def test_quest_rule_no_match_when_pattern_absent(quest_rule_config: RuleConfig) -> None:
-    """Test quest rule returns empty when pattern doesn't match."""
-    rule = QuestProgressionRule(quest_rule_config)
+def test_time_rule_no_match_when_pattern_absent(time_rule_config: RuleConfig) -> None:
+    """Test time rule returns empty when pattern doesn't match."""
+    rule = TimePassageRule(time_rule_config)
     game_state = make_game_state()
 
     prompt = "I walk down the street"
@@ -69,24 +69,24 @@ def test_quest_rule_no_match_when_pattern_absent(quest_rule_config: RuleConfig) 
     assert len(suggestions) == 0
 
 
-def test_quest_rule_no_match_wrong_agent(quest_rule_config: RuleConfig) -> None:
-    """Test quest rule returns empty for non-applicable agent."""
-    rule = QuestProgressionRule(quest_rule_config)
+def test_time_rule_no_match_wrong_agent(time_rule_config: RuleConfig) -> None:
+    """Test time rule returns empty for non-applicable agent."""
+    rule = TimePassageRule(time_rule_config)
     game_state = make_game_state()
 
-    prompt = "I accept the quest"
+    prompt = "We take a short rest"
     # Rule is configured for "narrative", not "combat"
     suggestions = rule.evaluate(prompt, game_state, "combat")
 
     assert len(suggestions) == 0
 
 
-def test_quest_rule_confidence_calculation(quest_rule_config: RuleConfig) -> None:
+def test_time_rule_confidence_calculation(time_rule_config: RuleConfig) -> None:
     """Test that confidence is calculated correctly."""
-    rule = QuestProgressionRule(quest_rule_config)
+    rule = TimePassageRule(time_rule_config)
     game_state = make_game_state()
 
-    prompt = "I accept the quest"
+    prompt = "We take a short rest"
     suggestions = rule.evaluate(prompt, game_state, "narrative")
 
     # Confidence should be base_confidence * pattern_weight * confidence_multiplier
@@ -153,24 +153,24 @@ def test_pattern_case_insensitive() -> None:
     """Test that pattern matching is case-insensitive."""
     config = RuleConfig(
         rule_id="test_case",
-        rule_class="QuestProgressionRule",
+        rule_class="InventoryChangeRule",
         enabled=True,
         description="Test case sensitivity",
         patterns=[
-            PatternConfig(pattern=r"\bQUEST\b", weight=0.9),
+            PatternConfig(pattern=r"\bSWORD\b", weight=0.9),
         ],
         suggestions=[
-            SuggestionConfig(tool_name="test", reason="test"),
+            SuggestionConfig(tool_name="modify_inventory", reason="test"),
         ],
         applicable_agents=["narrative"],
         base_confidence=0.8,
     )
 
-    rule = QuestProgressionRule(config)
+    rule = InventoryChangeRule(config)
     game_state = make_game_state()
 
-    # Pattern is "QUEST" but should match "quest"
-    prompt = "I accept the quest"
+    # Pattern is "SWORD" but should match "sword"
+    prompt = "I find a magic sword"
     suggestions = rule.evaluate(prompt, game_state, "narrative")
 
     assert len(suggestions) == 1
@@ -180,24 +180,24 @@ def test_multiple_patterns_use_highest_weight() -> None:
     """Test that when multiple patterns match, highest weight is used."""
     config = RuleConfig(
         rule_id="test_multi",
-        rule_class="QuestProgressionRule",
+        rule_class="InventoryChangeRule",
         enabled=True,
         description="Test multiple patterns",
         patterns=[
-            PatternConfig(pattern=r"\bquest\b", weight=0.5),
-            PatternConfig(pattern=r"\bepic.*quest\b", weight=0.95),
+            PatternConfig(pattern=r"\bitem\b", weight=0.5),
+            PatternConfig(pattern=r"\blegendary.*sword\b", weight=0.95),
         ],
         suggestions=[
-            SuggestionConfig(tool_name="test", reason="test", confidence_multiplier=1.0),
+            SuggestionConfig(tool_name="modify_inventory", reason="test", confidence_multiplier=1.0),
         ],
         applicable_agents=["narrative"],
         base_confidence=0.8,
     )
 
-    rule = QuestProgressionRule(config)
+    rule = InventoryChangeRule(config)
     game_state = make_game_state()
 
-    prompt = "I accept the epic quest"
+    prompt = "I find a legendary sword"
     suggestions = rule.evaluate(prompt, game_state, "narrative")
 
     # Should use higher weight: 0.8 * 0.95 * 1.0 = 0.76
@@ -209,23 +209,23 @@ def test_confidence_multiplier_applied() -> None:
     """Test that confidence multiplier is applied correctly."""
     config = RuleConfig(
         rule_id="test_multiplier",
-        rule_class="QuestProgressionRule",
+        rule_class="InventoryChangeRule",
         enabled=True,
         description="Test multiplier",
         patterns=[
-            PatternConfig(pattern=r"\bquest\b", weight=1.0),
+            PatternConfig(pattern=r"\bitem\b", weight=1.0),
         ],
         suggestions=[
-            SuggestionConfig(tool_name="test", reason="test", confidence_multiplier=1.5),
+            SuggestionConfig(tool_name="modify_inventory", reason="test", confidence_multiplier=1.5),
         ],
         applicable_agents=["narrative"],
         base_confidence=0.5,
     )
 
-    rule = QuestProgressionRule(config)
+    rule = InventoryChangeRule(config)
     game_state = make_game_state()
 
-    prompt = "I accept the quest"
+    prompt = "I find an item"
     suggestions = rule.evaluate(prompt, game_state, "narrative")
 
     # Confidence: 0.5 * 1.0 * 1.5 = 0.75
@@ -237,23 +237,23 @@ def test_confidence_capped_at_1_0() -> None:
     """Test that confidence is capped at 1.0 even with high multipliers."""
     config = RuleConfig(
         rule_id="test_cap",
-        rule_class="QuestProgressionRule",
+        rule_class="InventoryChangeRule",
         enabled=True,
         description="Test cap",
         patterns=[
-            PatternConfig(pattern=r"\bquest\b", weight=1.0),
+            PatternConfig(pattern=r"\bitem\b", weight=1.0),
         ],
         suggestions=[
-            SuggestionConfig(tool_name="test", reason="test", confidence_multiplier=2.0),
+            SuggestionConfig(tool_name="modify_inventory", reason="test", confidence_multiplier=2.0),
         ],
         applicable_agents=["narrative"],
         base_confidence=1.0,
     )
 
-    rule = QuestProgressionRule(config)
+    rule = InventoryChangeRule(config)
     game_state = make_game_state()
 
-    prompt = "quest"
+    prompt = "item"
     suggestions = rule.evaluate(prompt, game_state, "narrative")
 
     # Would be 1.0 * 1.0 * 2.0 = 2.0, but should be capped at 1.0

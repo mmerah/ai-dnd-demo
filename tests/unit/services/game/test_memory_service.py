@@ -142,13 +142,13 @@ async def test_memory_service_world_event_creates_world_memory() -> None:
     service = MemoryService(lambda: cast(ISummarizerAgent, _StubSummarizer()))
     await service.on_world_event(
         game_state,
-        event_kind=MemoryEventKind.QUEST_COMPLETED,
-        context=WorldEventContext(quest_id="rescue-mission"),
+        event_kind=MemoryEventKind.ENCOUNTER_COMPLETED,
+        context=WorldEventContext(encounter_id="rescue-mission"),
     )
 
     world_memories = game_state.scenario_instance.world_memories
     assert len(world_memories) == 1
     entry = world_memories[0]
-    assert entry.summary == f"World summary: {MemoryEventKind.QUEST_COMPLETED.value}"
-    assert entry.quest_id == "rescue-mission"
+    assert entry.summary == f"World summary: {MemoryEventKind.ENCOUNTER_COMPLETED.value}"
+    assert entry.encounter_id == "rescue-mission"
     assert game_state.scenario_instance.last_world_message_index == len(game_state.conversation_history) - 1

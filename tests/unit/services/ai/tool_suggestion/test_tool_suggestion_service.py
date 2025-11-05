@@ -37,15 +37,15 @@ def make_mock_config_loader(
 async def test_service_evaluates_all_rules() -> None:
     """Test that service evaluates all provided rules."""
     rule_config = RuleConfig(
-        rule_id="test_quest",
-        rule_class="QuestProgressionRule",
+        rule_id="test_inventory",
+        rule_class="InventoryChangeRule",
         enabled=True,
-        description="Test quest rule",
+        description="Test inventory rule",
         patterns=[
-            PatternConfig(pattern=r"\bquest\b", weight=0.9),
+            PatternConfig(pattern=r"\bfind.*sword\b", weight=0.9),
         ],
         suggestions=[
-            SuggestionConfig(tool_name="start_quest", reason="Quest detected"),
+            SuggestionConfig(tool_name="modify_inventory", reason="Item found"),
         ],
         applicable_agents=["narrative"],
         base_confidence=0.8,
@@ -55,12 +55,12 @@ async def test_service_evaluates_all_rules() -> None:
     service = ToolSuggestionService(config_loader)
 
     game_state = make_game_state()
-    prompt = "I accept the quest"
+    prompt = "I find a magic sword"
 
     result = await service.suggest_tools(game_state, prompt, "narrative")
 
     assert len(result.suggestions) == 1
-    assert result.suggestions[0].tool_name == "start_quest"
+    assert result.suggestions[0].tool_name == "modify_inventory"
 
 
 @pytest.mark.asyncio
@@ -69,14 +69,14 @@ async def test_service_filters_by_confidence() -> None:
     # Create rule with low confidence
     config = RuleConfig(
         rule_id="low_conf",
-        rule_class="QuestProgressionRule",
+        rule_class="InventoryChangeRule",
         enabled=True,
         description="Low confidence rule",
         patterns=[
-            PatternConfig(pattern=r"\bquest\b", weight=0.5),
+            PatternConfig(pattern=r"\bitem\b", weight=0.5),
         ],
         suggestions=[
-            SuggestionConfig(tool_name="start_quest", reason="Quest"),
+            SuggestionConfig(tool_name="modify_inventory", reason="Item change"),
         ],
         applicable_agents=["narrative"],
         base_confidence=0.3,  # 0.3 * 0.5 = 0.15
@@ -86,7 +86,7 @@ async def test_service_filters_by_confidence() -> None:
     service = ToolSuggestionService(config_loader)
 
     game_state = make_game_state()
-    prompt = "I accept the quest"
+    prompt = "I find an item"
 
     result = await service.suggest_tools(game_state, prompt, "narrative")
 
@@ -100,22 +100,22 @@ async def test_service_deduplicates_by_tool_name() -> None:
     # Create two rules suggesting the same tool with different confidence
     high_conf_config = RuleConfig(
         rule_id="high",
-        rule_class="QuestProgressionRule",
+        rule_class="InventoryChangeRule",
         enabled=True,
         description="High confidence",
-        patterns=[PatternConfig(pattern=r"\bquest\b", weight=1.0)],
-        suggestions=[SuggestionConfig(tool_name="start_quest", reason="High confidence")],
+        patterns=[PatternConfig(pattern=r"\bitem\b", weight=1.0)],
+        suggestions=[SuggestionConfig(tool_name="modify_inventory", reason="High confidence")],
         applicable_agents=["narrative"],
         base_confidence=0.9,  # 0.9 * 1.0 = 0.9
     )
 
     low_conf_config = RuleConfig(
         rule_id="low",
-        rule_class="QuestProgressionRule",
+        rule_class="InventoryChangeRule",
         enabled=True,
         description="Low confidence",
-        patterns=[PatternConfig(pattern=r"\bquest\b", weight=1.0)],
-        suggestions=[SuggestionConfig(tool_name="start_quest", reason="Low confidence")],
+        patterns=[PatternConfig(pattern=r"\bitem\b", weight=1.0)],
+        suggestions=[SuggestionConfig(tool_name="modify_inventory", reason="Low confidence")],
         applicable_agents=["narrative"],
         base_confidence=0.6,  # 0.6 * 1.0 = 0.6
     )
@@ -124,13 +124,13 @@ async def test_service_deduplicates_by_tool_name() -> None:
     service = ToolSuggestionService(config_loader)
 
     game_state = make_game_state()
-    prompt = "quest"
+    prompt = "item"
 
     result = await service.suggest_tools(game_state, prompt, "narrative")
 
     # Should only have one suggestion with highest confidence
     assert len(result.suggestions) == 1
-    assert result.suggestions[0].tool_name == "start_quest"
+    assert result.suggestions[0].tool_name == "modify_inventory"
     assert result.suggestions[0].confidence == pytest.approx(0.9, abs=0.01)
     assert result.suggestions[0].reason == "High confidence"
 
@@ -140,22 +140,22 @@ async def test_service_sorts_by_confidence() -> None:
     """Test that service sorts suggestions by confidence descending."""
     high_config = RuleConfig(
         rule_id="high",
-        rule_class="QuestProgressionRule",
+        rule_class="CurrencyTransactionRule",
         enabled=True,
         description="High",
-        patterns=[PatternConfig(pattern=r"\bhigh\b", weight=1.0)],
-        suggestions=[SuggestionConfig(tool_name="high_tool", reason="High")],
+        patterns=[PatternConfig(pattern=r"\b100 gold\b", weight=1.0)],
+        suggestions=[SuggestionConfig(tool_name="modify_currency", reason="High value")],
         applicable_agents=["narrative"],
         base_confidence=0.9,
     )
 
     low_config = RuleConfig(
         rule_id="low",
-        rule_class="QuestProgressionRule",
+        rule_class="InventoryChangeRule",
         enabled=True,
         description="Low",
-        patterns=[PatternConfig(pattern=r"\blow\b", weight=1.0)],
-        suggestions=[SuggestionConfig(tool_name="low_tool", reason="Low")],
+        patterns=[PatternConfig(pattern=r"\bitem\b", weight=1.0)],
+        suggestions=[SuggestionConfig(tool_name="modify_inventory", reason="Item change")],
         applicable_agents=["narrative"],
         base_confidence=0.6,
     )
@@ -164,14 +164,14 @@ async def test_service_sorts_by_confidence() -> None:
     service = ToolSuggestionService(config_loader)
 
     game_state = make_game_state()
-    prompt = "high low"
+    prompt = "I receive 100 gold and an item"
 
     result = await service.suggest_tools(game_state, prompt, "narrative")
 
     assert len(result.suggestions) == 2
     # Should be sorted by confidence descending
-    assert result.suggestions[0].tool_name == "high_tool"
-    assert result.suggestions[1].tool_name == "low_tool"
+    assert result.suggestions[0].tool_name == "modify_currency"
+    assert result.suggestions[1].tool_name == "modify_inventory"
 
 
 @pytest.mark.asyncio
@@ -181,10 +181,10 @@ async def test_service_limits_max_suggestions() -> None:
     for i in range(5):
         config = RuleConfig(
             rule_id=f"rule_{i}",
-            rule_class="QuestProgressionRule",
+            rule_class="InventoryChangeRule",
             enabled=True,
             description=f"Rule {i}",
-            patterns=[PatternConfig(pattern=r"\btest\b", weight=1.0)],
+            patterns=[PatternConfig(pattern=r"\bitem\b", weight=1.0)],
             suggestions=[SuggestionConfig(tool_name=f"tool_{i}", reason=f"Rule {i}")],
             applicable_agents=["narrative"],
             base_confidence=0.8,
@@ -195,7 +195,7 @@ async def test_service_limits_max_suggestions() -> None:
     service = ToolSuggestionService(config_loader)
 
     game_state = make_game_state()
-    prompt = "test"
+    prompt = "I find an item"
 
     result = await service.suggest_tools(game_state, prompt, "narrative")
 
@@ -209,11 +209,11 @@ async def test_service_handles_rule_exceptions() -> None:
     # Create a good rule config
     good_config = RuleConfig(
         rule_id="good",
-        rule_class="QuestProgressionRule",
+        rule_class="InventoryChangeRule",
         enabled=True,
         description="Good rule",
-        patterns=[PatternConfig(pattern=r"\btest\b", weight=1.0)],
-        suggestions=[SuggestionConfig(tool_name="good_tool", reason="Good")],
+        patterns=[PatternConfig(pattern=r"\bitem\b", weight=1.0)],
+        suggestions=[SuggestionConfig(tool_name="modify_inventory", reason="Good")],
         applicable_agents=["narrative"],
         base_confidence=0.8,
     )
@@ -224,7 +224,7 @@ async def test_service_handles_rule_exceptions() -> None:
         rule_class="UnknownRuleClass",
         enabled=True,
         description="Bad rule",
-        patterns=[PatternConfig(pattern=r"\btest\b", weight=1.0)],
+        patterns=[PatternConfig(pattern=r"\bitem\b", weight=1.0)],
         suggestions=[SuggestionConfig(tool_name="bad_tool", reason="Bad")],
         applicable_agents=["narrative"],
         base_confidence=0.8,
@@ -234,25 +234,25 @@ async def test_service_handles_rule_exceptions() -> None:
     service = ToolSuggestionService(config_loader)
 
     game_state = make_game_state()
-    prompt = "test"
+    prompt = "I find an item"
 
     # Should skip unknown rule class and return suggestion from good rule
     result = await service.suggest_tools(game_state, prompt, "narrative")
 
     assert len(result.suggestions) == 1
-    assert result.suggestions[0].tool_name == "good_tool"
+    assert result.suggestions[0].tool_name == "modify_inventory"
 
 
 @pytest.mark.asyncio
 async def test_service_returns_empty_when_no_matches() -> None:
     """Test that service returns empty suggestions when nothing matches."""
     config = RuleConfig(
-        rule_id="quest",
-        rule_class="QuestProgressionRule",
+        rule_id="inventory",
+        rule_class="InventoryChangeRule",
         enabled=True,
-        description="Quest rule",
-        patterns=[PatternConfig(pattern=r"\bquest\b", weight=1.0)],
-        suggestions=[SuggestionConfig(tool_name="start_quest", reason="Quest")],
+        description="Inventory rule",
+        patterns=[PatternConfig(pattern=r"\bitem\b", weight=1.0)],
+        suggestions=[SuggestionConfig(tool_name="modify_inventory", reason="Item change")],
         applicable_agents=["narrative"],
         base_confidence=0.8,
     )

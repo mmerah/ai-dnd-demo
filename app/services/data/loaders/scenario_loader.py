@@ -8,14 +8,11 @@ from typing import Any
 from app.interfaces.services.common import IPathResolver
 from app.models.location import EncounterParticipantSpawn, LocationConnection, LootEntry
 from app.models.npc import NPCSheet
-from app.models.quest import ObjectiveStatus, Quest, QuestObjective, QuestStatus
 from app.models.scenario import (
     Encounter,
     LocationDescriptions,
-    ScenarioAct,
     ScenarioLocation,
     ScenarioMonster,
-    ScenarioProgression,
     ScenarioSheet,
     Secret,
 )
@@ -50,8 +47,6 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
             monster_map = self._load_scenario_monsters(scenario_dir)
             encounter_map = self._load_scenario_encounters(scenario_dir)
             locations = self._load_locations(scenario_dir, data.get("locations", []), npc_map, monster_map)
-            quests = self._load_quests(scenario_dir, data.get("quests", []))
-            progression = self._load_progression(scenario_dir, data.get("progression", "acts"))
             # Create the scenario
             scenario = ScenarioSheet(
                 id=scenario_id,
@@ -60,8 +55,6 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
                 starting_location_id=data.get("starting_location_id", ""),
                 locations=locations,
                 encounters=encounter_map,
-                quests=quests,
-                progression=progression if progression else ScenarioProgression(acts=[]),
                 random_encounters=[],  # TODO(MVP2): Load random encounters if needed
                 content_packs=list(data.get("content_packs", ["srd"])),
             )
@@ -293,109 +286,3 @@ class ScenarioLoader(BaseLoader[ScenarioSheet]):
                 logger.warning(f"Failed to load encounter from {file_path}: {e}")
 
         return encounter_map
-
-    def _load_quests(self, scenario_dir: Path, quest_ids: list[str]) -> list[Quest]:
-        """Load all quest files for the scenario.
-
-        Args:
-            scenario_dir: Directory containing the scenario
-            quest_ids: List of quest IDs to load
-
-        Returns:
-            List of loaded Quest objects
-        """
-        quests: list[Quest] = []
-        quests_dir = scenario_dir / "quests"
-
-        if not quests_dir.exists():
-            return quests
-
-        for quest_id in quest_ids:
-            quest_file = quests_dir / f"{quest_id}.json"
-            if quest_file.exists():
-                try:
-                    quest = self._load_quest_file(quest_file)
-                    quests.append(quest)
-                except Exception as e:
-                    logger.warning(f"Failed to load quest {quest_id}: {e}")
-
-        return quests
-
-    def _load_quest_file(self, file_path: Path) -> Quest:
-        """Load a single quest from file.
-
-        Args:
-            file_path: Path to quest JSON file
-
-        Returns:
-            Loaded Quest
-        """
-        with open(file_path, encoding="utf-8") as f:
-            data = json.load(f)
-
-        # Parse objectives
-        objectives = []
-        for obj_data in data.get("objectives", []):
-            objectives.append(
-                QuestObjective(
-                    id=obj_data["id"],
-                    description=obj_data["description"],
-                    status=ObjectiveStatus(obj_data.get("status", "pending")),
-                    required=obj_data.get("required", True),
-                )
-            )
-
-        return Quest(
-            id=data["id"],
-            name=data["name"],
-            description=data.get("description", ""),
-            objectives=objectives,
-            status=QuestStatus(data.get("status", "not_started")),
-            rewards_description=data.get("rewards_description", ""),
-            prerequisites=data.get("prerequisites", []),
-            act=data.get("act"),
-        )
-
-    def _load_progression(self, scenario_dir: Path, progression_type: str) -> ScenarioProgression | None:
-        """Load scenario progression (acts).
-
-        Args:
-            scenario_dir: Directory containing the scenario
-            progression_type: Type of progression (currently only "acts")
-
-        Returns:
-            Loaded ScenarioProgression or None
-        """
-        if progression_type != "acts":
-            return None
-
-        progression_dir = scenario_dir / "progression"
-        acts_file = progression_dir / "acts.json"
-
-        if not acts_file.exists():
-            return None
-
-        try:
-            with open(acts_file, encoding="utf-8") as f:
-                data = json.load(f)
-
-            acts = []
-            for act_data in data.get("acts", []):
-                acts.append(
-                    ScenarioAct(
-                        id=act_data["id"],
-                        name=act_data["name"],
-                        locations=act_data.get("locations", []),
-                        objectives=act_data.get("objectives", []),
-                        quests=act_data.get("quests", []),
-                    )
-                )
-
-            return ScenarioProgression(
-                acts=acts,
-                current_act_index=data.get("current_act_index", 0),
-            )
-
-        except Exception as e:
-            logger.warning(f"Failed to load progression: {e}")
-            return None

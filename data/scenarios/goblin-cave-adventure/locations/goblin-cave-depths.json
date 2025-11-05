@@ -3,9 +3,9 @@
   "name": "Goblin Cave Depths",
   "description": "Narrow tunnels open into a larger chamber riddled with crude barricades.",
   "descriptions": {
-    "first_visit": "The air grows stale as you descend. Crude barricades and ratty bedrolls suggest a larger goblin force once camped here.",
-    "return_visit": "You recognize the chamber. The goblins seem fewer now, but danger still lurks.",
-    "cleared": "The once-busy goblin den lies empty. Only the stench remains."
+    "first_visit": "The narrow tunnel opens into a larger natural chamber, its ceiling lost in shadow above. The air grows stale and thick with the smell of unwashed bodies and stale food. Crude barricades made from scavenged wood and piled stones create defensive positions throughout the chamber—whoever built these knew they might need to fight here.\n\nRatty bedrolls and scattered refuse litter the floor, suggesting a larger goblin force camps here regularly. Goblin graffiti covers the walls in crude charcoal sketches—crude maps, tallies, and disturbing pictograms. The uneven floor is treacherous with loose stones and hidden cracks. To the east, you can see flickering torchlight and hear the clink of metal—something valuable lies that way. The barricades could provide cover in a fight, but they also create blind spots where enemies might hide.",
+    "return_visit": "You recognize the chamber from before. The crude barricades still stand, though some have been disturbed. The air is just as stale, the footing just as treacherous. You know the layout better now—where the cover is, where the dangers hide. The flickering torchlight from the eastern passage beckons.",
+    "cleared": "The once-busy goblin den lies empty now, a monument to their defeat. The barricades stand unmanned, the bedrolls lie abandoned. Only the stench remains, slowly fading as fresh air circulates through the chamber. The goblin graffiti on the walls seems less menacing now—just crude drawings from a defeated enemy."
   },
   "monster_ids": ["goblin-warrior"],
   "encounter_ids": ["deep-guards"],

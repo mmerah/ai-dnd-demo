@@ -15,7 +15,6 @@ from app.events.handlers.entity_handler import EntityHandler
 from app.events.handlers.inventory_handler import InventoryHandler
 from app.events.handlers.location_handler import LocationHandler
 from app.events.handlers.party_handler import PartyHandler
-from app.events.handlers.quest_handler import QuestHandler
 from app.events.handlers.time_handler import TimeHandler
 from app.interfaces.agents.summarizer import ISummarizerAgent
 from app.interfaces.events import IEventBus
@@ -42,7 +41,6 @@ from app.interfaces.services.common import (
 )
 from app.interfaces.services.data import ILoader, IRepository
 from app.interfaces.services.game import (
-    IActAndQuestService,
     ICombatService,
     IConversationService,
     IEventManager,
@@ -55,6 +53,7 @@ from app.interfaces.services.game import (
     IMetadataService,
     IMonsterManagerService,
     IPartyService,
+    IPlayerJournalService,
     IPreSaveSanitizer,
     ISaveManager,
 )
@@ -70,7 +69,7 @@ from app.services.ai.agent_lifecycle_service import AgentLifecycleService
 from app.services.ai.config_loader import AgentConfigLoader
 from app.services.ai.context.context_service import ContextService
 from app.services.ai.event_logger_service import EventLoggerService
-from app.services.ai.orchestrator.orchestrator_service import AgentOrchestrator
+from app.services.ai.orchestration.default_pipeline import create_default_pipeline
 from app.services.ai.tool_call_extractor_service import ToolCallExtractorService
 from app.services.ai.tool_suggestion import ToolSuggestionService
 from app.services.character import CharacterSheetService
@@ -102,7 +101,6 @@ from app.services.data.repositories.trait_repository import TraitRepository
 from app.services.data.repositories.weapon_property_repository import WeaponPropertyRepository
 from app.services.data.repository_factory import RepositoryFactory
 from app.services.game import GameService
-from app.services.game.act_and_quest_service import ActAndQuestService
 from app.services.game.combat_service import CombatService
 from app.services.game.conversation_service import ConversationService
 from app.services.game.enrichment_service import GameEnrichmentService
@@ -114,6 +112,7 @@ from app.services.game.memory_service import MemoryService
 from app.services.game.metadata_service import MetadataService
 from app.services.game.monster_manager_service import MonsterManagerService
 from app.services.game.party_service import PartyService
+from app.services.game.player_journal_service import PlayerJournalService
 from app.services.game.pre_save_sanitizer import PreSaveSanitizer
 from app.services.game.save_manager import SaveManager
 from app.services.scenario import ScenarioService
@@ -138,7 +137,6 @@ class Container:
             scenario_service=self.scenario_service,
             compute_service=self.character_compute_service,
             location_service=self.location_service,
-            act_and_quest_service=self.act_and_quest_service,
         )
 
     @cached_property
@@ -253,8 +251,8 @@ class Container:
         return PartyService()
 
     @cached_property
-    def act_and_quest_service(self) -> IActAndQuestService:
-        return ActAndQuestService()
+    def player_journal_service(self) -> IPlayerJournalService:
+        return PlayerJournalService()
 
     @cached_property
     def spell_repository(self) -> IRepository[SpellDefinition]:
@@ -447,7 +445,6 @@ class Container:
                 self.combat_service,
             ),
         )
-        event_bus.register_handler("quest", QuestHandler(self.memory_service, self.act_and_quest_service))
         event_bus.register_handler("party", PartyHandler(self.party_service))
 
         # Verify handlers can handle all commands
@@ -515,20 +512,23 @@ class Container:
             suggestion_service=self.tool_suggestion_service
         )
 
-        orchestrator = AgentOrchestrator(
+        # Create orchestration pipeline
+        pipeline = create_default_pipeline(
             narrative_agent=narrative_agent,
             combat_agent=combat_agent,
             summarizer_agent=self.summarizer_agent,
             tool_suggestor_agent=tool_suggestor_agent,
             context_service=self.context_service,
             combat_service=self.combat_service,
-            event_bus=self.event_bus,
             game_service=self.game_service,
             metadata_service=self.metadata_service,
             conversation_service=self.conversation_service,
             agent_lifecycle_service=self.agent_lifecycle_service,
+            event_manager=self.event_manager,
+            event_bus=self.event_bus,
         )
-        return AIService(orchestrator)
+
+        return AIService(pipeline)
 
     @cached_property
     def summarizer_agent(self) -> ISummarizerAgent:

@@ -93,7 +93,7 @@ class ISummarizerAgent(Protocol):
             game_state: Game state providing global scenario status.
             event_kind: Enumerated trigger describing the world event type.
             messages: Conversation history slice relevant to the event.
-            context: Structured metadata to include (quests, locations, NPC ids).
+            context: Structured metadata to include (locations, NPC ids).
 
         Returns:
             A short summary string suitable for storing in world memories.

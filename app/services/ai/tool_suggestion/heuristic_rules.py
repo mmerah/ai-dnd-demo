@@ -93,30 +93,6 @@ class HeuristicRule(ABC):
         return suggestions
 
 
-class QuestProgressionRule(HeuristicRule):
-    """Suggests quest-related tools when quest actions are detected."""
-
-    def evaluate(
-        self,
-        prompt: str,
-        game_state: GameState,
-        agent_type: str,
-    ) -> list[ToolSuggestion]:
-        # Check if this rule applies to the current agent type
-        if agent_type not in self.config.applicable_agents:
-            return []
-
-        # Check if patterns match
-        matched, weight = self._check_patterns(prompt)
-        if not matched:
-            return []
-
-        # Calculate final confidence
-        confidence = self.config.base_confidence * weight
-
-        return self._build_suggestions(confidence)
-
-
 class InventoryChangeRule(HeuristicRule):
     """Suggests inventory tools when items are acquired or transferred."""
 
@@ -271,7 +247,6 @@ class DiceRollRule(HeuristicRule):
 
 # Rule registry mapping rule_class names to implementation classes
 RULE_CLASSES: dict[str, type[HeuristicRule]] = {
-    "QuestProgressionRule": QuestProgressionRule,
     "InventoryChangeRule": InventoryChangeRule,
     "CurrencyTransactionRule": CurrencyTransactionRule,
     "PartyManagementRule": PartyManagementRule,

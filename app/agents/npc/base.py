@@ -36,7 +36,8 @@ from app.models.game_state import GameState, MessageRole
 from app.models.instances.npc_instance import NPCInstance
 from app.services.ai.debug_logger import AgentDebugLogger
 from app.services.ai.message_converter_service import MessageConverterService
-from app.tools import inventory_tools, location_tools, quest_tools
+from app.services.common import ToolExecutionContext, ToolExecutionGuard
+from app.tools import inventory_tools, location_tools
 
 logger = logging.getLogger(__name__)
 
@@ -197,6 +198,8 @@ class BaseNPCAgent(BaseAgent, ABC):
             metadata_service=self.metadata_service,
             save_manager=self._save_manager,
             action_service=self._action_service,
+            tool_execution_context=ToolExecutionContext(),
+            tool_execution_guard=ToolExecutionGuard(),
         )
 
     @abstractmethod
@@ -227,9 +230,6 @@ class BaseNPCAgent(BaseAgent, ABC):
     def get_required_tools(self) -> list[ToolFunction]:
         """Return list of tools this agent requires."""
         return [
-            quest_tools.start_quest,
-            quest_tools.complete_objective,
-            quest_tools.complete_quest,
             inventory_tools.modify_inventory,
             location_tools.update_location_state,
             location_tools.discover_secret,

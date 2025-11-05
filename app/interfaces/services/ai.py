@@ -24,18 +24,26 @@ class IAIService(ABC):
         game_state: GameState,
         stream: bool = True,
     ) -> AsyncIterator[AIResponse]:
-        """Generate AI response to user input.
+        """Generate AI response to user input via orchestration pipeline.
 
-        Processes user message through appropriate AI agent (narrative or combat)
-        and yields response chunks.
+        The pipeline executes a series of steps:
+        1. NPC dialogue detection and routing
+        2. Agent selection (Narrative/Combat/NPC)
+        3. Context building and tool suggestion enrichment
+        4. Agent execution
+        5. Combat transitions and auto-run loops
+        6. State management
 
         Args:
             user_message: User's input message
             game_state: Current game state
-            stream: Whether to stream response chunks
+            stream: Whether to stream response chunks (Note: SSE is source of truth)
 
         Yields:
-            AIResponse objects with narrative chunks and tool results
+            AIResponse objects (CompleteResponse, ErrorResponse, etc.)
+
+        Raises:
+            Exception: Any unhandled exception from pipeline execution (fail-fast)
         """
         pass
 

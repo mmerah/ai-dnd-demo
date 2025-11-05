@@ -3,9 +3,9 @@
   "name": "Goblin Treasure Room",
   "description": "A cramped chamber piled with stolen goods. A makeshift throne sits against the far wall.",
   "descriptions": {
-    "first_visit": "Torches flicker over heaps of stolen trinkets and sacks of coins. A crude throne fashioned from scavenged wood dominates the room.",
-    "return_visit": "The treasure lies scattered where you left it. The throne stands empty.",
-    "cleared": "Only dust and a few broken crates remain of the goblins' hoard."
+    "first_visit": "The chamber opens before you—smaller than the previous room but packed with stolen wealth. Sputtering torches mounted in crude brackets cast dancing shadows across heaps of goods: tarnished silverware, torn merchant's packs, bolts of muddy cloth, and scattered coins that glint in the firelight. The air is thick with the smell of torch smoke and metal.\n\nAgainst the far wall sits a crude throne fashioned from scavenged wood, broken wagon wheels, and what appear to be stolen merchant's chairs lashed together with rope. It dominates the room both physically and symbolically—this is the seat of power for whoever leads this goblin warband. Wooden crates are stacked haphazardly around the room's perimeter, some spilled open to reveal more stolen goods. The ceiling is lower here, barely eight feet high, and the walls show signs of recent excavation—the goblins expanded this natural cavity to suit their purposes.\n\nThe room has only one entrance (the way you came), making this a natural final defensive position. If you're discovered here, there's no easy retreat.",
+    "return_visit": "The treasure chamber looks much as you left it. The crude throne stands empty or occupied, depending on who remains. Coins and goods lie scattered across the floor where combat disturbed them. The torches still flicker, casting the same dancing shadows.",
+    "cleared": "The treasure chamber lies silent now, stripped of its menace. The crude throne sits empty and sad—just scavenged wood without a chieftain to give it meaning. Most of the valuable goods have been claimed or redistributed. Only dust, broken crates, and scattered copper pieces remain of the goblins' hoard. The torches have burned low, and shadows claim the corners of the room."
   },
   "monster_ids": ["goblin-boss"],
   "encounter_ids": ["boss-fight"],

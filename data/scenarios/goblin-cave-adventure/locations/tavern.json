@@ -3,9 +3,9 @@
   "name": "The Rusty Tankard Tavern",
   "description": "A cozy tavern with a warm fireplace and the smell of ale and roasted meat filling the air.",
   "descriptions": {
-    "first_visit": "You push open the heavy wooden door of the Rusty Tankard Tavern. The warm glow of the fireplace greets you, along with the comforting smell of ale and roasted meat. Several patrons sit at worn wooden tables, their conversations creating a low murmur. Behind the bar, a stout man with a graying beard wipes down mugs.",
-    "return_visit": "The familiar warmth of the Rusty Tankard welcomes you back. The same fireplace crackles, and Tom the barkeep gives you a knowing nod.",
-    "cleared": "The tavern feels more lively now that the goblin threat has been dealt with. Patrons laugh more freely, and even Tom seems more relaxed."
+    "first_visit": "You push open the heavy wooden door of the Rusty Tankard Tavern. The warm glow of the fireplace greets you, along with the comforting smell of ale and roasted meat. Several patrons sit at worn wooden tables, their conversations creating a low murmur punctuated by the occasional clink of mugs.\n\nBehind the bar, Tom the barkeep wipes down mugs with practiced efficiency. His graying beard and knowing eyes suggest he's heard every rumor that passes through this town. A weathered notice board hangs on the wall near the bar, covered in postings about missing merchants and bandit sightings.\n\nIn the corner, a woman in battered armor sits alone, her expression grim and her hand never far from her sword hilt. The firelight catches the dried mud and blood on her boots—evidence of recent trouble on the roads.",
+    "return_visit": "The familiar warmth of the Rusty Tankard welcomes you back. The fireplace crackles cheerfully, and Tom the barkeep gives you a knowing nod as you enter. The low murmur of conversation and the smell of ale create a comforting atmosphere after your travels.",
+    "cleared": "The tavern feels transformed now that the goblin threat has been dealt with. Patrons laugh more freely, their voices no longer hushed with fear. Tom works behind the bar with a genuine smile, and even the notice board looks less ominous. The locals raise their mugs to you as you enter—word of your deeds has spread."
   },
   "encounter_ids": [],
   "connections": [

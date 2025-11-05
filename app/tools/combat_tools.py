@@ -91,23 +91,28 @@ async def spawn_monsters(ctx: RunContext[AgentDependencies], monsters: list[Mons
 
 
 @tool_handler(NextTurnCommand)
-async def next_turn(ctx: RunContext[AgentDependencies]) -> BaseModel:
+async def next_turn(ctx: RunContext[AgentDependencies], **_ignored: object) -> BaseModel:
     """Advance combat to the next turn.
 
     **COMBAT AGENT ONLY**: This tool is exclusively for the combat agent.
     MANDATORY: Must be called after EVERY combat turn completes.
 
     Use during combat to rotate to the next participant and increment the round as needed.
+
+    Note: This tool accepts no parameters. Any provided parameters are ignored.
     """
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 
 @tool_handler(EndCombatCommand)
-async def end_combat(ctx: RunContext[AgentDependencies]) -> BaseModel:
+async def end_combat(ctx: RunContext[AgentDependencies], **_ignored: object) -> BaseModel:
     """End the current combat encounter and clean up defeated monsters.
 
     **COMBAT AGENT ONLY**: This tool is exclusively for the combat agent.
-    Call when all enemies are defeated or combat otherwise concludes."""
+    Call when all enemies are defeated or combat otherwise concludes.
+
+    Note: This tool accepts no parameters. Any provided parameters are ignored.
+    """
     raise NotImplementedError("This is handled by the @tool_handler decorator")
 
 

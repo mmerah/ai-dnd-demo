@@ -92,31 +92,6 @@ class AdvanceTimeResult(BaseModel):
     minutes_advanced: int
 
 
-class StartQuestResult(BaseModel):
-    type: str = "start_quest"
-    quest_id: str
-    quest_name: str
-    objectives: list[dict[str, str]]
-    message: str
-
-
-class CompleteObjectiveResult(BaseModel):
-    type: str = "complete_objective"
-    quest_id: str
-    objective_id: str
-    quest_complete: bool
-    progress: float
-    message: str
-
-
-class CompleteQuestResult(BaseModel):
-    type: str = "complete_quest"
-    quest_id: str
-    quest_name: str
-    rewards: str | None
-    message: str
-
-
 class ChangeLocationResult(BaseModel):
     type: str = "change_location"
     location_id: str
@@ -259,9 +234,6 @@ ToolResult = (
     | ShortRestResult
     | LongRestResult
     | AdvanceTimeResult
-    | StartQuestResult
-    | CompleteObjectiveResult
-    | CompleteQuestResult
     | ChangeLocationResult
     | DiscoverSecretResult
     | UpdateLocationStateResult

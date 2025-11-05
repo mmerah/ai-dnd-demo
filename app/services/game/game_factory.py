@@ -4,7 +4,7 @@ from datetime import datetime
 
 from app.agents.core.types import AgentType
 from app.interfaces.services.character import ICharacterComputeService
-from app.interfaces.services.game import IActAndQuestService, IGameFactory, ILocationService
+from app.interfaces.services.game import IGameFactory, ILocationService
 from app.interfaces.services.scenario import IScenarioService
 from app.models.attributes import Abilities
 from app.models.character import CharacterSheet, Currency
@@ -13,7 +13,6 @@ from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.entity_state import EntityState, HitDice, HitPoints
 from app.models.instances.npc_instance import NPCInstance
 from app.models.instances.scenario_instance import ScenarioInstance
-from app.models.quest import QuestStatus
 from app.models.scenario import ScenarioSheet
 from app.utils.id_generator import generate_instance_id
 
@@ -29,7 +28,6 @@ class GameFactory(IGameFactory):
         scenario_service: IScenarioService,
         compute_service: ICharacterComputeService,
         location_service: ILocationService,
-        act_and_quest_service: IActAndQuestService,
     ) -> None:
         """
         Initialize the game factory.
@@ -38,12 +36,10 @@ class GameFactory(IGameFactory):
             scenario_service: Service for managing scenarios
             compute_service: Service for computing derived character values
             location_service: Service for managing location state
-            act_and_quest_service: Service handling quest activation and completion
         """
         self.scenario_service = scenario_service
         self.compute_service = compute_service
         self.location_service = location_service
-        self.act_and_quest_service = act_and_quest_service
 
     def generate_game_id(self, character_name: str) -> str:
         """
@@ -108,7 +104,6 @@ class GameFactory(IGameFactory):
             template_id=scenario_id,
             sheet=scenario,
             current_location_id=initial_location_id,
-            current_act_id=scenario.progression.acts[0].id,
         )
 
         # Create a temporary character instance with minimal state for bootstrapping
@@ -160,17 +155,6 @@ class GameFactory(IGameFactory):
             conversation_history=[initial_message],
             content_packs=final_packs,
         )
-
-        # Initialize quests from scenario
-        if scenario.quests:
-            # Add the first act's quests as active
-            first_act = scenario.progression.get_current_act()
-            if first_act:
-                for quest_id in first_act.quests:
-                    quest = scenario.get_quest(quest_id)
-                    if quest and quest.is_available([]):
-                        quest.status = QuestStatus.ACTIVE
-                        self.act_and_quest_service.add_quest(game_state, quest)
 
         # Initialize all NPCs from the scenario
         self._initialize_all_npcs(game_state)

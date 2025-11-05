@@ -47,7 +47,6 @@ class TestLocationHandler:
             name="Dark Forest",
             description="A mysterious forest.",
         )
-        self.game_state.scenario_instance.sheet.progression.acts[0].locations.append(new_location.id)
         self.game_state.scenario_instance.sheet.locations.append(new_location)
 
         command = ChangeLocationCommand(
@@ -190,7 +189,6 @@ class TestLocationHandler:
             name="The Rusty Dragon",
             description="A cozy tavern.",
         )
-        self.game_state.scenario_instance.sheet.progression.acts[0].locations.append(new_location.id)
         self.game_state.scenario_instance.sheet.locations.append(new_location)
 
         # Mock party service to return follow commands

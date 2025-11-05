@@ -25,7 +25,7 @@ class ConnectionRequirement(BaseModel):
 
     type: str
     description: str
-    # Item ID for keys, quest ID for quests
+    # Item ID for keys
     requirement_id: str | None = None
     # Skill checks
     dc: int | None = None

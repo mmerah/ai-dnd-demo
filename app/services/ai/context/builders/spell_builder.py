@@ -17,6 +17,7 @@ class SpellContextBuilder(EntityContextBuilder):
     """
 
     MAX_SPELLS = 10
+    MAX_DESCRIPTION_LENGTH = 200
 
     def build(
         self,
@@ -37,7 +38,9 @@ class SpellContextBuilder(EntityContextBuilder):
         for spell_name in spells[: self.MAX_SPELLS]:
             try:
                 spell_def = context.spell_repository.get(spell_name)
-                context_parts.append(f"  • {spell_name} (Lvl {spell_def.level}): {spell_def.description[:100]}...")
+                context_parts.append(
+                    f"  • {spell_name} (Lvl {spell_def.level}): {spell_def.description[:self.MAX_DESCRIPTION_LENGTH]}..."
+                )
             except RepositoryNotFoundError:
                 # Allow AI game master to improvise with spells not in repository
                 # Mark them clearly as non-standard for transparency

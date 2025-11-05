@@ -1,10 +1,9 @@
 """Scenario models for D&D adventure content."""
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 
 from app.models.location import DangerLevel, EncounterParticipantSpawn, LocationConnection, LootEntry
 from app.models.monster import MonsterSheet
-from app.models.quest import Quest
 
 
 class ScenarioMonster(BaseModel):
@@ -87,53 +86,6 @@ class ScenarioLocation(BaseModel):
         return self.description
 
 
-class ScenarioAct(BaseModel):
-    """Act/Chapter in scenario progression."""
-
-    id: str
-    name: str
-    locations: list[str]
-    objectives: list[str]
-    quests: list[str] = Field(default_factory=list)
-
-
-class ScenarioProgression(BaseModel):
-    """Enhanced scenario progression structure."""
-
-    acts: list[ScenarioAct]
-    current_act_index: int = 0
-
-    @model_validator(mode="after")
-    def check_has_at_least_one_act(self) -> "ScenarioProgression":
-        """Ensure the scenario has at least one act."""
-        if not self.acts:
-            raise ValueError("ScenarioProgression must have at least one act")
-        return self
-
-    def get_current_act(self) -> ScenarioAct | None:
-        """Get the current act."""
-        if 0 <= self.current_act_index < len(self.acts):
-            return self.acts[self.current_act_index]
-        return None
-
-    def can_progress_to_next_act(self, completed_quests: list[str]) -> bool:
-        """Check if ready to progress to next act."""
-        current_act = self.get_current_act()
-        if not current_act:
-            return False
-
-        # Check if all required quests are completed
-        required_quests = current_act.quests
-        return all(quest_id in completed_quests for quest_id in required_quests)
-
-    def progress_to_next_act(self) -> bool:
-        """Move to the next act. Returns True if successful."""
-        if self.current_act_index < len(self.acts) - 1:
-            self.current_act_index += 1
-            return True
-        return False
-
-
 class ScenarioSheet(BaseModel):
     """Complete enhanced scenario/adventure definition."""
 
@@ -143,8 +95,6 @@ class ScenarioSheet(BaseModel):
     starting_location_id: str
     locations: list[ScenarioLocation]
     encounters: dict[str, Encounter] = Field(default_factory=dict)
-    quests: list[Quest] = Field(default_factory=list)
-    progression: ScenarioProgression
     random_encounters: list[Encounter] = Field(default_factory=list)
 
     # Content packs used by this scenario
@@ -163,13 +113,6 @@ class ScenarioSheet(BaseModel):
         if not location:
             raise ValueError(f"Starting location '{self.starting_location_id}' not found in scenario '{self.id}'")
         return location
-
-    def get_quest(self, quest_id: str) -> Quest | None:
-        """Get a quest by ID."""
-        for quest in self.quests:
-            if quest.id == quest_id:
-                return quest
-        return None
 
     def get_encounter_by_id(self, encounter_id: str) -> Encounter | None:
         """Find an encounter by ID."""

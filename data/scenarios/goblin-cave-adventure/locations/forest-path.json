@@ -3,9 +3,9 @@
   "name": "The Darkwood Path",
   "description": "A winding path through dense forest, shadows dancing between ancient trees.",
   "descriptions": {
-    "first_visit": "The forest path stretches before you, winding between towering oaks and ancient pines. Dappled sunlight filters through the canopy, creating shifting patterns on the undergrowth. The air is thick with the scent of moss and damp earth. Something feels wrong here - broken branches and disturbed undergrowth suggest recent passage.",
-    "return_visit": "The familiar forest path seems quieter now. You notice details you missed before - scratches on tree bark, small footprints in the mud.",
-    "cleared": "The forest path feels safer now that the goblin threat has been dealt with. Birds sing in the branches above."
+    "first_visit": "The forest path stretches before you, winding between towering oaks and ancient pines. Dappled sunlight filters through the canopy, creating shifting patterns on the undergrowth. The air is thick with the scent of moss and damp earth.\n\nSomething feels wrong here. Broken branches hang at irregular angles, and the undergrowth has been trampled by many feet. Small, clawed footprints are visible in the muddy patches near the stream crossing—the three-toed tracks of goblins, heading north deeper into the forest. Fresh scratches mar the bark of several trees at chest height, as if crude weapons scraped past them. The usual forest sounds are muted, and you notice bird calls are conspicuously absent from this stretch of path.",
+    "return_visit": "The familiar forest path seems different each time you pass through. You notice more details now—additional scratches on tree bark, overlapping sets of footprints in the mud, the way certain bushes provide natural cover. The forest holds its breath, waiting.",
+    "cleared": "The forest path feels safer now that the goblin threat has been dealt with. Birds have returned to sing in the branches above, and small animals rustle in the undergrowth. The trees no longer seem to loom threateningly, and sunlight filters through the canopy more generously. Nature is reclaiming its territory."
   },
   "encounter_ids": ["forest-ambush"],
   "connections": [

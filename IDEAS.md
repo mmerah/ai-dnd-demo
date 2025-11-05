@@ -1,27 +1,19 @@
 ## Current Issues [CRITICAL]
 
-- Orchestration, context building (where it happens) is a mess. It would be nice to refactor that so that it is as clear as possible to see what is going on and for developers to use. It would be fantastic that we could have a config file for it where we link agents together for stuff, decide on context, decide on background agents operating before/after a result, ... something almost graphical, extensible and made for this project. Where we could go as simple (1 agent doing everything) as wanted or as complicated as needed.
-  - Definetely, through a config file does not seem to work. Context builder through configs seems to work but orchestration pipeline ? Not at all. Monster In Combat Builder deleted and put into CombatContextBuilder does work and clean things up nicely. Then a yaml/json for context building instead of hardcoding in the context service. Then probably just an orchestrator_service/combat_loop COMPLETE refactor. Probably some state machines are needed and a clear pipeline pattern. But no configuration through a file probably. Need to cut work in small chunk, small phases so that I can review piece by piece
-- Context service: List of attacks/spells in combat shown for the NPC / Player (Combat agent for party, NPC agent for npc itself + party state ?)
-- Spell need description
-- Ally action, frontend is not "busy"
-- CLAUDE.md : Update with new system once finished, tested, validated
+- Ally action, frontend is not "busy" (thus player feels like it can send stuff)
 - Put model in the .json configs instead of .env ?
+- Agents in combat are very unreliable. Feels like tool calling might not be it for such a system. Structured output might be the only way ? But replicating all that we have available in tools seems huge but it would be interesting to tests. Alternative would be separate a tool-calling agent. Agent only generate a narrative + description of what it wants to do in D&D terms (roll dice -> apply dmg, validate a quest, ...) and the ToolCallAgent generate the tool calls for that ?
 
 # MVP 2
 
 Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic memory system
 
-## Issues
-
-1. Act can progress after a quest is completed. However, no active quest is activated.
-2. Use and try exacto models
-
 ## Ideas
 
 ### Frontend
 1. Frontend should use typescript with ban of 'any'. Or flutter ? How to use our models directly in the frontend to help type safety ? Better code architecture/modularity of the frontend. Still a "demo" frontend, no need to push too much
-2. Frontend: ASCII map of the location and connection ? (frontend)
+2. Right panel: Party status, character details. Combat status
+3. Frontend: ASCII map of the location and connection ? (frontend)
 
 ### Backend
 1. Creator Agents: CharacterCreator and ScenarioCreator. Character is easy, needs 1 tool to populate a CharacterSheet, would just need to pose a series of questions and have all possibilities of races/subraces/classes/subclasses/spells/... in its system prompt. At the end it would call the tool. Scenario is more complicated, it requires creating monsters, npcs, quests, items, locations and fill it all out correctly
@@ -40,3 +32,4 @@ Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic 
 14. Voice Generation for each agent/NPC
 15. Contextual Image Generation for the location
 16. Portrait Generation for the NPCs and Monsters ?
+17. ToolSuggestionAgent/Heuristics use more stuff to suggest tools. Example is matching of quest elements with the prompt, or inventory with the prompt, or location with the prompt ? Or spell with the prompt (useful during combat where it might give a thorough description ---> Or is that actually more or a XXXSuggestionAgent ? Or something else ? Or entirely Contextbuilder stuff ???? List prompt-aware context builders ????)
