@@ -174,7 +174,7 @@ class TestPlayerJournalService:
         service = PlayerJournalService()
 
         entry = service.create_entry(game_state, "Original", ["old-tag"])
-        updated = service.update_entry(game_state, entry.entry_id, "Updated", ["new-tag"])
+        updated = service.update_entry(game_state, entry.entry_id, "Updated", ["new-tag"], pinned=entry.pinned)
 
         assert updated is not None
         assert updated.content == "Updated"
@@ -196,7 +196,7 @@ class TestPlayerJournalService:
         game_state.scenario_instance.current_location_id = "different-location"
         game_state.dialogue_session.active = False
 
-        updated = service.update_entry(game_state, entry.entry_id, "Updated", ["new-tag"])
+        updated = service.update_entry(game_state, entry.entry_id, "Updated", ["new-tag"], pinned=entry.pinned)
 
         # Auto-linked IDs should remain unchanged
         assert updated is not None
@@ -215,7 +215,7 @@ class TestPlayerJournalService:
 
         time.sleep(0.01)
 
-        updated = service.update_entry(game_state, entry.entry_id, "Updated", [])
+        updated = service.update_entry(game_state, entry.entry_id, "Updated", [], pinned=entry.pinned)
 
         assert updated is not None
         assert updated.updated_at > original_updated_at
@@ -225,7 +225,7 @@ class TestPlayerJournalService:
         game_state = make_game_state()
         service = PlayerJournalService()
 
-        updated = service.update_entry(game_state, "non-existent", "New content", [])
+        updated = service.update_entry(game_state, "non-existent", "New content", [], pinned=False)
 
         assert updated is None
 
@@ -248,3 +248,36 @@ class TestPlayerJournalService:
         success = service.delete_entry(game_state, "non-existent")
 
         assert success is False
+
+    def test_update_entry_can_toggle_pinned_status(self) -> None:
+        """Test that update_entry can toggle pinned status."""
+        game_state = make_game_state()
+        service = PlayerJournalService()
+
+        entry = service.create_entry(game_state, "Test entry", [])
+        assert entry.pinned is False
+
+        # Pin the entry
+        updated = service.update_entry(game_state, entry.entry_id, entry.content, entry.tags, pinned=True)
+        assert updated is not None
+        assert updated.pinned is True
+
+        # Unpin the entry
+        updated = service.update_entry(game_state, entry.entry_id, entry.content, entry.tags, pinned=False)
+        assert updated is not None
+        assert updated.pinned is False
+
+    def test_update_entry_requires_explicit_pinned_value(self) -> None:
+        """Test that update_entry requires explicit pinned value to change or preserve it."""
+        game_state = make_game_state()
+        service = PlayerJournalService()
+
+        entry = service.create_entry(game_state, "Test entry", [])
+        # Pin it first
+        service.update_entry(game_state, entry.entry_id, entry.content, entry.tags, pinned=True)
+
+        # Update content while explicitly preserving pinned status
+        updated = service.update_entry(game_state, entry.entry_id, "Updated content", entry.tags, pinned=True)
+        assert updated is not None
+        assert updated.pinned is True
+        assert updated.content == "Updated content"

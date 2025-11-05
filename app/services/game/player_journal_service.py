@@ -77,8 +77,9 @@ class PlayerJournalService(IPlayerJournalService):
         entry_id: str,
         content: str,
         tags: list[str],
+        pinned: bool,
     ) -> PlayerJournalEntry | None:
-        updated_entry = game_state.update_journal_entry(entry_id, content, tags)
+        updated_entry = game_state.update_journal_entry(entry_id, content, tags, pinned)
 
         if updated_entry:
             logger.info(f"Updated journal entry {entry_id}")

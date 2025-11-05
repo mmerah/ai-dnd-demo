@@ -63,14 +63,16 @@ class IPlayerJournalService(ABC):
         entry_id: str,
         content: str,
         tags: list[str],
+        pinned: bool,
     ) -> PlayerJournalEntry | None:
-        """Update an existing journal entry's content and tags.
+        """Update an existing journal entry's content, tags, and pinned status.
 
         Args:
             game_state: Current game state containing journal entries
             entry_id: Unique identifier for the journal entry to update
             content: New content for the entry
             tags: New tags for the entry (replaces existing tags)
+            pinned: New pinned status for the entry
 
         Returns:
             The updated journal entry if found, None otherwise

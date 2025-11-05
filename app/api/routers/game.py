@@ -358,10 +358,17 @@ async def update_journal_entry(
     game_service = container.game_service
     journal_service = container.player_journal_service
 
-    updated_entry = journal_service.update_entry(game_state, entry_id, request.content, request.tags)
+    # Get existing entry to preserve status
+    existing_entry = journal_service.get_entry(game_state, entry_id)
+    if existing_entry is None:
+        raise HTTPException(status_code=404, detail=f"Journal entry {entry_id} not found")
+
+    updated_entry = journal_service.update_entry(
+        game_state, entry_id, request.content, request.tags, pinned=existing_entry.pinned
+    )
 
     if updated_entry is None:
-        raise HTTPException(status_code=404, detail=f"Journal entry {entry_id} not found")
+        raise HTTPException(status_code=500, detail=f"Failed to update journal entry {entry_id}")
 
     game_service.save_game(game_state)
     return UpdateJournalEntryResponse(entry=updated_entry)
@@ -393,6 +400,44 @@ async def delete_journal_entry(
 
     game_service.save_game(game_state)
     return DeleteJournalEntryResponse(success=True, entry_id=entry_id)
+
+
+@router.patch("/game/{game_id}/journal/{entry_id}/pin", response_model=UpdateJournalEntryResponse)
+async def toggle_pin_journal_entry(
+    entry_id: str, game_state: GameState = Depends(get_game_state_from_path)
+) -> UpdateJournalEntryResponse:
+    """Toggle the pinned status of a journal entry.
+
+    Args:
+        entry_id: Unique journal entry identifier
+        game_state: The game state loaded via dependency injection
+
+    Returns:
+        UpdateJournalEntryResponse with the updated entry
+
+    Raises:
+        HTTPException: If entry not found
+    """
+    game_service = container.game_service
+    journal_service = container.player_journal_service
+
+    # Get the entry
+    entry = journal_service.get_entry(game_state, entry_id)
+
+    if entry is None:
+        raise HTTPException(status_code=404, detail=f"Journal entry {entry_id} not found")
+
+    # Toggle pinned status (handle old saves where pinned might be None)
+    current_pinned = entry.pinned if entry.pinned is not None else False
+    updated_entry = journal_service.update_entry(
+        game_state, entry_id, content=entry.content, tags=entry.tags, pinned=not current_pinned
+    )
+
+    if updated_entry is None:
+        raise HTTPException(status_code=500, detail=f"Failed to update journal entry {entry_id}")
+
+    game_service.save_game(game_state)
+    return UpdateJournalEntryResponse(entry=updated_entry)
 
 
 @router.get("/game/{game_id}/sse")

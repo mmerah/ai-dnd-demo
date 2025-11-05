@@ -239,13 +239,16 @@ class GameState(BaseModel):
                 return entry
         return None
 
-    def update_journal_entry(self, entry_id: str, content: str, tags: list[str]) -> PlayerJournalEntry | None:
-        """Update an existing journal entry's content and tags.
+    def update_journal_entry(
+        self, entry_id: str, content: str, tags: list[str], pinned: bool
+    ) -> PlayerJournalEntry | None:
+        """Update an existing journal entry's content, tags, and pinned status.
 
         Args:
             entry_id: The entry ID to update
             content: New content for the entry
             tags: New tags for the entry
+            pinned: New pinned status for the entry
 
         Returns:
             The updated journal entry if found, None otherwise
@@ -256,6 +259,7 @@ class GameState(BaseModel):
 
         entry.content = content
         entry.tags = tags
+        entry.pinned = pinned
         entry.touch()
         return entry
 

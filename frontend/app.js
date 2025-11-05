@@ -161,6 +161,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadCatalogs();
     await Promise.all([loadSavedGames(), loadCharacters(), loadScenarios(), loadContentPacks()]);
     setupEventListeners();
+    initChronicle();
     // Home button to open full Catalogs screen
     const openCatalogsHomeBtn = document.getElementById('openCatalogsHome');
     if (openCatalogsHomeBtn) {
@@ -1014,7 +1015,10 @@ function addMessage(text, type) {
 
     // Use innerHTML for DM messages to support markdown, textContent for others
     if (type === 'dm' && text) {
-        p.innerHTML = parseMarkdown(text);
+        // SECURITY: Escape HTML first, then apply markdown
+        // This prevents XSS attacks via markdown content
+        const escapedText = escapeHtml(text);
+        p.innerHTML = parseMarkdown(escapedText);
     } else {
         p.textContent = text;
     }
@@ -1453,6 +1457,7 @@ function updateUI() {
     updateLocationTime();
     updateCombatIndicator();
     updateActiveAgent();
+    updateChronicleFromGameState();
 }
 
 // Update character sheet
@@ -2919,3 +2924,531 @@ function updateLoadingMessage() {
 }
 
 // Removed tooltip functions - no longer needed
+
+// ============================================================================
+// CHRONICLE SYSTEM (Memory + Player Journal)
+// ============================================================================
+
+// Chronicle state
+let currentChronicleFilter = 'all';
+let showAllLocations = false;
+let chronicleSearchQuery = '';
+let editingJournalEntryId = null;
+let chronicleInitialized = false;
+let reloadInProgress = false;
+let reloadPending = false;
+
+// Initialize Chronicle UI
+function initChronicle() {
+    // Prevent duplicate initialization (memory leak prevention)
+    if (chronicleInitialized) return;
+    chronicleInitialized = true;
+    // Tab switching
+    const tabButtons = document.querySelectorAll('.chronicle-tab');
+    tabButtons.forEach(button => {
+        button.addEventListener('click', (e) => {
+            // Update active tab
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            e.target.classList.add('active');
+
+            // Update filter
+            currentChronicleFilter = e.target.dataset.filter;
+            updateChronicleFromGameState();
+        });
+    });
+
+    // Search input
+    const searchInput = document.getElementById('chronicleSearchInput');
+    const searchClear = document.getElementById('chronicleSearchClear');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            chronicleSearchQuery = e.target.value.toLowerCase().trim();
+            // Show/hide clear button
+            if (searchClear) {
+                searchClear.style.display = chronicleSearchQuery ? 'block' : 'none';
+            }
+            updateChronicleFromGameState();
+        });
+    }
+    if (searchClear) {
+        searchClear.addEventListener('click', () => {
+            chronicleSearchQuery = '';
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            searchClear.style.display = 'none';
+            updateChronicleFromGameState();
+        });
+    }
+
+    // Location filter toggle
+    const showAllCheckbox = document.getElementById('showAllLocations');
+    if (showAllCheckbox) {
+        showAllCheckbox.addEventListener('change', (e) => {
+            showAllLocations = e.target.checked;
+            updateChronicleFromGameState();
+        });
+    }
+
+    // New Note button
+    const newNoteBtn = document.getElementById('newNoteButton');
+    if (newNoteBtn) {
+        newNoteBtn.addEventListener('click', () => {
+            openJournalModal();
+        });
+    }
+
+    // Modal controls
+    const closeModalBtn = document.getElementById('closeJournalModal');
+    const cancelBtn = document.getElementById('cancelJournalEntry');
+    const saveBtn = document.getElementById('saveJournalEntry');
+    const deleteBtn = document.getElementById('deleteJournalEntry');
+
+    if (closeModalBtn) closeModalBtn.addEventListener('click', closeJournalModal);
+    if (cancelBtn) cancelBtn.addEventListener('click', closeJournalModal);
+    if (saveBtn) saveBtn.addEventListener('click', saveJournalEntry);
+    if (deleteBtn) deleteBtn.addEventListener('click', deleteJournalEntry);
+
+    // Close modal on backdrop click (click outside the modal content)
+    const modal = document.getElementById('journalModal');
+    const modalContent = modal?.querySelector('.modal-content');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            // Only close if clicking on the modal backdrop, not the content
+            if (!modalContent?.contains(e.target)) {
+                closeJournalModal();
+            }
+        });
+    }
+}
+
+// Update Chronicle from game state
+function updateChronicleFromGameState() {
+    if (!gameState) return;
+
+    // Aggregate all chronicle entries
+    const entries = [];
+
+    // 1. World Memories
+    if (gameState.scenario_instance?.world_memories) {
+        gameState.scenario_instance.world_memories.forEach(memory => {
+            entries.push({
+                type: 'world',
+                badge: 'WORLD',
+                timestamp: new Date(memory.created_at),
+                content: memory.summary,
+                tags: memory.tags || [],
+                locationId: memory.location_id,
+                npcIds: memory.npc_ids || []
+            });
+        });
+    }
+
+    // 2. Location Memories
+    const currentLocationId = gameState.scenario_instance?.current_location_id;
+    if (gameState.scenario_instance?.location_states) {
+        Object.entries(gameState.scenario_instance.location_states).forEach(([locId, locState]) => {
+            // Filter by current location unless "show all" is enabled
+            if (!showAllLocations && locId !== currentLocationId && currentChronicleFilter !== 'all') {
+                return;
+            }
+
+            if (locState.location_memories) {
+                locState.location_memories.forEach(memory => {
+                    entries.push({
+                        type: 'location',
+                        badge: 'LOCATION',
+                        timestamp: new Date(memory.created_at),
+                        content: memory.summary,
+                        tags: memory.tags || [],
+                        locationId: memory.location_id || locId,
+                        npcIds: memory.npc_ids || []
+                    });
+                });
+            }
+        });
+    }
+
+    // 3. NPC Memories
+    if (gameState.npcs) {
+        gameState.npcs.forEach(npc => {
+            // Filter by current location unless "show all" is enabled
+            if (!showAllLocations && npc.current_location_id !== currentLocationId && currentChronicleFilter !== 'all') {
+                return;
+            }
+
+            if (npc.npc_memories) {
+                npc.npc_memories.forEach(memory => {
+                    entries.push({
+                        type: 'npc',
+                        badge: 'NPC',
+                        timestamp: new Date(memory.created_at),
+                        content: memory.summary,
+                        tags: memory.tags || [],
+                        locationId: memory.location_id,
+                        npcIds: memory.npc_ids || [],
+                        npcName: npc.sheet?.character?.name || 'Unknown NPC'
+                    });
+                });
+            }
+        });
+    }
+
+    // 4. Player Journal
+    if (gameState.player_journal_entries) {
+        gameState.player_journal_entries.forEach(entry => {
+            entries.push({
+                type: 'player',
+                badge: 'PLAYER',
+                timestamp: new Date(entry.created_at),
+                content: entry.content,
+                tags: entry.tags || [],
+                locationId: entry.location_id,
+                npcIds: entry.npc_ids || [],
+                entryId: entry.entry_id,
+                editable: true,
+                pinned: entry.pinned || false
+            });
+        });
+    }
+
+    // Filter by active tab
+    const filteredEntries = filterChronicleEntries(entries);
+
+    // Sort: pinned entries first (chronologically), then unpinned entries (chronologically)
+    filteredEntries.sort((a, b) => {
+        // Pinned status takes priority
+        if (a.pinned !== b.pinned) {
+            return a.pinned ? -1 : 1;
+        }
+        // Within same pinned status, sort by timestamp (newest first)
+        return b.timestamp - a.timestamp;
+    });
+
+    // Render
+    renderChronicleEntries(filteredEntries);
+}
+
+// Filter chronicle entries based on active tab and search query
+function filterChronicleEntries(entries) {
+    let filtered = entries;
+
+    // Filter by tab
+    if (currentChronicleFilter !== 'all') {
+        filtered = filtered.filter(entry => {
+            switch (currentChronicleFilter) {
+                case 'world':
+                    return entry.type === 'world';
+                case 'locations':
+                    return entry.type === 'location';
+                case 'npcs':
+                    return entry.type === 'npc';
+                case 'notes':
+                    return entry.type === 'player';
+                default:
+                    return true;
+            }
+        });
+    }
+
+    // Filter by search query (searches content and tags)
+    if (chronicleSearchQuery) {
+        filtered = filtered.filter(entry => {
+            // Search in content (defensive null check)
+            const contentMatch = (entry.content || '').toLowerCase().includes(chronicleSearchQuery);
+
+            // Search in tags (defensive null check)
+            const tagMatch = (entry.tags || []).some(tag =>
+                tag.toLowerCase().includes(chronicleSearchQuery)
+            );
+
+            // Search in NPC name if present (defensive null check)
+            const npcMatch = (entry.npcName || '').toLowerCase().includes(chronicleSearchQuery);
+
+            return contentMatch || tagMatch || npcMatch;
+        });
+    }
+
+    return filtered;
+}
+
+// HTML escape utility to prevent XSS attacks
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Render chronicle entries
+function renderChronicleEntries(entries) {
+    const container = document.getElementById('chronicleEntries');
+    if (!container) return;
+
+    if (entries.length === 0) {
+        container.innerHTML = '<div class="chronicle-empty">No entries yet. Start your adventure!</div>';
+        return;
+    }
+
+    container.innerHTML = entries.map(entry => {
+        const timeStr = formatChronicleTimestamp(entry.timestamp);
+        const tagsHtml = entry.tags.map(tag => `<span class="chronicle-tag">#${escapeHtml(tag)}</span>`).join(' ');
+        const editBtn = entry.editable ? `<button class="chronicle-edit-btn" data-entry-id="${escapeHtml(entry.entryId)}">Edit</button>` : '';
+        const pinBtn = entry.editable ? `<button class="chronicle-pin-btn ${entry.pinned ? 'pinned' : ''}" data-entry-id="${escapeHtml(entry.entryId)}" title="${entry.pinned ? 'Unpin' : 'Pin'}">${entry.pinned ? '📌' : '📍'}</button>` : '';
+        const npcContext = entry.npcName ? `<span class="chronicle-npc">${escapeHtml(entry.npcName)}</span>` : '';
+        const pinnedClass = entry.pinned ? ' chronicle-entry-pinned' : '';
+
+        return `
+            <div class="chronicle-entry${pinnedClass}" data-type="${escapeHtml(entry.type)}">
+                <div class="chronicle-entry-header">
+                    <span class="chronicle-badge chronicle-badge-${escapeHtml(entry.type)}">${escapeHtml(entry.badge)}</span>
+                    <span class="chronicle-timestamp">${escapeHtml(timeStr)}</span>
+                    ${pinBtn}
+                    ${editBtn}
+                </div>
+                <div class="chronicle-entry-content">
+                    ${npcContext}
+                    ${escapeHtml(entry.content)}
+                </div>
+                ${tagsHtml ? `<div class="chronicle-entry-tags">${tagsHtml}</div>` : ''}
+            </div>
+        `;
+    }).join('');
+
+    // Add event listeners to edit buttons
+    container.querySelectorAll('.chronicle-edit-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const entryId = e.target.dataset.entryId;
+            openJournalModal(entryId);
+        });
+    });
+
+    // Add event listeners to pin buttons
+    container.querySelectorAll('.chronicle-pin-btn').forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+            const entryId = e.target.dataset.entryId;
+            await togglePinJournalEntry(entryId);
+        });
+    });
+}
+
+// Format timestamp for display
+function formatChronicleTimestamp(date) {
+    if (!gameState?.time_state) {
+        return date.toLocaleString();
+    }
+
+    // Use in-game time if available
+    const day = gameState.time_state.day || 1;
+    const hour = gameState.time_state.hour || 12;
+    return `Day ${day}, Hour ${hour}`;
+}
+
+// Get location name from ID
+function getLocationName(locationId) {
+    if (!locationId || !window.currentScenario?.locations) {
+        return null;
+    }
+
+    const location = window.currentScenario.locations.find(loc => loc.id === locationId);
+    return location?.name || locationId;
+}
+
+// Open journal modal (create or edit)
+function openJournalModal(entryId = null) {
+    const modal = document.getElementById('journalModal');
+    const modalTitle = document.getElementById('journalModalTitle');
+    const contentTextarea = document.getElementById('journalEntryContent');
+    const tagsInput = document.getElementById('journalEntryTags');
+    const deleteBtn = document.getElementById('deleteJournalEntry');
+
+    if (!modal) return;
+
+    editingJournalEntryId = entryId;
+
+    if (entryId) {
+        // Edit existing entry
+        modalTitle.textContent = 'Edit Journal Entry';
+        deleteBtn.style.display = 'block';
+
+        // Load entry data
+        const entry = gameState.player_journal_entries?.find(e => e.entry_id === entryId);
+        if (entry) {
+            contentTextarea.value = entry.content;
+            // Filter out auto-generated tags (location:*, npc:*)
+            const userTags = entry.tags.filter(tag => !tag.startsWith('location:') && !tag.startsWith('npc:'));
+            tagsInput.value = userTags.join(', ');
+        }
+    } else {
+        // New entry
+        modalTitle.textContent = 'New Journal Entry';
+        deleteBtn.style.display = 'none';
+        contentTextarea.value = '';
+        tagsInput.value = '';
+    }
+
+    modal.style.display = 'flex';
+    contentTextarea.focus();
+}
+
+// Close journal modal
+function closeJournalModal() {
+    const modal = document.getElementById('journalModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
+    editingJournalEntryId = null;
+}
+
+// Save journal entry
+async function saveJournalEntry() {
+    const contentTextarea = document.getElementById('journalEntryContent');
+    const tagsInput = document.getElementById('journalEntryTags');
+
+    const content = contentTextarea.value.trim();
+    if (!content) {
+        alert('Please enter some content for your journal entry.');
+        return;
+    }
+
+    // Validate content length (backend limit is 10,000 chars)
+    if (content.length > 10000) {
+        alert('Journal entry is too long (max 10,000 characters). Current length: ' + content.length);
+        return;
+    }
+
+    // Parse and validate tags (comma-separated)
+    const tags = tagsInput.value
+        .split(',')
+        .map(tag => tag.trim().toLowerCase())
+        .filter(tag => {
+            // Only allow alphanumeric, dash, underscore
+            return /^[a-z0-9_-]+$/.test(tag) && tag.length > 0 && tag.length <= 50;
+        })
+        .filter((tag, idx, arr) => arr.indexOf(tag) === idx);  // Remove duplicates
+
+    // Check if any tags were filtered out due to invalid characters
+    const originalTagCount = tagsInput.value.split(',').filter(t => t.trim().length > 0).length;
+    if (tags.length < originalTagCount) {
+        alert('Some tags contain invalid characters. Tags can only contain letters, numbers, dashes, and underscores.');
+        return;
+    }
+
+    // Validate tag count (backend limit is 50 tags)
+    if (tags.length > 50) {
+        alert('Too many tags (max 50). Please reduce the number of tags.');
+        return;
+    }
+
+    try {
+        if (editingJournalEntryId) {
+            // Update existing entry
+            const response = await fetch(`/api/game/${currentGameId}/journal/${editingJournalEntryId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content, tags })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to update journal entry');
+            }
+        } else {
+            // Create new entry
+            const response = await fetch(`/api/game/${currentGameId}/journal`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content, tags })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to create journal entry');
+            }
+        }
+
+        // Reload game state to reflect changes
+        await reloadGameState();
+        closeJournalModal();
+    } catch (error) {
+        console.error('[Chronicle] Error saving journal entry:', error);
+        alert('Failed to save journal entry. Please try again.');
+    }
+}
+
+// Delete journal entry
+async function deleteJournalEntry() {
+    if (!editingJournalEntryId) return;
+
+    if (!confirm('Are you sure you want to delete this journal entry?')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/game/${currentGameId}/journal/${editingJournalEntryId}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to delete journal entry');
+        }
+
+        // Reload game state to reflect changes
+        await reloadGameState();
+        closeJournalModal();
+    } catch (error) {
+        console.error('[Chronicle] Error deleting journal entry:', error);
+        alert('Failed to delete journal entry. Please try again.');
+    }
+}
+
+// Toggle pin status of a journal entry
+async function togglePinJournalEntry(entryId) {
+    if (!entryId) return;
+
+    try {
+        const response = await fetch(`/api/game/${currentGameId}/journal/${entryId}/pin`, {
+            method: 'PATCH'
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to toggle pin status');
+        }
+
+        // Reload game state to reflect changes
+        await reloadGameState();
+    } catch (error) {
+        console.error('[Chronicle] Error toggling pin:', error);
+        alert('Failed to toggle pin status. Please try again.');
+    }
+}
+
+// Reload game state from server (with race condition prevention and pending queue)
+async function reloadGameState() {
+    // If already reloading, queue another reload
+    if (reloadInProgress) {
+        reloadPending = true;
+        return;
+    }
+
+    reloadInProgress = true;
+
+    try {
+        const response = await fetch(`/api/game/${currentGameId}`);
+        if (response.ok) {
+            try {
+                gameState = await response.json();
+                updateUI();
+            } catch (jsonError) {
+                console.error('[Chronicle] Invalid JSON from server:', jsonError);
+            }
+        }
+    } catch (error) {
+        console.error('[Chronicle] Error reloading game state:', error);
+    } finally {
+        reloadInProgress = false;
+
+        // If another reload was requested while we were loading, do it now
+        if (reloadPending) {
+            reloadPending = false;
+            await reloadGameState();
+        }
+    }
+}

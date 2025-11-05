@@ -105,6 +105,25 @@ class TestPlayerJournalEntry:
         assert entry.location_id is None
         assert entry.npc_ids == []
 
+    def test_pinned_defaults_to_false(self) -> None:
+        """Test that pinned field defaults to False."""
+        entry = PlayerJournalEntry(
+            entry_id="journal-entry-1010",
+            content="Test entry",
+        )
+
+        assert entry.pinned is False
+
+    def test_entry_can_be_pinned(self) -> None:
+        """Test that entry can be created with pinned=True."""
+        entry = PlayerJournalEntry(
+            entry_id="journal-entry-1111",
+            content="Important note",
+            pinned=True,
+        )
+
+        assert entry.pinned is True
+
 
 class TestPlayerJournalEntryIntegration:
     """Integration tests for PlayerJournalEntry with GameState."""
@@ -117,6 +136,7 @@ class TestPlayerJournalEntryIntegration:
             tags=["test", "serialization"],
             location_id="test-location",
             npc_ids=["npc-1", "npc-2"],
+            pinned=True,
         )
 
         # Test model_dump (Pydantic v2)
@@ -127,6 +147,7 @@ class TestPlayerJournalEntryIntegration:
         assert data["tags"] == ["test", "serialization"]
         assert data["location_id"] == "test-location"
         assert data["npc_ids"] == ["npc-1", "npc-2"]
+        assert data["pinned"] is True
         assert "created_at" in data
         assert "updated_at" in data
 
@@ -140,12 +161,14 @@ class TestPlayerJournalEntryIntegration:
             "npc_ids": ["npc-3"],
             "created_at": "2025-11-05T12:00:00",
             "updated_at": "2025-11-05T12:30:00",
+            "pinned": True,
         }
 
         entry = PlayerJournalEntry(**data)
 
         assert entry.entry_id == "journal-entry-5555"
         assert entry.content == "Test entry for deserialization"
+        assert entry.pinned is True
         assert entry.tags == ["test", "deserialization"]
         assert entry.location_id == "test-location"
         assert entry.npc_ids == ["npc-3"]
