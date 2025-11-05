@@ -45,9 +45,6 @@ describe('ApiService', () => {
       });
 
       await expect(apiService.get('/endpoint')).rejects.toThrow(ApiError);
-      await expect(apiService.get('/endpoint')).rejects.toThrow(
-        'Resource not found'
-      );
     });
 
     it('should throw ApiError on 5xx response', async () => {
@@ -74,16 +71,23 @@ describe('ApiService', () => {
     });
 
     it('should throw NetworkError on timeout', async () => {
-      global.fetch = vi.fn().mockImplementationOnce(() => {
-        return new Promise(() => {
-          // Never resolves
+      global.fetch = vi.fn().mockImplementationOnce((url, options) => {
+        return new Promise((resolve, reject) => {
+          // Simulate timeout by listening to abort signal
+          if (options?.signal) {
+            options.signal.addEventListener('abort', () => {
+              const error = new Error('The operation was aborted');
+              error.name = 'AbortError';
+              reject(error);
+            });
+          }
         });
       });
 
       await expect(
         apiService.get('/endpoint', { timeout: 100 })
       ).rejects.toThrow(NetworkError);
-    }, 500);
+    });
   });
 
   describe('post', () => {

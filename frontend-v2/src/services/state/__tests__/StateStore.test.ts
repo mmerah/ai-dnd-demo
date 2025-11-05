@@ -228,9 +228,10 @@ describe('StateStore', () => {
       const listener = vi.fn();
       stateStore.onSelectedMemberChange(listener);
 
-      stateStore.setSelectedMemberId('player');
+      // Change to different value (initial is 'player')
+      stateStore.setSelectedMemberId('other-id');
 
-      expect(listener).toHaveBeenCalledWith('player');
+      expect(listener).toHaveBeenCalledWith('other-id');
     });
 
     it('should validate member ID against game state', () => {
@@ -328,13 +329,13 @@ describe('StateStore', () => {
       const gameState = createValidGameState();
       stateStore.setGameState(gameState);
       stateStore.setIsProcessing(true);
-      stateStore.setSelectedMemberId('player');
+      stateStore.setSelectedMemberId('npc-1'); // Change from default 'player'
       stateStore.setError('Test error');
       stateStore.setRightPanelView('character-sheet');
 
       expect(callbacks.onGameState).toHaveBeenCalledWith(gameState);
       expect(callbacks.onProcessing).toHaveBeenCalledWith(true);
-      expect(callbacks.onSelectedMember).toHaveBeenCalledWith('player');
+      expect(callbacks.onSelectedMember).toHaveBeenCalledWith('npc-1');
       expect(callbacks.onError).toHaveBeenCalledWith('Test error');
       expect(callbacks.onRightPanelView).toHaveBeenCalledWith('character-sheet');
     });
@@ -414,6 +415,7 @@ describe('StateStore', () => {
       const gameState = createValidGameState();
       stateStore.setGameState(gameState);
       stateStore.setIsProcessing(true);
+      stateStore.setSelectedMemberId('npc-1'); // Change from default 'player'
       stateStore.setError('Test error');
       stateStore.setRightPanelView('inventory');
 
