@@ -495,3 +495,552 @@ body {
 *::-webkit-scrollbar-thumb:hover {
     background-color: var(--color-border);
 }
+
+/* ==================== Game List Screen ==================== */
+.game-list-screen {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100vh;
+    background-color: var(--color-bg-primary);
+}
+
+.game-list-screen__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-bg-secondary);
+}
+
+.game-list-screen__title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.game-list-screen__new-game-btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: none;
+    border-radius: 4px;
+    background-color: var(--color-accent);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.game-list-screen__new-game-btn:hover {
+    background-color: #3a8eef;
+}
+
+.game-list-screen__content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-lg);
+}
+
+.game-list-screen__loading,
+.game-list-screen__empty {
+    text-align: center;
+    padding: var(--spacing-xl);
+    font-size: 16px;
+    color: var(--color-text-secondary);
+}
+
+.game-list-screen__error {
+    padding: var(--spacing-lg);
+    margin: var(--spacing-lg);
+    border-radius: 8px;
+    background-color: #3a1e1e;
+    border: 1px solid var(--color-danger);
+    text-align: center;
+}
+
+.game-list-screen__error-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-danger);
+    margin-bottom: var(--spacing-sm);
+}
+
+.game-list-screen__error-message {
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.game-list-screen__retry-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    border-radius: 4px;
+    background-color: var(--color-accent);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.game-list-screen__games {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+/* ==================== Game List Item ==================== */
+.game-list-item {
+    padding: var(--spacing-lg);
+    border-radius: 8px;
+    background-color: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    transition: all 0.2s;
+}
+
+.game-list-item:hover {
+    border-color: var(--color-accent);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.game-list-item__scenario {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-accent);
+    margin-bottom: var(--spacing-sm);
+}
+
+.game-list-item__character {
+    font-size: 14px;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.game-list-item__timestamps {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    margin-bottom: var(--spacing-md);
+}
+
+.game-list-item__timestamp {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+}
+
+.game-list-item__actions {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+
+.game-list-item__button {
+    flex: 1;
+    padding: var(--spacing-sm);
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.game-list-item__button--primary {
+    background-color: var(--color-accent);
+    color: white;
+}
+
+.game-list-item__button--primary:hover {
+    background-color: #3a8eef;
+}
+
+.game-list-item__button--danger {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-danger);
+    border: 1px solid var(--color-danger);
+}
+
+.game-list-item__button--danger:hover {
+    background-color: #3a1e1e;
+}
+
+/* ==================== Character Selection Screen ==================== */
+.character-selection-screen {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100vh;
+    background-color: var(--color-bg-primary);
+}
+
+.character-selection-screen__header {
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-bg-secondary);
+}
+
+.character-selection-screen__title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.character-selection-screen__content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-lg);
+}
+
+.character-selection-screen__loading {
+    text-align: center;
+    padding: var(--spacing-xl);
+    font-size: 16px;
+    color: var(--color-text-secondary);
+}
+
+.character-selection-screen__error {
+    padding: var(--spacing-lg);
+    margin: var(--spacing-lg);
+    border-radius: 8px;
+    background-color: #3a1e1e;
+    border: 1px solid var(--color-danger);
+    text-align: center;
+}
+
+.character-selection-screen__error-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-danger);
+    margin-bottom: var(--spacing-sm);
+}
+
+.character-selection-screen__error-message {
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.character-selection-screen__retry-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    border-radius: 4px;
+    background-color: var(--color-accent);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.character-selection-screen__characters {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.character-selection-screen__footer {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-lg);
+    border-top: 1px solid var(--color-border);
+    background-color: var(--color-bg-secondary);
+}
+
+.character-selection-screen__back-btn,
+.character-selection-screen__next-btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.character-selection-screen__back-btn {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+}
+
+.character-selection-screen__back-btn:hover {
+    background-color: var(--color-border);
+}
+
+.character-selection-screen__next-btn {
+    background-color: var(--color-accent);
+    color: white;
+}
+
+.character-selection-screen__next-btn:hover:not(:disabled) {
+    background-color: #3a8eef;
+}
+
+.character-selection-screen__next-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ==================== Character Card ==================== */
+.character-card {
+    padding: var(--spacing-lg);
+    border-radius: 8px;
+    background-color: var(--color-bg-secondary);
+    border: 2px solid var(--color-border);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.character-card:hover {
+    border-color: var(--color-accent);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.character-card--selected {
+    border-color: var(--color-accent);
+    background-color: #2a3a4a;
+}
+
+.character-card__indicator {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: var(--color-accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.character-card__portrait {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: var(--color-accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0 auto var(--spacing-md);
+}
+
+.character-card__info {
+    text-align: center;
+}
+
+.character-card__name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.character-card__race-class {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.character-card__level {
+    font-size: 14px;
+    color: var(--color-accent);
+}
+
+.character-card__background {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    font-style: italic;
+    margin-bottom: var(--spacing-xs);
+}
+
+/* ==================== Scenario Selection Screen ==================== */
+.scenario-selection-screen {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100vh;
+    background-color: var(--color-bg-primary);
+}
+
+.scenario-selection-screen__header {
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-bg-secondary);
+}
+
+.scenario-selection-screen__title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.scenario-selection-screen__content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-lg);
+}
+
+.scenario-selection-screen__loading {
+    text-align: center;
+    padding: var(--spacing-xl);
+    font-size: 16px;
+    color: var(--color-text-secondary);
+}
+
+.scenario-selection-screen__error {
+    padding: var(--spacing-lg);
+    margin: var(--spacing-lg);
+    border-radius: 8px;
+    background-color: #3a1e1e;
+    border: 1px solid var(--color-danger);
+    text-align: center;
+}
+
+.scenario-selection-screen__error-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-danger);
+    margin-bottom: var(--spacing-sm);
+}
+
+.scenario-selection-screen__error-message {
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-md);
+}
+
+.scenario-selection-screen__retry-btn {
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    border-radius: 4px;
+    background-color: var(--color-accent);
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.scenario-selection-screen__scenarios {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+.scenario-selection-screen__footer {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-lg);
+    border-top: 1px solid var(--color-border);
+    background-color: var(--color-bg-secondary);
+}
+
+.scenario-selection-screen__back-btn,
+.scenario-selection-screen__start-btn {
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.scenario-selection-screen__back-btn {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+}
+
+.scenario-selection-screen__back-btn:hover {
+    background-color: var(--color-border);
+}
+
+.scenario-selection-screen__start-btn {
+    background-color: var(--color-accent);
+    color: white;
+}
+
+.scenario-selection-screen__start-btn:hover:not(:disabled) {
+    background-color: #3a8eef;
+}
+
+.scenario-selection-screen__start-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* ==================== Scenario Card ==================== */
+.scenario-card {
+    padding: var(--spacing-lg);
+    border-radius: 8px;
+    background-color: var(--color-bg-secondary);
+    border: 2px solid var(--color-border);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.scenario-card:hover {
+    border-color: var(--color-accent);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.scenario-card--selected {
+    border-color: var(--color-accent);
+    background-color: #2a3a4a;
+}
+
+.scenario-card__indicator {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: var(--color-accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.scenario-card__difficulty {
+    position: absolute;
+    top: var(--spacing-sm);
+    left: var(--spacing-sm);
+}
+
+.scenario-card__difficulty-badge {
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.scenario-card__difficulty-badge--easy {
+    background-color: #1a4d1a;
+    color: var(--color-success);
+}
+
+.scenario-card__difficulty-badge--medium {
+    background-color: #4d3a1a;
+    color: var(--color-warning);
+}
+
+.scenario-card__difficulty-badge--hard {
+    background-color: #4d1a1a;
+    color: var(--color-danger);
+}
+
+.scenario-card__title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-sm);
+}
+
+.scenario-card__description {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+}

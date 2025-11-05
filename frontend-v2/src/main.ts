@@ -7,7 +7,7 @@
 
 import { getContainer } from './container.js';
 import { config } from './config.js';
-import { GameInterfaceScreen } from './screens/GameInterfaceScreen.js';
+import { ScreenManager } from './screens/ScreenManager.js';
 
 console.log('AI D&D Frontend v2.0 - TypeScript Edition');
 console.log('Configuration:', {
@@ -31,17 +31,14 @@ async function initializeApp(): Promise<void> {
 
     console.log('Initializing UI...');
 
-    // For demo purposes, show the UI with a mock game ID
-    // In production, this would come from URL params or game selection screen
-    const gameId = 'demo-game-123';
-
-    // Create and mount the game interface screen
-    const gameScreen = new GameInterfaceScreen({
+    // Initialize screen manager with routing
+    const screenManager = new ScreenManager({
       container,
-      gameId,
+      appContainer,
     });
 
-    gameScreen.mount(appContainer);
+    // Start routing
+    screenManager.initialize();
 
     console.log('Application initialized successfully!');
 

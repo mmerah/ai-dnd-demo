@@ -7,6 +7,7 @@
 
 import { ApiService } from './services/api/ApiService.js';
 import { GameApiService } from './services/api/GameApiService.js';
+import { CatalogApiService } from './services/api/CatalogApiService.js';
 import { StateStore } from './services/state/StateStore.js';
 import { SseService } from './services/sse/SseService.js';
 import { config } from './config.js';
@@ -14,6 +15,7 @@ import { config } from './config.js';
 export interface ServiceContainer {
   apiService: ApiService;
   gameApiService: GameApiService;
+  catalogApiService: CatalogApiService;
   stateStore: StateStore;
   sseService: SseService;
 }
@@ -27,6 +29,7 @@ export function createContainer(): ServiceContainer {
 
   // Create specialized API services
   const gameApiService = new GameApiService(apiService);
+  const catalogApiService = new CatalogApiService(apiService);
 
   // Create state management
   const stateStore = new StateStore();
@@ -41,6 +44,7 @@ export function createContainer(): ServiceContainer {
   return {
     apiService,
     gameApiService,
+    catalogApiService,
     stateStore,
     sseService,
   };

@@ -3,14 +3,19 @@
 ## Overview
 Refactored the monolithic 3,454-line vanilla JavaScript frontend into a modular, type-safe TypeScript architecture following SOLID principles.
 
-## Current Status: Phase 4 Complete ✅ - Frontend Refactor Complete!
+## Current Status: Phase 5 Complete ✅ - Navigation & Screen Flow!
 
-All core phases completed. The frontend is now a fully functional, type-safe TypeScript application with:
+All core phases plus navigation completed. The frontend is now a fully functional, type-safe TypeScript application with:
 - ✅ TypeScript infrastructure with type generation
-- ✅ Core services (API, SSE, State management)
+- ✅ Core services (API, SSE, State management, Catalog API)
 - ✅ Component system with lifecycle management
 - ✅ Screen controllers with 3-panel layout
 - ✅ Complete dark theme UI styling
+- ✅ Game list screen with load/delete functionality
+- ✅ Character selection screen
+- ✅ Scenario selection screen
+- ✅ Hash-based routing system (ScreenManager)
+- ✅ Complete navigation flow (game list → character → scenario → game)
 
 ---
 
@@ -277,6 +282,142 @@ styles/
 
 **Commits**:
 - `0ee3ae1` - feat: Phase 4 - Screen controllers with 3-panel layout
+
+---
+
+### Phase 5: Navigation & Additional Screens ✅ (Complete)
+
+**Goal**: Implement complete navigation flow with game list, character selection, and scenario selection
+
+**Completed Items**:
+- ✅ Create GameListScreen for browsing saved games
+- ✅ Create GameListItem component for game cards
+- ✅ Create CharacterSelectionScreen for character choice
+- ✅ Create CharacterCard component with selection state
+- ✅ Create ScenarioSelectionScreen for scenario choice
+- ✅ Create ScenarioCard component with selection state
+- ✅ Implement CatalogApiService for fetching catalogs
+- ✅ Implement ScreenManager for hash-based routing
+- ✅ Update main.ts to use ScreenManager
+- ✅ Add comprehensive CSS for all new screens
+- ✅ Fix all TypeScript strict mode errors
+- ✅ Test build process
+
+**Files Created** (8 files):
+```
+src/
+├── services/api/
+│   └── CatalogApiService.ts              (~80 lines) - Fetch characters/scenarios
+├── screens/
+│   ├── GameListScreen.ts                 (~200 lines) - Browse saved games
+│   ├── CharacterSelectionScreen.ts       (~190 lines) - Select character
+│   ├── ScenarioSelectionScreen.ts        (~220 lines) - Select scenario
+│   └── ScreenManager.ts                  (~200 lines) - Hash-based routing
+├── components/
+│   ├── game/
+│   │   └── GameListItem.ts               (~100 lines) - Game card display
+│   ├── character/
+│   │   └── CharacterCard.ts              (~115 lines) - Character selection card
+│   └── scenario/
+│       └── ScenarioCard.ts               (~100 lines) - Scenario selection card
+```
+
+**Files Updated** (3 files):
+```
+src/
+├── container.ts                           (+10 lines) - Add CatalogApiService
+├── main.ts                                (~20 lines changed) - Use ScreenManager
+styles/
+└── main.css                               (+549 lines) - Styles for all new screens
+```
+
+**Key Features Implemented**:
+
+1. **GameListScreen**:
+   - Fetch and display saved games
+   - Game cards with scenario name, character name, timestamps
+   - Load game button → navigate to game
+   - Delete game button with confirmation
+   - "New Game" button → navigate to character selection
+   - Loading states and error handling
+   - Empty state for no saved games
+
+2. **CharacterSelectionScreen**:
+   - Fetch and display available characters
+   - Character cards with portrait (initials), name, race, class, level
+   - Selection state with visual feedback
+   - "Back" button → return to game list
+   - "Next" button (disabled until selection) → navigate to scenario selection
+   - Loading states and error handling
+
+3. **ScenarioSelectionScreen**:
+   - Fetch and display available scenarios
+   - Scenario cards with title, description preview, difficulty badge
+   - Selection state with visual feedback
+   - "Back" button → return to character selection
+   - "Start Game" button (disabled until selection) → create game and navigate
+   - Confirmation dialog before game creation
+   - Loading states and error handling
+
+4. **ScreenManager**:
+   - Hash-based routing (no external library - KISS principle)
+   - Routes: `/` → GameListScreen, `/character-select`, `/scenario-select`, `/game/:id`
+   - Browser back button support
+   - Automatic screen cleanup on navigation
+   - Selected character ID preservation during flow
+   - Game creation on scenario selection
+
+5. **CatalogApiService**:
+   - Fetch characters from `/api/characters`
+   - Fetch scenarios from `/api/scenarios`
+   - Fetch spells, items, monsters, content packs (for Phase 7)
+   - Type-safe response interfaces
+
+6. **Component Cards**:
+   - GameListItem: Game information with load/delete actions
+   - CharacterCard: Visual character card with portrait initials
+   - ScenarioCard: Scenario card with difficulty badge
+   - All cards support selection state
+   - All use Component base class lifecycle
+
+**CSS Additions** (~549 lines):
+- Game list screen styles (grid layout, hover effects)
+- Character selection screen styles (responsive grid)
+- Scenario selection screen styles (card grid)
+- Component card styles (borders, selections, indicators)
+- Difficulty badges (color-coded: easy/medium/hard)
+- Navigation button styles (back/next/start)
+- Loading and error state styles
+- Consistent dark theme throughout
+
+**Routes Implemented**:
+- `#/` or `/` → GameListScreen
+- `#/character-select` → CharacterSelectionScreen
+- `#/scenario-select` → ScenarioSelectionScreen (requires character ID)
+- `#/game/:gameId` → GameInterfaceScreen
+
+**Navigation Flow**:
+1. Start at GameListScreen
+2. Click "New Game" → CharacterSelectionScreen
+3. Select character → ScenarioSelectionScreen
+4. Select scenario → Create game → GameInterfaceScreen
+5. OR: Click "Load Game" from GameListScreen → GameInterfaceScreen
+
+**Code Quality**:
+- ✅ All files under 220 lines
+- ✅ TypeScript strict mode - all checks passing
+- ✅ Zero `any` types
+- ✅ Hash-based routing (no external library)
+- ✅ Proper null checks throughout
+- ✅ Component lifecycle management
+- ✅ Fail-fast validation
+- ✅ SOLID principles followed
+
+**Build Status**:
+- ✅ TypeScript compilation successful
+- ✅ Vite build successful
+- ✅ No errors or warnings
+- ✅ Bundle size: 41.50 kB (JS) + 17.26 kB (CSS)
 
 ---
 
