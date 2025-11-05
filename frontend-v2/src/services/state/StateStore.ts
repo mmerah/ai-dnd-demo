@@ -24,20 +24,20 @@ function validateGameState(state: GameState): void {
     throw new ValidationError('GameState missing game_id');
   }
 
-  if (!state.player) {
-    throw new ValidationError('GameState missing player');
+  if (!state.character) {
+    throw new ValidationError('GameState missing character');
   }
 
   if (!state.location) {
     throw new ValidationError('GameState missing location');
   }
 
-  if (state.player.hp < 0) {
-    throw new ValidationError('Player HP cannot be negative');
+  if (state.character.state.hit_points.current < 0) {
+    throw new ValidationError('Character HP cannot be negative');
   }
 
-  if (state.player.level < 1 || state.player.level > 20) {
-    throw new ValidationError('Player level must be between 1 and 20');
+  if (state.character.state.level < 1 || state.character.state.level > 20) {
+    throw new ValidationError('Character level must be between 1 and 20');
   }
 }
 
@@ -112,7 +112,7 @@ export class StateStore {
     const state = this.gameState.get();
     if (state) {
       // Validate that the member ID exists in the game
-      const validIds = ['player', ...state.party.members.map(m => m.id)];
+      const validIds = ['player', ...state.party.member_ids];
       if (!validIds.includes(memberId)) {
         throw new ValidationError(
           `Invalid member ID: ${memberId}. Must be one of: ${validIds.join(', ')}`

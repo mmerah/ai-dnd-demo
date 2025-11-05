@@ -1000,20 +1000,68 @@ DamageType (from damage_type.py, not damage_types!)     # ✅
 - ✅ Verified correct model names from backend source
 - ✅ Updated schema exports to match actual Pydantic models
 
+**Backend Model Property Mapping** (Detailed Analysis):
+
+After analyzing actual backend model structures, key property differences found:
+
+**GameState Structure**:
+```python
+# Backend (ACTUAL):
+character: CharacterInstance        # ❌ Frontend expects: player
+  .instance_id: str
+  .template_id: str
+  .sheet: CharacterSheet
+  .state: EntityState
+    .hit_points: HitPoints
+      .current: int                 # ❌ Frontend expects: player.hp
+      .maximum: int                 # ❌ Frontend expects: player.max_hp
+      .temporary: int
+    .level: int                     # ❌ Frontend expects: player.level
+    .experience_points: int
+    .abilities: Abilities
+    .armor_class: int
+    .conditions: list[str]
+    ...
+
+party: PartyState
+  .member_ids: list[str]            # ❌ Frontend expects: party.members
+  .max_size: int
+
+location: str                       # ✅ OK - simple string, not object
+description: str                    # ✅ OK
+```
+
+**Key Differences**:
+1. `state.player` → `state.character` (property rename)
+2. `state.character.hp` → `state.character.state.hit_points.current` (nested structure)
+3. `state.character.max_hp` → `state.character.state.hit_points.maximum` (nested structure)
+4. `state.character.level` → `state.character.state.level` (nested under state)
+5. `state.party.members` → `state.party.member_ids` (simple array, not objects)
+
+**Proactive Frontend Fixes** (Applied Before Type Regeneration):
+
+**Files Fixed**:
+1. `frontend-v2/src/services/state/StateStore.ts` - Updated validation and party member access
+2. `frontend-v2/src/services/state/__tests__/StateStore.test.ts` - Updated mock data structure
+
 **Remaining Work** (requires backend running):
 1. Start backend server: `uvicorn app.main:app --reload --port 8123`
 2. Regenerate types: `cd frontend-v2 && npm run generate:types`
-3. Fix ALL TypeScript compilation errors from corrected types
-4. Update affected source files (StateStore, services, components)
+3. Fix ANY remaining TypeScript compilation errors from corrected types
+4. Update any other affected source files (services, components)
 5. Verify all 133 tests still pass
 6. Commit type fixes with comprehensive documentation
 
 **Files Changed**:
 - `app/api/routers/schemas.py` - Fixed all imports and exports
 - `INVESTIGATION.md` - Complete audit of backend models
+- `frontend-v2/src/services/state/StateStore.ts` - Proactive fixes for property access
+- `frontend-v2/src/services/state/__tests__/StateStore.test.ts` - Updated test mocks
 
 **Commits**:
 - `2e081f1` - fix: Correct backend schema exports to use actual model names
+- `50610b1` - docs: Document critical backend schema fix in PROGRESS.md
+- (Pending) - fix: Proactive frontend fixes for backend model structure changes
 
 ---
 

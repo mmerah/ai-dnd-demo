@@ -9,35 +9,53 @@ describe('StateStore', () => {
   const createValidGameState = (overrides?: Partial<GameState>): GameState => ({
     game_id: 'game-123',
     scenario_id: 'scenario-1',
-    player: {
-      id: 'player',
-      name: 'Test Hero',
-      hp: 50,
-      max_hp: 50,
-      level: 5,
-      race: 'Human',
-      class: 'Fighter',
-      conditions: [],
-    },
-    location: {
-      name: 'Test Location',
-      description: 'A test location',
-      exits: [],
-      npcs: [],
-    },
-    party: {
-      members: [
-        {
-          id: 'npc-1',
-          name: 'Companion',
-          hp: 30,
-          max_hp: 30,
-          level: 3,
-          race: 'Elf',
-          class: 'Ranger',
-          conditions: [],
+    character: {
+      instance_id: 'player',
+      template_id: 'char-template-1',
+      sheet: {
+        id: 'char-1',
+        name: 'Test Hero',
+        race: 'Human',
+        class_index: 'fighter',
+      },
+      state: {
+        hit_points: {
+          current: 50,
+          maximum: 50,
+          temporary: 0,
         },
-      ],
+        level: 5,
+        experience_points: 0,
+        abilities: {},
+        armor_class: 15,
+        initiative_bonus: 2,
+        speed: 30,
+        saving_throws: {},
+        skills: [],
+        attacks: [],
+        conditions: [],
+        exhaustion_level: 0,
+        inspiration: false,
+        inventory: [],
+        equipment_slots: {},
+        currency: {
+          copper: 0,
+          silver: 0,
+          electrum: 0,
+          gold: 100,
+          platinum: 0,
+        },
+        hit_dice: {
+          total: 5,
+          current: 5,
+          type: 'd10',
+        },
+      },
+    },
+    location: 'Test Location',
+    party: {
+      member_ids: ['npc-1'],
+      max_size: 4,
     },
     conversation_history: [],
     ...overrides,
@@ -120,15 +138,15 @@ describe('StateStore', () => {
       );
     });
 
-    it('should throw ValidationError if player is missing', () => {
+    it('should throw ValidationError if character is missing', () => {
       const invalidState = createValidGameState();
-      (invalidState as any).player = null;
+      (invalidState as any).character = null;
 
       expect(() => stateStore.setGameState(invalidState)).toThrow(
         ValidationError
       );
       expect(() => stateStore.setGameState(invalidState)).toThrow(
-        'GameState missing player'
+        'GameState missing character'
       );
     });
 
@@ -144,55 +162,55 @@ describe('StateStore', () => {
       );
     });
 
-    it('should throw ValidationError if player HP is negative', () => {
+    it('should throw ValidationError if character HP is negative', () => {
       const invalidState = createValidGameState();
-      invalidState.player.hp = -1;
+      invalidState.character.state.hit_points.current = -1;
 
       expect(() => stateStore.setGameState(invalidState)).toThrow(
         ValidationError
       );
       expect(() => stateStore.setGameState(invalidState)).toThrow(
-        'Player HP cannot be negative'
+        'Character HP cannot be negative'
       );
     });
 
-    it('should allow player HP of 0', () => {
+    it('should allow character HP of 0', () => {
       const validState = createValidGameState();
-      validState.player.hp = 0;
+      validState.character.state.hit_points.current = 0;
 
       expect(() => stateStore.setGameState(validState)).not.toThrow();
     });
 
-    it('should throw ValidationError if player level is less than 1', () => {
+    it('should throw ValidationError if character level is less than 1', () => {
       const invalidState = createValidGameState();
-      invalidState.player.level = 0;
+      invalidState.character.state.level = 0;
 
       expect(() => stateStore.setGameState(invalidState)).toThrow(
         ValidationError
       );
       expect(() => stateStore.setGameState(invalidState)).toThrow(
-        'Player level must be between 1 and 20'
+        'Character level must be between 1 and 20'
       );
     });
 
-    it('should throw ValidationError if player level is greater than 20', () => {
+    it('should throw ValidationError if character level is greater than 20', () => {
       const invalidState = createValidGameState();
-      invalidState.player.level = 21;
+      invalidState.character.state.level = 21;
 
       expect(() => stateStore.setGameState(invalidState)).toThrow(
         ValidationError
       );
       expect(() => stateStore.setGameState(invalidState)).toThrow(
-        'Player level must be between 1 and 20'
+        'Character level must be between 1 and 20'
       );
     });
 
-    it('should allow player level of 1 and 20', () => {
+    it('should allow character level of 1 and 20', () => {
       const state1 = createValidGameState();
-      state1.player.level = 1;
+      state1.character.state.level = 1;
 
       const state20 = createValidGameState();
-      state20.player.level = 20;
+      state20.character.state.level = 20;
 
       expect(() => stateStore.setGameState(state1)).not.toThrow();
       expect(() => stateStore.setGameState(state20)).not.toThrow();
