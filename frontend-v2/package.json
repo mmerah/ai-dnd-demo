@@ -1,0 +1,28 @@
+{
+  "name": "ai-dnd-frontend",
+  "version": "2.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "generate:types": "tsx scripts/generate-types.ts",
+    "dev": "npm run generate:types && vite",
+    "build": "npm run generate:types && tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src --ext .ts --max-warnings 0"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.0",
+    "@typescript-eslint/parser": "^6.13.0",
+    "eslint": "^8.55.0",
+    "json-schema-to-typescript": "^13.1.1",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.7",
+    "vitest": "^1.0.4"
+  }
+}

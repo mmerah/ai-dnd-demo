@@ -1,0 +1,2 @@
+# This directory will contain auto-generated TypeScript types from backend Pydantic models
+# Run `npm run generate:types` to populate this directory
