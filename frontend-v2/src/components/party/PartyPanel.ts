@@ -6,7 +6,7 @@
  */
 
 import { Component } from '../base/Component.js';
-import { createElement, div, clearElement } from '../../utils/dom.js';
+import { createElement, div, clearElement, button } from '../../utils/dom.js';
 import { StateStore } from '../../services/state/StateStore.js';
 import { PartyMemberCard } from './PartyMemberCard.js';
 import { PartyMember } from '../../types/generated/GameState.js';
@@ -27,6 +27,23 @@ export class PartyPanel extends Component<PartyPanelProps> {
     const title = createElement('h2', { class: 'party-panel__title' });
     title.textContent = 'Party';
     header.appendChild(title);
+
+    // Navigation buttons
+    const navButtons = div({ class: 'party-panel__nav-buttons' });
+
+    const characterSheetBtn = button('📋 Character', {
+      class: 'party-panel__nav-button',
+      onclick: () => this.handleViewCharacterSheet(),
+    });
+
+    const inventoryBtn = button('🎒 Inventory', {
+      class: 'party-panel__nav-button',
+      onclick: () => this.handleViewInventory(),
+    });
+
+    navButtons.appendChild(characterSheetBtn);
+    navButtons.appendChild(inventoryBtn);
+    header.appendChild(navButtons);
 
     // Members container
     this.membersContainer = div({ class: 'party-panel__members' });
@@ -131,5 +148,13 @@ export class PartyPanel extends Component<PartyPanelProps> {
     } catch (error) {
       console.error('Failed to select member:', error);
     }
+  }
+
+  private handleViewCharacterSheet(): void {
+    this.props.stateStore.setRightPanelView('character-sheet');
+  }
+
+  private handleViewInventory(): void {
+    this.props.stateStore.setRightPanelView('inventory');
   }
 }

@@ -44,17 +44,21 @@ function validateGameState(state: GameState): void {
 /**
  * StateStore manages all application state using Observables
  */
+export type RightPanelView = 'party' | 'character-sheet' | 'inventory';
+
 export class StateStore {
   private gameState: Observable<GameState | null>;
   private isProcessing: Observable<boolean>;
   private selectedMemberId: Observable<string>;
   private error: Observable<string | null>;
+  private rightPanelView: Observable<RightPanelView>;
 
   constructor() {
     this.gameState = new Observable<GameState | null>(null);
     this.isProcessing = new Observable<boolean>(false);
     this.selectedMemberId = new Observable<string>('player');
     this.error = new Observable<string | null>(null);
+    this.rightPanelView = new Observable<RightPanelView>('party');
   }
 
   // ==================== Game State ====================
@@ -140,6 +144,20 @@ export class StateStore {
     return this.error.subscribe(callback);
   }
 
+  // ==================== Right Panel View ====================
+
+  getRightPanelView(): RightPanelView {
+    return this.rightPanelView.get();
+  }
+
+  setRightPanelView(view: RightPanelView): void {
+    this.rightPanelView.set(view);
+  }
+
+  onRightPanelViewChange(callback: (view: RightPanelView) => void): Unsubscribe {
+    return this.rightPanelView.subscribe(callback);
+  }
+
   // ==================== Utility Methods ====================
 
   /**
@@ -163,6 +181,7 @@ export class StateStore {
     onProcessing?: (processing: boolean) => void;
     onSelectedMember?: (memberId: string) => void;
     onError?: (error: string | null) => void;
+    onRightPanelView?: (view: RightPanelView) => void;
   }): Unsubscribe {
     const unsubscribers: Unsubscribe[] = [];
 
@@ -178,6 +197,9 @@ export class StateStore {
     if (callbacks.onError) {
       unsubscribers.push(this.onErrorChange(callbacks.onError));
     }
+    if (callbacks.onRightPanelView) {
+      unsubscribers.push(this.onRightPanelViewChange(callbacks.onRightPanelView));
+    }
 
     return () => {
       unsubscribers.forEach(unsub => unsub());
@@ -192,5 +214,6 @@ export class StateStore {
     this.isProcessing.set(false);
     this.selectedMemberId.set('player');
     this.error.set(null);
+    this.rightPanelView.set('party');
   }
 }

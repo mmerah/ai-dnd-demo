@@ -13,6 +13,9 @@ import { div } from '../utils/dom.js';
 import { ChatPanel } from '../components/chat/ChatPanel.js';
 import { PartyPanel } from '../components/party/PartyPanel.js';
 import { LocationPanel } from '../components/location/LocationPanel.js';
+import { CharacterSheetPanel } from '../components/character-sheet/CharacterSheetPanel.js';
+import { InventoryPanel } from '../components/inventory/InventoryPanel.js';
+import type { RightPanelView } from '../services/state/StateStore.js';
 
 export interface GameInterfaceScreenProps {
   container: ServiceContainer;
@@ -22,7 +25,10 @@ export interface GameInterfaceScreenProps {
 export class GameInterfaceScreen extends Screen {
   private chatPanel: ChatPanel | null = null;
   private partyPanel: PartyPanel | null = null;
+  private characterSheetPanel: CharacterSheetPanel | null = null;
+  private inventoryPanel: InventoryPanel | null = null;
   private locationPanel: LocationPanel | null = null;
+  private rightPanelContainer: HTMLElement | null = null;
 
   constructor(private props: GameInterfaceScreenProps) {
     super();
@@ -52,16 +58,27 @@ export class GameInterfaceScreen extends Screen {
     this.chatPanel.mount(centerPanel);
 
     // Right panel (25%)
-    const rightPanel = div({ class: 'panel panel--right' });
+    this.rightPanelContainer = div({ class: 'panel panel--right' });
+
+    // Create all right panel views
     this.partyPanel = new PartyPanel({
       stateStore: container.stateStore,
     });
     this.registerComponent(this.partyPanel);
-    this.partyPanel.mount(rightPanel);
+
+    this.characterSheetPanel = new CharacterSheetPanel({
+      stateStore: container.stateStore,
+    });
+    this.registerComponent(this.characterSheetPanel);
+
+    this.inventoryPanel = new InventoryPanel({
+      stateStore: container.stateStore,
+    });
+    this.registerComponent(this.inventoryPanel);
 
     screen.appendChild(leftPanel);
     screen.appendChild(centerPanel);
-    screen.appendChild(rightPanel);
+    screen.appendChild(this.rightPanelContainer);
 
     return screen;
   }
@@ -91,6 +108,14 @@ export class GameInterfaceScreen extends Screen {
       console.error('SSE error:', error);
       container.stateStore.setError(error.message);
     });
+
+    // Subscribe to right panel view changes
+    container.stateStore.onRightPanelViewChange((view) => {
+      this.switchRightPanel(view);
+    });
+
+    // Initial panel render
+    this.switchRightPanel(container.stateStore.getRightPanelView());
   }
 
   override onUnmount(): void {
@@ -134,6 +159,34 @@ export class GameInterfaceScreen extends Screen {
       const errorMessage = error instanceof Error ? error.message : 'Failed to send message';
       container.stateStore.setError(errorMessage);
       container.stateStore.setIsProcessing(false);
+    }
+  }
+
+  private switchRightPanel(view: RightPanelView): void {
+    if (!this.rightPanelContainer) {
+      return;
+    }
+
+    // Clear current panel
+    this.rightPanelContainer.innerHTML = '';
+
+    // Mount the appropriate panel
+    switch (view) {
+      case 'party':
+        if (this.partyPanel) {
+          this.partyPanel.mount(this.rightPanelContainer);
+        }
+        break;
+      case 'character-sheet':
+        if (this.characterSheetPanel) {
+          this.characterSheetPanel.mount(this.rightPanelContainer);
+        }
+        break;
+      case 'inventory':
+        if (this.inventoryPanel) {
+          this.inventoryPanel.mount(this.rightPanelContainer);
+        }
+        break;
     }
   }
 }
