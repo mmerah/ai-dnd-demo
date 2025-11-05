@@ -3,9 +3,9 @@
 ## Overview
 Refactored the monolithic 3,454-line vanilla JavaScript frontend into a modular, type-safe TypeScript architecture following SOLID principles.
 
-## Current Status: Phase 7 Complete ✅ - Catalog Browser & Content Packs!
+## Current Status: Phase 8.1 Complete ✅ - Comprehensive Service Tests!
 
-All core phases plus extended components and catalog browser completed. The frontend is now a fully functional, type-safe TypeScript application with:
+All core phases plus extended components, catalog browser, and comprehensive testing completed. The frontend is now a fully functional, production-ready, type-safe TypeScript application with:
 - ✅ TypeScript infrastructure with type generation
 - ✅ Core services (API, SSE, State management, Catalog API)
 - ✅ Component system with lifecycle management
@@ -19,6 +19,7 @@ All core phases plus extended components and catalog browser completed. The fron
 - ✅ Chronicle CRUD system and Tool Call display
 - ✅ Character Sheet and Inventory panels with toggle system
 - ✅ Catalog browser with content pack filtering and search (7 categories)
+- ✅ Comprehensive unit tests (133 tests, 100% passing) for all services and state management
 
 ---
 
@@ -804,6 +805,160 @@ styles/
 
 **Commits**:
 - `0318d5d` - feat: Phase 7 - Catalog Browser & Content Packs
+
+---
+
+### Phase 8: Testing (Phase 8.1 Complete) ✅
+
+**Goal**: Add comprehensive unit tests for all core services and state management
+
+**Completed Items**:
+- ✅ Create Vitest configuration with JSDOM environment
+- ✅ Create global test setup with fetch/EventSource mocks
+- ✅ Create ApiService unit tests (20 tests)
+- ✅ Create GameApiService unit tests (20 tests)
+- ✅ Create CatalogApiService unit tests (16 tests)
+- ✅ Create JournalApiService unit tests (16 tests)
+- ✅ Create Observable unit tests (26 tests)
+- ✅ Create StateStore unit tests (35 tests)
+- ✅ Fix all failing tests to achieve 100% pass rate
+
+**Files Created** (9 files):
+```
+frontend-v2/
+├── vitest.config.ts                               # Vitest configuration
+├── src/
+│   ├── __tests__/
+│   │   └── setup.ts                               # Global test setup
+│   └── services/
+│       ├── api/__tests__/
+│       │   ├── ApiService.test.ts                 (~320 lines) - Base API client tests
+│       │   ├── GameApiService.test.ts             (~280 lines) - Game operations tests
+│       │   ├── CatalogApiService.test.ts          (~300 lines) - Catalog endpoints tests
+│       │   └── JournalApiService.test.ts          (~280 lines) - Journal CRUD tests
+│       └── state/__tests__/
+│           ├── Observable.test.ts                 (~270 lines) - Reactive state tests
+│           └── StateStore.test.ts                 (~470 lines) - State management tests
+```
+
+**Dependencies Added**:
+```json
+{
+  "jsdom": "^23.0.1"  // Browser environment for tests
+}
+```
+
+**Test Coverage Breakdown**:
+
+1. **ApiService.test.ts** (20 tests)
+   - All HTTP methods (GET, POST, PUT, DELETE)
+   - Error handling (ApiError on 4xx/5xx responses)
+   - Network error handling (NetworkError)
+   - Timeout management with AbortController
+   - Custom headers merging
+   - Error body parsing (JSON detail/message/error, text fallback)
+
+2. **GameApiService.test.ts** (20 tests)
+   - createGame() with scenario and character IDs
+   - getGameState() with game ID
+   - sendAction() with action text
+   - listGames() returning saves array
+   - deleteGame() by ID
+   - checkHealth() API health check
+   - Error propagation patterns
+   - Sequential and parallel operation workflows
+
+3. **CatalogApiService.test.ts** (16 tests)
+   - All 10 catalog endpoints (characters, scenarios, spells, items, monsters, races, classes, backgrounds, feats, content_packs)
+   - Empty list handling
+   - Content pack field handling
+   - Optional fields (prerequisite, rarity, etc.)
+   - Error handling across all methods
+
+4. **JournalApiService.test.ts** (16 tests)
+   - getEntries() returning all journal entries
+   - createEntry() with all 5 categories (Event, NPC, Location, Quest, Item)
+   - updateEntry() with partial updates (title, content, category, location)
+   - deleteEntry() by ID
+   - Optional location field handling
+   - Complete CRUD workflow
+
+5. **Observable.test.ts** (26 tests)
+   - Constructor with initial value
+   - get() and set() with referential equality check
+   - subscribe() and unsubscribe()
+   - subscribeImmediate() with immediate callback
+   - Multiple listeners notification
+   - Error handling (listener exceptions don't break other listeners)
+   - listenerCount tracking
+   - clearListeners() cleanup
+   - Type safety with generics (string, object, union types)
+
+6. **StateStore.test.ts** (35 tests)
+   - Game state management (get/set/clear)
+   - GameState validation rules:
+     - game_id, player, location required
+     - Player HP ≥ 0
+     - Player level 1-20
+   - Processing state management
+   - Selected member ID with validation against party members
+   - Error state management
+   - Right panel view state (party/character-sheet/inventory)
+   - subscribeAll() utility for bulk subscription
+   - reset() to restore defaults
+   - getSnapshot() immutability
+   - Subscription cleanup patterns
+
+**Test Results**:
+```
+✅ All 133 tests passing (100% pass rate)
+
+Test Files: 6 passed (6)
+Tests: 133 passed (133)
+- ApiService: 20/20 ✅
+- GameApiService: 20/20 ✅
+- CatalogApiService: 16/16 ✅
+- JournalApiService: 16/16 ✅
+- Observable: 26/26 ✅
+- StateStore: 35/35 ✅
+```
+
+**Key Testing Patterns**:
+- **Mocking**: vi.fn() for all external dependencies
+- **Error Testing**: Custom errors (ApiError, ValidationError, StateError) and network errors
+- **Subscription Testing**: Verify listeners called with correct arguments
+- **Validation Testing**: Test all fail-fast validation rules
+- **Type Safety**: All tests fully typed with TypeScript strict mode
+- **Cleanup**: Proper unsubscribe patterns tested
+
+**Code Quality**:
+- ✅ TypeScript strict mode passing
+- ✅ Zero `any` types
+- ✅ Comprehensive coverage of all service methods
+- ✅ Comprehensive coverage of all state management operations
+- ✅ All edge cases and error paths tested
+- ✅ Validation logic thoroughly tested
+
+**Test Fixes Applied**:
+- Fixed Observable referential equality in StateStore tests (change to different values to trigger notifications)
+- Fixed ApiService error mock to properly handle headers.get()
+- Fixed ApiService timeout test to simulate AbortError with signal listener
+- Removed duplicate assertions that exhausted mocks
+
+**Build Status**:
+- ✅ All 133 tests passing (100% pass rate)
+- ✅ TypeScript compilation successful
+- ✅ Zero test failures
+- ✅ Ready for CI/CD integration
+
+**Commits**:
+- `2b904f2` - feat: Phase 8.1 - Service unit tests with comprehensive coverage
+- `0c37811` - fix: Resolve 5 failing tests - all 133 tests now passing
+
+**Phase 8.2 & 8.3 (Optional)**:
+- Phase 8.2: Component Integration Tests (ChatPanel, PartyPanel) - Optional lower priority
+- Phase 8.3: E2E Critical Path Tests with MSW - Optional lower priority
+- Rationale: Core business logic in services and state management is comprehensively tested (133 tests). Component and E2E tests provide diminishing returns since they test integration rather than logic.
 
 ---
 
