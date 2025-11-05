@@ -424,6 +424,101 @@ styles/
 
 ---
 
+### Phase 6: Extended Components (6.1 & 6.2) ✅ (Complete)
+
+**Goal**: Add Chronicle CRUD and Tool Call Display components
+
+**Completed Items**:
+- ✅ Create JournalApiService with CRUD operations
+- ✅ Create ChroniclePanel with filtering and search
+- ✅ Create ChronicleEntry component
+- ✅ Create ChronicleFilters component
+- ✅ Create JournalEntryModal for creating/editing entries
+- ✅ Create ToolCallMessage component for displaying AI tool calls
+- ✅ Add JournalApiService to container
+- ✅ Add comprehensive CSS for Chronicle and Tool Call components
+
+**Files Created** (6 files):
+```
+src/
+├── services/api/
+│   └── JournalApiService.ts              (~80 lines) - CRUD for journal entries
+├── components/
+│   ├── chat/
+│   │   └── ToolCallMessage.ts            (~190 lines) - Display AI tool calls
+│   └── chronicle/
+│       ├── ChroniclePanel.ts             (~340 lines) - Main chronicle panel
+│       ├── ChronicleEntry.ts             (~120 lines) - Entry card component
+│       ├── ChronicleFilters.ts           (~160 lines) - Filter controls
+│       └── JournalEntryModal.ts          (~230 lines) - Create/edit modal
+```
+
+**Files Updated** (2 files):
+```
+src/
+├── container.ts                          (+10 lines) - Add JournalApiService
+styles/
+└── main.css                              (+438 lines) - Chronicle & Tool Call styles
+```
+
+**Key Features Implemented**:
+
+1. **Chronicle/Journal System**:
+   - Display all journal entries with filtering and search
+   - Category filtering: Event, NPC, Location, Quest, Item
+   - Location filtering from game locations
+   - Text search across title and content
+   - Create new entries via modal
+   - Edit existing entries
+   - Delete entries with confirmation
+   - Collapsible filters panel
+   - Empty and loading states
+   - Chronological ordering (newest first)
+
+2. **Tool Call Display**:
+   - Display AI tool calls with distinctive styling
+   - Tool name and timestamp
+   - Collapsible arguments section (JSON formatted)
+   - Collapsible result section (when available)
+   - Dark blue background to distinguish from chat messages
+   - Monospace font for JSON display
+
+3. **JournalApiService**:
+   - `GET /api/game/{id}/journal` - Fetch all entries
+   - `POST /api/game/{id}/journal` - Create entry
+   - `PUT /api/game/{id}/journal/{entry_id}` - Update entry
+   - `DELETE /api/game/{id}/journal/{entry_id}` - Delete entry
+   - Type-safe request/response interfaces
+
+**CSS Additions** (~438 lines):
+- Chronicle panel styles with collapsible sections
+- Category-specific badge colors (Event, NPC, Location, Quest, Item)
+- Filter controls styling
+- Entry card styling with hover effects
+- Modal overlay system for journal entry editing
+- Tool call message styling with collapsible sections
+- JSON code block styling
+
+**Code Quality**:
+- ✅ All files under 340 lines
+- ✅ TypeScript strict mode passing
+- ✅ Zero `any` types
+- ✅ Proper null checks throughout
+- ✅ Component lifecycle management
+- ✅ Type-safe APIs
+- ✅ SOLID principles followed
+
+**Build Status**:
+- ✅ TypeScript compilation successful
+- ✅ Vite build successful
+- ✅ No errors or warnings
+- ✅ Bundle size: 41.86 kB (JS) + 24.68 kB (CSS)
+
+**Commits**:
+- `fc7bcdc` - feat: Phase 6.1 & 6.2 - Chronicle CRUD system and Tool Call display components
+
+---
+
 ## Architecture Summary
 
 ### Final Structure
@@ -523,6 +618,7 @@ frontend-v2/
 3. `6318097` - Phase 3: Component system with lifecycle management
 4. `0ee3ae1` - Phase 4: Screen controllers with 3-panel layout
 5. `0c2eab4` - Phase 5: Navigation system with game list, character, and scenario selection
+6. `fc7bcdc` - Phase 6.1 & 6.2: Chronicle CRUD system and Tool Call display components
 
 ---
 
