@@ -519,6 +519,138 @@ styles/
 
 ---
 
+### Phase 6: Extended Components (6.3, 6.4, 6.5) ✅ (Complete)
+
+**Goal**: Add Character Sheet Panel, Inventory Panel, and Panel Toggle System
+
+**Completed Items**:
+- ✅ Update StateStore with RightPanelView state management
+- ✅ Create AbilitiesSection component (6 ability scores with modifiers and saving throws)
+- ✅ Create SkillsSection component (18 D&D skills with proficiency indicators)
+- ✅ Create FeaturesSection component (proficiency bonus and active conditions)
+- ✅ Create SpellsSection component (spell slots and known spells)
+- ✅ Create CharacterSheetPanel integrating all sections
+- ✅ Create CurrencyDisplay component (D&D currency: pp, gp, ep, sp, cp)
+- ✅ Create EquipmentSlots component (weapon, armor, shield)
+- ✅ Create ItemList component (inventory items with quantities and weight)
+- ✅ Create InventoryPanel integrating all inventory components
+- ✅ Update GameInterfaceScreen with panel toggle system
+- ✅ Add navigation buttons to PartyPanel
+- ✅ Add comprehensive CSS for character sheet and inventory panels
+
+**Files Created** (9 files):
+```
+src/
+├── components/
+│   ├── character-sheet/
+│   │   ├── AbilitiesSection.ts          (~110 lines) - Ability scores display
+│   │   ├── SkillsSection.ts             (~105 lines) - Skills list display
+│   │   ├── FeaturesSection.ts           (~70 lines) - Features and traits
+│   │   ├── SpellsSection.ts             (~120 lines) - Spell slots and known spells
+│   │   └── CharacterSheetPanel.ts       (~160 lines) - Main character sheet panel
+│   └── inventory/
+│       ├── CurrencyDisplay.ts           (~75 lines) - D&D currency display
+│       ├── EquipmentSlots.ts            (~60 lines) - Equipment slots display
+│       ├── ItemList.ts                  (~90 lines) - Inventory items list
+│       └── InventoryPanel.ts            (~125 lines) - Main inventory panel
+```
+
+**Files Updated** (4 files):
+```
+src/
+├── services/state/
+│   └── StateStore.ts                    (+21 lines) - Add RightPanelView state
+├── screens/
+│   └── GameInterfaceScreen.ts           (+58 lines) - Panel toggle system
+├── components/party/
+│   └── PartyPanel.ts                    (+27 lines) - Navigation buttons
+styles/
+└── main.css                             (+592 lines) - Character sheet & inventory styles
+```
+
+**Key Features Implemented**:
+
+1. **Character Sheet Panel**:
+   - AbilitiesSection with 6 ability scores (STR, DEX, CON, INT, WIS, CHA)
+   - Each ability shows: score, modifier, saving throw bonus, proficiency indicator
+   - SkillsSection with all 18 D&D 5e skills
+   - Each skill shows: proficiency indicator, skill name, bonus
+   - FeaturesSection showing proficiency bonus and active conditions
+   - SpellsSection with visual spell slot indicators (filled/empty dots)
+   - Display known spells list
+   - Character info header (name, race, class, level, HP, AC)
+   - "Back to Party" button for navigation
+   - Scrollable content for long character sheets
+
+2. **Inventory Panel**:
+   - CurrencyDisplay for 5 types of D&D currency (pp, gp, ep, sp, cp)
+   - EquipmentSlots showing equipped weapon, armor, and shield
+   - Empty slot indicators for unequipped items
+   - ItemList displaying all inventory items
+   - Each item shows: name, quantity, weight, description
+   - Total weight calculation
+   - "Back to Party" button for navigation
+   - Scrollable content for large inventories
+
+3. **Panel Toggle System**:
+   - StateStore manages rightPanelView state ('party' | 'character-sheet' | 'inventory')
+   - GameInterfaceScreen conditionally renders correct panel
+   - Navigation buttons in PartyPanel (Character Sheet, Inventory)
+   - Back buttons in CharacterSheetPanel and InventoryPanel
+   - Smooth panel switching with proper lifecycle management
+   - State persistence during panel switches
+
+4. **State Management Updates**:
+   - Added RightPanelView type export
+   - Added rightPanelView Observable to StateStore
+   - Added getRightPanelView(), setRightPanelView(), onRightPanelViewChange()
+   - Updated subscribeAll() to include rightPanelView callback
+   - Updated reset() to reset rightPanelView to 'party'
+
+**CSS Additions** (~592 lines):
+- Party panel navigation button styles
+- Character sheet panel layout (header, content, back button)
+- Abilities grid with 3-column layout
+- Ability card styling (score, modifier, saving throw, proficiency indicator)
+- Skills list with proficiency indicators
+- Features section with condition badges
+- Spell slots grid with visual slot indicators (dots)
+- Known spells list styling
+- Inventory panel layout
+- Currency grid with 5-column layout
+- Equipment slots list
+- Item list with quantity and weight display
+- Empty state styling for all sections
+- Consistent dark theme with proper spacing
+
+**Component Architecture**:
+- All components extend base Component class
+- Proper lifecycle management (onMount, onUnmount)
+- Subscribe to StateStore with automatic cleanup
+- Type-safe props interfaces
+- Proper null checking throughout
+
+**Code Quality**:
+- ✅ All files under 160 lines
+- ✅ TypeScript strict mode passing
+- ✅ Zero `any` types
+- ✅ Proper override keywords for lifecycle methods
+- ✅ Component lifecycle management with proper cleanup
+- ✅ Type-safe APIs
+- ✅ SOLID principles followed
+
+**Build Status**:
+- ✅ TypeScript compilation successful (0 errors)
+- ✅ Vite build successful
+- ✅ No errors or warnings
+- ✅ Bundle size: 54.75 kB (JS) + 34.75 kB (CSS)
+
+**Commits**:
+- `d18db38` - docs: Update PROGRESS.md with Phase 6.1 & 6.2 completion
+- `546146d` - feat: Phase 6.3-6.5 - Character Sheet, Inventory, and Panel Toggle System
+
+---
+
 ## Architecture Summary
 
 ### Final Structure
@@ -619,6 +751,8 @@ frontend-v2/
 4. `0ee3ae1` - Phase 4: Screen controllers with 3-panel layout
 5. `0c2eab4` - Phase 5: Navigation system with game list, character, and scenario selection
 6. `fc7bcdc` - Phase 6.1 & 6.2: Chronicle CRUD system and Tool Call display components
+7. `d18db38` - docs: Update PROGRESS.md with Phase 6.1 & 6.2 completion
+8. `546146d` - Phase 6.3-6.5: Character Sheet, Inventory, and Panel Toggle System
 
 ---
 
