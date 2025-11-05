@@ -3,9 +3,9 @@
   "name": "Goblin Cave Entrance",
   "description": "A dark cave mouth yawns before you, crude totems flanking the entrance.",
   "descriptions": {
-    "first_visit": "The cave entrance looms before you, a dark maw in the hillside. Crude totems made of bones and sticks flank the entrance, warning away intruders. The stench of goblin filth wafts from within. You can hear faint sounds echoing from the darkness - guttural voices and the clatter of weapons.",
-    "return_visit": "The goblin cave entrance remains as forbidding as before. The guards may have changed, but the danger remains.",
-    "cleared": "The cave entrance stands empty now, the totems knocked down. Without the goblins, it's just another cave."
+    "first_visit": "The cave entrance looms before you, a dark maw in the hillside carved by ancient waters. Crude totems made of bones, sticks, and skulls (some disturbingly humanoid) flank the entrance, warning away intruders. The stench of goblin filth—rotting meat, unwashed bodies, and acrid smoke—wafts from within.\n\nYou can hear faint sounds echoing from the darkness: guttural voices speaking in broken Goblin, the clatter of crude weapons being sharpened, and occasional bursts of harsh laughter. Rocky outcroppings on either side of the entrance provide natural cover, but also concealment for ambushers. The ground near the entrance is littered with bones, rusty weapons, and the remains of campfires. Deeper in, the darkness is absolute—you'll need light sources to proceed safely.",
+    "return_visit": "The goblin cave entrance remains as forbidding as before. The bone totems cast twisted shadows, and the stench hasn't improved. You know the layout better now—where the cover is, where threats might emerge. The darkness within seems to watch you.",
+    "cleared": "The cave entrance stands empty now, stripped of its menace. The totems have been knocked down and scattered. Without the goblins' presence, it's just another cave—dark, damp, and silent. The stench is already beginning to fade, replaced by the clean smell of moss and stone."
   },
   "monster_ids": ["goblin-warrior", "goblin-archer"],
   "encounter_ids": ["cave-entrance-guards"],
