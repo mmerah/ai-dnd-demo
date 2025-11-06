@@ -9,7 +9,18 @@ import { Component } from '../base/Component.js';
 import { createElement, div, clearElement, button } from '../../utils/dom.js';
 import { StateStore } from '../../services/state/StateStore.js';
 import { PartyMemberCard } from './PartyMemberCard.js';
-import { PartyMember } from '../../types/generated/GameState.js';
+import type { NPCInstance } from '../../types/generated/GameState.js';
+
+interface PartyMember {
+  id: string;
+  name: string;
+  role: string;
+  hp: number;
+  max_hp: number;
+  ac: number | undefined;
+  level: number | undefined;
+  class_name: string;
+}
 
 export interface PartyPanelProps {
   stateStore: StateStore;
@@ -57,23 +68,10 @@ export class PartyPanel extends Component<PartyPanelProps> {
   override onMount(): void {
     // Subscribe to game state changes
     this.subscribeImmediate(
-      this.props.stateStore['gameState'],
+      this.props.stateStore.gameState$,
       (gameState) => {
         if (gameState) {
-          // Include player as first member
-          const members: PartyMember[] = [
-            {
-              id: 'player',
-              name: gameState.player.name,
-              role: 'player',
-              hp: gameState.player.hp,
-              max_hp: gameState.player.max_hp,
-              ac: gameState.player.ac,
-              level: gameState.player.level,
-              class_name: gameState.player.class,
-            },
-            ...gameState.party.members,
-          ];
+          const members = this.buildPartyMembers(gameState);
           this.renderMembers(members);
         } else {
           this.clearMembers();
@@ -83,28 +81,55 @@ export class PartyPanel extends Component<PartyPanelProps> {
 
     // Subscribe to selected member changes
     this.subscribe(
-      this.props.stateStore['selectedMemberId'],
+      this.props.stateStore.selectedMemberId$,
       () => {
         // Re-render to update selection
         const gameState = this.props.stateStore.getGameState();
         if (gameState) {
-          const members: PartyMember[] = [
-            {
-              id: 'player',
-              name: gameState.player.name,
-              role: 'player',
-              hp: gameState.player.hp,
-              max_hp: gameState.player.max_hp,
-              ac: gameState.player.ac,
-              level: gameState.player.level,
-              class_name: gameState.player.class,
-            },
-            ...gameState.party.members,
-          ];
+          const members = this.buildPartyMembers(gameState);
           this.renderMembers(members);
         }
       }
     );
+  }
+
+  private buildPartyMembers(gameState: any): PartyMember[] {
+    const character = gameState.character;
+    const members: PartyMember[] = [
+      {
+        id: character.instance_id,
+        name: character.sheet.name,
+        role: 'Player',
+        hp: character.state.hit_points.current,
+        max_hp: character.state.hit_points.maximum,
+        ac: character.state.armor_class,
+        level: character.state.level,
+        class_name: character.sheet.class_index,
+      },
+    ];
+
+    // Add party members from NPCs
+    const party = gameState.party;
+    const npcs = gameState.npcs ?? [];
+    const memberIds = party?.member_ids ?? [];
+
+    for (const npcId of memberIds) {
+      const npc = npcs.find((n: NPCInstance) => n.instance_id === npcId);
+      if (npc) {
+        members.push({
+          id: npc.instance_id,
+          name: npc.sheet.display_name,
+          role: npc.sheet.role,
+          hp: npc.state.hit_points.current,
+          max_hp: npc.state.hit_points.maximum,
+          ac: npc.state.armor_class,
+          level: npc.state.level,
+          class_name: npc.sheet.character?.class_index ?? 'NPC',
+        });
+      }
+    }
+
+    return members;
   }
 
   override onUnmount(): void {

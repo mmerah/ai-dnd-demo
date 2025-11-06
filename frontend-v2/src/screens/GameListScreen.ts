@@ -89,12 +89,20 @@ export class GameListScreen extends Screen {
     try {
       this.showLoading();
 
-      const response = await container.gameApiService.listGames();
+      const games = await container.gameApiService.listGames();
 
-      if (response.saves.length === 0) {
+      if (games.length === 0) {
         this.showEmpty();
       } else {
-        this.showGames(response.saves);
+        // Map GameState to the expected format
+        const gameList = games.map(game => ({
+          game_id: game.game_id,
+          scenario_name: game.scenario_title,
+          character_name: game.character.sheet.name,
+          last_saved: game.last_saved ?? game.created_at ?? '',
+          created_at: game.created_at ?? '',
+        }));
+        this.showGames(gameList);
       }
     } catch (error) {
       console.error('Failed to load games:', error);

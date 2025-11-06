@@ -6,6 +6,18 @@ import type { GameState } from '../../../types/generated/GameState';
 // Mock ApiService
 vi.mock('../ApiService');
 
+// Helper to create minimal mock GameState for testing
+function createMockGameState(overrides?: Partial<GameState>): GameState {
+  return {
+    game_id: 'test-game-123',
+    character: {} as any,
+    scenario_id: 'test-scenario',
+    scenario_title: 'Test Scenario',
+    scenario_instance: {} as any,
+    ...overrides,
+  } as GameState;
+}
+
 describe('GameApiService', () => {
   let gameApiService: GameApiService;
   let mockApiService: ApiService;
@@ -24,7 +36,6 @@ describe('GameApiService', () => {
     it('should create a new game with scenario and character IDs', async () => {
       const mockResponse = {
         game_id: 'game-123',
-        game_state: { id: 'game-123' } as GameState,
       };
 
       (mockApiService.post as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
@@ -54,11 +65,10 @@ describe('GameApiService', () => {
 
   describe('getGameState', () => {
     it('should fetch game state by ID', async () => {
-      const mockGameState = {
-        id: 'game-123',
+      const mockGameState = createMockGameState({
+        game_id: 'game-123',
         scenario_id: 'scenario-1',
-        player_character: {} as any,
-      } as GameState;
+      });
 
       (mockApiService.get as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
         mockGameState
@@ -92,7 +102,7 @@ describe('GameApiService', () => {
 
       expect(mockApiService.post).toHaveBeenCalledWith(
         '/api/game/game-123/action',
-        { action: 'Look around' }
+        { message: 'Look around' }
       );
     });
 
@@ -106,7 +116,7 @@ describe('GameApiService', () => {
 
       expect(mockApiService.post).toHaveBeenCalledWith(
         '/api/game/game-123/action',
-        { action }
+        { message: action }
       );
     });
 
@@ -124,24 +134,20 @@ describe('GameApiService', () => {
 
   describe('listGames', () => {
     it('should fetch list of saved games', async () => {
-      const mockList = {
-        saves: [
-          {
-            game_id: 'game-1',
-            scenario_name: 'The Lost Mine',
-            character_name: 'Aldric',
-            last_saved: '2024-01-01T12:00:00Z',
-            created_at: '2024-01-01T10:00:00Z',
-          },
-          {
-            game_id: 'game-2',
-            scenario_name: 'Dragon Quest',
-            character_name: 'Theron',
-            last_saved: '2024-01-02T12:00:00Z',
-            created_at: '2024-01-02T10:00:00Z',
-          },
-        ],
-      };
+      const mockList = [
+        createMockGameState({
+          game_id: 'game-1',
+          scenario_title: 'The Lost Mine',
+          last_saved: '2024-01-01T12:00:00Z',
+          created_at: '2024-01-01T10:00:00Z',
+        }),
+        createMockGameState({
+          game_id: 'game-2',
+          scenario_title: 'Dragon Quest',
+          last_saved: '2024-01-02T12:00:00Z',
+          created_at: '2024-01-02T10:00:00Z',
+        }),
+      ];
 
       (mockApiService.get as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
         mockList
@@ -149,13 +155,13 @@ describe('GameApiService', () => {
 
       const result = await gameApiService.listGames();
 
-      expect(mockApiService.get).toHaveBeenCalledWith('/api/game/list');
+      expect(mockApiService.get).toHaveBeenCalledWith('/api/games');
       expect(result).toEqual(mockList);
-      expect(result.saves).toHaveLength(2);
+      expect(result).toHaveLength(2);
     });
 
     it('should handle empty game list', async () => {
-      const mockList = { saves: [] };
+      const mockList: any[] = [];
 
       (mockApiService.get as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
         mockList
@@ -163,7 +169,7 @@ describe('GameApiService', () => {
 
       const result = await gameApiService.listGames();
 
-      expect(result.saves).toHaveLength(0);
+      expect(result).toHaveLength(0);
     });
 
     it('should propagate list fetch errors', async () => {
@@ -254,7 +260,7 @@ describe('GameApiService', () => {
       // Create game
       const createResponse = {
         game_id: 'new-game',
-        game_state: { id: 'new-game' } as GameState,
+        game_state: createMockGameState({ game_id: 'new-game' }),
       };
       (mockApiService.post as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
         createResponse
@@ -270,19 +276,19 @@ describe('GameApiService', () => {
       await gameApiService.sendAction(created.game_id, 'Look around');
 
       // Get state
-      const mockState = { id: created.game_id } as GameState;
+      const mockState = createMockGameState({ game_id: created.game_id });
       (mockApiService.get as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
         mockState
       );
 
       const state = await gameApiService.getGameState(created.game_id);
 
-      expect(state.id).toBe(created.game_id);
+      expect(state.game_id).toBe(created.game_id);
     });
 
     it('should handle parallel operations', async () => {
       // List games and check health in parallel
-      const mockList = { saves: [] };
+      const mockList: any[] = [];
       const mockHealth = { status: 'ok' };
 
       (mockApiService.get as ReturnType<typeof vi.fn>)
@@ -294,7 +300,7 @@ describe('GameApiService', () => {
         gameApiService.checkHealth(),
       ]);
 
-      expect(games.saves).toHaveLength(0);
+      expect(games).toHaveLength(0);
       expect(health.status).toBe('ok');
     });
   });

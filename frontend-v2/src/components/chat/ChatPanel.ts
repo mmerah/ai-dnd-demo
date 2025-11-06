@@ -11,7 +11,7 @@ import { StateStore } from '../../services/state/StateStore.js';
 import { ChatMessage } from './ChatMessage.js';
 import { ChatInput } from './ChatInput.js';
 import { LoadingIndicator } from './LoadingIndicator.js';
-import { ConversationEntry } from '../../types/generated/GameState.js';
+import type { Message } from '../../types/generated/GameState.js';
 
 export interface ChatPanelProps {
   stateStore: StateStore;
@@ -73,10 +73,10 @@ export class ChatPanel extends Component<ChatPanelProps> {
   override onMount(): void {
     // Subscribe to game state changes
     this.subscribeImmediate(
-      this.props.stateStore['gameState'],
+      this.props.stateStore.gameState$,
       (gameState) => {
         if (gameState) {
-          this.renderMessages(gameState.conversation_history);
+          this.renderMessages(gameState.conversation_history ?? []);
         } else {
           this.clearMessages();
         }
@@ -85,7 +85,7 @@ export class ChatPanel extends Component<ChatPanelProps> {
 
     // Subscribe to processing state
     this.subscribe(
-      this.props.stateStore['isProcessing'],
+      this.props.stateStore.isProcessing$,
       (isProcessing) => {
         this.updateProcessingState(isProcessing);
       }
@@ -110,7 +110,7 @@ export class ChatPanel extends Component<ChatPanelProps> {
     }
   }
 
-  private renderMessages(messages: ConversationEntry[]): void {
+  private renderMessages(messages: Message[]): void {
     if (!this.messagesContainer) return;
 
     // Clear existing messages

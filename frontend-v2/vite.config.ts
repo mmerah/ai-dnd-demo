@@ -2,17 +2,11 @@ import { defineConfig } from 'vite';
 import path from 'path';
 
 export default defineConfig({
-  root: 'public',
   base: '/',
   build: {
-    outDir: '../dist',
+    outDir: 'dist',
     emptyOutDir: true,
     sourcemap: true,
-    rollupOptions: {
-      input: {
-        main: path.resolve(__dirname, 'public/index.html')
-      }
-    }
   },
   resolve: {
     alias: {

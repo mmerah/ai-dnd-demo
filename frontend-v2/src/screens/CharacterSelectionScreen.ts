@@ -8,7 +8,7 @@ import { Screen } from './Screen.js';
 import { ServiceContainer } from '../container.js';
 import { div, button } from '../utils/dom.js';
 import { CharacterCard, type CharacterCardProps } from '../components/character/CharacterCard.js';
-import type { Character } from '../services/api/CatalogApiService.js';
+import type { CharacterSheet } from '../types/generated/CharacterSheet.js';
 
 export interface CharacterSelectionScreenProps {
   container: ServiceContainer;
@@ -26,7 +26,7 @@ export class CharacterSelectionScreen extends Screen {
   private nextButton: HTMLButtonElement | null = null;
   private characterCards: CharacterCard[] = [];
   private selectedCharacterId: string | null = null;
-  private characters: Character[] = [];
+  private characters: CharacterSheet[] = [];
 
   constructor(private props: CharacterSelectionScreenProps) {
     super();
@@ -100,8 +100,8 @@ export class CharacterSelectionScreen extends Screen {
     try {
       this.showLoading();
 
-      const response = await container.catalogApiService.getCharacters();
-      this.characters = response.characters;
+      const characters = await container.catalogApiService.getCharacters();
+      this.characters = characters;
 
       if (this.characters.length === 0) {
         this.showError('No characters available');
@@ -140,7 +140,7 @@ export class CharacterSelectionScreen extends Screen {
     }
   }
 
-  private showCharacters(characters: Character[]): void {
+  private showCharacters(characters: CharacterSheet[]): void {
     if (!this.loadingIndicator || !this.errorDisplay || !this.charactersContainer) return;
 
     this.loadingIndicator.style.display = 'none';

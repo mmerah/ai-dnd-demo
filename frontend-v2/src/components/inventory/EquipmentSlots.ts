@@ -6,10 +6,10 @@
 
 import { Component } from '../base/Component.js';
 import { div } from '../../utils/dom.js';
-import type { Equipment } from '../../types/generated/GameState.js';
+import type { EquipmentSlots as EquipmentSlotsType } from '../../types/generated/GameState.js';
 
 export interface EquipmentSlotsProps {
-  equipment: Equipment;
+  equipment: EquipmentSlotsType;
 }
 
 /**
@@ -27,9 +27,12 @@ export class EquipmentSlots extends Component<EquipmentSlotsProps> {
     container.appendChild(header);
 
     const slots = [
-      { key: 'weapon' as const, label: '⚔️ Weapon', value: this.props.equipment.weapon },
-      { key: 'armor' as const, label: '🛡️ Armor', value: this.props.equipment.armor },
-      { key: 'shield' as const, label: '🛡️ Shield', value: this.props.equipment.shield },
+      { key: 'main_hand' as const, label: '⚔️ Main Hand', value: this.props.equipment.main_hand },
+      { key: 'off_hand' as const, label: '🛡️ Off Hand', value: this.props.equipment.off_hand },
+      { key: 'chest' as const, label: '🛡️ Chest', value: this.props.equipment.chest },
+      { key: 'head' as const, label: '👑 Head', value: this.props.equipment.head },
+      { key: 'hands' as const, label: '🧤 Hands', value: this.props.equipment.hands },
+      { key: 'feet' as const, label: '👢 Feet', value: this.props.equipment.feet },
     ];
 
     const slotsList = div({ class: 'equipment-slots-list' });

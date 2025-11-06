@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { StateStore } from '../StateStore';
 import type { GameState } from '../../../types/generated/GameState';
-import { ValidationError, StateError } from '../../../types/errors';
+import { ValidationError } from '../../../types/errors';
 
 describe('StateStore', () => {
   let stateStore: StateStore;
@@ -69,7 +69,7 @@ describe('StateStore', () => {
     it('should initialize with default values', () => {
       expect(stateStore.getGameState()).toBeNull();
       expect(stateStore.getIsProcessing()).toBe(false);
-      expect(stateStore.getSelectedMemberId()).toBe('player');
+      expect(stateStore.getSelectedMemberId()).toBe('');
       expect(stateStore.getError()).toBeNull();
       expect(stateStore.getRightPanelView()).toBe('party');
     });
@@ -80,7 +80,7 @@ describe('StateStore', () => {
       expect(snapshot).toEqual({
         gameState: null,
         isProcessing: false,
-        selectedMemberId: 'player',
+        selectedMemberId: '',
         error: null,
       });
     });
@@ -415,7 +415,7 @@ describe('StateStore', () => {
       // Verify all values are back to defaults
       expect(stateStore.getGameState()).toBeNull();
       expect(stateStore.getIsProcessing()).toBe(false);
-      expect(stateStore.getSelectedMemberId()).toBe('player');
+      expect(stateStore.getSelectedMemberId()).toBe('');
       expect(stateStore.getError()).toBeNull();
       expect(stateStore.getRightPanelView()).toBe('party');
     });
@@ -446,7 +446,7 @@ describe('StateStore', () => {
       // Verify notifications
       expect(callbacks.onGameState).toHaveBeenCalledWith(null);
       expect(callbacks.onProcessing).toHaveBeenCalledWith(false);
-      expect(callbacks.onSelectedMember).toHaveBeenCalledWith('player');
+      expect(callbacks.onSelectedMember).toHaveBeenCalledWith('');
       expect(callbacks.onError).toHaveBeenCalledWith(null);
       expect(callbacks.onRightPanelView).toHaveBeenCalledWith('party');
     });
@@ -488,7 +488,7 @@ describe('StateStore', () => {
       const listener2 = vi.fn();
 
       const unsub1 = stateStore.onGameStateChange(listener1);
-      const unsub2 = stateStore.onGameStateChange(listener2);
+      stateStore.onGameStateChange(listener2); // Keep listener2 subscribed
 
       const gameState = createValidGameState();
       stateStore.setGameState(gameState);

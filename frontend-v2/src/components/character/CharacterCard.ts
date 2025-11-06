@@ -6,10 +6,10 @@
 
 import { Component } from '../base/Component.js';
 import { div } from '../../utils/dom.js';
-import type { Character } from '../../services/api/CatalogApiService.js';
+import type { CharacterSheet } from '../../types/generated/CharacterSheet.js';
 
 export interface CharacterCardProps {
-  character: Character;
+  character: CharacterSheet;
   isSelected: boolean;
   onSelect: (characterId: string) => void;
 }
@@ -42,10 +42,10 @@ export class CharacterCard extends Component<CharacterCardProps> {
 
     const raceClass = div(
       { class: 'character-card__race-class' },
-      `${character.race} ${character.class}`
+      `${character.race} ${character.class_index}`
     );
 
-    const level = div({ class: 'character-card__level' }, `Level ${character.level}`);
+    const level = div({ class: 'character-card__level' }, `Level ${character.starting_level || 1}`);
 
     if (character.background) {
       const background = div(

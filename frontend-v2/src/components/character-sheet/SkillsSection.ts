@@ -6,10 +6,10 @@
 
 import { Component } from '../base/Component.js';
 import { div } from '../../utils/dom.js';
-import type { Character } from '../../types/generated/GameState.js';
+import type { CharacterInstance } from '../../types/generated/GameState.js';
 
 export interface SkillsSectionProps {
-  character: Character;
+  character: CharacterInstance;
 }
 
 /**
@@ -29,25 +29,25 @@ function formatModifier(modifier: number): string {
 /**
  * Skill definitions with their governing abilities
  */
-const SKILL_DEFINITIONS: Array<{ key: string; label: string; ability: keyof Character['abilities'] }> = [
-  { key: 'acrobatics', label: 'Acrobatics', ability: 'dexterity' },
-  { key: 'animal_handling', label: 'Animal Handling', ability: 'wisdom' },
-  { key: 'arcana', label: 'Arcana', ability: 'intelligence' },
-  { key: 'athletics', label: 'Athletics', ability: 'strength' },
-  { key: 'deception', label: 'Deception', ability: 'charisma' },
-  { key: 'history', label: 'History', ability: 'intelligence' },
-  { key: 'insight', label: 'Insight', ability: 'wisdom' },
-  { key: 'intimidation', label: 'Intimidation', ability: 'charisma' },
-  { key: 'investigation', label: 'Investigation', ability: 'intelligence' },
-  { key: 'medicine', label: 'Medicine', ability: 'wisdom' },
-  { key: 'nature', label: 'Nature', ability: 'intelligence' },
-  { key: 'perception', label: 'Perception', ability: 'wisdom' },
-  { key: 'performance', label: 'Performance', ability: 'charisma' },
-  { key: 'persuasion', label: 'Persuasion', ability: 'charisma' },
-  { key: 'religion', label: 'Religion', ability: 'intelligence' },
-  { key: 'sleight_of_hand', label: 'Sleight of Hand', ability: 'dexterity' },
-  { key: 'stealth', label: 'Stealth', ability: 'dexterity' },
-  { key: 'survival', label: 'Survival', ability: 'wisdom' },
+const SKILL_DEFINITIONS: Array<{ key: string; label: string; ability: 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA' }> = [
+  { key: 'acrobatics', label: 'Acrobatics', ability: 'DEX' },
+  { key: 'animal-handling', label: 'Animal Handling', ability: 'WIS' },
+  { key: 'arcana', label: 'Arcana', ability: 'INT' },
+  { key: 'athletics', label: 'Athletics', ability: 'STR' },
+  { key: 'deception', label: 'Deception', ability: 'CHA' },
+  { key: 'history', label: 'History', ability: 'INT' },
+  { key: 'insight', label: 'Insight', ability: 'WIS' },
+  { key: 'intimidation', label: 'Intimidation', ability: 'CHA' },
+  { key: 'investigation', label: 'Investigation', ability: 'INT' },
+  { key: 'medicine', label: 'Medicine', ability: 'WIS' },
+  { key: 'nature', label: 'Nature', ability: 'INT' },
+  { key: 'perception', label: 'Perception', ability: 'WIS' },
+  { key: 'performance', label: 'Performance', ability: 'CHA' },
+  { key: 'persuasion', label: 'Persuasion', ability: 'CHA' },
+  { key: 'religion', label: 'Religion', ability: 'INT' },
+  { key: 'sleight-of-hand', label: 'Sleight of Hand', ability: 'DEX' },
+  { key: 'stealth', label: 'Stealth', ability: 'DEX' },
+  { key: 'survival', label: 'Survival', ability: 'WIS' },
 ];
 
 /**
@@ -67,9 +67,10 @@ export class SkillsSection extends Component<SkillsSectionProps> {
     const skillsList = div({ class: 'skills-list' });
 
     for (const skill of SKILL_DEFINITIONS) {
-      const abilityScore = this.props.character.abilities[skill.ability];
+      const abilityScore = this.props.character.state.abilities[skill.ability];
       const baseModifier = calculateModifier(abilityScore);
-      const skillBonus = this.props.character.skills[skill.key] ?? baseModifier;
+      const skillValue = this.props.character.state.skills?.find(s => s.index === skill.key);
+      const skillBonus = skillValue?.value ?? baseModifier;
       const isProficient = skillBonus !== baseModifier;
 
       const skillRow = div({ class: 'skill-row' });

@@ -6,10 +6,10 @@
 
 import { Component } from '../base/Component.js';
 import { div } from '../../utils/dom.js';
-import type { ContentPack } from '../../services/api/CatalogApiService.js';
+import type { ContentPackSummary } from '../../types/generated/ContentPackSummary.js';
 
 export interface ContentPackFilterProps {
-  contentPacks: ContentPack[];
+  contentPacks: ContentPackSummary[];
   selectedPacks: string[];
   onSelectionChange: (selectedPacks: string[]) => void;
 }

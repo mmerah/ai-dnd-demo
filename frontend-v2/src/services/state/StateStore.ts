@@ -32,11 +32,13 @@ function validateGameState(state: GameState): void {
     throw new ValidationError('GameState missing location');
   }
 
-  if (state.character.state.hit_points.current < 0) {
+  const hp = state.character.state.hit_points.current;
+  if (hp < 0) {
     throw new ValidationError('Character HP cannot be negative');
   }
 
-  if (state.character.state.level < 1 || state.character.state.level > 20) {
+  const level = state.character.state.level;
+  if (level !== undefined && (level < 1 || level > 20)) {
     throw new ValidationError('Character level must be between 1 and 20');
   }
 }
@@ -56,9 +58,33 @@ export class StateStore {
   constructor() {
     this.gameState = new Observable<GameState | null>(null);
     this.isProcessing = new Observable<boolean>(false);
-    this.selectedMemberId = new Observable<string>('player');
+    // Start with empty string - will be set to character instance_id when game loads
+    this.selectedMemberId = new Observable<string>('');
     this.error = new Observable<string | null>(null);
     this.rightPanelView = new Observable<RightPanelView>('party');
+  }
+
+  // ==================== Observable Getters ====================
+  // Public getters for subscribing to observables in components
+
+  get gameState$(): Observable<GameState | null> {
+    return this.gameState;
+  }
+
+  get isProcessing$(): Observable<boolean> {
+    return this.isProcessing;
+  }
+
+  get selectedMemberId$(): Observable<string> {
+    return this.selectedMemberId;
+  }
+
+  get error$(): Observable<string | null> {
+    return this.error;
+  }
+
+  get rightPanelView$(): Observable<RightPanelView> {
+    return this.rightPanelView;
   }
 
   // ==================== Game State ====================
@@ -112,7 +138,8 @@ export class StateStore {
     const state = this.gameState.get();
     if (state) {
       // Validate that the member ID exists in the game
-      const validIds = ['player', ...state.party.member_ids];
+      // Valid IDs are: player character's instance_id + all party member IDs
+      const validIds = [state.character.instance_id, ...(state.party?.member_ids ?? [])];
       if (!validIds.includes(memberId)) {
         throw new ValidationError(
           `Invalid member ID: ${memberId}. Must be one of: ${validIds.join(', ')}`
@@ -212,7 +239,7 @@ export class StateStore {
   reset(): void {
     this.gameState.set(null);
     this.isProcessing.set(false);
-    this.selectedMemberId.set('player');
+    this.selectedMemberId.set('');
     this.error.set(null);
     this.rightPanelView.set('party');
   }

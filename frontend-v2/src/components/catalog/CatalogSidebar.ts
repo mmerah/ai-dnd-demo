@@ -7,7 +7,7 @@
 import { Component } from '../base/Component.js';
 import { div } from '../../utils/dom.js';
 import { ContentPackFilter } from './ContentPackFilter.js';
-import type { ContentPack } from '../../services/api/CatalogApiService.js';
+import type { ContentPackSummary } from '../../types/generated/ContentPackSummary.js';
 
 export type CatalogCategory = 'spells' | 'items' | 'monsters' | 'races' | 'classes' | 'backgrounds' | 'feats';
 
@@ -15,7 +15,7 @@ export interface CatalogSidebarProps {
   categories: Array<{ id: CatalogCategory; label: string }>;
   selectedCategory: CatalogCategory;
   onCategoryChange: (category: CatalogCategory) => void;
-  contentPacks: ContentPack[];
+  contentPacks: ContentPackSummary[];
   selectedPacks: string[];
   onPacksChange: (packs: string[]) => void;
 }

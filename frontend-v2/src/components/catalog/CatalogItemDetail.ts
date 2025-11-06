@@ -6,9 +6,22 @@
 
 import { Component } from '../base/Component.js';
 import { div, button } from '../../utils/dom.js';
-import type { Spell, Item, Monster, Race, Class, Background, Feat } from '../../services/api/CatalogApiService.js';
+import type { SpellDefinition } from '../../types/generated/SpellDefinition.js';
+import type { ItemDefinition } from '../../types/generated/ItemDefinition.js';
+import type { MonsterSheet } from '../../types/generated/MonsterSheet.js';
+import type { RaceDefinition } from '../../types/generated/RaceDefinition.js';
+import type { ClassDefinition } from '../../types/generated/ClassDefinition.js';
+import type { BackgroundDefinition } from '../../types/generated/BackgroundDefinition.js';
+import type { FeatDefinition } from '../../types/generated/FeatDefinition.js';
 
-export type CatalogItem = Spell | Item | Monster | Race | Class | Background | Feat;
+export type CatalogItem =
+  | SpellDefinition
+  | ItemDefinition
+  | MonsterSheet
+  | RaceDefinition
+  | ClassDefinition
+  | BackgroundDefinition
+  | FeatDefinition;
 
 export interface CatalogItemDetailProps {
   item: CatalogItem | null;
@@ -59,57 +72,61 @@ export class CatalogItemDetail extends Component<CatalogItemDetailProps> {
 
     // Render different fields based on item type
     if ('level' in item && 'school' in item) {
-      // Spell
+      // SpellDefinition
       this.renderField(details, 'Level', item.level.toString());
       this.renderField(details, 'School', item.school);
       this.renderField(details, 'Casting Time', item.casting_time);
       this.renderField(details, 'Range', item.range);
-      this.renderField(details, 'Components', item.components);
+      if (item.components_list) {
+        this.renderField(details, 'Components', item.components_list.join(', '));
+      }
       this.renderField(details, 'Duration', item.duration);
     } else if ('challenge_rating' in item) {
-      // Monster
+      // MonsterSheet
       this.renderField(details, 'Type', item.type);
       this.renderField(details, 'Size', item.size);
-      this.renderField(details, 'Challenge Rating', item.challenge_rating);
+      this.renderField(details, 'Challenge Rating', item.challenge_rating.toString());
       this.renderField(details, 'Armor Class', item.armor_class.toString());
-      this.renderField(details, 'Hit Points', item.hit_points.toString());
+      this.renderField(details, 'Hit Points', `${item.hit_points.current}/${item.hit_points.maximum}`);
+      this.renderField(details, 'Speed', item.speed);
+      this.renderField(details, 'Alignment', item.alignment);
     } else if ('speed' in item && 'size' in item) {
-      // Race
+      // RaceDefinition
       this.renderField(details, 'Size', item.size);
       this.renderField(details, 'Speed', `${item.speed} ft.`);
     } else if ('hit_die' in item) {
-      // Class
+      // ClassDefinition
       this.renderField(details, 'Hit Die', `d${item.hit_die}`);
-      this.renderField(details, 'Primary Ability', item.primary_ability);
+      this.renderField(details, 'Saving Throws', item.saving_throws.join(', '));
     } else if ('skill_proficiencies' in item) {
-      // Background
-      this.renderField(details, 'Skill Proficiencies', item.skill_proficiencies.join(', '));
+      // BackgroundDefinition
+      if (item.skill_proficiencies) {
+        this.renderField(details, 'Skill Proficiencies', item.skill_proficiencies.join(', '));
+      }
     } else if ('type' in item) {
-      // Item
+      // ItemDefinition
       this.renderField(details, 'Type', item.type);
-      if (item.rarity) {
-        this.renderField(details, 'Rarity', item.rarity);
-      }
-      if (item.cost) {
-        this.renderField(details, 'Cost', item.cost);
-      }
+      this.renderField(details, 'Rarity', item.rarity);
       if (item.weight) {
         this.renderField(details, 'Weight', `${item.weight} lbs`);
       }
+      if (item.value) {
+        this.renderField(details, 'Value', `${item.value} gp`);
+      }
     }
 
-    // Description (common to all)
-    const description = div({ class: 'catalog-item-detail__description' });
-    const descHeader = div({ class: 'catalog-item-detail__field-label' }, 'Description');
-    const descText = div({ class: 'catalog-item-detail__field-value' }, item.description);
-    description.appendChild(descHeader);
-    description.appendChild(descText);
-    details.appendChild(description);
-
-    // Content pack (if present)
-    if (item.content_pack) {
-      this.renderField(details, 'Content Pack', item.content_pack);
+    // Description (if available - MonsterSheet doesn't have description field)
+    if ('description' in item && item.description) {
+      const description = div({ class: 'catalog-item-detail__description' });
+      const descHeader = div({ class: 'catalog-item-detail__field-label' }, 'Description');
+      const descText = div({ class: 'catalog-item-detail__field-value' }, item.description);
+      description.appendChild(descHeader);
+      description.appendChild(descText);
+      details.appendChild(description);
     }
+
+    // Content pack (common to all)
+    this.renderField(details, 'Content Pack', item.content_pack);
 
     return details;
   }

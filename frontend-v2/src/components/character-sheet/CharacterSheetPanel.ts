@@ -32,7 +32,7 @@ export class CharacterSheetPanel extends Component<CharacterSheetPanelProps> {
   override onMount(): void {
     // Subscribe to game state changes
     this.subscribe(
-      this.props.stateStore['gameState'],
+      this.props.stateStore.gameState$,
       () => {
         this.handleStateChange();
       }
@@ -61,18 +61,18 @@ export class CharacterSheetPanel extends Component<CharacterSheetPanelProps> {
     const header = div({ class: 'character-sheet-panel__header' });
 
     if (gameState) {
-      const { player } = gameState;
+      const character = gameState.character;
 
       // Character info
       const info = div({ class: 'character-sheet-panel__info' });
-      const name = div({ class: 'character-sheet-panel__name' }, player.name);
+      const name = div({ class: 'character-sheet-panel__name' }, character.sheet.name);
       const details = div(
         { class: 'character-sheet-panel__details' },
-        `${player.race} ${player.class} • Level ${player.level}`
+        `${character.sheet.race} ${character.sheet.class_index} • Level ${character.state.level ?? 1}`
       );
       const hp = div(
         { class: 'character-sheet-panel__hp' },
-        `HP: ${player.hp}/${player.max_hp} • AC: ${player.ac}`
+        `HP: ${character.state.hit_points.current}/${character.state.hit_points.maximum} • AC: ${character.state.armor_class ?? 10}`
       );
 
       info.appendChild(name);
@@ -117,16 +117,16 @@ export class CharacterSheetPanel extends Component<CharacterSheetPanelProps> {
     content.innerHTML = '';
 
     // Render all sections
-    this.abilitiesSection = new AbilitiesSection({ character: gameState.player });
+    this.abilitiesSection = new AbilitiesSection({ character: gameState.character });
     this.abilitiesSection.mount(content);
 
-    this.skillsSection = new SkillsSection({ character: gameState.player });
+    this.skillsSection = new SkillsSection({ character: gameState.character });
     this.skillsSection.mount(content);
 
-    this.featuresSection = new FeaturesSection({ character: gameState.player });
+    this.featuresSection = new FeaturesSection({ character: gameState.character });
     this.featuresSection.mount(content);
 
-    this.spellsSection = new SpellsSection({ character: gameState.player });
+    this.spellsSection = new SpellsSection({ character: gameState.character });
     this.spellsSection.mount(content);
   }
 

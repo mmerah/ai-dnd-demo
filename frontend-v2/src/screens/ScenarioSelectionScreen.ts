@@ -8,7 +8,7 @@ import { Screen } from './Screen.js';
 import { ServiceContainer } from '../container.js';
 import { div, button } from '../utils/dom.js';
 import { ScenarioCard, type ScenarioCardProps } from '../components/scenario/ScenarioCard.js';
-import type { Scenario } from '../services/api/CatalogApiService.js';
+import type { ScenarioSheet } from '../types/generated/ScenarioSheet.js';
 
 export interface ScenarioSelectionScreenProps {
   container: ServiceContainer;
@@ -27,7 +27,7 @@ export class ScenarioSelectionScreen extends Screen {
   private startGameButton: HTMLButtonElement | null = null;
   private scenarioCards: ScenarioCard[] = [];
   private selectedScenarioId: string | null = null;
-  private scenarios: Scenario[] = [];
+  private scenarios: ScenarioSheet[] = [];
   private isCreatingGame: boolean = false;
 
   constructor(private props: ScenarioSelectionScreenProps) {
@@ -102,8 +102,8 @@ export class ScenarioSelectionScreen extends Screen {
     try {
       this.showLoading();
 
-      const response = await container.catalogApiService.getScenarios();
-      this.scenarios = response.scenarios;
+      const scenarios = await container.catalogApiService.getScenarios();
+      this.scenarios = scenarios;
 
       if (this.scenarios.length === 0) {
         this.showError('No scenarios available');
@@ -142,7 +142,7 @@ export class ScenarioSelectionScreen extends Screen {
     }
   }
 
-  private showScenarios(scenarios: Scenario[]): void {
+  private showScenarios(scenarios: ScenarioSheet[]): void {
     if (!this.loadingIndicator || !this.errorDisplay || !this.scenariosContainer) return;
 
     this.loadingIndicator.style.display = 'none';
@@ -191,7 +191,7 @@ export class ScenarioSelectionScreen extends Screen {
     if (!selectedScenario) return;
 
     const confirmed = confirm(
-      `Start a new game with this scenario?\n\n${selectedScenario.name}\n\n${selectedScenario.description}`
+      `Start a new game with this scenario?\n\n${selectedScenario.title}\n\n${selectedScenario.description}`
     );
 
     if (!confirmed) return;

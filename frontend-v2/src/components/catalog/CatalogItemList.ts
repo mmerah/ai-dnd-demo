@@ -18,8 +18,9 @@ export interface CatalogItemListProps<T> {
 
 /**
  * Catalog item list component
+ * Uses 'index' field for identification (catalog items use index, not id)
  */
-export class CatalogItemList<T extends { id: string }> extends Component<CatalogItemListProps<T>> {
+export class CatalogItemList<T extends { index: string }> extends Component<CatalogItemListProps<T>> {
   private searchDebounceTimeout: number | null = null;
 
   constructor(props: CatalogItemListProps<T>) {
@@ -55,7 +56,7 @@ export class CatalogItemList<T extends { id: string }> extends Component<Catalog
       itemsGrid.appendChild(empty);
     } else {
       for (const item of this.props.items) {
-        const isSelected = item.id === this.props.selectedItemId;
+        const isSelected = item.index === this.props.selectedItemId;
         const card = this.props.renderItemCard(item, isSelected);
         card.addEventListener('click', () => this.props.onItemSelect(item));
         itemsGrid.appendChild(card);

@@ -11,7 +11,7 @@ import { CatalogSidebar, type CatalogCategory } from '../components/catalog/Cata
 import { CatalogItemList } from '../components/catalog/CatalogItemList.js';
 import { CatalogItemDetail, type CatalogItem } from '../components/catalog/CatalogItemDetail.js';
 import { applyAllFilters } from '../utils/catalogFilters.js';
-import type { ContentPack } from '../services/api/CatalogApiService.js';
+import type { ContentPackSummary } from '../types/generated/ContentPackSummary.js';
 
 export interface CatalogBrowserScreenProps {
   container: ServiceContainer;
@@ -30,7 +30,7 @@ const CATEGORIES = [
 
 export class CatalogBrowserScreen extends Screen {
   private sidebar: CatalogSidebar | null = null;
-  private itemList: CatalogItemList<CatalogItem> | null = null;
+  private itemList: CatalogItemList<CatalogItem & { index: string }> | null = null;
   private itemDetail: CatalogItemDetail | null = null;
 
   private selectedCategory: CatalogCategory = 'spells';
@@ -38,7 +38,7 @@ export class CatalogBrowserScreen extends Screen {
   private searchQuery = '';
   private selectedItem: CatalogItem | null = null;
 
-  private contentPacks: ContentPack[] = [];
+  private contentPacks: ContentPackSummary[] = [];
   private allItems: CatalogItem[] = [];
   private filteredItems: CatalogItem[] = [];
 
@@ -89,7 +89,7 @@ export class CatalogBrowserScreen extends Screen {
   private async loadContentPacks(): Promise<void> {
     try {
       const response = await this.props.container.catalogApiService.getContentPacks();
-      this.contentPacks = response.content_packs;
+      this.contentPacks = response.packs;
       this.renderSidebar();
     } catch (error) {
       console.error('Failed to load content packs:', error);
@@ -100,27 +100,28 @@ export class CatalogBrowserScreen extends Screen {
     try {
       const { catalogApiService } = this.props.container;
 
+      // Backend returns arrays directly, not wrapped
       switch (category) {
         case 'spells':
-          this.allItems = (await catalogApiService.getSpells()).spells;
+          this.allItems = await catalogApiService.getSpells();
           break;
         case 'items':
-          this.allItems = (await catalogApiService.getItems()).items;
+          this.allItems = await catalogApiService.getItems();
           break;
         case 'monsters':
-          this.allItems = (await catalogApiService.getMonsters()).monsters;
+          this.allItems = await catalogApiService.getMonsters();
           break;
         case 'races':
-          this.allItems = (await catalogApiService.getRaces()).races;
+          this.allItems = await catalogApiService.getRaces();
           break;
         case 'classes':
-          this.allItems = (await catalogApiService.getClasses()).classes;
+          this.allItems = await catalogApiService.getClasses();
           break;
         case 'backgrounds':
-          this.allItems = (await catalogApiService.getBackgrounds()).backgrounds;
+          this.allItems = await catalogApiService.getBackgrounds();
           break;
         case 'feats':
-          this.allItems = (await catalogApiService.getFeats()).feats;
+          this.allItems = await catalogApiService.getFeats();
           break;
       }
 
@@ -140,7 +141,7 @@ export class CatalogBrowserScreen extends Screen {
       this.allItems,
       this.selectedPacks,
       this.searchQuery,
-      ['name', 'description']
+      ['name', 'index', 'content_pack']
     );
   }
 
@@ -174,8 +175,8 @@ export class CatalogBrowserScreen extends Screen {
     }
 
     this.itemList = new CatalogItemList({
-      items: this.filteredItems,
-      selectedItemId: this.selectedItem?.id || null,
+      items: this.filteredItems as Array<CatalogItem & { index: string }>,
+      selectedItemId: (this.selectedItem as any)?.index || null,
       onItemSelect: (item) => this.handleItemSelect(item),
       renderItemCard: (item, isSelected) => this.renderItemCard(item, isSelected),
       searchPlaceholder: `Search ${this.selectedCategory}...`,

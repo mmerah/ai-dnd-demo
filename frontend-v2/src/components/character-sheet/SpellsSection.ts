@@ -6,10 +6,10 @@
 
 import { Component } from '../base/Component.js';
 import { div } from '../../utils/dom.js';
-import type { Character, SpellSlot } from '../../types/generated/GameState.js';
+import type { CharacterInstance, SpellSlot } from '../../types/generated/GameState.js';
 
 export interface SpellsSectionProps {
-  character: Character;
+  character: CharacterInstance;
 }
 
 /**
@@ -26,8 +26,20 @@ export class SpellsSection extends Component<SpellsSectionProps> {
     const header = div({ class: 'spells-section__header' }, 'Spellcasting');
     container.appendChild(header);
 
+    const spellcasting = this.props.character.state.spellcasting;
+
+    // Check if character has spellcasting
+    if (!spellcasting) {
+      const noSpells = div(
+        { class: 'spells-section__empty' },
+        'This character does not have spellcasting abilities.'
+      );
+      container.appendChild(noSpells);
+      return container;
+    }
+
     // Spell slots
-    const spellSlots = Object.entries(this.props.character.spell_slots);
+    const spellSlots = Object.entries(spellcasting.spell_slots ?? {});
     if (spellSlots.length > 0) {
       const slotsHeader = div({ class: 'spells-section__subheader' }, 'Spell Slots');
       container.appendChild(slotsHeader);
@@ -36,13 +48,13 @@ export class SpellsSection extends Component<SpellsSectionProps> {
 
       // Sort by level
       spellSlots.sort((a, b) => {
-        const levelA = a[1].level;
-        const levelB = b[1].level;
+        const levelA = (a[1] as SpellSlot).level;
+        const levelB = (b[1] as SpellSlot).level;
         return levelA - levelB;
       });
 
       for (const [, slot] of spellSlots) {
-        const slotCard = this.renderSpellSlot(slot);
+        const slotCard = this.renderSpellSlot(slot as SpellSlot);
         slotsGrid.appendChild(slotCard);
       }
 
@@ -50,25 +62,17 @@ export class SpellsSection extends Component<SpellsSectionProps> {
     }
 
     // Known spells
-    if (this.props.character.known_spells.length > 0) {
+    const knownSpells = spellcasting.spells_known ?? [];
+    if (knownSpells.length > 0) {
       const spellsHeader = div({ class: 'spells-section__subheader' }, 'Known Spells');
       container.appendChild(spellsHeader);
 
       const spellsList = div({ class: 'known-spells-list' });
-      for (const spell of this.props.character.known_spells) {
+      for (const spell of knownSpells) {
         const spellItem = div({ class: 'spell-item' }, spell);
         spellsList.appendChild(spellItem);
       }
       container.appendChild(spellsList);
-    }
-
-    // No spells message
-    if (spellSlots.length === 0 && this.props.character.known_spells.length === 0) {
-      const noSpells = div(
-        { class: 'spells-section__empty' },
-        'This character does not have spellcasting abilities.'
-      );
-      container.appendChild(noSpells);
     }
 
     return container;
@@ -84,12 +88,13 @@ export class SpellsSection extends Component<SpellsSectionProps> {
     );
 
     // Slot usage
-    const available = slot.total - slot.used;
+    const available = slot.total - slot.current;
     const usageContainer = div({ class: 'spell-slot-card__usage' });
 
     // Visual slot indicators
     const slotsVisual = div({ class: 'spell-slot-card__slots' });
-    for (let i = 0; i < slot.total; i++) {
+    const total = slot.total;
+    for (let i = 0; i < total; i++) {
       const slotDot = div({
         class: `spell-slot-dot ${i < available ? 'spell-slot-dot--available' : 'spell-slot-dot--used'}`,
       });
@@ -99,7 +104,7 @@ export class SpellsSection extends Component<SpellsSectionProps> {
     // Text indicator
     const usageText = div(
       { class: 'spell-slot-card__text' },
-      `${available} / ${slot.total}`
+      `${available} / ${total}`
     );
 
     usageContainer.appendChild(slotsVisual);

@@ -6,10 +6,10 @@
 
 import { Component } from '../base/Component.js';
 import { div } from '../../utils/dom.js';
-import type { Character } from '../../types/generated/GameState.js';
+import type { CharacterInstance } from '../../types/generated/GameState.js';
 
 export interface FeaturesSectionProps {
-  character: Character;
+  character: CharacterInstance;
 }
 
 /**
@@ -33,24 +33,27 @@ export class FeaturesSection extends Component<FeaturesSectionProps> {
     const header = div({ class: 'features-section__header' }, 'Features & Traits');
     container.appendChild(header);
 
-    // Proficiency bonus
+    // Proficiency bonus - calculate from level
+    const level = this.props.character.state.level ?? 1;
+    const proficiencyBonus = Math.ceil(level / 4) + 1;
     const proficiencyRow = div({ class: 'feature-row' });
     const profLabel = div({ class: 'feature-row__label' }, 'Proficiency Bonus');
     const profValue = div(
       { class: 'feature-row__value' },
-      formatModifier(this.props.character.proficiency_bonus)
+      formatModifier(proficiencyBonus)
     );
     proficiencyRow.appendChild(profLabel);
     proficiencyRow.appendChild(profValue);
     container.appendChild(proficiencyRow);
 
     // Active conditions
-    if (this.props.character.conditions.length > 0) {
+    const conditions = this.props.character.state.conditions ?? [];
+    if (conditions.length > 0) {
       const conditionsHeader = div({ class: 'features-section__subheader' }, 'Active Conditions');
       container.appendChild(conditionsHeader);
 
       const conditionsList = div({ class: 'conditions-list' });
-      for (const condition of this.props.character.conditions) {
+      for (const condition of conditions) {
         const conditionBadge = div(
           { class: 'condition-badge' },
           condition

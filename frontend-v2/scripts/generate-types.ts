@@ -40,15 +40,16 @@ async function fetchSchemas(): Promise<SchemaMap> {
 
 async function generateTypeFile(name: string, schema: unknown): Promise<string> {
     const ts = await compile(schema as any, name, {
-        bannerComment: `/* AUTO-GENERATED FROM BACKEND - DO NOT EDIT */\n/* Generated on ${new Date().toISOString()} */`,
+        bannerComment: '/* AUTO-GENERATED FROM BACKEND - DO NOT EDIT */',
         style: {
             semi: true,
             singleQuote: true,
             tabWidth: 2
         },
-        strictIndexSignatures: true,
+        strictIndexSignatures: false, // Allow clean property access without brackets
         unknownAny: false,
-        format: true
+        format: true,
+        additionalProperties: false // Don't add index signatures
     });
 
     return ts;
@@ -74,15 +75,19 @@ async function generateAllTypes() {
             const filepath = join(OUTPUT_DIR, filename);
 
             writeFileSync(filepath, ts);
-            exports.push(`export * from './${name}.js';`);
+
+            // Only export GameState from index, as it contains all other types inline
+            // This avoids duplicate type definitions
+            if (name === 'GameState') {
+                exports.push(`export * from './${name}.js';`);
+            }
 
             console.log(`    ✓ Written to ${filename}`);
         }
 
-        // Generate index.ts that re-exports all types
+        // Generate index.ts that re-exports only GameState (which contains all types)
         const indexContent = [
             '/* AUTO-GENERATED FROM BACKEND - DO NOT EDIT */',
-            `/* Generated on ${new Date().toISOString()} */`,
             '',
             ...exports
         ].join('\n');

@@ -3,14 +3,16 @@
  *
  * Renders an individual chat message with role-based styling.
  * Supports user messages, assistant messages, and system messages.
+ * Renders markdown formatting in message content.
  */
 
 import { Component } from '../base/Component.js';
 import { createElement } from '../../utils/dom.js';
-import { ConversationEntry } from '../../types/generated/GameState.js';
+import { setMarkdownContent } from '../../utils/markdown.js';
+import type { Message } from '../../types/generated/GameState.js';
 
 export interface ChatMessageProps {
-  message: ConversationEntry;
+  message: Message;
 }
 
 export class ChatMessage extends Component<ChatMessageProps> {
@@ -20,7 +22,7 @@ export class ChatMessage extends Component<ChatMessageProps> {
     const messageDiv = createElement('div', {
       class: `chat-message chat-message--${message.role}`,
       'data-role': message.role,
-      'data-timestamp': message.timestamp,
+      'data-timestamp': message.timestamp ?? '',
     });
 
     // Role label
@@ -29,17 +31,17 @@ export class ChatMessage extends Component<ChatMessageProps> {
     });
     roleLabel.textContent = this.getRoleLabel(message.role);
 
-    // Message content
+    // Message content (with markdown rendering)
     const content = createElement('div', {
       class: 'chat-message__content',
     });
-    content.textContent = message.content;
+    setMarkdownContent(content, message.content);
 
     // Timestamp
     const timestamp = createElement('div', {
       class: 'chat-message__timestamp',
     });
-    timestamp.textContent = this.formatTimestamp(message.timestamp);
+    timestamp.textContent = this.formatTimestamp(message.timestamp ?? '');
 
     messageDiv.appendChild(roleLabel);
     messageDiv.appendChild(content);

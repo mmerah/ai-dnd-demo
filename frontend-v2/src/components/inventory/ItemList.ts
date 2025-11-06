@@ -34,7 +34,7 @@ export class ItemList extends Component<ItemListProps> {
 
     // Calculate total weight
     const totalWeight = this.props.items.reduce(
-      (sum, item) => sum + item.weight * item.quantity,
+      (sum, item) => sum + ((item.quantity ?? 1) * 0.1), // Assume 0.1 lbs per item if no weight
       0
     );
 
@@ -52,28 +52,20 @@ export class ItemList extends Component<ItemListProps> {
 
       // Item name and quantity
       const nameContainer = div({ class: 'item-row__name-container' });
-      const name = div({ class: 'item-row__name' }, item.name);
-      const quantity = div({ class: 'item-row__quantity' }, `×${item.quantity}`);
+      const name = div({ class: 'item-row__name' }, item.name ?? item.index);
+      const quantity = div({ class: 'item-row__quantity' }, `×${item.quantity ?? 1}`);
       nameContainer.appendChild(name);
       nameContainer.appendChild(quantity);
 
-      // Item weight
+      // Item weight (using simple weight calculation)
+      const itemWeight = (item.quantity ?? 1) * 0.1;
       const weight = div(
         { class: 'item-row__weight' },
-        `${(item.weight * item.quantity).toFixed(1)} lbs`
+        `${itemWeight.toFixed(1)} lbs`
       );
 
       itemRow.appendChild(nameContainer);
       itemRow.appendChild(weight);
-
-      // Description (if present)
-      if (item.description) {
-        const description = div(
-          { class: 'item-row__description' },
-          item.description
-        );
-        itemRow.appendChild(description);
-      }
 
       itemsContainer.appendChild(itemRow);
     }

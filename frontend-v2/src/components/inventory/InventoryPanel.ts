@@ -30,7 +30,7 @@ export class InventoryPanel extends Component<InventoryPanelProps> {
   override onMount(): void {
     // Subscribe to game state changes
     this.subscribe(
-      this.props.stateStore['gameState'],
+      this.props.stateStore.gameState$,
       () => {
         this.handleStateChange();
       }
@@ -92,11 +92,13 @@ export class InventoryPanel extends Component<InventoryPanelProps> {
     this.currencyDisplay.mount(content);
 
     // Equipment section
-    this.equipmentSlots = new EquipmentSlots({ equipment: gameState.player.equipment });
+    const equipment = gameState.character.state.equipment_slots;
+    this.equipmentSlots = new EquipmentSlots({ equipment: equipment ?? {} });
     this.equipmentSlots.mount(content);
 
     // Items section
-    this.itemList = new ItemList({ items: gameState.player.inventory });
+    const inventory = gameState.character.state.inventory ?? [];
+    this.itemList = new ItemList({ items: inventory });
     this.itemList.mount(content);
   }
 

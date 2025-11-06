@@ -8,7 +8,6 @@
 import { Component } from '../base/Component.js';
 import { createElement, div, clearElement } from '../../utils/dom.js';
 import { StateStore } from '../../services/state/StateStore.js';
-import { Location } from '../../types/generated/GameState.js';
 
 export interface LocationPanelProps {
   stateStore: StateStore;
@@ -69,10 +68,13 @@ export class LocationPanel extends Component<LocationPanelProps> {
   override onMount(): void {
     // Subscribe to game state changes
     this.subscribeImmediate(
-      this.props.stateStore['gameState'],
+      this.props.stateStore.gameState$,
       (gameState) => {
         if (gameState) {
-          this.updateLocation(gameState.location);
+          // Location is just a string (ID) in the backend, description is separate
+          const locationId = gameState.location?? 'Unknown';
+          const description = gameState.description ?? '';
+          this.updateLocation(locationId, description);
         } else {
           this.clearLocation();
         }
@@ -80,68 +82,34 @@ export class LocationPanel extends Component<LocationPanelProps> {
     );
   }
 
-  private updateLocation(location: Location): void {
+  private updateLocation(locationId: string, description: string): void {
     if (!this.element) return;
 
     // Update location name
     const nameEl = this.element.querySelector('#location-name');
     if (nameEl) {
-      nameEl.textContent = location.name;
+      nameEl.textContent = locationId;
     }
 
     // Update description
     if (this.descriptionEl) {
-      this.descriptionEl.textContent = location.description;
+      this.descriptionEl.textContent = description;
     }
 
-    // Update exits
+    // Update exits - placeholder for now as we don't have exit data in gameState
     if (this.exitsEl) {
       clearElement(this.exitsEl);
-
-      if (Object.keys(location.exits).length === 0) {
-        const noExits = div({ class: 'location-panel__empty' });
-        noExits.textContent = 'No visible exits';
-        this.exitsEl.appendChild(noExits);
-      } else {
-        const exitList = createElement('ul', { class: 'location-panel__exit-list' });
-
-        Object.entries(location.exits).forEach(([direction, destination]) => {
-          const exitItem = createElement('li', { class: 'location-panel__exit-item' });
-          const directionSpan = createElement('span', { class: 'location-panel__exit-direction' });
-          directionSpan.textContent = direction;
-          const destinationSpan = createElement('span', { class: 'location-panel__exit-destination' });
-          destinationSpan.textContent = destination;
-
-          exitItem.appendChild(directionSpan);
-          exitItem.appendChild(document.createTextNode(' → '));
-          exitItem.appendChild(destinationSpan);
-
-          exitList.appendChild(exitItem);
-        });
-
-        this.exitsEl.appendChild(exitList);
-      }
+      const noExits = div({ class: 'location-panel__empty' });
+      noExits.textContent = 'Exit information not available';
+      this.exitsEl.appendChild(noExits);
     }
 
-    // Update NPCs
+    // Update NPCs - placeholder for now
     if (this.npcsEl) {
       clearElement(this.npcsEl);
-
-      if (location.npcs_present.length === 0) {
-        const noNpcs = div({ class: 'location-panel__empty' });
-        noNpcs.textContent = 'No NPCs present';
-        this.npcsEl.appendChild(noNpcs);
-      } else {
-        const npcList = createElement('ul', { class: 'location-panel__npc-list' });
-
-        location.npcs_present.forEach(npcId => {
-          const npcItem = createElement('li', { class: 'location-panel__npc-item' });
-          npcItem.textContent = npcId; // TODO: Look up NPC name from ID
-          npcList.appendChild(npcItem);
-        });
-
-        this.npcsEl.appendChild(npcList);
-      }
+      const noNpcs = div({ class: 'location-panel__empty' });
+      noNpcs.textContent = 'NPC information not available';
+      this.npcsEl.appendChild(noNpcs);
     }
   }
 

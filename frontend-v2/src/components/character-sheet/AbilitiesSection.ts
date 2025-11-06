@@ -6,10 +6,10 @@
 
 import { Component } from '../base/Component.js';
 import { div } from '../../utils/dom.js';
-import type { Character } from '../../types/generated/GameState.js';
+import type { CharacterInstance } from '../../types/generated/GameState.js';
 
 export interface AbilitiesSectionProps {
-  character: Character;
+  character: CharacterInstance;
 }
 
 /**
@@ -37,22 +37,22 @@ export class AbilitiesSection extends Component<AbilitiesSectionProps> {
   protected render(): HTMLElement {
     const container = div({ class: 'abilities-section' });
 
-    const abilities: Array<{ key: keyof Character['abilities']; label: string }> = [
-      { key: 'strength', label: 'STR' },
-      { key: 'dexterity', label: 'DEX' },
-      { key: 'constitution', label: 'CON' },
-      { key: 'intelligence', label: 'INT' },
-      { key: 'wisdom', label: 'WIS' },
-      { key: 'charisma', label: 'CHA' },
+    const abilities: Array<{ key: 'STR' | 'DEX' | 'CON' | 'INT' | 'WIS' | 'CHA'; label: string }> = [
+      { key: 'STR', label: 'STR' },
+      { key: 'DEX', label: 'DEX' },
+      { key: 'CON', label: 'CON' },
+      { key: 'INT', label: 'INT' },
+      { key: 'WIS', label: 'WIS' },
+      { key: 'CHA', label: 'CHA' },
     ];
 
     const grid = div({ class: 'abilities-grid' });
 
     for (const ability of abilities) {
-      const score = this.props.character.abilities[ability.key];
+      const score = this.props.character.state.abilities[ability.key];
       const modifier = calculateModifier(score);
       const savingThrowKey = ability.key;
-      const savingThrow = this.props.character.saving_throws[savingThrowKey] ?? modifier;
+      const savingThrow = this.props.character.state.saving_throws?.[savingThrowKey] ?? modifier;
       const isProficient = savingThrow !== modifier;
 
       const abilityCard = div({ class: 'ability-card' });

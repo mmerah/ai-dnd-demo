@@ -7,7 +7,17 @@
 
 import { Component } from '../base/Component.js';
 import { createElement, div, span } from '../../utils/dom.js';
-import { PartyMember } from '../../types/generated/GameState.js';
+
+interface PartyMember {
+  id: string;
+  name: string;
+  role: string;
+  hp: number;
+  max_hp: number;
+  ac: number | undefined;
+  level: number | undefined;
+  class_name: string;
+}
 
 export interface PartyMemberCardProps {
   member: PartyMember;
@@ -45,8 +55,8 @@ export class PartyMemberCard extends Component<PartyMemberCardProps> {
 
     // Other stats
     const otherStats = div({ class: 'party-member-card__stat-grid' });
-    otherStats.appendChild(this.createStatItem('AC', member.ac.toString()));
-    otherStats.appendChild(this.createStatItem('Level', member.level.toString()));
+    otherStats.appendChild(this.createStatItem('AC', (member.ac ?? 10).toString()));
+    otherStats.appendChild(this.createStatItem('Level', (member.level ?? 1).toString()));
     otherStats.appendChild(this.createStatItem('Class', member.class_name));
 
     stats.appendChild(hpBar);

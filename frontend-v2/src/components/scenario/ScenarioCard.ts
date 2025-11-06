@@ -6,10 +6,10 @@
 
 import { Component } from '../base/Component.js';
 import { div } from '../../utils/dom.js';
-import type { Scenario } from '../../services/api/CatalogApiService.js';
+import type { ScenarioSheet } from '../../types/generated/ScenarioSheet.js';
 
 export interface ScenarioCardProps {
-  scenario: Scenario;
+  scenario: ScenarioSheet;
   isSelected: boolean;
   onSelect: (scenarioId: string) => void;
 }
@@ -31,24 +31,11 @@ export class ScenarioCard extends Component<ScenarioCardProps> {
     });
 
     // Scenario title
-    const title = div({ class: 'scenario-card__title' }, scenario.name);
+    const title = div({ class: 'scenario-card__title' }, scenario.title);
 
     // Scenario description preview
     const description = div({ class: 'scenario-card__description' });
     description.textContent = this.truncateDescription(scenario.description);
-
-    // Difficulty badge (if available)
-    if (scenario.difficulty) {
-      const difficulty = div({ class: 'scenario-card__difficulty' });
-      const badge = div(
-        {
-          class: `scenario-card__difficulty-badge scenario-card__difficulty-badge--${scenario.difficulty.toLowerCase()}`,
-        },
-        scenario.difficulty
-      );
-      difficulty.appendChild(badge);
-      card.appendChild(difficulty);
-    }
 
     // Selection indicator
     if (isSelected) {
@@ -70,7 +57,11 @@ export class ScenarioCard extends Component<ScenarioCardProps> {
   }
 
   private handleSelect(): void {
-    this.props.onSelect(this.props.scenario.id);
+    // Backend always returns scenarios with ids, but type marks it optional
+    const scenarioId = this.props.scenario.id;
+    if (scenarioId) {
+      this.props.onSelect(scenarioId);
+    }
   }
 
   private truncateDescription(description: string, maxLength: number = 120): string {

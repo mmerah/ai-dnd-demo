@@ -116,6 +116,21 @@ export class ApiService {
   }
 
   /**
+   * PATCH request
+   */
+  async patch<TResponse, TBody = unknown>(
+    endpoint: string,
+    body?: TBody,
+    config?: RequestConfig
+  ): Promise<TResponse> {
+    return this.request<TResponse>(endpoint, {
+      ...config,
+      method: 'PATCH',
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
+  /**
    * DELETE request
    */
   async delete<TResponse>(

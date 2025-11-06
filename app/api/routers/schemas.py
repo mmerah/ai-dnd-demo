@@ -7,19 +7,55 @@ from app.models.ai_response import (
     CompleteResponse,
     ErrorResponse,
 )
+from app.models.alignment import Alignment
+from app.models.background import BackgroundDefinition
 from app.models.character import CharacterSheet
+from app.models.class_definitions import ClassDefinition, SubclassDefinition
 from app.models.combat import CombatState, CombatParticipant
+from app.models.condition import Condition
 from app.models.damage_type import DamageType
+from app.models.feat import FeatDefinition
+from app.models.feature import FeatureDefinition
 from app.models.game_state import GameState
 from app.models.instances.character_instance import CharacterInstance
 from app.models.instances.monster_instance import MonsterInstance
 from app.models.instances.scenario_instance import ScenarioInstance
+from app.models.item import ItemDefinition
+from app.models.language import Language
 from app.models.location import LocationState
+from app.models.magic_school import MagicSchool
 from app.models.memory import MemoryEntry
+from app.models.monster import MonsterSheet
 from app.models.npc import NPCSheet
 from app.models.party import PartyState
+from app.models.race import RaceDefinition, SubraceDefinition
+from app.models.scenario import ScenarioSheet
+from app.models.skill import Skill
 from app.models.spell import SpellDefinition
 from app.models.tool_suggestion import ToolSuggestion
+from app.models.trait import TraitDefinition
+from app.models.weapon_property import WeaponProperty
+from app.models.content_pack import ContentPackSummary
+from app.api.schemas.content_packs import ContentPackListResponse
+from app.models.requests import (
+    NewGameRequest,
+    NewGameResponse,
+    ResumeGameResponse,
+    RemoveGameResponse,
+    PlayerActionRequest,
+    EquipItemRequest,
+    EquipItemResponse,
+    AcceptCombatSuggestionRequest,
+    AcceptCombatSuggestionResponse,
+    CreateJournalEntryRequest,
+    CreateJournalEntryResponse,
+    UpdateJournalEntryRequest,
+    UpdateJournalEntryResponse,
+    DeleteJournalEntryResponse,
+    ResolveNamesRequest,
+    ResolveNamesResponse,
+)
+from app.models.player_journal import PlayerJournalEntry
 
 router = APIRouter()
 
@@ -38,6 +74,7 @@ async def get_schemas() -> dict[str, dict]:
         # Core game models
         "GameState": GameState.model_json_schema(),
         "CharacterSheet": CharacterSheet.model_json_schema(),
+        "ScenarioSheet": ScenarioSheet.model_json_schema(),
         "CombatState": CombatState.model_json_schema(),
         "CombatParticipant": CombatParticipant.model_json_schema(),
         "LocationState": LocationState.model_json_schema(),
@@ -54,7 +91,43 @@ async def get_schemas() -> dict[str, dict]:
         "ErrorResponse": ErrorResponse.model_json_schema(),
         # Tool models
         "ToolSuggestion": ToolSuggestion.model_json_schema(),
-        # Data models
+        # Catalog/Reference data models
         "SpellDefinition": SpellDefinition.model_json_schema(),
+        "ItemDefinition": ItemDefinition.model_json_schema(),
+        "MonsterSheet": MonsterSheet.model_json_schema(),
+        "RaceDefinition": RaceDefinition.model_json_schema(),
+        "SubraceDefinition": SubraceDefinition.model_json_schema(),
+        "ClassDefinition": ClassDefinition.model_json_schema(),
+        "SubclassDefinition": SubclassDefinition.model_json_schema(),
+        "BackgroundDefinition": BackgroundDefinition.model_json_schema(),
+        "FeatDefinition": FeatDefinition.model_json_schema(),
+        "FeatureDefinition": FeatureDefinition.model_json_schema(),
+        "TraitDefinition": TraitDefinition.model_json_schema(),
+        "Skill": Skill.model_json_schema(),
+        "Condition": Condition.model_json_schema(),
+        "Language": Language.model_json_schema(),
         "DamageType": DamageType.model_json_schema(),
+        "MagicSchool": MagicSchool.model_json_schema(),
+        "WeaponProperty": WeaponProperty.model_json_schema(),
+        "Alignment": Alignment.model_json_schema(),
+        # API Request/Response models
+        "NewGameRequest": NewGameRequest.model_json_schema(),
+        "NewGameResponse": NewGameResponse.model_json_schema(),
+        "ResumeGameResponse": ResumeGameResponse.model_json_schema(),
+        "RemoveGameResponse": RemoveGameResponse.model_json_schema(),
+        "PlayerActionRequest": PlayerActionRequest.model_json_schema(),
+        "EquipItemRequest": EquipItemRequest.model_json_schema(),
+        "EquipItemResponse": EquipItemResponse.model_json_schema(),
+        "AcceptCombatSuggestionRequest": AcceptCombatSuggestionRequest.model_json_schema(),
+        "AcceptCombatSuggestionResponse": AcceptCombatSuggestionResponse.model_json_schema(),
+        "CreateJournalEntryRequest": CreateJournalEntryRequest.model_json_schema(),
+        "CreateJournalEntryResponse": CreateJournalEntryResponse.model_json_schema(),
+        "UpdateJournalEntryRequest": UpdateJournalEntryRequest.model_json_schema(),
+        "UpdateJournalEntryResponse": UpdateJournalEntryResponse.model_json_schema(),
+        "DeleteJournalEntryResponse": DeleteJournalEntryResponse.model_json_schema(),
+        "ResolveNamesRequest": ResolveNamesRequest.model_json_schema(),
+        "ResolveNamesResponse": ResolveNamesResponse.model_json_schema(),
+        "PlayerJournalEntry": PlayerJournalEntry.model_json_schema(),
+        "ContentPackSummary": ContentPackSummary.model_json_schema(),
+        "ContentPackListResponse": ContentPackListResponse.model_json_schema(),
     }

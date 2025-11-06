@@ -2,34 +2,15 @@
  * Game-specific API service
  *
  * Handles all game-related API calls with type-safe interfaces.
+ * All types are auto-generated from backend Pydantic models.
  */
 
 import { ApiService } from './ApiService.js';
-import { GameState } from '../../types/generated/GameState.js';
-
-export interface CreateGameRequest {
-  scenario_id: string;
-  character_id: string;
-}
-
-export interface CreateGameResponse {
-  game_id: string;
-  game_state: GameState;
-}
-
-export interface SendActionRequest {
-  action: string;
-}
-
-export interface GameListResponse {
-  saves: Array<{
-    game_id: string;
-    scenario_name: string;
-    character_name: string;
-    last_saved: string;
-    created_at: string;
-  }>;
-}
+import type { GameState } from '../../types/generated/GameState.js';
+import type { NewGameRequest } from '../../types/generated/NewGameRequest.js';
+import type { NewGameResponse } from '../../types/generated/NewGameResponse.js';
+import type { PlayerActionRequest } from '../../types/generated/PlayerActionRequest.js';
+import type { RemoveGameResponse } from '../../types/generated/RemoveGameResponse.js';
 
 /**
  * Service for game-related API operations
@@ -43,11 +24,12 @@ export class GameApiService {
   async createGame(
     scenarioId: string,
     characterId: string
-  ): Promise<CreateGameResponse> {
-    return this.api.post<CreateGameResponse, CreateGameRequest>('/api/game/new', {
+  ): Promise<NewGameResponse> {
+    const request: NewGameRequest = {
       scenario_id: scenarioId,
       character_id: characterId,
-    });
+    };
+    return this.api.post<NewGameResponse, NewGameRequest>('/api/game/new', request);
   }
 
   /**
@@ -60,25 +42,27 @@ export class GameApiService {
   /**
    * Send a player action
    */
-  async sendAction(gameId: string, action: string): Promise<void> {
-    return this.api.post<void, SendActionRequest>(
+  async sendAction(gameId: string, message: string): Promise<void> {
+    const request: PlayerActionRequest = { message };
+    return this.api.post<void, PlayerActionRequest>(
       `/api/game/${gameId}/action`,
-      { action }
+      request
     );
   }
 
   /**
    * List all saved games
+   * Backend returns array of GameState directly
    */
-  async listGames(): Promise<GameListResponse> {
-    return this.api.get<GameListResponse>('/api/game/list');
+  async listGames(): Promise<Array<GameState>> {
+    return this.api.get<Array<GameState>>('/api/games');
   }
 
   /**
    * Delete a saved game
    */
-  async deleteGame(gameId: string): Promise<void> {
-    return this.api.delete<void>(`/api/game/${gameId}`);
+  async deleteGame(gameId: string): Promise<RemoveGameResponse> {
+    return this.api.delete<RemoveGameResponse>(`/api/game/${gameId}`);
   }
 
   /**
