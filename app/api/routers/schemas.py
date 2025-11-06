@@ -11,7 +11,7 @@ from app.models.alignment import Alignment
 from app.models.background import BackgroundDefinition
 from app.models.character import CharacterSheet
 from app.models.class_definitions import ClassDefinition, SubclassDefinition
-from app.models.combat import CombatState, CombatParticipant
+from app.models.combat import CombatState, CombatParticipant, CombatSuggestion
 from app.models.condition import Condition
 from app.models.damage_type import DamageType
 from app.models.feat import FeatDefinition
@@ -77,6 +77,7 @@ async def get_schemas() -> dict[str, dict]:
         "ScenarioSheet": ScenarioSheet.model_json_schema(),
         "CombatState": CombatState.model_json_schema(),
         "CombatParticipant": CombatParticipant.model_json_schema(),
+        "CombatSuggestion": CombatSuggestion.model_json_schema(),
         "LocationState": LocationState.model_json_schema(),
         "PartyState": PartyState.model_json_schema(),
         "NPCSheet": NPCSheet.model_json_schema(),

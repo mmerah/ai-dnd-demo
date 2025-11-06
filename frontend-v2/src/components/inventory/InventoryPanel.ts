@@ -2,6 +2,7 @@
  * InventoryPanel Component
  *
  * Main panel for inventory display with currency, equipment, and items.
+ * Displays the selected party member's inventory (player character or NPC).
  */
 
 import { Component } from '../base/Component.js';
@@ -10,6 +11,7 @@ import { StateStore } from '../../services/state/StateStore.js';
 import { CurrencyDisplay } from './CurrencyDisplay.js';
 import { EquipmentSlots } from './EquipmentSlots.js';
 import { ItemList } from './ItemList.js';
+import type { CharacterInstance, NPCInstance, GameState } from '../../types/generated/GameState.js';
 
 export interface InventoryPanelProps {
   stateStore: StateStore;
@@ -36,6 +38,14 @@ export class InventoryPanel extends Component<InventoryPanelProps> {
       }
     );
 
+    // Subscribe to selected member changes
+    this.subscribe(
+      this.props.stateStore.selectedMemberId$,
+      () => {
+        this.handleStateChange();
+      }
+    );
+
     // Initial render
     this.handleStateChange();
   }
@@ -52,6 +62,28 @@ export class InventoryPanel extends Component<InventoryPanelProps> {
     container.appendChild(content);
 
     return container;
+  }
+
+  /**
+   * Get the currently selected member (player character or NPC)
+   */
+  private getSelectedMember(gameState: GameState): CharacterInstance | NPCInstance | null {
+    const selectedId = this.props.stateStore.getSelectedMemberId();
+
+    // Check if it's the player character
+    if (gameState.character.instance_id === selectedId) {
+      return gameState.character;
+    }
+
+    // Check if it's an NPC party member
+    const npcs = gameState.npcs ?? [];
+    const npc = npcs.find(n => n.instance_id === selectedId);
+    if (npc) {
+      return npc;
+    }
+
+    // Default to player character if nothing selected or invalid ID
+    return gameState.character;
   }
 
   private renderHeader(): HTMLElement {
@@ -76,6 +108,11 @@ export class InventoryPanel extends Component<InventoryPanelProps> {
       return;
     }
 
+    const member = this.getSelectedMember(gameState);
+    if (!member) {
+      return;
+    }
+
     // Get or create content container
     let content = this.element.querySelector('.inventory-panel__content') as HTMLElement;
     if (!content) {
@@ -87,17 +124,24 @@ export class InventoryPanel extends Component<InventoryPanelProps> {
     this.unmountSections();
     content.innerHTML = '';
 
-    // Currency section (placeholder for now)
-    this.currencyDisplay = new CurrencyDisplay({});
+    // Currency section - pass actual currency data from selected member's state
+    const currency = member.state.currency;
+    this.currencyDisplay = new CurrencyDisplay({
+      copper: currency?.copper,
+      silver: currency?.silver,
+      electrum: currency?.electrum,
+      gold: currency?.gold,
+      platinum: currency?.platinum,
+    });
     this.currencyDisplay.mount(content);
 
     // Equipment section
-    const equipment = gameState.character.state.equipment_slots;
+    const equipment = member.state.equipment_slots;
     this.equipmentSlots = new EquipmentSlots({ equipment: equipment ?? {} });
     this.equipmentSlots.mount(content);
 
     // Items section
-    const inventory = gameState.character.state.inventory ?? [];
+    const inventory = member.state.inventory ?? [];
     this.itemList = new ItemList({ items: inventory });
     this.itemList.mount(content);
   }

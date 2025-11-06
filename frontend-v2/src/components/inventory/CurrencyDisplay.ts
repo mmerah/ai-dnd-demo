@@ -38,34 +38,24 @@ export class CurrencyDisplay extends Component<CurrencyDisplayProps> {
       { key: 'copper' as const, label: 'Copper', abbr: 'cp', value: this.props.copper ?? 0 },
     ];
 
-    const hasCurrency = currencies.some(c => c.value > 0);
+    const grid = div({ class: 'currency-grid' });
 
-    if (hasCurrency) {
-      const grid = div({ class: 'currency-grid' });
+    for (const currency of currencies) {
+      const currencyItem = div({ class: 'currency-item' });
 
-      for (const currency of currencies) {
-        const currencyItem = div({ class: 'currency-item' });
-
-        const label = div({ class: 'currency-item__label' }, currency.abbr);
-        const value = div(
-          { class: 'currency-item__value' },
-          currency.value.toLocaleString()
-        );
-
-        currencyItem.appendChild(label);
-        currencyItem.appendChild(value);
-
-        grid.appendChild(currencyItem);
-      }
-
-      container.appendChild(grid);
-    } else {
-      const placeholder = div(
-        { class: 'currency-display__empty' },
-        'No currency to display. Currency tracking will be available when added to the backend.'
+      const label = div({ class: 'currency-item__label' }, currency.abbr);
+      const value = div(
+        { class: 'currency-item__value' },
+        currency.value.toLocaleString()
       );
-      container.appendChild(placeholder);
+
+      currencyItem.appendChild(label);
+      currencyItem.appendChild(value);
+
+      grid.appendChild(currencyItem);
     }
+
+    container.appendChild(grid);
 
     return container;
   }

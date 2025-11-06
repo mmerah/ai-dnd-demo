@@ -12,6 +12,7 @@ import { ChatMessage } from './ChatMessage.js';
 import { ChatInput } from './ChatInput.js';
 import { LoadingIndicator } from './LoadingIndicator.js';
 import type { Message } from '../../types/generated/GameState.js';
+import { messageToDisplayMessage } from '../../types/chat.js';
 
 export interface ChatPanelProps {
   stateStore: StateStore;
@@ -120,7 +121,8 @@ export class ChatPanel extends Component<ChatPanelProps> {
 
     // Render each message
     messages.forEach((message, index) => {
-      const messageComp = new ChatMessage({ message });
+      const displayMessage = messageToDisplayMessage(message);
+      const messageComp = new ChatMessage({ message: displayMessage });
       messageComp.mount(this.messagesContainer!);
       this.messageComponents.set(`${index}-${message.timestamp}`, messageComp);
     });

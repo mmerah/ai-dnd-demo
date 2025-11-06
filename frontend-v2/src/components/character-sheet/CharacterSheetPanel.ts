@@ -2,6 +2,7 @@
  * CharacterSheetPanel Component
  *
  * Main panel for character sheet display with all sections.
+ * Displays the selected party member (player character or NPC).
  */
 
 import { Component } from '../base/Component.js';
@@ -11,6 +12,7 @@ import { AbilitiesSection } from './AbilitiesSection.js';
 import { SkillsSection } from './SkillsSection.js';
 import { FeaturesSection } from './FeaturesSection.js';
 import { SpellsSection } from './SpellsSection.js';
+import type { CharacterInstance, NPCInstance, GameState } from '../../types/generated/GameState.js';
 
 export interface CharacterSheetPanelProps {
   stateStore: StateStore;
@@ -38,6 +40,14 @@ export class CharacterSheetPanel extends Component<CharacterSheetPanelProps> {
       }
     );
 
+    // Subscribe to selected member changes
+    this.subscribe(
+      this.props.stateStore.selectedMemberId$,
+      () => {
+        this.handleStateChange();
+      }
+    );
+
     // Initial render
     this.handleStateChange();
   }
@@ -56,30 +66,77 @@ export class CharacterSheetPanel extends Component<CharacterSheetPanelProps> {
     return container;
   }
 
+  /**
+   * Get the currently selected member (player character or NPC)
+   */
+  private getSelectedMember(gameState: GameState): CharacterInstance | NPCInstance | null {
+    const selectedId = this.props.stateStore.getSelectedMemberId();
+
+    // Check if it's the player character
+    if (gameState.character.instance_id === selectedId) {
+      return gameState.character;
+    }
+
+    // Check if it's an NPC party member
+    const npcs = gameState.npcs ?? [];
+    const npc = npcs.find(n => n.instance_id === selectedId);
+    if (npc) {
+      return npc;
+    }
+
+    // Default to player character if nothing selected or invalid ID
+    return gameState.character;
+  }
+
+  /**
+   * Check if a member is an NPC
+   */
+  private isNPC(member: CharacterInstance | NPCInstance): member is NPCInstance {
+    return 'scenario_npc_id' in member;
+  }
+
   private renderHeader(): HTMLElement {
     const gameState = this.props.stateStore.getGameState();
     const header = div({ class: 'character-sheet-panel__header' });
 
     if (gameState) {
-      const character = gameState.character;
+      const member = this.getSelectedMember(gameState);
+      if (member) {
+        // Character info
+        const info = div({ class: 'character-sheet-panel__info' });
 
-      // Character info
-      const info = div({ class: 'character-sheet-panel__info' });
-      const name = div({ class: 'character-sheet-panel__name' }, character.sheet.name);
-      const details = div(
-        { class: 'character-sheet-panel__details' },
-        `${character.sheet.race} ${character.sheet.class_index} • Level ${character.state.level ?? 1}`
-      );
-      const hp = div(
-        { class: 'character-sheet-panel__hp' },
-        `HP: ${character.state.hit_points.current}/${character.state.hit_points.maximum} • AC: ${character.state.armor_class ?? 10}`
-      );
+        let name: string;
+        let race: string;
+        let className: string;
 
-      info.appendChild(name);
-      info.appendChild(details);
-      info.appendChild(hp);
+        if (this.isNPC(member)) {
+          // NPC
+          name = member.sheet.display_name;
+          race = member.sheet.character?.race ?? 'NPC';
+          className = member.sheet.character?.class_index ?? member.sheet.role;
+        } else {
+          // Player Character
+          name = member.sheet.name;
+          race = member.sheet.race;
+          className = member.sheet.class_index;
+        }
 
-      header.appendChild(info);
+        const nameEl = div({ class: 'character-sheet-panel__name' }, name);
+        const details = div(
+          { class: 'character-sheet-panel__details' },
+          `${race} ${className} • Level ${member.state.level ?? 1}`
+        );
+        const hp = div(
+          { class: 'character-sheet-panel__hp' },
+          `HP: ${member.state.hit_points.current}/${member.state.hit_points.maximum} • AC: ${member.state.armor_class ?? 10}`
+        );
+
+        info.appendChild(nameEl);
+        info.appendChild(details);
+        info.appendChild(hp);
+
+        header.appendChild(info);
+      }
     }
 
     // Back button
@@ -95,6 +152,11 @@ export class CharacterSheetPanel extends Component<CharacterSheetPanelProps> {
   private handleStateChange(): void {
     const gameState = this.props.stateStore.getGameState();
     if (!gameState || !this.element) {
+      return;
+    }
+
+    const member = this.getSelectedMember(gameState);
+    if (!member) {
       return;
     }
 
@@ -116,17 +178,19 @@ export class CharacterSheetPanel extends Component<CharacterSheetPanelProps> {
     this.unmountSections();
     content.innerHTML = '';
 
-    // Render all sections
-    this.abilitiesSection = new AbilitiesSection({ character: gameState.character });
+    // Render all sections with the selected member
+    // Cast to CharacterInstance since sections expect this type
+    // (NPCs have the same structure via their embedded character sheet)
+    this.abilitiesSection = new AbilitiesSection({ character: member as CharacterInstance });
     this.abilitiesSection.mount(content);
 
-    this.skillsSection = new SkillsSection({ character: gameState.character });
+    this.skillsSection = new SkillsSection({ character: member as CharacterInstance });
     this.skillsSection.mount(content);
 
-    this.featuresSection = new FeaturesSection({ character: gameState.character });
+    this.featuresSection = new FeaturesSection({ character: member as CharacterInstance });
     this.featuresSection.mount(content);
 
-    this.spellsSection = new SpellsSection({ character: gameState.character });
+    this.spellsSection = new SpellsSection({ character: member as CharacterInstance });
     this.spellsSection.mount(content);
   }
 

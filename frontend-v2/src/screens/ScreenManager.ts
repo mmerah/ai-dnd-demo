@@ -80,6 +80,8 @@ export class ScreenManager {
     // Parse route and mount appropriate screen
     if (route === '/' || route === '') {
       this.mountGameListScreen();
+    } else if (route === '/catalogs') {
+      this.mountCatalogBrowserScreen(null);
     } else if (route === '/character-select') {
       this.mountCharacterSelectionScreen();
     } else if (route === '/scenario-select') {
@@ -136,6 +138,9 @@ export class ScreenManager {
       },
       onLoadGame: (gameId) => {
         this.navigateTo(`/game/${gameId}`);
+      },
+      onBrowseCatalogs: () => {
+        this.navigateTo('/catalogs');
       },
     });
 
@@ -195,6 +200,9 @@ export class ScreenManager {
     const screen = new GameInterfaceScreen({
       container: this.config.container,
       gameId,
+      onExitGame: () => {
+        this.navigateTo('/');
+      },
     });
 
     screen.mount(this.config.appContainer);
@@ -204,11 +212,15 @@ export class ScreenManager {
   /**
    * Mount catalog browser screen
    */
-  private mountCatalogBrowserScreen(gameId: string): void {
+  private mountCatalogBrowserScreen(gameId: string | null): void {
     const screen = new CatalogBrowserScreen({
       container: this.config.container,
       onBack: () => {
-        this.navigateTo(`/game/${gameId}`);
+        if (gameId) {
+          this.navigateTo(`/game/${gameId}`);
+        } else {
+          this.navigateTo('/');
+        }
       },
     });
 

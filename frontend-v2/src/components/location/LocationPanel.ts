@@ -71,10 +71,7 @@ export class LocationPanel extends Component<LocationPanelProps> {
       this.props.stateStore.gameState$,
       (gameState) => {
         if (gameState) {
-          // Location is just a string (ID) in the backend, description is separate
-          const locationId = gameState.location?? 'Unknown';
-          const description = gameState.description ?? '';
-          this.updateLocation(locationId, description);
+          this.updateLocation(gameState);
         } else {
           this.clearLocation();
         }
@@ -82,34 +79,93 @@ export class LocationPanel extends Component<LocationPanelProps> {
     );
   }
 
-  private updateLocation(locationId: string, description: string): void {
+  private updateLocation(gameState: any): void {
     if (!this.element) return;
+
+    // Get current location ID from scenario instance
+    const currentLocationId = gameState.scenario_instance?.current_location_id;
+
+    if (!currentLocationId) {
+      this.clearLocation();
+      return;
+    }
+
+    // Find location definition in scenario sheet
+    const locationDef = gameState.scenario_instance?.sheet?.locations?.find(
+      (loc: any) => loc.id === currentLocationId
+    );
 
     // Update location name
     const nameEl = this.element.querySelector('#location-name');
     if (nameEl) {
-      nameEl.textContent = locationId;
+      nameEl.textContent = locationDef?.name || currentLocationId;
     }
 
     // Update description
     if (this.descriptionEl) {
-      this.descriptionEl.textContent = description;
+      clearElement(this.descriptionEl);
+
+      if (locationDef?.description) {
+        this.descriptionEl.textContent = locationDef.description;
+      } else {
+        const placeholder = div({ class: 'location-panel__empty' });
+        placeholder.textContent = 'No description available';
+        this.descriptionEl.appendChild(placeholder);
+      }
     }
 
-    // Update exits - placeholder for now as we don't have exit data in gameState
+    // Update exits/connections
     if (this.exitsEl) {
       clearElement(this.exitsEl);
-      const noExits = div({ class: 'location-panel__empty' });
-      noExits.textContent = 'Exit information not available';
-      this.exitsEl.appendChild(noExits);
+
+      const connections = locationDef?.connections;
+      if (connections && connections.length > 0) {
+        connections.forEach((conn: any) => {
+          const connItem = div({
+            class: `location-panel__exit-item ${conn.is_accessible === false ? 'blocked' : ''}`
+          });
+
+          let content = '';
+          if (conn.direction) {
+            content += `<span class="exit-direction">[${conn.direction.toUpperCase()}]</span> `;
+          }
+          content += `<span class="exit-description">${conn.description}</span>`;
+          if (conn.is_accessible === false) {
+            content += ' <span class="exit-blocked">(Blocked)</span>';
+          }
+
+          connItem.innerHTML = content;
+          this.exitsEl!.appendChild(connItem);
+        });
+      } else {
+        const noExits = div({ class: 'location-panel__empty' });
+        noExits.textContent = 'No visible exits';
+        this.exitsEl.appendChild(noExits);
+      }
     }
 
-    // Update NPCs - placeholder for now
+    // Update NPCs present at this location
     if (this.npcsEl) {
       clearElement(this.npcsEl);
-      const noNpcs = div({ class: 'location-panel__empty' });
-      noNpcs.textContent = 'NPC information not available';
-      this.npcsEl.appendChild(noNpcs);
+
+      const npcsAtLocation = (gameState.npcs || []).filter(
+        (npc: any) => npc.current_location_id === currentLocationId
+      );
+
+      if (npcsAtLocation.length > 0) {
+        npcsAtLocation.forEach((npc: any) => {
+          const npcTag = div({ class: 'location-panel__npc-tag' });
+          const displayName = npc.sheet?.display_name ||
+                            npc.sheet?.character?.name ||
+                            'Unknown NPC';
+          npcTag.textContent = displayName;
+          this.npcsEl!.appendChild(npcTag);
+        });
+      } else {
+        const noNpcs = div({ class: 'location-panel__empty' });
+        noNpcs.textContent = 'No NPCs present';
+        this.npcsEl.appendChild(noNpcs);
+      }
     }
   }
 

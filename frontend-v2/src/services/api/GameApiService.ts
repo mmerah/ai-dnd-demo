@@ -11,6 +11,8 @@ import type { NewGameRequest } from '../../types/generated/NewGameRequest.js';
 import type { NewGameResponse } from '../../types/generated/NewGameResponse.js';
 import type { PlayerActionRequest } from '../../types/generated/PlayerActionRequest.js';
 import type { RemoveGameResponse } from '../../types/generated/RemoveGameResponse.js';
+import type { AcceptCombatSuggestionRequest } from '../../types/generated/AcceptCombatSuggestionRequest.js';
+import type { AcceptCombatSuggestionResponse } from '../../types/generated/AcceptCombatSuggestionResponse.js';
 
 /**
  * Service for game-related API operations
@@ -63,6 +65,19 @@ export class GameApiService {
    */
   async deleteGame(gameId: string): Promise<RemoveGameResponse> {
     return this.api.delete<RemoveGameResponse>(`/api/game/${gameId}`);
+  }
+
+  /**
+   * Accept a combat suggestion from an allied NPC
+   */
+  async acceptCombatSuggestion(
+    gameId: string,
+    request: AcceptCombatSuggestionRequest
+  ): Promise<AcceptCombatSuggestionResponse> {
+    return this.api.post<AcceptCombatSuggestionResponse, AcceptCombatSuggestionRequest>(
+      `/api/game/${gameId}/combat/suggestion/accept`,
+      request
+    );
   }
 
   /**

@@ -13,6 +13,7 @@ export interface GameListScreenProps {
   container: ServiceContainer;
   onNewGame: () => void;
   onLoadGame: (gameId: string) => void;
+  onBrowseCatalogs?: () => void;
 }
 
 /**
@@ -35,12 +36,26 @@ export class GameListScreen extends Screen {
     // Header
     const header = div({ class: 'game-list-screen__header' });
     const title = div({ class: 'game-list-screen__title' }, 'Saved Games');
+
+    const buttonGroup = div({ class: 'game-list-screen__button-group' });
+
+    // Browse Catalogs button
+    if (this.props.onBrowseCatalogs) {
+      const catalogsButton = button('📚 Browse Catalogs', {
+        class: 'game-list-screen__catalogs-btn',
+        onclick: () => this.props.onBrowseCatalogs?.(),
+      });
+      buttonGroup.appendChild(catalogsButton);
+    }
+
     const newGameButton = button('New Game', {
       class: 'game-list-screen__new-game-btn',
       onclick: () => this.props.onNewGame(),
     });
+    buttonGroup.appendChild(newGameButton);
+
     header.appendChild(title);
-    header.appendChild(newGameButton);
+    header.appendChild(buttonGroup);
 
     // Content container
     const content = div({ class: 'game-list-screen__content' });

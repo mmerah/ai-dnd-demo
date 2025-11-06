@@ -140,8 +140,16 @@ export class SseService {
 
       // Register handlers for specific event types
       const eventTypes: SseEventType[] = [
+        'connected',
+        'narrative',
         'narrative_chunk',
+        'initial_narrative',
         'tool_call',
+        'tool_result',
+        'npc_dialogue',
+        'policy_warning',
+        'combat_suggestion',
+        'scenario_info',
         'game_update',
         'combat_update',
         'error',

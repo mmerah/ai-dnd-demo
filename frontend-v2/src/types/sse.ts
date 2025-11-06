@@ -3,8 +3,16 @@
  */
 
 export type SseEventType =
+  | 'connected'
+  | 'narrative'
   | 'narrative_chunk'
+  | 'initial_narrative'
   | 'tool_call'
+  | 'tool_result'
+  | 'npc_dialogue'
+  | 'policy_warning'
+  | 'combat_suggestion'
+  | 'scenario_info'
   | 'game_update'
   | 'combat_update'
   | 'error'
@@ -71,9 +79,90 @@ export interface ThinkingEvent {
   };
 }
 
+export interface ConnectedEvent {
+  type: 'connected';
+  data: {
+    game_id: string;
+    status: 'connected';
+    timestamp: string;
+  };
+}
+
+export interface NarrativeEvent {
+  type: 'narrative';
+  data: {
+    content: string;
+    timestamp: string;
+  };
+}
+
+export interface InitialNarrativeEvent {
+  type: 'initial_narrative';
+  data: {
+    scenario_title: string;
+    narrative: string;
+    timestamp: string;
+  };
+}
+
+export interface ToolResultEvent {
+  type: 'tool_result';
+  data: {
+    tool_name: string;
+    result: unknown; // ToolResult - will be properly typed when backend types are updated
+    timestamp: string;
+  };
+}
+
+export interface NpcDialogueEvent {
+  type: 'npc_dialogue';
+  data: {
+    npc_id: string;
+    npc_name: string;
+    content: string;
+    complete: boolean;
+    timestamp: string;
+  };
+}
+
+export interface PolicyWarningEvent {
+  type: 'policy_warning';
+  data: {
+    message: string;
+    tool_name?: string;
+    agent_type?: string;
+    timestamp: string;
+  };
+}
+
+export interface CombatSuggestionEvent {
+  type: 'combat_suggestion';
+  data: {
+    suggestion: import('./generated/CombatSuggestion.js').CombatSuggestion;
+    timestamp: string;
+  };
+}
+
+export interface ScenarioInfoEvent {
+  type: 'scenario_info';
+  data: {
+    current_scenario: unknown; // ScenarioSheet
+    available_scenarios: unknown[]; // ScenarioSheet[]
+    timestamp: string;
+  };
+}
+
 export type TypedSseEvent =
+  | ConnectedEvent
+  | NarrativeEvent
   | NarrativeChunkEvent
+  | InitialNarrativeEvent
   | ToolCallEvent
+  | ToolResultEvent
+  | NpcDialogueEvent
+  | PolicyWarningEvent
+  | CombatSuggestionEvent
+  | ScenarioInfoEvent
   | GameUpdateEvent
   | CombatUpdateEvent
   | ErrorEvent
