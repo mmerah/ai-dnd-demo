@@ -16,9 +16,16 @@ export interface ChatInputProps {
 
 export class ChatInput extends Component<ChatInputProps> {
   private textarea: HTMLTextAreaElement | null = null;
+  private submitBtn: HTMLButtonElement | null = null;
+  private originalPlaceholder: string = '';
+  private originalButtonText: string = 'Send';
 
   protected render(): HTMLElement {
     const { placeholder = 'Type your action...', disabled = false } = this.props;
+
+    // Store original values for restoration
+    this.originalPlaceholder = placeholder;
+    this.originalButtonText = 'Send';
 
     const container = createElement('div', {
       class: 'chat-input',
@@ -40,14 +47,15 @@ export class ChatInput extends Component<ChatInputProps> {
     });
 
     // Submit button
-    const submitBtn = button('Send', {
+    const submitBtnElement = button(this.originalButtonText, {
       class: 'chat-input__submit',
       disabled: disabled,
       onClick: () => this.handleSubmit(),
     });
+    this.submitBtn = submitBtnElement as HTMLButtonElement;
 
     container.appendChild(this.textarea);
-    container.appendChild(submitBtn);
+    container.appendChild(submitBtnElement);
 
     return container;
   }
@@ -86,9 +94,42 @@ export class ChatInput extends Component<ChatInputProps> {
     if (this.textarea) {
       this.textarea.disabled = disabled;
     }
-    const submitBtn = this.element?.querySelector('.chat-input__submit') as HTMLButtonElement;
-    if (submitBtn) {
-      submitBtn.disabled = disabled;
+    if (this.submitBtn) {
+      this.submitBtn.disabled = disabled;
     }
+  }
+
+  /**
+   * Update placeholder text
+   * Used to show "Waiting for agent response..." during processing
+   */
+  setPlaceholder(placeholder: string): void {
+    if (this.textarea) {
+      this.textarea.placeholder = placeholder;
+    }
+  }
+
+  /**
+   * Restore original placeholder
+   */
+  restorePlaceholder(): void {
+    this.setPlaceholder(this.originalPlaceholder);
+  }
+
+  /**
+   * Update button text
+   * Used to show "Agent is thinking..." during processing
+   */
+  setButtonText(text: string): void {
+    if (this.submitBtn) {
+      this.submitBtn.textContent = text;
+    }
+  }
+
+  /**
+   * Restore original button text
+   */
+  restoreButtonText(): void {
+    this.setButtonText(this.originalButtonText);
   }
 }

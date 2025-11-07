@@ -84,7 +84,7 @@ export class CatalogApiService {
    * Fetch subraces catalog
    */
   async getSubraces(): Promise<SubraceDefinition[]> {
-    return this.api.get<SubraceDefinition[]>('/api/catalogs/subraces');
+    return this.api.get<SubraceDefinition[]>('/api/catalogs/race_subraces');
   }
 
   /**
@@ -154,21 +154,21 @@ export class CatalogApiService {
    * Fetch damage types catalog
    */
   async getDamageTypes(): Promise<DamageType[]> {
-    return this.api.get<DamageType[]>('/api/catalogs/damage-types');
+    return this.api.get<DamageType[]>('/api/catalogs/damage_types');
   }
 
   /**
    * Fetch magic schools catalog
    */
   async getMagicSchools(): Promise<MagicSchool[]> {
-    return this.api.get<MagicSchool[]>('/api/catalogs/magic-schools');
+    return this.api.get<MagicSchool[]>('/api/catalogs/magic_schools');
   }
 
   /**
    * Fetch weapon properties catalog
    */
   async getWeaponProperties(): Promise<WeaponProperty[]> {
-    return this.api.get<WeaponProperty[]>('/api/catalogs/weapon-properties');
+    return this.api.get<WeaponProperty[]>('/api/catalogs/weapon_properties');
   }
 
   /**

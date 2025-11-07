@@ -9,12 +9,13 @@ import { ServiceContainer } from '../container.js';
 import { div, button } from '../utils/dom.js';
 import { ScenarioCard, type ScenarioCardProps } from '../components/scenario/ScenarioCard.js';
 import type { ScenarioSheet } from '../types/generated/ScenarioSheet.js';
+import type { ContentPackSummary } from '../types/generated/ContentPackSummary.js';
 
 export interface ScenarioSelectionScreenProps {
   container: ServiceContainer;
   characterId: string;
   onBack: () => void;
-  onStartGame: (characterId: string, scenarioId: string) => void;
+  onStartGame: (characterId: string, scenarioId: string, contentPacks?: string[]) => void;
 }
 
 /**
@@ -25,9 +26,12 @@ export class ScenarioSelectionScreen extends Screen {
   private loadingIndicator: HTMLElement | null = null;
   private errorDisplay: HTMLElement | null = null;
   private startGameButton: HTMLButtonElement | null = null;
+  private contentPackContainer: HTMLElement | null = null;
   private scenarioCards: ScenarioCard[] = [];
   private selectedScenarioId: string | null = null;
   private scenarios: ScenarioSheet[] = [];
+  private contentPacks: ContentPackSummary[] = [];
+  private selectedContentPacks: string[] = [];
   private isCreatingGame: boolean = false;
 
   constructor(private props: ScenarioSelectionScreenProps) {
@@ -58,9 +62,23 @@ export class ScenarioSelectionScreen extends Screen {
     // Scenarios container
     this.scenariosContainer = div({ class: 'scenario-selection-screen__scenarios' });
 
+    // Content pack section (hidden initially, shown after scenario selected)
+    this.contentPackContainer = div({ class: 'scenario-selection-screen__content-packs' });
+    this.contentPackContainer.style.display = 'none';
+
+    const contentPackTitle = div(
+      { class: 'scenario-selection-screen__section-title' },
+      'Additional Content (Optional)'
+    );
+    this.contentPackContainer.appendChild(contentPackTitle);
+
+    const contentPackList = div({ class: 'scenario-selection-screen__pack-list' });
+    this.contentPackContainer.appendChild(contentPackList);
+
     content.appendChild(this.loadingIndicator);
     content.appendChild(this.errorDisplay);
     content.appendChild(this.scenariosContainer);
+    content.appendChild(this.contentPackContainer);
 
     // Navigation footer
     const footer = div({ class: 'scenario-selection-screen__footer' });
@@ -88,6 +106,7 @@ export class ScenarioSelectionScreen extends Screen {
 
   override onMount(): void {
     this.loadScenarios();
+    this.loadContentPacks();
   }
 
   override onUnmount(): void {
@@ -114,6 +133,34 @@ export class ScenarioSelectionScreen extends Screen {
       console.error('Failed to load scenarios:', error);
       const message = error instanceof Error ? error.message : 'Failed to load scenarios';
       this.showError(message);
+    }
+  }
+
+  /**
+   * Load available content packs
+   */
+  private async loadContentPacks(): Promise<void> {
+    const { container } = this.props;
+
+    try {
+      const response = await container.catalogApiService.getContentPacks();
+      this.contentPacks = response.packs || [];
+
+      console.log(`[ContentPacks] Loaded ${this.contentPacks.length} content packs`);
+
+      // Filter out SRD (it's always included by default)
+      const additionalPacks = this.contentPacks.filter((pack) => pack.id !== 'srd');
+
+      if (additionalPacks.length > 0) {
+        this.renderContentPacks(additionalPacks);
+      } else {
+        // Show informational message when no additional packs available
+        this.renderNoContentPacks();
+      }
+    } catch (error) {
+      console.warn('[ContentPacks] Failed to load content packs:', error);
+      // Content packs are optional, so we don't show an error to the user
+      this.renderNoContentPacks();
     }
   }
 
@@ -166,6 +213,80 @@ export class ScenarioSelectionScreen extends Screen {
       card.mount(this.scenariosContainer);
       this.scenarioCards.push(card);
     });
+
+    // Auto-select first scenario (matches old frontend behavior)
+    if (scenarios.length > 0 && !this.selectedScenarioId) {
+      const firstScenario = scenarios[0];
+      if (firstScenario?.id) {
+        this.handleSelectScenario(firstScenario.id);
+        console.log('[UI] Auto-selected first scenario:', firstScenario.title);
+      }
+    }
+  }
+
+  /**
+   * Render content pack checkboxes
+   */
+  private renderContentPacks(packs: ContentPackSummary[]): void {
+    if (!this.contentPackContainer) return;
+
+    const packList = this.contentPackContainer.querySelector('.scenario-selection-screen__pack-list');
+    if (!packList) return;
+
+    packList.innerHTML = '';
+
+    packs.forEach((pack) => {
+      const packItem = div({ class: 'scenario-selection-screen__pack-item' });
+
+      const label = document.createElement('label');
+      label.className = 'scenario-selection-screen__pack-label';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.value = pack.id;
+      checkbox.className = 'scenario-selection-screen__pack-checkbox';
+
+      checkbox.addEventListener('change', (e) => {
+        const target = e.target as HTMLInputElement;
+        if (target.checked) {
+          if (!this.selectedContentPacks.includes(pack.id)) {
+            this.selectedContentPacks.push(pack.id);
+          }
+        } else {
+          this.selectedContentPacks = this.selectedContentPacks.filter((id) => id !== pack.id);
+        }
+        console.log('[ContentPacks] Selected packs:', this.selectedContentPacks);
+      });
+
+      const packInfo = div({ class: 'scenario-selection-screen__pack-info' });
+      packInfo.innerHTML = `
+        <strong>${pack.name}</strong> v${pack.version}<br>
+        <small style="color: var(--text-secondary);">${pack.description}</small><br>
+        <small style="color: var(--text-tertiary);">by ${pack.author}</small>
+      `;
+
+      label.appendChild(checkbox);
+      label.appendChild(packInfo);
+      packItem.appendChild(label);
+      packList.appendChild(packItem);
+    });
+  }
+
+  /**
+   * Render informational message when no additional content packs available
+   */
+  private renderNoContentPacks(): void {
+    if (!this.contentPackContainer) return;
+
+    const packList = this.contentPackContainer.querySelector('.scenario-selection-screen__pack-list');
+    if (!packList) return;
+
+    packList.innerHTML = `
+      <div style="color: var(--text-secondary); padding: 1rem; text-align: center;">
+        <p>No additional content packs available.</p>
+        <small>The base SRD content is always included.</small>
+      </div>
+    `;
   }
 
   private handleSelectScenario(scenarioId: string): void {
@@ -177,6 +298,11 @@ export class ScenarioSelectionScreen extends Screen {
       const isSelected = cardProps.props.scenario.id === scenarioId;
       card.update({ isSelected });
     });
+
+    // Show content pack section after scenario selected (matches old frontend behavior)
+    if (this.contentPackContainer) {
+      this.contentPackContainer.style.display = 'block';
+    }
 
     // Enable start game button
     if (this.startGameButton) {
@@ -204,7 +330,12 @@ export class ScenarioSelectionScreen extends Screen {
     }
 
     try {
-      this.props.onStartGame(this.props.characterId, this.selectedScenarioId);
+      // Pass selected content packs (if any) to create game
+      this.props.onStartGame(
+        this.props.characterId,
+        this.selectedScenarioId,
+        this.selectedContentPacks.length > 0 ? this.selectedContentPacks : undefined
+      );
     } catch (error) {
       console.error('Failed to start game:', error);
       const message = error instanceof Error ? error.message : 'Failed to start game';

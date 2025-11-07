@@ -6,7 +6,57 @@
  */
 
 import { SseError } from '../../types/errors.js';
-import { TypedSseEvent, SseEventType } from '../../types/sse.js';
+import type {
+  SSEEventType as BackendSSEEventType,
+  ConnectedData,
+  HeartbeatData,
+  NarrativeData,
+  InitialNarrativeData,
+  ToolCallData,
+  ToolResultData,
+  NPCDialogueData,
+  PolicyWarningData,
+  CombatSuggestionData,
+  ScenarioInfoData,
+  GameUpdateData,
+  CombatUpdateData,
+  ErrorData,
+  CompleteData,
+  SystemMessageData,
+} from '../../types/generated/SSEEvent.js';
+
+// Extend backend SSE events with client-only events used by the UI
+export type ClientOnlyEventType = 'narrative_chunk' | 'thinking';
+export type SseEventType = BackendSSEEventType | ClientOnlyEventType;
+
+// Map backend event type to its payload type
+type BackendEventPayload<E extends BackendSSEEventType> =
+  E extends 'connected' ? ConnectedData :
+  E extends 'heartbeat' ? HeartbeatData :
+  E extends 'narrative' ? NarrativeData :
+  E extends 'initial_narrative' ? InitialNarrativeData :
+  E extends 'tool_call' ? ToolCallData :
+  E extends 'tool_result' ? ToolResultData :
+  E extends 'npc_dialogue' ? NPCDialogueData :
+  E extends 'policy_warning' ? PolicyWarningData :
+  E extends 'combat_suggestion' ? CombatSuggestionData :
+  E extends 'scenario_info' ? ScenarioInfoData :
+  E extends 'game_update' ? GameUpdateData :
+  E extends 'combat_update' ? CombatUpdateData :
+  E extends 'error' ? ErrorData :
+  E extends 'complete' ? CompleteData :
+  E extends 'system' ? SystemMessageData :
+  E extends 'dice_roll' ? unknown :
+  never;
+
+export type TypedSseEvent<E extends SseEventType = SseEventType> =
+  E extends BackendSSEEventType
+    ? { type: E; data: BackendEventPayload<E> }
+    : E extends 'narrative_chunk'
+      ? { type: 'narrative_chunk'; data: { content: string; delta: string } }
+      : E extends 'thinking'
+        ? { type: 'thinking'; data: { content: string } }
+        : never;
 
 export type SseEventHandler = (event: TypedSseEvent) => void;
 export type SseErrorHandler = (error: Error) => void;
@@ -81,18 +131,18 @@ export class SseService {
   /**
    * Register event handler for specific event type
    */
-  on(eventType: SseEventType, handler: SseEventHandler): () => void {
+  on<E extends SseEventType>(eventType: E, handler: (event: TypedSseEvent<E>) => void): () => void {
     if (!this.handlers.has(eventType)) {
       this.handlers.set(eventType, new Set());
     }
 
-    this.handlers.get(eventType)!.add(handler);
+    this.handlers.get(eventType)!.add(handler as unknown as SseEventHandler);
 
     // Return unsubscribe function
     return () => {
       const handlers = this.handlers.get(eventType);
       if (handlers) {
-        handlers.delete(handler);
+        handlers.delete(handler as unknown as SseEventHandler);
       }
     };
   }
@@ -139,10 +189,9 @@ export class SseService {
       };
 
       // Register handlers for specific event types
-      const eventTypes: SseEventType[] = [
+      const eventTypes: BackendSSEEventType[] = [
         'connected',
         'narrative',
-        'narrative_chunk',
         'initial_narrative',
         'tool_call',
         'tool_result',
@@ -154,7 +203,6 @@ export class SseService {
         'combat_update',
         'error',
         'complete',
-        'thinking',
       ];
 
       eventTypes.forEach(type => {
@@ -187,15 +235,15 @@ export class SseService {
    */
   private handleTypedEvent(type: SseEventType, event: MessageEvent): void {
     try {
-      const data = JSON.parse(event.data);
-      const typedEvent: TypedSseEvent = { type, data } as TypedSseEvent;
+      const parsed = JSON.parse(event.data);
+      const typedEvent = { type, data: parsed } as TypedSseEvent;
 
       // Notify handlers for this event type
       const handlers = this.handlers.get(type);
       if (handlers) {
         handlers.forEach(handler => {
           try {
-            handler(typedEvent);
+            (handler as unknown as (e: TypedSseEvent) => void)(typedEvent);
           } catch (error) {
             console.error(`Error in SSE handler for ${type}:`, error);
           }

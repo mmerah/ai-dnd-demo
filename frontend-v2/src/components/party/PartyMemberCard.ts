@@ -17,6 +17,7 @@ interface PartyMember {
   ac: number | undefined;
   level: number | undefined;
   class_name: string;
+  conditions: string[];
 }
 
 export interface PartyMemberCardProps {
@@ -64,6 +65,16 @@ export class PartyMemberCard extends Component<PartyMemberCardProps> {
 
     card.appendChild(header);
     card.appendChild(stats);
+
+    // Status indicator
+    const statusIndicator = this.createStatusIndicator(member.hp, member.max_hp, member.conditions);
+    card.appendChild(statusIndicator);
+
+    // Conditions display (if any)
+    if (member.conditions.length > 0) {
+      const conditionsDisplay = this.createConditionsDisplay(member.conditions);
+      card.appendChild(conditionsDisplay);
+    }
 
     return card;
   }
@@ -118,5 +129,56 @@ export class PartyMemberCard extends Component<PartyMemberCardProps> {
     if (percentage > 75) return 'stat-bar__bar-fill--high';
     if (percentage > 25) return 'stat-bar__bar-fill--medium';
     return 'stat-bar__bar-fill--low';
+  }
+
+  private createStatusIndicator(hp: number, maxHp: number, conditions: string[]): HTMLElement {
+    const container = div({ class: 'party-member-card__status' });
+
+    const statusInfo = this.getStatusInfo(hp, maxHp, conditions);
+
+    const iconEl = span({ class: `party-member-card__status-icon party-member-card__status-icon--${statusInfo.class}` });
+    iconEl.textContent = statusInfo.icon;
+
+    const textEl = span({ class: 'party-member-card__status-text' });
+    textEl.textContent = statusInfo.text;
+
+    container.appendChild(iconEl);
+    container.appendChild(textEl);
+
+    return container;
+  }
+
+  private createConditionsDisplay(conditions: string[]): HTMLElement {
+    const container = div({ class: 'party-member-card__conditions' });
+
+    for (const condition of conditions) {
+      const badge = div({ class: 'party-member-card__condition-badge' });
+      badge.textContent = condition;
+      container.appendChild(badge);
+    }
+
+    return container;
+  }
+
+  private getStatusInfo(hp: number, maxHp: number, conditions: string[]): { icon: string; text: string; class: string } {
+    const hpPercent = maxHp > 0 ? (hp / maxHp) * 100 : 0;
+
+    // Check for death/unconsciousness
+    if (hp <= 0) {
+      const isDead = conditions.some(c => c.toLowerCase() === 'dead');
+      if (isDead) {
+        return { icon: '💀', text: 'Dead', class: 'dead' };
+      }
+      return { icon: '💤', text: 'Unconscious', class: 'unconscious' };
+    }
+
+    // Health status based on HP percentage
+    if (hpPercent >= 75) {
+      return { icon: '🟢', text: 'Healthy', class: 'healthy' };
+    } else if (hpPercent >= 30) {
+      return { icon: '🟡', text: 'Wounded', class: 'wounded' };
+    } else {
+      return { icon: '🔴', text: 'Critical', class: 'critical' };
+    }
   }
 }

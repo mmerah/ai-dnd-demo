@@ -228,6 +228,12 @@ export class CatalogBrowserScreen extends Screen {
     this.selectedCategory = category;
     this.searchQuery = '';
     this.selectedItem = null;
+
+    // Update sidebar to reflect new selected category
+    if (this.sidebar) {
+      this.sidebar.update({ selectedCategory: category });
+    }
+
     this.loadCategory(category);
   }
 

@@ -12,6 +12,7 @@
 
 import { Component } from '../base/Component.js';
 import { createElement, div, span } from '../../utils/dom.js';
+import { Modal } from '../common/Modal.js';
 import type { StateStore } from '../../services/state/StateStore.js';
 import type { GameState } from '../../types/generated/GameState.js';
 import type { DangerLevel } from '../../types/generated/GameState.js';
@@ -20,6 +21,7 @@ export interface HeaderBarProps {
   stateStore: StateStore;
   onExitGame: () => void;
   onSaveGame: () => void;
+  onOpenCatalogs?: () => void;
 }
 
 export class HeaderBar extends Component<HeaderBarProps> {
@@ -76,6 +78,18 @@ export class HeaderBar extends Component<HeaderBarProps> {
     // Right side: Action buttons
     const rightSection = div({ class: 'header-bar__right' });
 
+    // Catalogs button (if handler provided)
+    if (this.props.onOpenCatalogs) {
+      const catalogsButton = createElement('button', { class: 'btn btn--small' }) as HTMLButtonElement;
+      catalogsButton.textContent = '📚 Catalogs';
+      catalogsButton.addEventListener('click', () => {
+        if (this.props.onOpenCatalogs) {
+          this.props.onOpenCatalogs();
+        }
+      });
+      rightSection.appendChild(catalogsButton);
+    }
+
     // Save button
     this.saveButton = createElement('button', { class: 'btn btn--small' }) as HTMLButtonElement;
     this.saveButton.textContent = '💾 Save';
@@ -101,6 +115,11 @@ export class HeaderBar extends Component<HeaderBarProps> {
       if (gameState) {
         this.updateFromGameState(gameState);
       }
+    });
+
+    // Subscribe to processing state for loading animation on agent indicator
+    this.subscribe(this.props.stateStore.isProcessing$, (isProcessing) => {
+      this.updateProcessingState(isProcessing);
     });
 
     // Initial update
@@ -209,12 +228,51 @@ export class HeaderBar extends Component<HeaderBarProps> {
     }
   }
 
+  /**
+   * Update agent indicator with loading animation during processing
+   * Matches old frontend behavior: adds 'agent-loading' class for pulse effect
+   */
+  private updateProcessingState(isProcessing: boolean): void {
+    if (!this.agentIndicator) {
+      return;
+    }
+
+    if (isProcessing) {
+      this.agentIndicator.classList.add('agent-loading');
+    } else {
+      this.agentIndicator.classList.remove('agent-loading');
+    }
+  }
+
+  /**
+   * Show auto-save indicator temporarily
+   * Matches old frontend behavior: Shows "💾 Auto-saved" for 2 seconds
+   */
+  public showAutoSaveIndicator(): void {
+    if (!this.saveButton) {
+      return;
+    }
+
+    const originalText = this.saveButton.textContent;
+    this.saveButton.textContent = '💾 Auto-saved';
+
+    setTimeout(() => {
+      if (this.saveButton) {
+        this.saveButton.textContent = originalText;
+      }
+    }, 2000);
+  }
+
   private handleSaveClick(): void {
     this.props.onSaveGame();
   }
 
-  private handleExitClick(): void {
-    const confirmed = confirm('Are you sure you want to exit the game? Make sure you have saved your progress.');
+  private async handleExitClick(): Promise<void> {
+    const confirmed = await Modal.confirm(
+      'Are you sure you want to exit the game? Make sure you have saved your progress.',
+      'Exit Game'
+    );
+
     if (confirmed) {
       this.props.onExitGame();
     }

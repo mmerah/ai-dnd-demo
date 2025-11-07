@@ -8,13 +8,18 @@
 import { Component } from '../base/Component.js';
 import { div, button } from '../../utils/dom.js';
 import { StateStore } from '../../services/state/StateStore.js';
+import { GameApiService } from '../../services/api/GameApiService.js';
 import { CurrencyDisplay } from './CurrencyDisplay.js';
 import { EquipmentSlots } from './EquipmentSlots.js';
 import { ItemList } from './ItemList.js';
+import { Toast } from '../common/Toast.js';
 import type { CharacterInstance, NPCInstance, GameState } from '../../types/generated/GameState.js';
+import type { EquipmentSlot } from '../../utils/itemSlotValidation.js';
+import type { EquipItemRequest } from '../../types/generated/EquipItemRequest.js';
 
 export interface InventoryPanelProps {
   stateStore: StateStore;
+  gameApi: GameApiService;
 }
 
 /**
@@ -137,13 +142,113 @@ export class InventoryPanel extends Component<InventoryPanelProps> {
 
     // Equipment section
     const equipment = member.state.equipment_slots;
-    this.equipmentSlots = new EquipmentSlots({ equipment: equipment ?? {} });
+    const inventory = member.state.inventory ?? [];
+    this.equipmentSlots = new EquipmentSlots({
+      equipment: equipment ?? {},
+      inventory: inventory,
+      onUnequip: (slot) => this.handleUnequip(member, slot),
+    });
     this.equipmentSlots.mount(content);
 
     // Items section
-    const inventory = member.state.inventory ?? [];
-    this.itemList = new ItemList({ items: inventory });
+    this.itemList = new ItemList({
+      items: inventory,
+      equipmentSlots: equipment ?? {},
+      onEquip: (itemIndex, slot) => this.handleEquip(member, itemIndex, slot),
+    });
     this.itemList.mount(content);
+  }
+
+  /**
+   * Handle equipping an item
+   */
+  private async handleEquip(
+    member: CharacterInstance | NPCInstance,
+    itemIndex: string,
+    slot: EquipmentSlot | null
+  ): Promise<void> {
+    const gameState = this.props.stateStore.getGameState();
+    if (!gameState) {
+      console.error('[InventoryPanel] No game state available');
+      return;
+    }
+
+    try {
+      // Determine entity type
+      const entityType = member.instance_id === gameState.character.instance_id ? 'player' : 'npc';
+
+      const request: EquipItemRequest = {
+        item_index: itemIndex,
+        entity_id: member.instance_id,
+        entity_type: entityType,
+        slot: slot ?? undefined,
+        unequip: false,
+      };
+
+      // Call API
+      await this.props.gameApi.equipItem(gameState.game_id, request);
+
+      // Refresh game state
+      const updatedState = await this.props.gameApi.getGameState(gameState.game_id);
+      this.props.stateStore.setGameState(updatedState);
+
+      console.log('[InventoryPanel] Item equipped successfully');
+      Toast.success('Item equipped successfully');
+    } catch (error) {
+      console.error('[InventoryPanel] Failed to equip item:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to equip item';
+      Toast.error(`Failed to equip item: ${errorMessage}. Please try again.`);
+    }
+  }
+
+  /**
+   * Handle unequipping an item
+   */
+  private async handleUnequip(
+    member: CharacterInstance | NPCInstance,
+    slot: EquipmentSlot
+  ): Promise<void> {
+    const gameState = this.props.stateStore.getGameState();
+    if (!gameState) {
+      console.error('[InventoryPanel] No game state available');
+      return;
+    }
+
+    try {
+      // Get the item index from the slot
+      const equipment = member.state.equipment_slots;
+      const itemIndex = equipment?.[slot];
+      if (!itemIndex) {
+        console.warn('[InventoryPanel] No item in slot:', slot);
+        Toast.warning('No item equipped in this slot');
+        return;
+      }
+
+      // Determine entity type
+      const entityType = member.instance_id === gameState.character.instance_id ? 'player' : 'npc';
+
+      const request: EquipItemRequest = {
+        item_index: itemIndex,
+        entity_id: member.instance_id,
+        entity_type: entityType,
+        slot: undefined,
+        unequip: true,
+      };
+
+      // Call API
+      await this.props.gameApi.equipItem(gameState.game_id, request);
+
+      // Refresh game state
+      const updatedState = await this.props.gameApi.getGameState(gameState.game_id);
+      this.props.stateStore.setGameState(updatedState);
+
+      console.log('[InventoryPanel] Item unequipped successfully');
+      Toast.success('Item unequipped successfully');
+    } catch (error) {
+      console.error('[InventoryPanel] Failed to unequip item:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to unequip item';
+      Toast.error(`Failed to unequip item: ${errorMessage}. Please try again.`);
+    }
   }
 
   private handleBack(): void {

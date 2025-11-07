@@ -1,18 +1,22 @@
 """Schema export endpoint for frontend type generation."""
 
+from typing import Any
+
 from fastapi import APIRouter
 
+from app.api.schemas.content_packs import ContentPackListResponse
 from app.models.ai_response import (
-    NarrativeChunkResponse,
     CompleteResponse,
     ErrorResponse,
+    NarrativeChunkResponse,
 )
 from app.models.alignment import Alignment
 from app.models.background import BackgroundDefinition
 from app.models.character import CharacterSheet
 from app.models.class_definitions import ClassDefinition, SubclassDefinition
-from app.models.combat import CombatState, CombatParticipant, CombatSuggestion
+from app.models.combat import CombatParticipant, CombatState, CombatSuggestion
 from app.models.condition import Condition
+from app.models.content_pack import ContentPackSummary
 from app.models.damage_type import DamageType
 from app.models.feat import FeatDefinition
 from app.models.feature import FeatureDefinition
@@ -28,40 +32,55 @@ from app.models.memory import MemoryEntry
 from app.models.monster import MonsterSheet
 from app.models.npc import NPCSheet
 from app.models.party import PartyState
+from app.models.player_journal import PlayerJournalEntry
 from app.models.race import RaceDefinition, SubraceDefinition
-from app.models.scenario import ScenarioSheet
-from app.models.skill import Skill
-from app.models.spell import SpellDefinition
-from app.models.tool_suggestion import ToolSuggestion
-from app.models.trait import TraitDefinition
-from app.models.weapon_property import WeaponProperty
-from app.models.content_pack import ContentPackSummary
-from app.api.schemas.content_packs import ContentPackListResponse
 from app.models.requests import (
-    NewGameRequest,
-    NewGameResponse,
-    ResumeGameResponse,
-    RemoveGameResponse,
-    PlayerActionRequest,
-    EquipItemRequest,
-    EquipItemResponse,
     AcceptCombatSuggestionRequest,
     AcceptCombatSuggestionResponse,
     CreateJournalEntryRequest,
     CreateJournalEntryResponse,
-    UpdateJournalEntryRequest,
-    UpdateJournalEntryResponse,
     DeleteJournalEntryResponse,
+    EquipItemRequest,
+    EquipItemResponse,
+    NewGameRequest,
+    NewGameResponse,
+    PlayerActionRequest,
+    RemoveGameResponse,
     ResolveNamesRequest,
     ResolveNamesResponse,
+    ResumeGameResponse,
+    UpdateJournalEntryRequest,
+    UpdateJournalEntryResponse,
 )
-from app.models.player_journal import PlayerJournalEntry
+from app.models.scenario import ScenarioSheet
+from app.models.skill import Skill
+from app.models.spell import SpellDefinition
+from app.models.sse_events import (
+    CombatSuggestionData,
+    CombatUpdateData,
+    CompleteData,
+    ConnectedData,
+    ErrorData,
+    GameUpdateData,
+    HeartbeatData,
+    InitialNarrativeData,
+    NarrativeData,
+    NPCDialogueData,
+    PolicyWarningData,
+    ScenarioInfoData,
+    SSEEvent,
+    ToolCallData,
+    ToolResultData,
+)
+from app.models.tool_suggestion import ToolSuggestion
+from app.models.trait import TraitDefinition
+from app.models.weapon_property import WeaponProperty
 
 router = APIRouter()
 
 
 @router.get("/schemas")
-async def get_schemas() -> dict[str, dict]:
+async def get_schemas() -> dict[str, dict[str, Any]]:
     """Export JSON schemas for all Pydantic models used in API responses.
 
     This endpoint is used by the frontend type generation script to create
@@ -131,4 +150,20 @@ async def get_schemas() -> dict[str, dict]:
         "PlayerJournalEntry": PlayerJournalEntry.model_json_schema(),
         "ContentPackSummary": ContentPackSummary.model_json_schema(),
         "ContentPackListResponse": ContentPackListResponse.model_json_schema(),
+        # SSE event models (for frontend SSE type generation)
+        "SSEEvent": SSEEvent.model_json_schema(),
+        "ConnectedData": ConnectedData.model_json_schema(),
+        "HeartbeatData": HeartbeatData.model_json_schema(),
+        "NarrativeData": NarrativeData.model_json_schema(),
+        "InitialNarrativeData": InitialNarrativeData.model_json_schema(),
+        "ToolCallData": ToolCallData.model_json_schema(),
+        "ToolResultData": ToolResultData.model_json_schema(),
+        "NPCDialogueData": NPCDialogueData.model_json_schema(),
+        "PolicyWarningData": PolicyWarningData.model_json_schema(),
+        "CombatSuggestionData": CombatSuggestionData.model_json_schema(),
+        "ScenarioInfoData": ScenarioInfoData.model_json_schema(),
+        "GameUpdateData": GameUpdateData.model_json_schema(),
+        "CombatUpdateData": CombatUpdateData.model_json_schema(),
+        "ErrorData": ErrorData.model_json_schema(),
+        "CompleteData": CompleteData.model_json_schema(),
     }

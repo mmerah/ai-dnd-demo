@@ -16,6 +16,8 @@ export interface ChatMessageProps {
 }
 
 export class ChatMessage extends Component<ChatMessageProps> {
+  private contentElement: HTMLElement | null = null;
+
   protected render(): HTMLElement {
     const { message } = this.props;
 
@@ -92,8 +94,8 @@ export class ChatMessage extends Component<ChatMessageProps> {
       class: 'chat-message__content',
     });
 
-    // Format tool name
-    let toolText = toolName;
+    // Format tool name: normalize underscores to spaces and capitalize
+    let toolText = this.normalizeToolName(toolName);
 
     // Add parameters if present
     if (Object.keys(parameters).length > 0) {
@@ -111,6 +113,16 @@ export class ChatMessage extends Component<ChatMessageProps> {
     if (message.timestamp) {
       container.appendChild(this.createTimestamp(message.timestamp));
     }
+  }
+
+  /**
+   * Normalize tool name for display (e.g., "roll_ability_check" -> "Roll Ability Check")
+   */
+  private normalizeToolName(toolName: string): string {
+    return toolName
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   }
 
   /**
@@ -233,22 +245,49 @@ export class ChatMessage extends Component<ChatMessageProps> {
     roleLabel.textContent = this.getRoleLabel(message.type);
 
     // Message content (with markdown rendering for assistant messages)
-    const content = createElement('div', {
+    this.contentElement = createElement('div', {
       class: 'chat-message__content',
     });
 
     if (message.type === 'assistant') {
-      setMarkdownContent(content, message.content);
+      setMarkdownContent(this.contentElement, message.content);
     } else {
-      content.textContent = message.content;
+      this.contentElement.textContent = message.content;
     }
 
     // Timestamp
     const timestamp = this.createTimestamp(message.timestamp ?? '');
 
     container.appendChild(roleLabel);
-    container.appendChild(content);
+    container.appendChild(this.contentElement);
     container.appendChild(timestamp);
+  }
+
+  /**
+   * Update message content dynamically (for streaming)
+   * Only works for standard messages (user, assistant, system)
+   */
+  public updateContent(newContent: string): void {
+    if (!this.contentElement) {
+      console.warn('[ChatMessage] Cannot update content: contentElement not initialized');
+      return;
+    }
+
+    // Update props
+    this.props = {
+      ...this.props,
+      message: {
+        ...this.props.message,
+        content: newContent,
+      },
+    };
+
+    // Update DOM
+    if (this.props.message.type === 'assistant') {
+      setMarkdownContent(this.contentElement, newContent);
+    } else {
+      this.contentElement.textContent = newContent;
+    }
   }
 
   /**

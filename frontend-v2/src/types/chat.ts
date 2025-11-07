@@ -51,11 +51,22 @@ export interface ChatDisplayMessage {
 
 /**
  * Convert a conversation Message to a ChatDisplayMessage
+ * Preserves NPC metadata from conversation history
  */
 export function messageToDisplayMessage(message: Message): ChatDisplayMessage {
-  return {
+  const displayMessage: ChatDisplayMessage = {
     type: message.role as ChatMessageType,
     content: message.content,
     timestamp: message.timestamp ?? undefined,
   };
+
+  // Preserve NPC speaker metadata for NPC messages
+  if (message.role === 'npc' && (message.speaker_npc_id || message.speaker_npc_name)) {
+    displayMessage.metadata = {
+      npcId: message.speaker_npc_id ?? undefined,
+      npcName: message.speaker_npc_name ?? undefined,
+    };
+  }
+
+  return displayMessage;
 }

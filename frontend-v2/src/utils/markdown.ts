@@ -1,12 +1,19 @@
 /**
  * Simple markdown renderer for chat messages
- * Supports: **bold**, *italic*, `code`, [links](url), and line breaks
+ * Supports: **bold**, *italic*, `code`, [links](url), headers, lists, and line breaks
  */
 
 /**
  * Converts markdown text to HTML with proper escaping
+ * Returns empty string if text is null/undefined (fail-safe)
  */
-export function renderMarkdown(text: string): string {
+export function renderMarkdown(text: string | null | undefined): string {
+  // Fail-safe: return empty string if text is null/undefined
+  if (text == null) {
+    console.warn('[renderMarkdown] Received null/undefined text, returning empty string');
+    return '';
+  }
+
   // Escape HTML to prevent XSS
   let html = text
     .replace(/&/g, '&amp;')
@@ -23,13 +30,23 @@ export function renderMarkdown(text: string): string {
   // Inline code (`code`)
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
 
-  // Bold (**text** or __text__)
-  html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-  html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+  // Bold (**text** or __text__) - use non-greedy matching
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
 
-  // Italic (*text* or _text_)
-  html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
+  // Italic (*text* or _text_) - use non-greedy matching
+  html = html.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  html = html.replace(/_(.+?)_/g, '<em>$1</em>');
+
+  // Headers (### Header, ## Header, # Header)
+  html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  html = html.replace(/^## (.+)$/gm, '<h4>$1</h4>');
+  html = html.replace(/^# (.+)$/gm, '<h5>$1</h5>');
+
+  // Lists (- item or * item)
+  html = html.replace(/^[*-] (.+)$/gm, '<li>$1</li>');
+  // Wrap consecutive <li> elements in <ul>
+  html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
 
   // Links [text](url)
   html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
@@ -48,7 +65,8 @@ export function renderMarkdown(text: string): string {
 
 /**
  * Safely sets innerHTML with rendered markdown
+ * Handles null/undefined gracefully
  */
-export function setMarkdownContent(element: HTMLElement, markdown: string): void {
+export function setMarkdownContent(element: HTMLElement, markdown: string | null | undefined): void {
   element.innerHTML = renderMarkdown(markdown);
 }

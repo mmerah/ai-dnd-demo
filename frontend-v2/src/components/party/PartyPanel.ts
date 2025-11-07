@@ -20,6 +20,7 @@ interface PartyMember {
   ac: number | undefined;
   level: number | undefined;
   class_name: string;
+  conditions: string[];
 }
 
 export interface PartyPanelProps {
@@ -29,15 +30,24 @@ export interface PartyPanelProps {
 export class PartyPanel extends Component<PartyPanelProps> {
   private membersContainer: HTMLElement | null = null;
   private memberCards: Map<string, PartyMemberCard> = new Map();
+  private partyCountSpan: HTMLElement | null = null;
 
   protected render(): HTMLElement {
     const container = div({ class: 'party-panel' });
 
-    // Header
+    // Header with party count
     const header = div({ class: 'party-panel__header' });
+
+    const titleRow = div({ class: 'party-panel__title-row' });
     const title = createElement('h2', { class: 'party-panel__title' });
     title.textContent = 'Party';
-    header.appendChild(title);
+
+    this.partyCountSpan = createElement('span', { class: 'party-panel__count' });
+    this.partyCountSpan.textContent = '1/4'; // Default, will be updated on mount
+
+    titleRow.appendChild(title);
+    titleRow.appendChild(this.partyCountSpan);
+    header.appendChild(titleRow);
 
     // Navigation buttons
     const navButtons = div({ class: 'party-panel__nav-buttons' });
@@ -105,6 +115,7 @@ export class PartyPanel extends Component<PartyPanelProps> {
         ac: character.state.armor_class,
         level: character.state.level,
         class_name: character.sheet.class_index,
+        conditions: character.state.conditions ?? [],
       },
     ];
 
@@ -125,6 +136,7 @@ export class PartyPanel extends Component<PartyPanelProps> {
           ac: npc.state.armor_class,
           level: npc.state.level,
           class_name: npc.sheet.character?.class_index ?? 'NPC',
+          conditions: npc.state.conditions ?? [],
         });
       }
     }
@@ -138,6 +150,14 @@ export class PartyPanel extends Component<PartyPanelProps> {
 
   private renderMembers(members: PartyMember[]): void {
     if (!this.membersContainer) return;
+
+    // Update party count (shows current/max party size)
+    const gameState = this.props.stateStore.getGameState();
+    if (this.partyCountSpan && gameState) {
+      const maxSize = gameState.party?.max_size ?? 4;
+      const currentSize = members.length;
+      this.partyCountSpan.textContent = `${currentSize}/${maxSize}`;
+    }
 
     // Clear existing cards
     clearElement(this.membersContainer);

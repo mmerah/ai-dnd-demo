@@ -91,6 +91,30 @@ export function input(attributes?: DOMAttributes): HTMLInputElement {
 }
 
 /**
+ * Create a select element (convenience function)
+ */
+export function select(
+  attributes?: DOMAttributes,
+  ...options: HTMLOptionElement[]
+): HTMLSelectElement {
+  const element = createElement('select', attributes) as HTMLSelectElement;
+  options.forEach(opt => element.appendChild(opt));
+  return element;
+}
+
+/**
+ * Create an option element (convenience function)
+ */
+export function option(
+  text: string,
+  attributes?: DOMAttributes
+): HTMLOptionElement {
+  const element = createElement('option', attributes) as HTMLOptionElement;
+  element.textContent = text;
+  return element;
+}
+
+/**
  * Safely escape HTML to prevent XSS
  */
 export function escapeHtml(unsafe: string): string {

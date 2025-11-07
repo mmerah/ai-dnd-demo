@@ -5,11 +5,13 @@
  */
 
 import { Component } from '../base/Component.js';
+import { CollapsibleSection } from '../base/CollapsibleSection.js';
 import { div } from '../../utils/dom.js';
 import type { CharacterInstance } from '../../types/generated/GameState.js';
 
 export interface FeaturesSectionProps {
   character: CharacterInstance;
+  initiallyCollapsed?: boolean;
 }
 
 /**
@@ -23,15 +25,14 @@ function formatModifier(modifier: number): string {
  * Features section component
  */
 export class FeaturesSection extends Component<FeaturesSectionProps> {
+  private collapsibleSection: CollapsibleSection | null = null;
+
   constructor(props: FeaturesSectionProps) {
     super(props);
   }
 
   protected render(): HTMLElement {
-    const container = div({ class: 'features-section' });
-
-    const header = div({ class: 'features-section__header' }, 'Features & Traits');
-    container.appendChild(header);
+    const content = div({ class: 'features-section__content' });
 
     // Proficiency bonus - calculate from level
     const level = this.props.character.state.level ?? 1;
@@ -44,13 +45,13 @@ export class FeaturesSection extends Component<FeaturesSectionProps> {
     );
     proficiencyRow.appendChild(profLabel);
     proficiencyRow.appendChild(profValue);
-    container.appendChild(proficiencyRow);
+    content.appendChild(proficiencyRow);
 
     // Active conditions
     const conditions = this.props.character.state.conditions ?? [];
     if (conditions.length > 0) {
       const conditionsHeader = div({ class: 'features-section__subheader' }, 'Active Conditions');
-      container.appendChild(conditionsHeader);
+      content.appendChild(conditionsHeader);
 
       const conditionsList = div({ class: 'conditions-list' });
       for (const condition of conditions) {
@@ -60,7 +61,7 @@ export class FeaturesSection extends Component<FeaturesSectionProps> {
         );
         conditionsList.appendChild(conditionBadge);
       }
-      container.appendChild(conditionsList);
+      content.appendChild(conditionsList);
     }
 
     // Placeholder for future features
@@ -68,8 +69,25 @@ export class FeaturesSection extends Component<FeaturesSectionProps> {
       { class: 'features-section__placeholder' },
       'Racial traits and class features will be displayed here when available from the backend.'
     );
-    container.appendChild(placeholderText);
+    content.appendChild(placeholderText);
+
+    // Wrap in collapsible section
+    this.collapsibleSection = new CollapsibleSection({
+      title: 'Features & Traits',
+      initiallyCollapsed: this.props.initiallyCollapsed ?? false,
+      children: [content],
+    });
+
+    const container = div({ class: 'features-section' });
+    this.collapsibleSection.mount(container);
 
     return container;
+  }
+
+  override onUnmount(): void {
+    if (this.collapsibleSection) {
+      this.collapsibleSection.unmount();
+      this.collapsibleSection = null;
+    }
   }
 }

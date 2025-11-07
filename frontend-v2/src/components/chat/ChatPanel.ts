@@ -12,7 +12,7 @@ import { ChatMessage } from './ChatMessage.js';
 import { ChatInput } from './ChatInput.js';
 import { LoadingIndicator } from './LoadingIndicator.js';
 import type { Message } from '../../types/generated/GameState.js';
-import { messageToDisplayMessage } from '../../types/chat.js';
+import { messageToDisplayMessage, type ChatDisplayMessage } from '../../types/chat.js';
 
 export interface ChatPanelProps {
   stateStore: StateStore;
@@ -23,7 +23,10 @@ export class ChatPanel extends Component<ChatPanelProps> {
   private messagesContainer: HTMLElement | null = null;
   private chatInput: ChatInput | null = null;
   private loadingIndicator: LoadingIndicator | null = null;
+  private suggestionContainer: HTMLElement | null = null;
   private messageComponents: Map<string, ChatMessage> = new Map();
+  private realtimeMessageCounter: number = 0;
+  private hasLoadedInitialMessages: boolean = false;
 
   protected render(): HTMLElement {
     const container = createElement('div', {
@@ -45,6 +48,11 @@ export class ChatPanel extends Component<ChatPanelProps> {
       class: 'chat-panel__messages',
     });
 
+    // Suggestion container (sits above the input at the bottom)
+    this.suggestionContainer = createElement('div', {
+      class: 'chat-panel__suggestion',
+    });
+
     // Input container
     const inputContainer = createElement('div', {
       class: 'chat-panel__input',
@@ -52,6 +60,7 @@ export class ChatPanel extends Component<ChatPanelProps> {
 
     container.appendChild(header);
     container.appendChild(this.messagesContainer);
+    container.appendChild(this.suggestionContainer);
     container.appendChild(inputContainer);
 
     // Create chat input
@@ -73,13 +82,22 @@ export class ChatPanel extends Component<ChatPanelProps> {
 
   override onMount(): void {
     // Subscribe to game state changes
+    // IMPORTANT: Only load conversation_history on initial mount
+    // After that, rely on SSE events to add new messages in real-time
     this.subscribeImmediate(
       this.props.stateStore.gameState$,
       (gameState) => {
         if (gameState) {
-          this.renderMessages(gameState.conversation_history ?? []);
+          // Only render messages from conversation_history if we haven't loaded initial messages yet
+          // This prevents wiping out real-time SSE messages when game state updates
+          if (!this.hasLoadedInitialMessages) {
+            this.renderMessages(gameState.conversation_history ?? []);
+            this.hasLoadedInitialMessages = true;
+          }
         } else {
+          // Game state cleared (e.g., exiting game) - reset everything
           this.clearMessages();
+          this.hasLoadedInitialMessages = false;
         }
       }
     );
@@ -108,6 +126,12 @@ export class ChatPanel extends Component<ChatPanelProps> {
     if (this.loadingIndicator) {
       this.loadingIndicator.unmount();
       this.loadingIndicator = null;
+    }
+
+    // Clean up suggestion container
+    if (this.suggestionContainer) {
+      this.suggestionContainer.innerHTML = '';
+      this.suggestionContainer = null;
     }
   }
 
@@ -143,20 +167,29 @@ export class ChatPanel extends Component<ChatPanelProps> {
     if (!this.messagesContainer || !this.loadingIndicator) return;
 
     if (isProcessing) {
+      // Update loading indicator with current agent type
+      const gameState = this.props.stateStore.getGameState();
+      const agentType = gameState?.active_agent || 'narrative';
+      this.loadingIndicator.updateProps({ agentType });
+
       // Show loading indicator
       this.loadingIndicator.mount(this.messagesContainer);
       this.scrollToBottom();
 
-      // Disable input
+      // Disable input and update UI to show processing state
       this.chatInput?.setDisabled(true);
+      this.chatInput?.setPlaceholder('Waiting for agent response...');
+      this.chatInput?.setButtonText('Agent is thinking...');
     } else {
       // Hide loading indicator
       if (this.loadingIndicator.isMountedToDOM()) {
         this.loadingIndicator.unmount();
       }
 
-      // Enable input
+      // Enable input and restore original UI
       this.chatInput?.setDisabled(false);
+      this.chatInput?.restorePlaceholder();
+      this.chatInput?.restoreButtonText();
       this.chatInput?.focus();
     }
   }
@@ -172,5 +205,63 @@ export class ChatPanel extends Component<ChatPanelProps> {
     setTimeout(() => {
       this.messagesContainer!.scrollTop = this.messagesContainer!.scrollHeight;
     }, 0);
+  }
+
+  /**
+   * Add a real-time message to chat (from SSE events)
+   * These messages are ephemeral and won't be in conversation_history until the next state reload
+   * Returns the message key for later updates
+   */
+  public addRealtimeMessage(message: ChatDisplayMessage): string {
+    if (!this.messagesContainer) {
+      console.warn('Cannot add realtime message: messages container not mounted');
+      return '';
+    }
+
+    // Create unique key for this realtime message
+    const key = `realtime-${this.realtimeMessageCounter++}-${Date.now()}`;
+
+    // Create and mount the message component
+    const messageComp = new ChatMessage({ message });
+    messageComp.mount(this.messagesContainer);
+    this.messageComponents.set(key, messageComp);
+
+    // Scroll to show the new message
+    this.scrollToBottom();
+
+    return key;
+  }
+
+  /**
+   * Update an existing message's content (for streaming)
+   * Used for accumulating narrative chunks
+   */
+  public updateMessage(messageKey: string, newContent: string): void {
+    const messageComp = this.messageComponents.get(messageKey);
+    if (!messageComp) {
+      console.warn(`[ChatPanel] Cannot update message: key "${messageKey}" not found`);
+      return;
+    }
+
+    messageComp.updateContent(newContent);
+    this.scrollToBottom();
+  }
+
+  /**
+   * Focus the chat input (for external control)
+   */
+  public focusInput(): void {
+    this.chatInput?.focus();
+  }
+
+  /**
+   * Mount a suggestion component just above the input area
+   */
+  public mountSuggestionCard(card: Component<any>): void {
+    if (!this.suggestionContainer) {
+      console.warn('[ChatPanel] Suggestion container not available');
+      return;
+    }
+    card.mount(this.suggestionContainer);
   }
 }

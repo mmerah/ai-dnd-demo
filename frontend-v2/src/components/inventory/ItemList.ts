@@ -1,77 +1,136 @@
 /**
  * ItemList Component
  *
- * Displays the character's inventory items.
+ * Displays the character's inventory items with equip functionality.
+ * Shows equipped status and provides slot selector for equippable items.
  */
 
 import { Component } from '../base/Component.js';
-import { div } from '../../utils/dom.js';
-import type { InventoryItem } from '../../types/generated/GameState.js';
+import { CollapsibleSection } from '../base/CollapsibleSection.js';
+import { div, button, select, option } from '../../utils/dom.js';
+import type { InventoryItem, EquipmentSlots } from '../../types/generated/GameState.js';
+import {
+  getValidSlotsForItem,
+  isItemEquippable,
+  formatSlotName,
+  type EquipmentSlot,
+} from '../../utils/itemSlotValidation.js';
 
 export interface ItemListProps {
   items: InventoryItem[];
+  equipmentSlots: EquipmentSlots;
+  onEquip: (itemIndex: string, slot: EquipmentSlot | null) => void;
+  initiallyCollapsed?: boolean;
 }
 
 /**
- * Item list component
+ * Item list component with equip functionality
  */
 export class ItemList extends Component<ItemListProps> {
+  private collapsibleSection: CollapsibleSection | null = null;
+
   constructor(props: ItemListProps) {
     super(props);
   }
 
   protected render(): HTMLElement {
-    const container = div({ class: 'item-list' });
-
-    const header = div({ class: 'item-list__header' }, 'Inventory Items');
-    container.appendChild(header);
+    const content = div({ class: 'item-list__content' });
 
     if (this.props.items.length === 0) {
       const empty = div({ class: 'item-list__empty' }, 'No items in inventory');
-      container.appendChild(empty);
-      return container;
-    }
+      content.appendChild(empty);
+    } else {
+      // Note: Weight information is not available in InventoryItem (runtime state).
+      // Weight would need to be fetched from item catalog definitions if needed.
+      // For now, we skip total weight display as it would be inaccurate.
 
-    // Calculate total weight
-    const totalWeight = this.props.items.reduce(
-      (sum, item) => sum + ((item.quantity ?? 1) * 0.1), // Assume 0.1 lbs per item if no weight
-      0
-    );
-
-    const weightDisplay = div(
-      { class: 'item-list__weight' },
-      `Total Weight: ${totalWeight.toFixed(1)} lbs`
-    );
-    container.appendChild(weightDisplay);
-
-    // Items list
-    const itemsContainer = div({ class: 'item-list__items' });
-
-    for (const item of this.props.items) {
-      const itemRow = div({ class: 'item-row' });
-
-      // Item name and quantity
-      const nameContainer = div({ class: 'item-row__name-container' });
-      const name = div({ class: 'item-row__name' }, item.name ?? item.index);
-      const quantity = div({ class: 'item-row__quantity' }, `×${item.quantity ?? 1}`);
-      nameContainer.appendChild(name);
-      nameContainer.appendChild(quantity);
-
-      // Item weight (using simple weight calculation)
-      const itemWeight = (item.quantity ?? 1) * 0.1;
-      const weight = div(
-        { class: 'item-row__weight' },
-        `${itemWeight.toFixed(1)} lbs`
+      // Get equipped item indexes
+      const equippedItemIndexes = new Set(
+        Object.values(this.props.equipmentSlots).filter((val): val is string => !!val)
       );
 
-      itemRow.appendChild(nameContainer);
-      itemRow.appendChild(weight);
+      // Items list
+      const itemsContainer = div({ class: 'item-list__items' });
 
-      itemsContainer.appendChild(itemRow);
+      for (const item of this.props.items) {
+        const itemRow = div({ class: 'item-row' });
+
+        // Left side: name and quantity
+        const nameContainer = div({ class: 'item-row__name-container' });
+        const name = div({ class: 'item-row__name' }, item.name ?? item.index);
+        const quantity = div({ class: 'item-row__quantity' }, `×${item.quantity ?? 1}`);
+        nameContainer.appendChild(name);
+        nameContainer.appendChild(quantity);
+        itemRow.appendChild(nameContainer);
+
+        // Check if item is equipped
+        const isEquipped = equippedItemIndexes.has(item.index);
+
+        if (isEquipped) {
+          // Show where it's equipped
+          const equippedSlots = Object.entries(this.props.equipmentSlots)
+            .filter(([_, index]) => index === item.index)
+            .map(([slot, _]) => formatSlotName(slot as EquipmentSlot));
+
+          const status = div(
+            { class: 'item-row__equipped-status' },
+            `Equipped (${equippedSlots.join(', ')})`
+          );
+          itemRow.appendChild(status);
+        } else if (isItemEquippable(item)) {
+          // Show equip controls
+          const actions = div({ class: 'item-row__actions' });
+
+          // Slot selector dropdown
+          const validSlots = getValidSlotsForItem(item);
+          const slotSelect = select({ class: 'item-row__slot-select' });
+
+          // Add "Auto" option (null slot = auto-select)
+          slotSelect.appendChild(option('Auto', { value: '' }));
+
+          // Add valid slot options
+          for (const slot of validSlots) {
+            slotSelect.appendChild(option(formatSlotName(slot), { value: slot }));
+          }
+
+          actions.appendChild(slotSelect);
+
+          // Equip button
+          const equipBtn = button('Equip', {
+            class: 'item-row__equip-btn',
+            onclick: () => {
+              const selectedSlot = slotSelect.value as EquipmentSlot | '';
+              this.props.onEquip(item.index, selectedSlot || null);
+            },
+          });
+          actions.appendChild(equipBtn);
+
+          itemRow.appendChild(actions);
+        }
+
+        itemsContainer.appendChild(itemRow);
+      }
+
+      content.appendChild(itemsContainer);
     }
 
-    container.appendChild(itemsContainer);
+    // Wrap in collapsible section
+    this.collapsibleSection = new CollapsibleSection({
+      title: 'Inventory',
+      initiallyCollapsed: this.props.initiallyCollapsed ?? false,
+      children: [content],
+    });
+
+    const container = div({ class: 'item-list' });
+    this.collapsibleSection.mount(container);
 
     return container;
+  }
+
+  override onUnmount(): void {
+    if (this.collapsibleSection) {
+      this.collapsibleSection.unmount();
+      this.collapsibleSection = null;
+    }
   }
 }

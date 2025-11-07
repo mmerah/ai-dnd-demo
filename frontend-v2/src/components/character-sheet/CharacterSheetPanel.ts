@@ -8,6 +8,8 @@
 import { Component } from '../base/Component.js';
 import { div, button } from '../../utils/dom.js';
 import { StateStore } from '../../services/state/StateStore.js';
+import { GameApiService } from '../../services/api/GameApiService.js';
+import { AttacksSection } from './AttacksSection.js';
 import { AbilitiesSection } from './AbilitiesSection.js';
 import { SkillsSection } from './SkillsSection.js';
 import { FeaturesSection } from './FeaturesSection.js';
@@ -16,12 +18,14 @@ import type { CharacterInstance, NPCInstance, GameState } from '../../types/gene
 
 export interface CharacterSheetPanelProps {
   stateStore: StateStore;
+  gameApiService: GameApiService;
 }
 
 /**
  * Character sheet panel component
  */
 export class CharacterSheetPanel extends Component<CharacterSheetPanelProps> {
+  private attacksSection: AttacksSection | null = null;
   private abilitiesSection: AbilitiesSection | null = null;
   private skillsSection: SkillsSection | null = null;
   private featuresSection: FeaturesSection | null = null;
@@ -181,6 +185,9 @@ export class CharacterSheetPanel extends Component<CharacterSheetPanelProps> {
     // Render all sections with the selected member
     // Cast to CharacterInstance since sections expect this type
     // (NPCs have the same structure via their embedded character sheet)
+    this.attacksSection = new AttacksSection({ character: member as CharacterInstance });
+    this.attacksSection.mount(content);
+
     this.abilitiesSection = new AbilitiesSection({ character: member as CharacterInstance });
     this.abilitiesSection.mount(content);
 
@@ -190,7 +197,12 @@ export class CharacterSheetPanel extends Component<CharacterSheetPanelProps> {
     this.featuresSection = new FeaturesSection({ character: member as CharacterInstance });
     this.featuresSection.mount(content);
 
-    this.spellsSection = new SpellsSection({ character: member as CharacterInstance });
+    const currentGameState = this.props.stateStore.getGameState();
+    this.spellsSection = new SpellsSection({
+      character: member as CharacterInstance,
+      gameId: currentGameState?.game_id,
+      gameApiService: this.props.gameApiService,
+    });
     this.spellsSection.mount(content);
   }
 
@@ -199,6 +211,10 @@ export class CharacterSheetPanel extends Component<CharacterSheetPanelProps> {
   }
 
   private unmountSections(): void {
+    if (this.attacksSection) {
+      this.attacksSection.unmount();
+      this.attacksSection = null;
+    }
     if (this.abilitiesSection) {
       this.abilitiesSection.unmount();
       this.abilitiesSection = null;

@@ -76,8 +76,8 @@ async function generateAllTypes() {
 
             writeFileSync(filepath, ts);
 
-            // Only export GameState from index, as it contains all other types inline
-            // This avoids duplicate type definitions
+            // Re-export only GameState to avoid duplicate exported type names across modules
+            // Consumers can import SSEEvent directly from './SSEEvent.js' when needed
             if (name === 'GameState') {
                 exports.push(`export * from './${name}.js';`);
             }

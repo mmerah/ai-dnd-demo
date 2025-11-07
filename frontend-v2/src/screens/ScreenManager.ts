@@ -184,8 +184,8 @@ export class ScreenManager {
       onBack: () => {
         this.navigateTo('/character-select');
       },
-      onStartGame: async (characterId, scenarioId) => {
-        await this.createAndStartGame(characterId, scenarioId);
+      onStartGame: async (characterId, scenarioId, contentPacks) => {
+        await this.createAndStartGame(characterId, scenarioId, contentPacks);
       },
     });
 
@@ -231,11 +231,19 @@ export class ScreenManager {
   /**
    * Create a new game and navigate to it
    */
-  private async createAndStartGame(characterId: string, scenarioId: string): Promise<void> {
+  private async createAndStartGame(
+    characterId: string,
+    scenarioId: string,
+    contentPacks?: string[]
+  ): Promise<void> {
     const { container } = this.config;
 
     try {
-      const response = await container.gameApiService.createGame(scenarioId, characterId);
+      const response = await container.gameApiService.createGame(
+        scenarioId,
+        characterId,
+        contentPacks
+      );
       console.log('Game created:', response.game_id);
 
       // Navigate to the new game

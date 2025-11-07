@@ -5,11 +5,13 @@
  */
 
 import { Component } from '../base/Component.js';
+import { CollapsibleSection } from '../base/CollapsibleSection.js';
 import { div } from '../../utils/dom.js';
 import type { CharacterInstance } from '../../types/generated/GameState.js';
 
 export interface SkillsSectionProps {
   character: CharacterInstance;
+  initiallyCollapsed?: boolean;
 }
 
 /**
@@ -54,16 +56,13 @@ const SKILL_DEFINITIONS: Array<{ key: string; label: string; ability: 'STR' | 'D
  * Skills section component
  */
 export class SkillsSection extends Component<SkillsSectionProps> {
+  private collapsibleSection: CollapsibleSection | null = null;
+
   constructor(props: SkillsSectionProps) {
     super(props);
   }
 
   protected render(): HTMLElement {
-    const container = div({ class: 'skills-section' });
-
-    const header = div({ class: 'skills-section__header' }, 'Skills');
-    container.appendChild(header);
-
     const skillsList = div({ class: 'skills-list' });
 
     for (const skill of SKILL_DEFINITIONS) {
@@ -96,8 +95,23 @@ export class SkillsSection extends Component<SkillsSectionProps> {
       skillsList.appendChild(skillRow);
     }
 
-    container.appendChild(skillsList);
+    // Wrap in collapsible section
+    this.collapsibleSection = new CollapsibleSection({
+      title: 'Skills',
+      initiallyCollapsed: this.props.initiallyCollapsed ?? false,
+      children: [skillsList],
+    });
+
+    const container = div({ class: 'skills-section' });
+    this.collapsibleSection.mount(container);
 
     return container;
+  }
+
+  override onUnmount(): void {
+    if (this.collapsibleSection) {
+      this.collapsibleSection.unmount();
+      this.collapsibleSection = null;
+    }
   }
 }

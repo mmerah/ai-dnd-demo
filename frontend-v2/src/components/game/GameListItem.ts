@@ -36,11 +36,11 @@ export class GameListItem extends Component<GameListItemProps> {
     // Character name
     const characterInfo = div({ class: 'game-list-item__character' }, `Character: ${characterName}`);
 
-    // Timestamps section
+    // Timestamps section - show relative time for last saved
     const timestampsContainer = div({ class: 'game-list-item__timestamps' });
     const lastSavedText = div(
-      { class: 'game-list-item__timestamp' },
-      `Last Saved: ${this.formatDate(lastSaved)}`
+      { class: 'game-list-item__timestamp game-list-item__timestamp--highlight' },
+      `⏰ ${this.formatRelativeTime(lastSaved)}`
     );
     const createdText = div(
       { class: 'game-list-item__timestamp' },
@@ -94,6 +94,30 @@ export class GameListItem extends Component<GameListItemProps> {
       return date.toLocaleString();
     } catch {
       return dateString;
+    }
+  }
+
+  /**
+   * Format last saved time as human-readable relative time
+   * Examples: "2 days ago", "5 hours ago", "Recently"
+   */
+  private formatRelativeTime(dateString: string): string {
+    try {
+      const lastSaved = new Date(dateString);
+      const now = new Date();
+      const timeDiff = now.getTime() - lastSaved.getTime();
+      const hoursAgo = Math.floor(timeDiff / (1000 * 60 * 60));
+      const daysAgo = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+
+      if (daysAgo > 0) {
+        return `${daysAgo} day${daysAgo > 1 ? 's' : ''} ago`;
+      } else if (hoursAgo > 0) {
+        return `${hoursAgo} hour${hoursAgo > 1 ? 's' : ''} ago`;
+      } else {
+        return 'Recently';
+      }
+    } catch {
+      return this.formatDate(dateString);
     }
   }
 }
