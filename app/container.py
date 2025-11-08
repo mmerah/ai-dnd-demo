@@ -21,6 +21,7 @@ from app.interfaces.events import IEventBus
 from app.interfaces.services.ai import (
     IAgentLifecycleService,
     IAIService,
+    IAllyActionService,
     IContextService,
     IEventLoggerService,
     IMessageService,
@@ -66,6 +67,7 @@ from app.models.scenario import ScenarioSheet
 from app.models.spell import SpellDefinition
 from app.services.ai import AIService, MessageService
 from app.services.ai.agent_lifecycle_service import AgentLifecycleService
+from app.services.ai.ally_action_service import AllyActionService
 from app.services.ai.config_loader import AgentConfigLoader
 from app.services.ai.context.context_service import ContextService
 from app.services.ai.event_logger_service import EventLoggerService
@@ -524,7 +526,6 @@ class Container:
             metadata_service=self.metadata_service,
             conversation_service=self.conversation_service,
             agent_lifecycle_service=self.agent_lifecycle_service,
-            event_manager=self.event_manager,
             event_bus=self.event_bus,
         )
 
@@ -574,6 +575,13 @@ class Container:
             action_service=self.action_service,
             message_service=self.message_service,
             debug=settings.debug_ai,
+        )
+
+    @cached_property
+    def ally_action_service(self) -> IAllyActionService:
+        return AllyActionService(
+            agent_lifecycle_service=self.agent_lifecycle_service,
+            event_bus=self.event_bus,
         )
 
     @cached_property

@@ -567,7 +567,6 @@ async def test_orchestrator_persists_tool_events(tmp_path: Path) -> None:
         metadata_service=container.metadata_service,
         conversation_service=container.conversation_service,
         agent_lifecycle_service=container.agent_lifecycle_service,
-        event_manager=container.event_manager,
         event_bus=container.event_bus,
     )
     ai_service = AIService(pipeline=pipeline)

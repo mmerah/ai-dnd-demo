@@ -11,12 +11,13 @@ import { StateStore } from '../../services/state/StateStore.js';
 import { ChatMessage } from './ChatMessage.js';
 import { ChatInput } from './ChatInput.js';
 import { LoadingIndicator } from './LoadingIndicator.js';
-import type { Message } from '../../types/generated/GameState.js';
+import type { Message, GameState } from '../../types/generated/GameState.js';
 import { messageToDisplayMessage, type ChatDisplayMessage } from '../../types/chat.js';
 
 export interface ChatPanelProps {
   stateStore: StateStore;
   onSendMessage: (message: string) => void;
+  onRequestAllySuggestion?: () => Promise<void>;
 }
 
 export class ChatPanel extends Component<ChatPanelProps> {
@@ -24,9 +25,11 @@ export class ChatPanel extends Component<ChatPanelProps> {
   private chatInput: ChatInput | null = null;
   private loadingIndicator: LoadingIndicator | null = null;
   private suggestionContainer: HTMLElement | null = null;
+  private allySuggestionButton: HTMLButtonElement | null = null;
   private messageComponents: Map<string, ChatMessage> = new Map();
   private realtimeMessageCounter: number = 0;
   private hasLoadedInitialMessages: boolean = false;
+  private isRequestingSuggestion: boolean = false;
 
   protected render(): HTMLElement {
     const container = createElement('div', {
@@ -53,6 +56,14 @@ export class ChatPanel extends Component<ChatPanelProps> {
       class: 'chat-panel__suggestion',
     });
 
+    // Ally suggestion button (shows when it's an ally NPC's turn)
+    this.allySuggestionButton = createElement('button', {
+      class: 'chat-panel__ally-suggestion-button',
+      style: 'display: none;', // Hidden by default
+    }) as HTMLButtonElement;
+    this.allySuggestionButton.textContent = "Get NPC's Suggestion";
+    this.allySuggestionButton.addEventListener('click', () => this.handleRequestSuggestion());
+
     // Input container
     const inputContainer = createElement('div', {
       class: 'chat-panel__input',
@@ -61,6 +72,7 @@ export class ChatPanel extends Component<ChatPanelProps> {
     container.appendChild(header);
     container.appendChild(this.messagesContainer);
     container.appendChild(this.suggestionContainer);
+    container.appendChild(this.allySuggestionButton);
     container.appendChild(inputContainer);
 
     // Create chat input
@@ -107,6 +119,14 @@ export class ChatPanel extends Component<ChatPanelProps> {
       this.props.stateStore.isProcessing$,
       (isProcessing) => {
         this.updateProcessingState(isProcessing);
+      }
+    );
+
+    // Subscribe to game state for ally turn detection
+    this.subscribe(
+      this.props.stateStore.gameState$,
+      (gameState) => {
+        this.updateAllySuggestionButton(gameState);
       }
     );
   }
@@ -263,5 +283,94 @@ export class ChatPanel extends Component<ChatPanelProps> {
       return;
     }
     card.mount(this.suggestionContainer);
+  }
+
+  /**
+   * Handle ally suggestion button click
+   */
+  private async handleRequestSuggestion(): Promise<void> {
+    if (!this.props.onRequestAllySuggestion || this.isRequestingSuggestion) {
+      return;
+    }
+
+    try {
+      this.isRequestingSuggestion = true;
+
+      // Update button to show generating state
+      if (this.allySuggestionButton) {
+        this.allySuggestionButton.disabled = true;
+        this.allySuggestionButton.textContent = 'Generating suggestion...';
+        this.allySuggestionButton.classList.add('chat-panel__ally-suggestion-button--loading');
+      }
+
+      await this.props.onRequestAllySuggestion();
+    } catch (error) {
+      console.error('[ChatPanel] Failed to request ally suggestion:', error);
+
+      // Reset button on error
+      if (this.allySuggestionButton) {
+        this.allySuggestionButton.disabled = false;
+        this.allySuggestionButton.textContent = "Get NPC's Suggestion";
+        this.allySuggestionButton.classList.remove('chat-panel__ally-suggestion-button--loading');
+      }
+    } finally {
+      this.isRequestingSuggestion = false;
+    }
+  }
+
+  /**
+   * Update ally suggestion button visibility based on combat state
+   */
+  private updateAllySuggestionButton(gameState: GameState | null): void {
+    if (!this.allySuggestionButton) return;
+
+    // Hide button if no game state
+    if (!gameState) {
+      this.allySuggestionButton.style.display = 'none';
+      return;
+    }
+
+    // Check if combat is active
+    const combat = gameState.combat;
+    if (!combat || !combat.is_active || !combat.participants) {
+      this.allySuggestionButton.style.display = 'none';
+      return;
+    }
+
+    // Get active participants
+    const activeParticipants = combat.participants.filter(p => p.is_active);
+    if (activeParticipants.length === 0) {
+      this.allySuggestionButton.style.display = 'none';
+      return;
+    }
+
+    // Get current turn participant
+    const turnIndex = combat.turn_index;
+    if (turnIndex === undefined || turnIndex === null) {
+      this.allySuggestionButton.style.display = 'none';
+      return;
+    }
+
+    const currentTurn = activeParticipants[turnIndex];
+    if (!currentTurn) {
+      this.allySuggestionButton.style.display = 'none';
+      return;
+    }
+
+    // Check if current turn is an ally NPC
+    const isAllyNpcTurn = currentTurn.faction === 'ally' && currentTurn.entity_type === 'npc';
+
+    if (isAllyNpcTurn) {
+      this.allySuggestionButton.style.display = 'block';
+
+      // Reset to default state if not currently requesting
+      if (!this.isRequestingSuggestion) {
+        this.allySuggestionButton.disabled = false;
+        this.allySuggestionButton.textContent = "Get NPC's Suggestion";
+        this.allySuggestionButton.classList.remove('chat-panel__ally-suggestion-button--loading');
+      }
+    } else {
+      this.allySuggestionButton.style.display = 'none';
+    }
   }
 }

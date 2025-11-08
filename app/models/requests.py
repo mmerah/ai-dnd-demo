@@ -170,3 +170,9 @@ class DeleteJournalEntryResponse(BaseModel):
 
     success: bool = Field(..., description="True if entry was deleted, False if not found")
     entry_id: str = Field(..., description="ID of the deleted entry")
+
+
+class RequestAllySuggestionResponse(BaseModel):
+    """Response model for requesting an ally combat suggestion."""
+
+    status: str = Field(..., description="Status message, typically 'generating' or 'requested'")

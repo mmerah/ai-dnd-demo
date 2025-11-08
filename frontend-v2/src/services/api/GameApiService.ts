@@ -14,6 +14,7 @@ import type { RemoveGameResponse } from '../../types/generated/RemoveGameRespons
 import type { ResumeGameResponse } from '../../types/generated/ResumeGameResponse.js';
 import type { AcceptCombatSuggestionRequest } from '../../types/generated/AcceptCombatSuggestionRequest.js';
 import type { AcceptCombatSuggestionResponse } from '../../types/generated/AcceptCombatSuggestionResponse.js';
+import type { RequestAllySuggestionResponse } from '../../types/generated/RequestAllySuggestionResponse.js';
 import type { EquipItemRequest } from '../../types/generated/EquipItemRequest.js';
 import type { EquipItemResponse } from '../../types/generated/EquipItemResponse.js';
 import type { ResolveNamesRequest } from '../../types/generated/ResolveNamesRequest.js';
@@ -85,6 +86,16 @@ export class GameApiService {
    */
   async deleteGame(gameId: string): Promise<RemoveGameResponse> {
     return this.api.delete<RemoveGameResponse>(`/api/game/${gameId}`);
+  }
+
+  /**
+   * Request a combat suggestion from the current allied NPC
+   */
+  async requestAllySuggestion(gameId: string): Promise<RequestAllySuggestionResponse> {
+    return this.api.post<RequestAllySuggestionResponse, never>(
+      `/api/game/${gameId}/ally/suggest`,
+      undefined as never
+    );
   }
 
   /**

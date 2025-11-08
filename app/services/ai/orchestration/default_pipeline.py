@@ -14,7 +14,6 @@ from app.interfaces.services.ai import IAgentLifecycleService, IContextService
 from app.interfaces.services.game import (
     ICombatService,
     IConversationService,
-    IEventManager,
     IGameService,
     IMetadataService,
 )
@@ -24,7 +23,6 @@ from app.services.ai.orchestration.guards import (
     combat_just_started,
     combat_loop_should_continue,
     has_npc_targets,
-    is_current_turn_ally,
     is_current_turn_npc_or_monster,
     is_player_turn,
     no_enemies_remaining,
@@ -43,7 +41,6 @@ from app.services.ai.orchestration.steps import (
     ExecuteAgent,
     ExecuteCombatAgent,
     ExecuteNpcDialogue,
-    GenerateAllySuggestion,
     GenerateCombatPrompt,
     GenerateInitialCombatPrompt,
     ReloadState,
@@ -70,7 +67,6 @@ def create_default_pipeline(
     metadata_service: IMetadataService,
     conversation_service: IConversationService,
     agent_lifecycle_service: IAgentLifecycleService,
-    event_manager: IEventManager,
     event_bus: IEventBus,
 ) -> Pipeline:
     """Create the default orchestration pipeline.
@@ -121,19 +117,12 @@ def create_default_pipeline(
                 SetCombatPhase(CombatPhase.STARTING),
                 GenerateInitialCombatPrompt(combat_service),
                 BroadcastInitialPrompt(event_bus),
+                SetCombatPhase(CombatPhase.ACTIVE),
                 # Handle first turn explicitly by type
-                ConditionalStep(
-                    guard=is_current_turn_ally,
-                    steps=[
-                        SetCombatPhase(CombatPhase.ACTIVE),
-                        GenerateAllySuggestion(agent_lifecycle_service, event_bus),
-                        # Returns HALT - exits pipeline, waits for user acceptance
-                    ],
-                ),
+                # Note: If first turn is ALLY, pipeline ends here (player requests suggestion manually)
                 ConditionalStep(
                     guard=is_player_turn,
                     steps=[
-                        SetCombatPhase(CombatPhase.ACTIVE),
                         ExecuteCombatAgent(combat_agent, context_service),
                         # Agent asks player for action, pipeline ends, waits for input
                     ],
@@ -145,6 +134,7 @@ def create_default_pipeline(
                         ReloadState(game_service),
                         SetCombatPhase(CombatPhase.ACTIVE),
                         # After initial enemy turn, continue auto-executing subsequent enemy turns
+                        # Loop only continues for ENEMY/NEUTRAL factions (not PLAYER/ALLY)
                         LoopStep(
                             guard=combat_loop_should_continue,
                             steps=[
@@ -152,10 +142,6 @@ def create_default_pipeline(
                                 ConditionalStep(
                                     guard=no_enemies_remaining,
                                     steps=[CombatAutoEnd(combat_agent, context_service, event_bus, game_service)],
-                                ),
-                                ConditionalStep(
-                                    guard=is_current_turn_ally,
-                                    steps=[GenerateAllySuggestion(agent_lifecycle_service, event_bus)],
                                 ),
                                 ConditionalStep(
                                     guard=is_current_turn_npc_or_monster,
@@ -178,6 +164,7 @@ def create_default_pipeline(
             steps=[CombatAutoEnd(combat_agent, context_service, event_bus, game_service)],
         )
         # ===== Combat Continuation (after player/ally actions) =====
+        # Loop continues only for ENEMY/NEUTRAL factions (not PLAYER/ALLY)
         .when(
             combat_loop_should_continue,
             steps=[
@@ -188,10 +175,6 @@ def create_default_pipeline(
                         ConditionalStep(
                             guard=no_enemies_remaining,
                             steps=[CombatAutoEnd(combat_agent, context_service, event_bus, game_service)],
-                        ),
-                        ConditionalStep(
-                            guard=is_current_turn_ally,
-                            steps=[GenerateAllySuggestion(agent_lifecycle_service, event_bus)],
                         ),
                         ConditionalStep(
                             guard=is_current_turn_npc_or_monster,

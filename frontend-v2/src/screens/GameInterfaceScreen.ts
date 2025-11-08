@@ -104,6 +104,7 @@ export class GameInterfaceScreen extends Screen {
     this.chatPanel = new ChatPanel({
       stateStore: container.stateStore,
       onSendMessage: (message) => this.handleSendMessage(message),
+      onRequestAllySuggestion: () => this.handleRequestAllySuggestion(),
     });
     this.registerComponent(this.chatPanel);
     this.chatPanel.mount(centerPanel);
@@ -618,6 +619,28 @@ export class GameInterfaceScreen extends Screen {
         container.stateStore.clearError();
       }
     }, 3000);
+  }
+
+  private async handleRequestAllySuggestion(): Promise<void> {
+    const { container, gameId } = this.props;
+
+    try {
+      console.log('[GameInterfaceScreen] Requesting ally suggestion');
+
+      // Set processing state to show loading indicator
+      container.stateStore.setIsProcessing(true);
+
+      await container.gameApiService.requestAllySuggestion(gameId);
+
+      // The suggestion will arrive via SSE (combat_suggestion event)
+      // Processing state will be cleared when complete event arrives
+    } catch (error) {
+      console.error('[GameInterfaceScreen] Failed to request ally suggestion:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to request suggestion';
+      container.stateStore.setError(errorMessage);
+      container.stateStore.setIsProcessing(false);
+      Toast.error(`Failed to request ally suggestion: ${errorMessage}`);
+    }
   }
 
   private async handleAcceptSuggestion(suggestion: CombatSuggestion): Promise<void> {

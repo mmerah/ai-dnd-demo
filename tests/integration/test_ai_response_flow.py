@@ -13,7 +13,6 @@ from app.interfaces.services.ai import IAgentLifecycleService, IContextService
 from app.interfaces.services.game import (
     ICombatService,
     IConversationService,
-    IEventManager,
     IGameService,
     IMetadataService,
 )
@@ -94,7 +93,6 @@ async def test_ai_service_with_pipeline_emits_response() -> None:
     agent_lifecycle = create_autospec(IAgentLifecycleService, instance=True)
     context_service = create_autospec(IContextService, instance=True)
     context_service.build_context.return_value = ""
-    event_manager = create_autospec(IEventManager, instance=True)
 
     # Create pipeline with stub agents and mock services
     pipeline = create_default_pipeline(
@@ -108,7 +106,6 @@ async def test_ai_service_with_pipeline_emits_response() -> None:
         metadata_service=metadata_service,
         conversation_service=conversation_service,
         agent_lifecycle_service=agent_lifecycle,
-        event_manager=event_manager,
         event_bus=event_bus,
     )
 

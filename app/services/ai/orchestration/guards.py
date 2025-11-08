@@ -36,18 +36,6 @@ def no_enemies_remaining(ctx: OrchestrationContext) -> bool:
     return not any(p.is_active and p.faction == CombatFaction.ENEMY for p in ctx.game_state.combat.participants)
 
 
-def is_current_turn_ally(ctx: OrchestrationContext) -> bool:
-    """Check if the current turn belongs to an ALLY faction combatant."""
-    if not ctx.game_state.combat.is_active:
-        return False
-
-    current_turn = ctx.game_state.combat.get_current_turn()
-    if not current_turn:
-        return False
-
-    return current_turn.faction == CombatFaction.ALLY
-
-
 def is_player_turn(ctx: OrchestrationContext) -> bool:
     """Check if the current turn belongs to the player."""
     if not ctx.game_state.combat.is_active:
@@ -73,7 +61,11 @@ def is_current_turn_npc_or_monster(ctx: OrchestrationContext) -> bool:
 
 
 def combat_loop_should_continue(ctx: OrchestrationContext) -> bool:
-    """Check if combat loop should continue (combat active, non-player turn exists)."""
+    """Check if combat loop should continue (combat active, non-player/non-ally turn exists).
+
+    The loop continues for ENEMY and NEUTRAL factions only.
+    Player turns and ally turns exit the loop to wait for player input.
+    """
     if not ctx.game_state.combat.is_active:
         return False
 
@@ -81,6 +73,6 @@ def combat_loop_should_continue(ctx: OrchestrationContext) -> bool:
     if not current_turn:
         return False
 
-    # Continue loop for all non-PLAYER turns
-    # Inner steps handle: auto-end, ally suggestions (HALT), NPC/monster auto-continue
-    return current_turn.faction != CombatFaction.PLAYER
+    # Continue loop only for NPC/monster auto-execution (ENEMY, NEUTRAL factions)
+    # Stop for PLAYER (player action) and ALLY (awaiting manual input or suggestion request)
+    return current_turn.faction in (CombatFaction.ENEMY, CombatFaction.NEUTRAL)

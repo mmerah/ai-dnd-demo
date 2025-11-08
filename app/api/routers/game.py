@@ -12,6 +12,7 @@ from app.api.tasks import process_ai_and_broadcast
 from app.container import container
 from app.events.commands.inventory_commands import EquipItemCommand
 from app.models.attributes import EntityType
+from app.models.combat import CombatFaction
 from app.models.game_state import GameState
 from app.models.player_journal import PlayerJournalEntry
 from app.models.requests import (
@@ -26,6 +27,7 @@ from app.models.requests import (
     NewGameResponse,
     PlayerActionRequest,
     RemoveGameResponse,
+    RequestAllySuggestionResponse,
     ResumeGameResponse,
     UpdateJournalEntryRequest,
     UpdateJournalEntryResponse,
@@ -163,6 +165,79 @@ async def process_player_action(
     logger.info(f"Processing action for game {game_state.game_id}: {request.message[:50]}...")
     background_tasks.add_task(process_ai_and_broadcast, game_state.game_id, request.message)
     return {"status": "action received"}
+
+
+@router.post("/game/{game_id}/ally/suggest", response_model=RequestAllySuggestionResponse)
+async def request_ally_suggestion(
+    game_id: str,
+    background_tasks: BackgroundTasks,
+    game_state: GameState = Depends(get_game_state_from_path),
+) -> RequestAllySuggestionResponse:
+    """
+    Request a combat suggestion from the current allied NPC.
+
+    This endpoint validates that:
+    1. Combat is active
+    2. Current turn belongs to an allied NPC
+
+    Then triggers background generation of a suggestion, which will be
+    broadcast via SSE when ready for player approval.
+
+    Args:
+        game_id: Unique game identifier
+        background_tasks: FastAPI background tasks for async generation
+        game_state: The game state loaded via dependency injection
+
+    Returns:
+        Confirmation that suggestion generation started
+
+    Raises:
+        HTTPException: If combat not active or current turn is not an ally NPC
+    """
+    # Validate combat is active
+    if not game_state.combat.is_active:
+        raise HTTPException(status_code=400, detail="Combat is not active")
+
+    # Get current turn
+    current_turn = game_state.combat.get_current_turn()
+    if not current_turn or not current_turn.is_active:
+        raise HTTPException(status_code=400, detail="No active combat turn")
+
+    # Validate it's an ally NPC turn
+    if current_turn.faction != CombatFaction.ALLY:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Current turn is {current_turn.faction.value}, not an allied NPC. Cannot generate suggestion.",
+        )
+
+    if current_turn.entity_type != EntityType.NPC:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Current turn is {current_turn.entity_type.value}, not an NPC. Cannot generate suggestion.",
+        )
+
+    logger.info(f"Player requested combat suggestion for ally {current_turn.name} in game {game_id}")
+
+    # Get services from container
+    ally_action_service = container.ally_action_service
+    message_service = container.message_service
+
+    # Generate suggestion in background (will broadcast via SSE when ready)
+    async def _generate_and_handle_errors() -> None:
+        """Background task to generate suggestion with error handling."""
+        try:
+            await ally_action_service.generate_combat_suggestion(game_state)
+        except Exception as e:
+            logger.error(f"Failed to generate ally suggestion: {e}", exc_info=True)
+            # Send error via SSE so frontend can display it
+            await message_service.send_error(
+                game_id,
+                f"Failed to generate suggestion for {current_turn.name}: {e!s}",
+            )
+
+    background_tasks.add_task(_generate_and_handle_errors)
+
+    return RequestAllySuggestionResponse(status="generating")
 
 
 @router.post("/game/{game_id}/combat/suggestion/accept", response_model=AcceptCombatSuggestionResponse)

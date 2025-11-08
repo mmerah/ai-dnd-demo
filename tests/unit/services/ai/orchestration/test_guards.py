@@ -7,7 +7,6 @@ from app.services.ai.orchestration.guards import (
     combat_just_started,
     combat_loop_should_continue,
     has_npc_targets,
-    is_current_turn_ally,
     is_current_turn_npc_or_monster,
     is_player_turn,
     no_enemies_remaining,
@@ -184,49 +183,6 @@ class TestNoEnemiesRemaining:
         assert no_enemies_remaining(ctx) is True
 
 
-class TestIsCurrentTurnAlly:
-    """Tests for is_current_turn_ally guard."""
-
-    def test_returns_true_when_ally_turn(self) -> None:
-        """Test guard returns True when current turn is ALLY faction."""
-        game_state = make_game_state()
-        game_state.combat.is_active = True
-        ally = make_combat_participant(faction=CombatFaction.ALLY, initiative=20)
-        game_state.combat.participants = [ally]
-        game_state.combat.turn_index = 0
-
-        ctx = OrchestrationContext(user_message="Act!", game_state=game_state)
-        assert is_current_turn_ally(ctx) is True
-
-    def test_returns_false_when_enemy_turn(self) -> None:
-        """Test guard returns False when current turn is ENEMY faction."""
-        game_state = make_game_state()
-        game_state.combat.is_active = True
-        enemy = make_combat_participant(faction=CombatFaction.ENEMY, initiative=20)
-        game_state.combat.participants = [enemy]
-        game_state.combat.turn_index = 0
-
-        ctx = OrchestrationContext(user_message="Fight!", game_state=game_state)
-        assert is_current_turn_ally(ctx) is False
-
-    def test_returns_false_when_combat_not_active(self) -> None:
-        """Test guard returns False when combat is not active."""
-        game_state = make_game_state()
-        game_state.combat.is_active = False
-
-        ctx = OrchestrationContext(user_message="Hello", game_state=game_state)
-        assert is_current_turn_ally(ctx) is False
-
-    def test_returns_false_when_no_current_turn(self) -> None:
-        """Test guard returns False when no current turn exists."""
-        game_state = make_game_state()
-        game_state.combat.is_active = True
-        game_state.combat.participants = []
-
-        ctx = OrchestrationContext(user_message="Wait", game_state=game_state)
-        assert is_current_turn_ally(ctx) is False
-
-
 class TestIsCurrentTurnNpcOrMonster:
     """Tests for is_current_turn_npc_or_monster guard (Phase 5.5)."""
 
@@ -289,6 +245,17 @@ class TestCombatLoopShouldContinue:
         ctx = OrchestrationContext(user_message="Fight!", game_state=game_state)
         assert combat_loop_should_continue(ctx) is True
 
+    def test_returns_true_for_neutral_turn(self) -> None:
+        """Test guard returns True when it's a neutral NPC turn."""
+        game_state = make_game_state()
+        game_state.combat.is_active = True
+        neutral = make_combat_participant(faction=CombatFaction.NEUTRAL, initiative=20)
+        game_state.combat.participants = [neutral]
+        game_state.combat.turn_index = 0
+
+        ctx = OrchestrationContext(user_message="Wait", game_state=game_state)
+        assert combat_loop_should_continue(ctx) is True
+
     def test_returns_false_for_player_turn(self) -> None:
         """Test guard returns False when it's the player's turn."""
         game_state = make_game_state()
@@ -298,6 +265,17 @@ class TestCombatLoopShouldContinue:
         game_state.combat.turn_index = 0
 
         ctx = OrchestrationContext(user_message="Attack!", game_state=game_state)
+        assert combat_loop_should_continue(ctx) is False
+
+    def test_returns_false_for_ally_turn(self) -> None:
+        """Test guard returns False when it's an ally turn (awaiting manual input)."""
+        game_state = make_game_state()
+        game_state.combat.is_active = True
+        ally = make_combat_participant(faction=CombatFaction.ALLY, initiative=20)
+        game_state.combat.participants = [ally]
+        game_state.combat.turn_index = 0
+
+        ctx = OrchestrationContext(user_message="Help!", game_state=game_state)
         assert combat_loop_should_continue(ctx) is False
 
     def test_returns_false_when_combat_not_active(self) -> None:

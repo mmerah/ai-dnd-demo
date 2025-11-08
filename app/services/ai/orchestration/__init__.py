@@ -8,7 +8,6 @@ from app.services.ai.orchestration.guards import (
     combat_just_started,
     combat_loop_should_continue,
     has_npc_targets,
-    is_current_turn_ally,
     is_current_turn_npc_or_monster,
     no_enemies_remaining,
 )
@@ -27,7 +26,6 @@ __all__ = [
     "combat_just_started",
     "combat_loop_should_continue",
     "has_npc_targets",
-    "is_current_turn_ally",
     "is_current_turn_npc_or_monster",
     "no_enemies_remaining",
     "LoopStep",

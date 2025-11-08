@@ -344,3 +344,29 @@ class IToolSuggestionService(ABC):
             ToolSuggestions object with filtered and ranked suggestions
         """
         pass
+
+
+class IAllyActionService(ABC):
+    """Interface for generating ally NPC actions and suggestions.
+
+    This service handles ally NPC combat suggestions and can be extended for
+    narrative-mode ally dialogue, proactive suggestions, and other ally interactions.
+    """
+
+    @abstractmethod
+    async def generate_combat_suggestion(self, game_state: GameState) -> None:
+        """Generate and broadcast a combat suggestion for the current ally NPC turn.
+
+        This method:
+        1. Validates combat is active and current turn is an ally NPC
+        2. Gets the NPC agent instance
+        3. Generates a suggestion prompt via the NPC agent
+        4. Broadcasts the suggestion via SSE for player approval
+
+        Args:
+            game_state: Current game state with active combat
+
+        Raises:
+            ValueError: If combat is not active, no current turn, or turn is not an ally NPC
+        """
+        pass

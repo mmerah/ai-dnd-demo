@@ -19,9 +19,6 @@ from app.services.ai.orchestration.steps.enrich_suggestions import (
 from app.services.ai.orchestration.steps.execute_agent import ExecuteAgent
 from app.services.ai.orchestration.steps.execute_combat_agent import ExecuteCombatAgent
 from app.services.ai.orchestration.steps.execute_npc_dialogue import ExecuteNpcDialogue
-from app.services.ai.orchestration.steps.generate_ally_suggestion import (
-    GenerateAllySuggestion,
-)
 from app.services.ai.orchestration.steps.generate_combat_prompt import (
     GenerateCombatPrompt,
 )
@@ -51,7 +48,6 @@ __all__ = [
     "ExecuteAgent",
     "ExecuteCombatAgent",
     "ExecuteNpcDialogue",
-    "GenerateAllySuggestion",
     "GenerateCombatPrompt",
     "GenerateInitialCombatPrompt",
     "ReloadState",

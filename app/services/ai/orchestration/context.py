@@ -15,9 +15,6 @@ class OrchestrationFlags:
     combat_was_active: bool = False
     """Whether combat was active at the start of orchestration."""
 
-    is_ally_turn: bool = False
-    """Whether current turn is an allied NPC (for ally action wrapping)."""
-
     npc_targets: list[str] = field(default_factory=list)
     """List of NPC IDs targeted in the user message (e.g., @npc_name)."""
 

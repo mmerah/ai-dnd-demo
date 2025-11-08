@@ -4,11 +4,12 @@
 - Review frontend for "workability", no method with more than 100 lines, core behavior unit tested, no file with more than 500 lines
 - Review frontend for "style": macos, minimal, modern, D&D/fantasy styling. More unified throughout the frontend (right now is inconsistent)
 - Delete any unused .md, make sure frontend/README.md is good, link it to its own CLAUDE.md. Delete old frontend. Update main CLAUDE.md
-- Ally action, frontend is not "busy" (thus player feels like it can send stuff)
 - Put model in the .json configs instead of .env ?
 - Agents in combat are very unreliable. Feels like tool calling might not be it for such a system. Structured output might be the only way ? But replicating all that we have available in tools seems huge but it would be interesting to tests. Alternative would be separate a tool-calling agent. Agent only generate a narrative + description of what it wants to do in D&D terms (roll dice -> apply dmg, validate a quest, ...) and the ToolCallAgent generate the tool calls for that ?
 - Integrate claude skills superpowers (the one with a bunch of dev-stuff). Look through what others are using.
-- Encounters not clearing/completing after end_combat ? Thus no memory entry for it ?
+- Encounters not clearing/completing after end_combat ? Thus no memory entry for it ? Or does it ?
+- Empty narratives during combat (or generally ?): Re-prompt with continue what you were doing ?
+- end_combat -> sometimes called without update_hp before thus we should "kill" all enemies ?
 
 # MVP 2
 
@@ -21,6 +22,7 @@ Refine functionality of MVP 1. Integrate the multi-agent system and the dynamic 
 2. Right panel: Party status, character details. Combat status
 3. Frontend: ASCII map of the location and connection ? (frontend)
 4. Frontend: More types in the catalog browser
+5. Send button is initially greyed out
 
 ### Backend
 1. Creator Agents: CharacterCreator and ScenarioCreator. Character is easy, needs 1 tool to populate a CharacterSheet, would just need to pose a series of questions and have all possibilities of races/subraces/classes/subclasses/spells/... in its system prompt. At the end it would call the tool. Scenario is more complicated, it requires creating monsters, npcs, quests, items, locations and fill it all out correctly
