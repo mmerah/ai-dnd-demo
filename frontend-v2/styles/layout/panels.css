@@ -1,0 +1,99 @@
+/* AI D&D Frontend v2.0 - Panel Layout */
+/* Base panel styles with macOS-inspired translucency and D&D theming */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
+  background: linear-gradient(
+    135deg,
+    var(--color-bg-glass),
+    rgba(24, 22, 26, 0.88)
+  );
+  backdrop-filter: var(--backdrop-blur-md) var(--backdrop-saturate);
+  overflow: hidden;
+  box-shadow: var(--shadow-panel);
+}
+
+.panel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.06),
+    transparent
+  );
+  pointer-events: none;
+}
+
+.panel:last-child {
+  border-right: none;
+}
+
+.panel--left {
+  flex: 0 0 25%;
+  min-width: 250px;
+}
+
+.panel--center {
+  flex: 1;
+  min-width: 400px;
+}
+
+.panel--right {
+  flex: 0 0 25%;
+  min-width: 250px;
+}
+
+/* Panel Headers */
+.panel__header {
+  padding: var(--spacing-4) var(--spacing-5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(
+    180deg,
+    rgba(49, 46, 56, 0.4),
+    rgba(36, 34, 42, 0.2)
+  );
+  backdrop-filter: var(--backdrop-blur-sm);
+  flex-shrink: 0;
+  box-shadow:
+    0 1px 0 0 rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.03);
+}
+
+.panel__title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  letter-spacing: var(--letter-spacing-wide);
+  line-height: var(--line-height-tight);
+}
+
+/* Panel Content */
+.panel__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--spacing-4);
+}
+
+/* Panel Footer */
+.panel__footer {
+  padding: var(--spacing-4) var(--spacing-5);
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(
+    0deg,
+    rgba(49, 46, 56, 0.4),
+    rgba(36, 34, 42, 0.2)
+  );
+  backdrop-filter: var(--backdrop-blur-sm);
+  flex-shrink: 0;
+  box-shadow:
+    0 -1px 0 0 rgba(255, 255, 255, 0.04),
+    inset 0 -1px 0 0 rgba(255, 255, 255, 0.03);
+}

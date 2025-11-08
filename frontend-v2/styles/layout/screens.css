@@ -1,0 +1,66 @@
+/* AI D&D Frontend v2.0 - Screen Layouts */
+/* Top-level screen container styles */
+
+/* App Root */
+#app {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Screen Wrapper */
+.screen {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Full-screen centered content (for loading, errors, etc.) */
+.screen--centered {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-bg-primary);
+}
+
+/* Screen with header */
+.screen--with-header {
+  display: flex;
+  flex-direction: column;
+}
+
+.screen__header {
+  flex-shrink: 0;
+}
+
+.screen__content {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Loading Screen */
+.loading-screen {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: var(--color-bg-primary);
+}
+
+/* Error Screen */
+.error-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: var(--spacing-8);
+  text-align: center;
+  background-color: var(--color-bg-primary);
+}

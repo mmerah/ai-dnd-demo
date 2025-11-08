@@ -1,0 +1,79 @@
+/* ==================== Character Card ==================== */
+.character-card {
+    padding: var(--spacing-lg);
+    border-radius: 8px;
+    background-color: var(--color-bg-secondary);
+    border: 2px solid var(--color-border);
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.character-card:hover {
+    border-color: var(--color-accent);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.character-card--selected {
+    border-color: var(--color-accent);
+    background-color: #2a3a4a;
+}
+
+.character-card__indicator {
+    position: absolute;
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background-color: var(--color-accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.character-card__portrait {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background-color: var(--color-accent);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0 auto var(--spacing-md);
+}
+
+.character-card__info {
+    text-align: center;
+}
+
+.character-card__name {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.character-card__race-class {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.character-card__level {
+    font-size: 14px;
+    color: var(--color-accent);
+}
+
+.character-card__background {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    font-style: italic;
+    margin-bottom: var(--spacing-xs);
+}

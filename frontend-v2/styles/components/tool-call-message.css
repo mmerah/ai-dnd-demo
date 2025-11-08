@@ -1,0 +1,77 @@
+/* ==================== Tool Call Message ==================== */
+.tool-call-message {
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+    border-radius: 6px;
+    background-color: #1a2a3a;
+    border: 1px solid #2a4a6a;
+}
+
+.tool-call-message__header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.tool-call-message__badge {
+    font-size: 18px;
+}
+
+.tool-call-message__tool-name {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-accent);
+}
+
+.tool-call-message__timestamp {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+}
+
+.tool-call-message__section {
+    margin-bottom: var(--spacing-sm);
+}
+
+.tool-call-message__section-header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs);
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.tool-call-message__section-header:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.tool-call-message__arrow {
+    font-size: 10px;
+    color: var(--color-text-secondary);
+}
+
+.tool-call-message__section-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.tool-call-message__section-content {
+    margin-top: var(--spacing-xs);
+}
+
+.tool-call-message__code-block {
+    padding: var(--spacing-sm);
+    border-radius: 4px;
+    background-color: var(--color-bg-primary);
+    border: 1px solid var(--color-border);
+    overflow-x: auto;
+}
+
+.tool-call-message__code-block code {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    color: #8be9fd;
+}

@@ -1,0 +1,62 @@
+/* ==================== Chat Panel ==================== */
+.chat-panel {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.chat-panel__header {
+    padding: var(--spacing-4) var(--spacing-5);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    background: linear-gradient(
+        180deg,
+        rgba(49, 46, 56, 0.3),
+        rgba(36, 34, 42, 0.1)
+    );
+    backdrop-filter: blur(8px);
+}
+
+.chat-panel__title {
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    letter-spacing: var(--letter-spacing-wide);
+}
+
+.chat-panel__messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-4);
+}
+
+/* Subtle scroll fade effect */
+.chat-panel__messages::before {
+    content: '';
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 16px;
+    background: linear-gradient(
+        180deg,
+        var(--color-bg-translucent),
+        transparent
+    );
+    pointer-events: none;
+    z-index: 1;
+    margin-bottom: -16px;
+}
+
+.chat-panel__input {
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    background: linear-gradient(
+        0deg,
+        rgba(49, 46, 56, 0.3),
+        rgba(36, 34, 42, 0.1)
+    );
+    backdrop-filter: blur(8px);
+}

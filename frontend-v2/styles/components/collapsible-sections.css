@@ -1,0 +1,80 @@
+/* ==================== Collapsible Sections ==================== */
+.collapsible {
+    margin-bottom: var(--spacing-md);
+}
+
+.collapsible-header {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+    color: var(--color-text-secondary);
+    transition: color 0.2s ease;
+}
+
+.collapsible-header:hover {
+    color: var(--color-text-primary);
+}
+
+.collapsible-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.toggle {
+    font-size: 12px;
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+.collapsible.collapsed .toggle {
+    transform: rotate(-90deg);
+}
+
+.collapsible.collapsed .collapsible-content {
+    display: none;
+}
+
+.collapsible-content {
+    margin-top: var(--spacing-sm);
+    display: block;
+}
+
+/* Attacks Section */
+.attacks-section__content {
+    /* Content wrapper for attacks */
+}
+
+.attacks-section__empty {
+    color: var(--text-secondary);
+    font-style: italic;
+    padding: var(--spacing-sm) 0;
+}
+
+.attacks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.attack-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--background-light);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 0.5rem 0.75rem;
+}
+
+.attack-name {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+.attack-meta {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}

@@ -1,0 +1,46 @@
+/* ==================== Loading Indicator ==================== */
+.loading-indicator {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md);
+    background-color: var(--color-bg-tertiary);
+    border-radius: 8px;
+}
+
+.loading-indicator__spinner {
+    display: flex;
+    gap: 4px;
+}
+
+.loading-indicator__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--color-accent);
+    animation: pulse 1.4s infinite ease-in-out;
+}
+
+.loading-indicator__dot:nth-child(1) {
+    animation-delay: -0.32s;
+}
+
+.loading-indicator__dot:nth-child(2) {
+    animation-delay: -0.16s;
+}
+
+@keyframes pulse {
+    0%, 80%, 100% {
+        opacity: 0.3;
+        transform: scale(0.8);
+    }
+    40% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.loading-indicator__text {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}

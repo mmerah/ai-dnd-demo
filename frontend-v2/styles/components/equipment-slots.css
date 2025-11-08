@@ -1,0 +1,76 @@
+/* ==================== Equipment Slots ==================== */
+.equipment-slots {
+    margin-bottom: var(--spacing-lg);
+}
+
+.equipment-slots__header {
+    font-size: 16px;
+    font-weight: bold;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-md);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.equipment-slots-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.equipment-slot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm);
+    background-color: var(--color-bg-tertiary);
+    border-radius: 4px;
+}
+
+.equipment-slot__label {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+}
+
+.equipment-slot__value {
+    font-size: 13px;
+    color: var(--color-text-primary);
+    font-weight: bold;
+}
+
+.equipment-slot__value--empty {
+    color: var(--color-text-secondary);
+    font-style: italic;
+    font-weight: normal;
+}
+
+.equipment-slot__value-container {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.equipment-slot__unequip-btn {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background-color: var(--color-danger);
+    color: var(--color-text-primary);
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.equipment-slot__unequip-btn:hover {
+    background-color: var(--color-danger-hover);
+}
+
+.equipment-slot__unequip-btn:active {
+    transform: scale(0.95);
+}

@@ -1,0 +1,196 @@
+/* ==================== Chronicle Entry ==================== */
+.chronicle-entry {
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+    border-radius: 6px;
+    background-color: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+}
+
+.chronicle-entry--pinned {
+    border-color: var(--color-accent);
+    background-color: rgba(74, 158, 255, 0.05);
+}
+
+.chronicle-entry__header {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+/* Type badges */
+.chronicle-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.chronicle-badge-world {
+    background-color: rgba(138, 43, 226, 0.2);
+    color: #ba87ff;
+}
+
+.chronicle-badge-location {
+    background-color: rgba(74, 158, 255, 0.2);
+    color: #4a9eff;
+}
+
+.chronicle-badge-npc {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+}
+
+.chronicle-badge-player {
+    background-color: rgba(76, 175, 80, 0.2);
+    color: #4caf50;
+}
+
+.chronicle-entry__timestamp {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+}
+
+/* Action buttons */
+.chronicle-pin-btn,
+.chronicle-edit-btn {
+    padding: 2px 8px;
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    cursor: pointer;
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-secondary);
+    transition: all 0.2s;
+}
+
+.chronicle-pin-btn:hover,
+.chronicle-edit-btn:hover {
+    background-color: var(--color-border);
+}
+
+.chronicle-pin-btn.pinned {
+    background-color: rgba(74, 158, 255, 0.2);
+    color: var(--color-accent);
+}
+
+.chronicle-entry__content {
+    color: var(--color-text-primary);
+    line-height: 1.5;
+    margin-bottom: var(--spacing-sm);
+}
+
+.chronicle-entry__tags {
+    display: flex;
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+}
+
+.chronicle-tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-secondary);
+}
+
+.chronicle-entry__category {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: var(--spacing-xs);
+}
+
+.chronicle-entry__category--event {
+    background-color: #1a3a4d;
+    color: var(--color-accent);
+}
+
+.chronicle-entry__category--npc {
+    background-color: #4d1a3a;
+    color: #ff6bbd;
+}
+
+.chronicle-entry__category--location {
+    background-color: #1a4d1a;
+    color: var(--color-success);
+}
+
+.chronicle-entry__category--quest {
+    background-color: #4d3a1a;
+    color: var(--color-warning);
+}
+
+.chronicle-entry__category--item {
+    background-color: #3a1a4d;
+    color: #b58bff;
+}
+
+.chronicle-entry__title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.chronicle-entry__content {
+    font-size: 14px;
+    color: var(--color-text-secondary);
+    line-height: 1.5;
+    margin-bottom: var(--spacing-sm);
+}
+
+.chronicle-entry__metadata {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+    margin-bottom: var(--spacing-sm);
+}
+
+.chronicle-entry__location,
+.chronicle-entry__timestamp {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+}
+
+.chronicle-entry__actions {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.chronicle-entry__button {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: none;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.chronicle-entry__button--edit {
+    background-color: var(--color-accent);
+    color: white;
+}
+
+.chronicle-entry__button--edit:hover {
+    background-color: #3a8eef;
+}
+
+.chronicle-entry__button--delete {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-danger);
+    border: 1px solid var(--color-danger);
+}
+
+.chronicle-entry__button--delete:hover {
+    background-color: #3a1e1e;
+}

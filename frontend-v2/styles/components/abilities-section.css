@@ -1,0 +1,72 @@
+/* ==================== Abilities Section ==================== */
+.abilities-section {
+    margin-bottom: var(--spacing-lg);
+}
+
+.abilities-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
+}
+
+.ability-card {
+    background-color: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: var(--spacing-md);
+    text-align: center;
+}
+
+.ability-card__label {
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--spacing-xs);
+}
+
+.ability-card__score {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.ability-card__modifier {
+    font-size: 16px;
+    color: var(--color-accent);
+    margin-bottom: var(--spacing-sm);
+}
+
+.ability-card__saving-throw {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    padding-top: var(--spacing-sm);
+    border-top: 1px solid var(--color-border);
+}
+
+.ability-card__proficiency {
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--color-border);
+    border-radius: 50%;
+}
+
+.ability-card__proficiency--active {
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+}
+
+.ability-card__saving-throw-label {
+    color: var(--color-text-secondary);
+}
+
+.ability-card__saving-throw-value {
+    font-weight: bold;
+    color: var(--color-text-primary);
+}

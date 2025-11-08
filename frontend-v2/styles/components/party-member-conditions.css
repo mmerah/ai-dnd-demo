@@ -1,0 +1,17 @@
+/* ==================== Party Member Conditions ==================== */
+.party-member-card__conditions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-sm);
+}
+
+.party-member-card__condition-badge {
+    padding: 2px var(--spacing-xs);
+    background-color: var(--color-warning);
+    color: #1a1a1a;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: capitalize;
+}

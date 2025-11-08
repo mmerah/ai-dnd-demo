@@ -1,0 +1,18 @@
+/* ==================== Stat Item ==================== */
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.stat-item__label {
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+}
+
+.stat-item__value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}

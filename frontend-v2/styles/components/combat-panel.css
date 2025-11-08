@@ -1,0 +1,121 @@
+/* ==================== Combat Panel ==================== */
+.combat-panel {
+    background: var(--color-bg-secondary);
+    border: 2px solid var(--color-danger);
+    border-radius: 4px;
+    padding: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.combat-panel__header {
+    margin-bottom: var(--spacing-md);
+}
+
+.combat-panel__title {
+    color: var(--color-danger);
+    font-size: 16px;
+    font-weight: bold;
+    margin: 0;
+}
+
+.combat-panel__info {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.combat-panel__combat-header {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.combat-panel__round,
+.combat-panel__turn {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.combat-panel__label {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+}
+
+.combat-panel__value {
+    color: var(--color-accent);
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.combat-panel__turn-order {
+    margin-top: var(--spacing-sm);
+}
+
+.combat-panel__turn-order-title {
+    color: var(--color-accent);
+    font-size: 14px;
+    font-weight: bold;
+    margin: 0 0 var(--spacing-sm) 0;
+}
+
+.combat-panel__turn-order-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.combat-panel__participant {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: var(--color-bg-tertiary);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.combat-panel__participant--current {
+    background: rgba(74, 158, 255, 0.15);
+    border-color: var(--color-accent);
+    box-shadow: 0 0 5px rgba(74, 158, 255, 0.3);
+}
+
+.combat-panel__turn-arrow {
+    color: var(--color-accent);
+    font-weight: bold;
+    min-width: 1.5rem;
+    text-align: center;
+}
+
+.combat-panel__initiative {
+    background: var(--color-bg-primary);
+    color: var(--color-accent);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: 3px;
+    font-weight: bold;
+    min-width: 2rem;
+    text-align: center;
+    font-size: 13px;
+}
+
+.combat-panel__participant-name {
+    flex: 1;
+    color: var(--color-text-primary);
+    font-size: 14px;
+}
+
+.combat-panel__participant-hp {
+    color: var(--color-text-secondary);
+    font-size: 13px;
+    margin-left: var(--spacing-sm);
+}
+
+.combat-panel__no-participants {
+    color: var(--color-text-secondary);
+    text-align: center;
+    padding: var(--spacing-md);
+    font-style: italic;
+}

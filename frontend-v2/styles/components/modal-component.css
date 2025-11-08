@@ -1,0 +1,187 @@
+/* ==================== Modal Component ==================== */
+/* macOS-style modal with backdrop blur and smooth animations */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(12, 10, 15, 0.8);
+  backdrop-filter: var(--backdrop-blur-lg) var(--backdrop-saturate);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: var(--z-modal-backdrop);
+  opacity: 0;
+  transition: opacity var(--duration-slow) var(--ease-out);
+}
+
+.modal-overlay--visible {
+  opacity: 1;
+}
+
+.modal {
+  background: linear-gradient(
+    135deg,
+    rgba(49, 46, 56, 0.98),
+    rgba(36, 34, 42, 0.98)
+  );
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-panel-elevated);
+  min-width: 400px;
+  max-width: 600px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transform: scale(0.92) translateY(-32px);
+  opacity: 0;
+  transition:
+    transform var(--duration-slow) var(--ease-out),
+    opacity var(--duration-slow) var(--ease-out);
+}
+
+.modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  pointer-events: none;
+}
+
+.modal--visible {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.modal__header {
+    padding: var(--spacing-6);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(
+        180deg,
+        rgba(49, 46, 56, 0.3),
+        transparent
+    );
+}
+
+.modal__title {
+    margin: 0;
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-primary);
+    letter-spacing: var(--letter-spacing-wide);
+}
+
+.modal__body {
+    padding: var(--spacing-6);
+    overflow-y: auto;
+    flex: 1;
+}
+
+.modal__message {
+    margin: 0;
+    color: var(--color-text-primary);
+    line-height: var(--line-height-relaxed);
+    font-size: var(--font-size-base);
+}
+
+.modal__footer {
+    padding: var(--spacing-4) var(--spacing-6);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(
+        0deg,
+        rgba(49, 46, 56, 0.3),
+        transparent
+    );
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--spacing-3);
+}
+
+.modal__button {
+    padding: var(--spacing-2) var(--spacing-5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-lg);
+    background: rgba(68, 64, 60, 0.6);
+    backdrop-filter: blur(8px);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    letter-spacing: var(--letter-spacing-wide);
+    cursor: pointer;
+    transition:
+        transform var(--duration-fast) var(--ease-out),
+        background var(--duration-base) var(--ease-out),
+        border-color var(--duration-base) var(--ease-out),
+        box-shadow var(--duration-base) var(--ease-out);
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.modal__button:hover {
+    background: rgba(87, 83, 78, 0.7);
+    border-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-1px);
+    box-shadow:
+        0 3px 8px rgba(0, 0, 0, 0.25),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.modal__button--primary {
+    background: linear-gradient(
+        135deg,
+        var(--color-arcane-600),
+        var(--color-arcane-700)
+    );
+    border-color: rgba(157, 143, 232, 0.2);
+    color: #ffffff;
+}
+
+.modal__button--primary:hover {
+    background: linear-gradient(
+        135deg,
+        var(--color-arcane-500),
+        var(--color-arcane-600)
+    );
+    border-color: rgba(157, 143, 232, 0.3);
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.25),
+        var(--shadow-glow-arcane),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.modal__button--danger {
+    background: linear-gradient(
+        135deg,
+        var(--color-ember-500),
+        var(--color-ember-600)
+    );
+    border-color: rgba(245, 185, 145, 0.2);
+    color: #ffffff;
+}
+
+.modal__button--danger:hover {
+    background: linear-gradient(
+        135deg,
+        var(--color-ember-400),
+        var(--color-ember-500)
+    );
+    border-color: rgba(245, 185, 145, 0.3);
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.25),
+        var(--shadow-glow-ember),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}

@@ -1,0 +1,274 @@
+/* AI D&D Frontend v2.0 - Design Tokens */
+/* Comprehensive design system combining macOS aesthetics with D&D fantasy theming */
+
+:root {
+  /* ==================== Color Palette - D&D Fantasy Theme ==================== */
+
+  /* Parchment Tones (warm, aged paper aesthetic) */
+  --color-parchment-50: #fdfbf7;
+  --color-parchment-100: #f5f0e8;
+  --color-parchment-200: #ebe3d5;
+  --color-parchment-300: #ddd1bc;
+  --color-parchment-400: #c9b99a;
+  --color-parchment-500: #b5a179;
+  --color-parchment-600: #8f7d5a;
+  --color-parchment-700: #6a5c42;
+  --color-parchment-800: #4a402e;
+  --color-parchment-900: #2a2520;
+
+  /* Stone Tones (medieval castle, neutral grays) */
+  --color-stone-50: #fafaf9;
+  --color-stone-100: #f5f5f4;
+  --color-stone-200: #e7e5e4;
+  --color-stone-300: #d6d3d1;
+  --color-stone-400: #a8a29e;
+  --color-stone-500: #78716c;
+  --color-stone-600: #57534e;
+  --color-stone-700: #44403c;
+  --color-stone-800: #292524;
+  --color-stone-900: #1c1917;
+
+  /* Ember Tones (fire, danger, combat) - Warm, refined amber/ember */
+  --color-ember-300: #f5b991;
+  --color-ember-400: #e89866;
+  --color-ember-500: #d97645;
+  --color-ember-600: #c25e2e;
+  --color-ember-700: #a14722;
+
+  /* Arcane Tones (magic, mystical, primary accent) - Deep, sophisticated purples */
+  --color-arcane-300: #9d8fe8;
+  --color-arcane-400: #7c6fd4;
+  --color-arcane-500: #6558c3;
+  --color-arcane-600: #5447a8;
+  --color-arcane-700: #43368d;
+
+  /* Nature Tones (healing, success, life) */
+  --color-nature-300: #86efac;
+  --color-nature-400: #4ade80;
+  --color-nature-500: #22c55e;
+  --color-nature-600: #16a34a;
+  --color-nature-700: #15803d;
+
+  /* Gold Tones (treasure, important actions) */
+  --color-gold-300: #fde047;
+  --color-gold-400: #facc15;
+  --color-gold-500: #eab308;
+  --color-gold-600: #ca8a04;
+  --color-gold-700: #a16207;
+
+  /* ==================== Semantic Colors ==================== */
+
+  /* Backgrounds (dark theme with warm undertones) */
+  --color-bg-primary: #18161a;
+  --color-bg-secondary: #24222a;
+  --color-bg-tertiary: #312e38;
+  --color-bg-quaternary: #3d3a47;
+  --color-bg-overlay: rgba(12, 10, 15, 0.75);
+  --color-bg-translucent: rgba(36, 34, 42, 0.92);
+  --color-bg-glass: rgba(49, 46, 56, 0.65);
+
+  /* Text Colors */
+  --color-text-primary: #e0e0e0;
+  --color-text-secondary: #b0b0b0;
+  --color-text-tertiary: #808080;
+  --color-text-muted: #94a3b8;
+  --color-text-inverse: #1a1a1a;
+
+  /* Border Colors */
+  --color-border: #404040;
+  --color-border-light: #505050;
+  --color-border-subtle: rgba(255, 255, 255, 0.08);
+  --color-border-focus: var(--color-arcane-400);
+
+  /* Surface Colors (panels, cards) */
+  --color-surface: var(--color-bg-secondary);
+  --color-surface-hover: var(--color-bg-tertiary);
+  --color-surface-active: var(--color-bg-quaternary);
+
+  /* Semantic Intent Colors */
+  --color-accent: var(--color-arcane-400);
+  --color-accent-hover: var(--color-arcane-500);
+  --color-success: var(--color-nature-400);
+  --color-success-hover: var(--color-nature-500);
+  --color-warning: var(--color-gold-400);
+  --color-warning-hover: var(--color-gold-500);
+  --color-danger: var(--color-ember-500);
+  --color-danger-hover: var(--color-ember-600);
+
+  /* Component-Specific Colors */
+  --color-hp-bar: var(--color-ember-500);
+  --color-mp-bar: var(--color-arcane-400);
+  --color-xp-bar: var(--color-gold-400);
+
+  /* ==================== Spacing Scale (4px base grid) ==================== */
+
+  --spacing-0: 0;
+  --spacing-1: 0.25rem;   /* 4px */
+  --spacing-2: 0.5rem;    /* 8px */
+  --spacing-3: 0.75rem;   /* 12px */
+  --spacing-4: 1rem;      /* 16px */
+  --spacing-5: 1.25rem;   /* 20px */
+  --spacing-6: 1.5rem;    /* 24px */
+  --spacing-7: 1.75rem;   /* 28px */
+  --spacing-8: 2rem;      /* 32px */
+  --spacing-9: 2.25rem;   /* 36px */
+  --spacing-10: 2.5rem;   /* 40px */
+  --spacing-12: 3rem;     /* 48px */
+  --spacing-16: 4rem;     /* 64px */
+
+  /* Legacy spacing (for backwards compatibility - will be removed) */
+  --spacing-xs: var(--spacing-1);
+  --spacing-sm: var(--spacing-2);
+  --spacing-md: var(--spacing-4);
+  --spacing-lg: var(--spacing-6);
+  --spacing-xl: var(--spacing-8);
+
+  /* ==================== Typography Scale ==================== */
+
+  /* Font Families */
+  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-family-display: 'Cinzel', 'Times New Roman', serif; /* D&D flavor for headings */
+  --font-family-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', 'Courier New', monospace;
+
+  /* Font Sizes */
+  --font-size-xs: 0.75rem;    /* 12px */
+  --font-size-sm: 0.875rem;   /* 14px */
+  --font-size-base: 1rem;     /* 16px */
+  --font-size-lg: 1.125rem;   /* 18px */
+  --font-size-xl: 1.25rem;    /* 20px */
+  --font-size-2xl: 1.5rem;    /* 24px */
+  --font-size-3xl: 1.875rem;  /* 30px */
+  --font-size-4xl: 2.25rem;   /* 36px */
+
+  /* Font Weights */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+
+  /* Line Heights */
+  --line-height-none: 1;
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+
+  /* Letter Spacing */
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+
+  /* ==================== Border Radius (subtle macOS-style rounding) ==================== */
+
+  --radius-none: 0;
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-md: 0.375rem;  /* 6px */
+  --radius-lg: 0.5rem;    /* 8px */
+  --radius-xl: 0.75rem;   /* 12px */
+  --radius-2xl: 1rem;     /* 16px */
+  --radius-full: 9999px;  /* Circular */
+
+  /* ==================== Shadows (layered depth, macOS-inspired) ==================== */
+
+  /* Elevation Shadows */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+
+  /* Inner Shadows (inset depth) */
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  --shadow-inner-md: inset 0 2px 8px 0 rgba(0, 0, 0, 0.1);
+
+  /* Glow Effects (subtle, atmospheric) */
+  --shadow-glow-arcane: 0 0 24px rgba(101, 88, 195, 0.2), 0 0 12px rgba(101, 88, 195, 0.15);
+  --shadow-glow-arcane-strong: 0 0 32px rgba(101, 88, 195, 0.3), 0 0 16px rgba(101, 88, 195, 0.2);
+  --shadow-glow-ember: 0 0 24px rgba(217, 118, 69, 0.2), 0 0 12px rgba(217, 118, 69, 0.15);
+  --shadow-glow-nature: 0 0 24px rgba(74, 222, 128, 0.2), 0 0 12px rgba(74, 222, 128, 0.15);
+
+  /* Panel Shadows (multi-layer macOS-style depth) */
+  --shadow-panel:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02);
+
+  /* Elevated Panel Shadow (for modals, popovers) */
+  --shadow-panel-elevated:
+    0 16px 48px rgba(0, 0, 0, 0.5),
+    0 8px 16px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  /* ==================== Z-Index Scale ==================== */
+
+  --z-base: 0;
+  --z-dropdown: 1000;
+  --z-sticky: 1100;
+  --z-fixed: 1200;
+  --z-modal-backdrop: 1300;
+  --z-modal: 1400;
+  --z-popover: 1500;
+  --z-tooltip: 1600;
+  --z-toast: 2000;
+
+  /* ==================== Transitions & Animations ==================== */
+
+  /* Durations */
+  --duration-instant: 75ms;
+  --duration-fast: 150ms;
+  --duration-base: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 500ms;
+
+  /* Easing Curves (macOS-style natural motion) */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  /* Combined Transitions (most common) */
+  --transition-base: all var(--duration-base) var(--ease-out);
+  --transition-fast: all var(--duration-fast) var(--ease-out);
+  --transition-color: color var(--duration-base) var(--ease-out),
+                      background-color var(--duration-base) var(--ease-out);
+
+  /* ==================== Backdrop Effects (macOS-style translucency) ==================== */
+
+  --backdrop-blur-sm: blur(4px);
+  --backdrop-blur-md: blur(12px);
+  --backdrop-blur-lg: blur(20px);
+  --backdrop-saturate: saturate(180%);
+
+  /* ==================== Breakpoints (for reference, not directly usable in CSS) ==================== */
+  /* Use with media queries: @media (min-width: 768px) { ... } */
+  /* --breakpoint-sm: 640px; */
+  /* --breakpoint-md: 768px; */
+  /* --breakpoint-lg: 1024px; */
+  /* --breakpoint-xl: 1280px; */
+  /* --breakpoint-2xl: 1536px; */
+}
+
+/* ==================== Light Theme (Future Support) ==================== */
+/* For when light mode is requested by user preference */
+@media (prefers-color-scheme: light) {
+  :root {
+    --color-bg-primary: var(--color-parchment-50);
+    --color-bg-secondary: var(--color-parchment-100);
+    --color-bg-tertiary: var(--color-parchment-200);
+    --color-bg-quaternary: var(--color-parchment-300);
+
+    --color-text-primary: var(--color-stone-900);
+    --color-text-secondary: var(--color-stone-700);
+    --color-text-tertiary: var(--color-stone-600);
+    --color-text-inverse: var(--color-parchment-50);
+
+    --color-border: var(--color-stone-300);
+    --color-border-light: var(--color-stone-200);
+  }
+}

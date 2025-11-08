@@ -1,0 +1,47 @@
+/* ==================== Chronicle Filters ==================== */
+.chronicle-filters {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.chronicle-filters__section {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.chronicle-filters__label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.chronicle-filters__select,
+.chronicle-filters__search-input {
+    padding: var(--spacing-xs);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    font-size: 13px;
+}
+
+.chronicle-filters__search-input {
+    width: 100%;
+}
+
+.chronicle-filters__clear-btn {
+    margin-top: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: none;
+    border-radius: 4px;
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.chronicle-filters__clear-btn:hover {
+    background-color: var(--color-border);
+}

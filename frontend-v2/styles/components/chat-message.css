@@ -1,0 +1,87 @@
+/* ==================== Chat Message ==================== */
+.chat-message {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2);
+    padding: var(--spacing-4);
+    border-radius: var(--radius-xl);
+    background: var(--color-bg-glass);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.03);
+    transition: all var(--duration-base) var(--ease-out);
+}
+
+.chat-message:hover {
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.chat-message--user {
+    background: linear-gradient(
+        135deg,
+        rgba(101, 88, 195, 0.15) 0%,
+        rgba(84, 71, 168, 0.12) 100%
+    );
+    border-color: rgba(157, 143, 232, 0.15);
+    align-self: flex-end;
+    max-width: 80%;
+}
+
+.chat-message--user:hover {
+    border-color: rgba(157, 143, 232, 0.25);
+    box-shadow:
+        0 4px 12px rgba(101, 88, 195, 0.15),
+        inset 0 1px 0 rgba(157, 143, 232, 0.1);
+}
+
+.chat-message--assistant {
+    background: var(--color-bg-glass);
+}
+
+.chat-message--system {
+    background: linear-gradient(
+        135deg,
+        rgba(181, 161, 121, 0.08) 0%,
+        rgba(143, 125, 90, 0.06) 100%
+    );
+    border-color: rgba(181, 161, 121, 0.12);
+    font-style: italic;
+}
+
+.chat-message__role {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-arcane-400);
+    text-transform: uppercase;
+    letter-spacing: var(--letter-spacing-wider);
+    opacity: 0.9;
+}
+
+.chat-message--user .chat-message__role {
+    color: var(--color-arcane-300);
+}
+
+.chat-message--system .chat-message__role {
+    color: var(--color-parchment-500);
+}
+
+.chat-message__content {
+    color: var(--color-text-primary);
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    line-height: var(--line-height-relaxed);
+    font-size: var(--font-size-sm);
+}
+
+.chat-message__timestamp {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-tertiary);
+    text-align: right;
+    opacity: 0.7;
+    font-variant-numeric: tabular-nums;
+}

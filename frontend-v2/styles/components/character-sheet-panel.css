@@ -1,0 +1,57 @@
+/* ==================== Character Sheet Panel ==================== */
+.character-sheet-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background-color: var(--color-bg-secondary);
+}
+
+.character-sheet-panel__header {
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border);
+    background-color: var(--color-bg-tertiary);
+}
+
+.character-sheet-panel__info {
+    margin-bottom: var(--spacing-md);
+}
+
+.character-sheet-panel__name {
+    font-size: 18px;
+    font-weight: bold;
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.character-sheet-panel__details {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    margin-bottom: var(--spacing-xs);
+}
+
+.character-sheet-panel__hp {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+}
+
+.character-sheet-panel__back-button {
+    width: 100%;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.character-sheet-panel__back-button:hover {
+    background-color: var(--color-bg-tertiary);
+}
+
+.character-sheet-panel__content {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--spacing-md);
+}

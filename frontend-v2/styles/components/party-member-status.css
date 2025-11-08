@@ -1,0 +1,40 @@
+/* ==================== Party Member Status ==================== */
+.party-member-card__status {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    margin-top: var(--spacing-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: 4px;
+    background-color: var(--color-bg-primary);
+}
+
+.party-member-card__status-icon {
+    font-size: 16px;
+    line-height: 1;
+}
+
+.party-member-card__status-text {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.party-member-card__status-icon--healthy {
+    /* Green circle emoji */
+}
+
+.party-member-card__status-icon--wounded {
+    /* Yellow circle emoji */
+}
+
+.party-member-card__status-icon--critical {
+    /* Red circle emoji */
+}
+
+.party-member-card__status-icon--unconscious {
+    /* Sleeping emoji */
+}
+
+.party-member-card__status-icon--dead {
+    /* Skull emoji */
+}

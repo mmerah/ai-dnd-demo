@@ -1,0 +1,49 @@
+/* ==================== Party Member Card ==================== */
+.party-member-card {
+    padding: var(--spacing-md);
+    border-radius: 8px;
+    background-color: var(--color-bg-tertiary);
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.party-member-card:hover {
+    border-color: var(--color-accent);
+}
+
+.party-member-card--selected {
+    border-color: var(--color-accent);
+    background-color: #2a3a4a;
+}
+
+.party-member-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-sm);
+}
+
+.party-member-card__name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.party-member-card__role {
+    font-size: 12px;
+    color: var(--color-text-secondary);
+    text-transform: uppercase;
+}
+
+.party-member-card__stats {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.party-member-card__stat-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-sm);
+}

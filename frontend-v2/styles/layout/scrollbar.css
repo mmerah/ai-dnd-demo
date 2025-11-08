@@ -1,0 +1,18 @@
+/* ==================== Scrollbar Styling ==================== */
+*::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+    background-color: var(--color-bg-primary);
+}
+
+*::-webkit-scrollbar-thumb {
+    background-color: var(--color-bg-tertiary);
+    border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-border);
+}

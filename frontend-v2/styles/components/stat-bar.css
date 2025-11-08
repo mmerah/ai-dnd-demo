@@ -1,0 +1,48 @@
+/* ==================== Stat Bar ==================== */
+.stat-bar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.stat-bar__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.stat-bar__label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+}
+
+.stat-bar__values {
+    font-size: 12px;
+    color: var(--color-text-primary);
+}
+
+.stat-bar__bar-container {
+    height: 6px;
+    background-color: var(--color-bg-primary);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.stat-bar__bar-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+    border-radius: 3px;
+}
+
+.stat-bar__bar-fill--high {
+    background-color: var(--color-success);
+}
+
+.stat-bar__bar-fill--medium {
+    background-color: var(--color-warning);
+}
+
+.stat-bar__bar-fill--low {
+    background-color: var(--color-danger);
+}
